@@ -2,6 +2,7 @@ import { GameConfig } from '../config.js';
 import { createFontConfig, waitForFont, PRESET_STYLES } from '../fontConfig.js';
 import { HighScoreManager } from '../managers/HighScoreManager.js';
 import { GlobalHighScoreManager } from '../managers/GlobalHighScoreManager.js';
+import { loadGameVersion, getCachedVersion } from '../utils/version.js';
 
 export class MainMenu extends Phaser.Scene {
     constructor() {
@@ -86,13 +87,19 @@ export class MainMenu extends Phaser.Scene {
             PRESET_STYLES.controls()
         ).setOrigin(0.5);
         
-        // Verze vlevo dole
-        this.add.text(
+        // Verze vlevo dole (dynamicky)
+        const versionText = this.add.text(
             20,
             this.cameras.main.height - 20,
-            'verze: 0.1.3',
+            `verze: ${getCachedVersion()}`,
             PRESET_STYLES.controls()
         ).setOrigin(0, 0.5);
+        // Asynchronně načíst skutečnou verzi z package.json a aktualizovat
+        loadGameVersion().then((ver) => {
+            if (versionText && versionText.setText) {
+                versionText.setText(`verze: ${ver}`);
+            }
+        }).catch(() => {/* no-op */});
         
         // E-mail vpravo dole
         this.add.text(
