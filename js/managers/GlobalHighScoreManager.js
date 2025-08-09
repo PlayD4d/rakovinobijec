@@ -88,11 +88,7 @@ export class GlobalHighScoreManager {
                     success: true,
                     record: {
                         scores: [
-                            { name: 'PlayD4d', score: 50000, level: 25, enemiesKilled: 500, time: 1200, bossesDefeated: 5, timestamp: Date.now() - 3600000 },
-                            { name: 'Marda', score: 35000, level: 20, enemiesKilled: 350, time: 900, bossesDefeated: 4, timestamp: Date.now() - 7200000 },
-                            { name: 'Bojovník', score: 28000, level: 18, enemiesKilled: 280, time: 800, bossesDefeated: 3, timestamp: Date.now() - 10800000 },
-                            { name: 'Survivor', score: 22000, level: 15, enemiesKilled: 220, time: 700, bossesDefeated: 3, timestamp: Date.now() - 14400000 },
-                            { name: 'Fighter', score: 18000, level: 12, enemiesKilled: 180, time: 600, bossesDefeated: 2, timestamp: Date.now() - 18000000 }
+                            // Defaultní prázdné záznamy stejně jako lokální verze
                         ]
                     }
                 });
@@ -160,15 +156,16 @@ export class GlobalHighScoreManager {
             .sort((a, b) => b.score - a.score)
             .slice(0, 10); // TOP 10
         
-        // Padding na 10 položek
+        // Padding na 10 položek - stejně jako lokální verze
         while (sortedScores.length < 10) {
             sortedScores.push({
-                name: 'PRÁZDNÉ',
+                name: 'PLAYD4D',
                 score: 0,
-                level: 1,
+                level: 0,
                 enemiesKilled: 0,
                 time: 0,
-                bossesDefeated: 0
+                bossesDefeated: 0,
+                date: '--.--.--'
             });
         }
         

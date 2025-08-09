@@ -406,11 +406,11 @@ export class MainMenu extends Phaser.Scene {
         ).setInteractive();
         elements.push(bg);
         
-        // Arkádový styl rámeček
+        // Arkádový styl rámeček - širší pro globální text
         const frame = this.add.rectangle(
             this.cameras.main.width / 2,
             this.cameras.main.height / 2,
-            600,
+            680,
             500,
             0x000033
         ).setStrokeStyle(3, 0x00ffff);
@@ -455,7 +455,9 @@ export class MainMenu extends Phaser.Scene {
             
             // Vykreslit 10 řádků
             for (let i = 0; i < 10; i++) {
-                const y = startY + (i * lineHeight);
+                // Přidat extra mezeru po 3. místě pro vizuální oddělení
+                const extraSpacing = i >= 3 ? 15 : 0;
+                const y = startY + (i * lineHeight) + extraSpacing;
                 const rank = (i + 1).toString().padStart(2, '0');
                 const entry = highScores[i] || { name: 'PRÁZDNÉ', score: 0 };
                 
@@ -464,36 +466,34 @@ export class MainMenu extends Phaser.Scene {
                 if (i === 0) color = '#ffdd00'; // Zlatá
                 else if (i === 1) color = '#c0c0c0'; // Stříbrná
                 else if (i === 2) color = '#cd7f32'; // Bronzová
-                else if (entry.score === 0) color = '#666666'; // Šedá pro defaulty
+                else if (i >= 3) color = '#aaaaaa'; // Zešedlá barva pro pozice 4-10
+                else if (entry.score === 0) color = '#666666'; // Tmavě šedá pro defaulty
                 
-                // Pozice
+                // Pozice - posunuto pro širší okno
                 const rankText = this.add.text(
-                    this.cameras.main.width / 2 - 250,
+                    this.cameras.main.width / 2 - 290,
                     y,
                     `${rank}.`,
-                    PRESET_STYLES.buttonText()
+                    { ...PRESET_STYLES.buttonText(), color: color }
                 ).setOrigin(0, 0.5);
-                rankText.setTint(color === '#ffdd00' ? 0xffdd00 : color === '#c0c0c0' ? 0xc0c0c0 : color === '#cd7f32' ? 0xcd7f32 : 0xffffff);
                 elements.push(rankText);
                 
-                // Jméno
+                // Jméno - posunuto pro širší okno
                 const nameText = this.add.text(
-                    this.cameras.main.width / 2 - 180,
+                    this.cameras.main.width / 2 - 220,
                     y,
                     entry.name,
-                    PRESET_STYLES.buttonText()
+                    { ...PRESET_STYLES.buttonText(), color: color }
                 ).setOrigin(0, 0.5);
-                nameText.setTint(color === '#ffdd00' ? 0xffdd00 : color === '#c0c0c0' ? 0xc0c0c0 : color === '#cd7f32' ? 0xcd7f32 : 0xffffff);
                 elements.push(nameText);
                 
-                // Skóre (zarovnané doprava)
+                // Skóre (zarovnané doprava) - posunuto pro širší okno
                 const scoreText = this.add.text(
-                    this.cameras.main.width / 2 + 200,
+                    this.cameras.main.width / 2 + 280,
                     y,
                     entry.score.toString().padStart(8, '0'),
-                    PRESET_STYLES.buttonText()
+                    { ...PRESET_STYLES.buttonText(), color: color }
                 ).setOrigin(1, 0.5);
-                scoreText.setTint(color === '#ffdd00' ? 0xffdd00 : color === '#c0c0c0' ? 0xc0c0c0 : color === '#cd7f32' ? 0xcd7f32 : 0xffffff);
                 elements.push(scoreText);
             }
             
