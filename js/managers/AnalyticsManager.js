@@ -49,13 +49,29 @@ export class AnalyticsManager {
     
     // ===== SESSION TRACKING =====
     
-    startSession(playerName = null) {
+    async startSession(playerName = null) {
         if (!this.enabled) return;
         
         this.sessionData.player_name = playerName;
         this.sessionData.started_at = new Date().toISOString();
         
-        console.log('📊 Session started:', this.sessionId);
+        // Uložit session hned na začátku, aby existovala pro foreign keys
+        await this.uploadSessionData({
+            ...this.sessionData,
+            // Výchozí hodnoty pro povinné sloupce
+            final_score: 0,
+            final_level: 1,
+            total_damage_dealt: 0,
+            total_damage_taken: 0,
+            enemies_killed: 0,
+            bosses_defeated: [],
+            xp_collected: 0,
+            health_pickups: 0,
+            power_ups_collected: 0,
+            fps_average: 60
+        });
+        
+        console.log('📊 Session started and saved:', this.sessionId);
     }
     
     async endSession(gameStats) {
@@ -64,8 +80,7 @@ export class AnalyticsManager {
         const endTime = Date.now();
         const duration = Math.floor((endTime - this.sessionStartTime) / 1000);
         
-        const sessionEnd = {
-            ...this.sessionData,
+        const sessionUpdate = {
             ended_at: new Date().toISOString(),
             duration: duration,
             final_score: gameStats.score || 0,
@@ -73,14 +88,14 @@ export class AnalyticsManager {
             total_damage_dealt: gameStats.totalDamageDealt || 0,
             total_damage_taken: gameStats.totalDamageTaken || 0,
             enemies_killed: gameStats.enemiesKilled || 0,
-            bosses_defeated: gameStats.bossesDefeated || [],
+            bosses_defeated: gameStats.bossesDefeatedList || [],
             xp_collected: gameStats.xpCollected || 0,
             health_pickups: gameStats.healthPickups || 0,
             power_ups_collected: gameStats.powerUpsCollected || 0,
             fps_average: this.getAverageFPS()
         };
         
-        await this.uploadSessionData(sessionEnd);
+        await this.updateSessionData(sessionUpdate);
         console.log('📊 Session ended:', duration, 'seconds');
     }
     
@@ -365,6 +380,25 @@ export class AnalyticsManager {
             }
         } catch (error) {
             console.warn('❌ Failed to upload session data:', error.message);
+        }
+    }
+    
+    async updateSessionData(sessionUpdate) {
+        if (!this.enabled || !this.supabase) return;
+        
+        try {
+            const { error } = await this.supabase
+                .from('game_sessions')
+                .update(sessionUpdate)
+                .eq('session_id', this.sessionId);
+            
+            if (error) {
+                console.warn('❌ Failed to update session data:', error.message);
+            } else {
+                console.log('✅ Session data updated successfully');
+            }
+        } catch (error) {
+            console.warn('❌ Failed to update session data:', error.message);
         }
     }
     

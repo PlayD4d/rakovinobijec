@@ -81,7 +81,7 @@ export class GameScene extends Phaser.Scene {
         });
     }
     
-    create() {
+    async create() {
         // Font načítání se udělá synchronně - font je už načtený z MainMenu
         
         // Reset stavů pro restart
@@ -151,7 +151,7 @@ export class GameScene extends Phaser.Scene {
         
         // Dočasně přeskočit READY/FIGHT sekvenci pro debug
         // this.startReadyFightSequence();
-        this.startGame();
+        await this.startGame();
         
         // Resize event handling
         this.scale.on('resize', this.handleResize, this);
@@ -228,21 +228,21 @@ export class GameScene extends Phaser.Scene {
                     targets: fightText,
                     alpha: 0,
                     duration: 400,
-                    onComplete: () => {
+                    onComplete: async () => {
                         fightText.destroy();
-                        this.startGame();
+                        await this.startGame();
                     }
                 });
             });
         });
     }
     
-    startGame() {
+    async startGame() {
         // Spustit hru
         this.isPaused = false;
         
         // Spustit analytics session
-        this.analyticsManager.startSession();
+        await this.analyticsManager.startSession();
         
         // Motivační zpráva pro Mardu
         const motivationText = this.add.text(
