@@ -476,7 +476,10 @@ export class GameScene extends Phaser.Scene {
             this.audioManager.playSound('hit');
             
             if (this.player.hp <= 0) {
-                this.gameOver();
+                // Non-blocking call to gameOver - don't await in physics callback
+                this.gameOver().catch(error => {
+                    console.error('❌ Failed to handle game over:', error);
+                });
             }
         }
     }
@@ -501,7 +504,10 @@ export class GameScene extends Phaser.Scene {
             projectile.destroy();
             
             if (this.player.hp <= 0) {
-                this.gameOver();
+                // Non-blocking call to gameOver - don't await in physics callback
+                this.gameOver().catch(error => {
+                    console.error('❌ Failed to handle game over:', error);
+                });
             }
         }
     }
@@ -601,7 +607,15 @@ export class GameScene extends Phaser.Scene {
         return activePowerUps;
     }
     
-    gameOver() {
+    async gameOver() {
+        // Prevent multiple game over calls
+        if (this.isGameOver) {
+            console.log('🎮 Game Over already in progress - ignoring duplicate call');
+            return;
+        }
+        
+        console.log('🎮 Game Over triggered - starting cleanup...');
+        
         this.isGameOver = true;
         this.isPaused = true;
         
@@ -630,8 +644,13 @@ export class GameScene extends Phaser.Scene {
             }
         );
         
-        // End analytics session
-        this.analyticsManager.endSession(this.gameStats);
+        // End analytics session - AWAIT to ensure it completes!
+        try {
+            await this.analyticsManager.endSession(this.gameStats);
+            console.log('✅ Analytics session ended successfully');
+        } catch (error) {
+            console.error('❌ Failed to end analytics session:', error);
+        }
         
         // Přehrát zvuk smrti
         if (this.sound.get('playerDeath')) {

@@ -50,53 +50,80 @@ export class AnalyticsManager {
     // ===== SESSION TRACKING =====
     
     async startSession(playerName = null) {
-        if (!this.enabled) return;
+        if (!this.enabled) {
+            console.log('📊 Analytics disabled - session start skipped');
+            return;
+        }
+        
+        console.log('📊 Starting session:', this.sessionId, 'for player:', playerName || 'anonymous');
         
         this.sessionData.player_name = playerName;
         this.sessionData.started_at = new Date().toISOString();
         
-        // Uložit session hned na začátku, aby existovala pro foreign keys
-        await this.uploadSessionData({
-            ...this.sessionData,
-            // Výchozí hodnoty pro povinné sloupce
-            final_score: 0,
-            final_level: 1,
-            total_damage_dealt: 0,
-            total_damage_taken: 0,
-            enemies_killed: 0,
-            bosses_defeated: [],
-            xp_collected: 0,
-            health_pickups: 0,
-            power_ups_collected: 0,
-            fps_average: 60
-        });
-        
-        console.log('📊 Session started and saved:', this.sessionId);
+        try {
+            // Uložit session hned na začátku, aby existovala pro foreign keys
+            await this.uploadSessionData({
+                ...this.sessionData,
+                // Výchozí hodnoty pro povinné sloupce
+                final_score: 0,
+                final_level: 1,
+                total_damage_dealt: 0,
+                total_damage_taken: 0,
+                enemies_killed: 0,
+                bosses_defeated: [],
+                xp_collected: 0,
+                health_pickups: 0,
+                power_ups_collected: 0,
+                fps_average: 60
+            });
+            
+            console.log('✅ Session started and saved successfully:', this.sessionId);
+        } catch (error) {
+            console.error('❌ Failed to start session:', error);
+            throw error;
+        }
     }
     
     async endSession(gameStats) {
-        if (!this.enabled) return;
+        if (!this.enabled) {
+            console.log('📊 Analytics disabled - session end skipped');
+            return;
+        }
         
         const endTime = Date.now();
         const duration = Math.floor((endTime - this.sessionStartTime) / 1000);
         
+        console.log('📊 Ending session:', this.sessionId, 'after', duration, 'seconds');
+        console.log('📊 Final stats:', {
+            score: gameStats.score,
+            level: gameStats.level,
+            enemies: gameStats.enemiesKilled,
+            damage_dealt: gameStats.totalDamageDealt,
+            damage_taken: gameStats.totalDamageTaken
+        });
+        
         const sessionUpdate = {
             ended_at: new Date().toISOString(),
             duration: duration,
-            final_score: gameStats.score || 0,
-            final_level: gameStats.level || 1,
-            total_damage_dealt: gameStats.totalDamageDealt || 0,
-            total_damage_taken: gameStats.totalDamageTaken || 0,
-            enemies_killed: gameStats.enemiesKilled || 0,
+            final_score: Math.floor(Number(gameStats.score) || 0),
+            final_level: Math.floor(Number(gameStats.level) || 1),
+            total_damage_dealt: Math.floor(Number(gameStats.totalDamageDealt) || 0),
+            total_damage_taken: Math.floor(Number(gameStats.totalDamageTaken) || 0),
+            enemies_killed: Math.floor(Number(gameStats.enemiesKilled) || 0),
             bosses_defeated: gameStats.bossesDefeatedList || [],
-            xp_collected: gameStats.xpCollected || 0,
-            health_pickups: gameStats.healthPickups || 0,
-            power_ups_collected: gameStats.powerUpsCollected || 0,
+            xp_collected: Math.floor(Number(gameStats.xpCollected) || 0),
+            health_pickups: Math.floor(Number(gameStats.healthPickups) || 0),
+            power_ups_collected: Math.floor(Number(gameStats.powerUpsCollected) || 0),
             fps_average: this.getAverageFPS()
         };
         
-        await this.updateSessionData(sessionUpdate);
-        console.log('📊 Session ended:', duration, 'seconds');
+        try {
+            await this.updateSessionData(sessionUpdate);
+            console.log('✅ Session ended successfully:', this.sessionId, 'duration:', duration, 'seconds');
+        } catch (error) {
+            console.error('❌ Failed to end session:', this.sessionId, error);
+            throw error;
+        }
     }
     
     // ===== EVENT TRACKING =====
@@ -347,17 +374,23 @@ export class AnalyticsManager {
         // Upload each table's data
         for (const [table, events] of Object.entries(eventsByTable)) {
             try {
+                console.log(`📊 Uploading ${events.length} events to ${table}...`);
+                
                 const { error } = await this.supabase
                     .from(table)
                     .insert(events);
                 
                 if (error) {
                     console.warn(`❌ Failed to upload ${table}:`, error.message);
+                    console.warn('❌ Sample event data:', events[0]);
+                    // Don't throw - continue with other tables
                 } else {
-                    console.log(`✅ Uploaded ${events.length} ${table} events`);
+                    console.log(`✅ Uploaded ${events.length} ${table} events successfully`);
                 }
             } catch (error) {
-                console.warn(`❌ Failed to upload ${table}:`, error.message);
+                console.warn(`❌ Exception uploading ${table}:`, error.message);
+                console.warn('❌ Sample event data:', events[0]);
+                // Don't throw - continue with other tables
             }
         }
         
@@ -384,7 +417,12 @@ export class AnalyticsManager {
     }
     
     async updateSessionData(sessionUpdate) {
-        if (!this.enabled || !this.supabase) return;
+        if (!this.enabled || !this.supabase) {
+            console.log('📊 Analytics disabled or no Supabase - session update skipped');
+            return;
+        }
+        
+        console.log('📊 Updating session data for:', this.sessionId);
         
         try {
             const { error } = await this.supabase
@@ -393,12 +431,17 @@ export class AnalyticsManager {
                 .eq('session_id', this.sessionId);
             
             if (error) {
-                console.warn('❌ Failed to update session data:', error.message);
+                console.error('❌ Database error updating session:', error.message);
+                console.error('❌ Session ID:', this.sessionId);
+                console.error('❌ Update data:', sessionUpdate);
+                throw error;
             } else {
-                console.log('✅ Session data updated successfully');
+                console.log('✅ Session data updated successfully for:', this.sessionId);
             }
         } catch (error) {
-            console.warn('❌ Failed to update session data:', error.message);
+            console.error('❌ Exception updating session data:', error.message);
+            console.error('❌ Session ID:', this.sessionId);
+            throw error;
         }
     }
     
