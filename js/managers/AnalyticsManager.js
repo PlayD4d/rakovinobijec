@@ -160,7 +160,7 @@ export class AnalyticsManager {
     }
     
     // ===== EVENT TRACKING =====
-    // Sanitizace typů nepřátel pro omezenou délku DB sloupce (VARCHAR(20))
+    // Sanitizace typů nepřátel pro omezenou délku DB sloupce (VARCHAR(50))
     sanitizeEnemyType(rawType) {
         if (!rawType) return 'unknown';
         let t = String(rawType).toLowerCase();
@@ -179,8 +179,8 @@ export class AnalyticsManager {
         // Oříznout začátky/konce '-'
         t = t.replace(/^-+/, '').replace(/-+$/, '');
         if (!t || t === 'boss:') return 'unknown';
-        // Limit délky
-        if (t.length > 20) t = t.slice(0, 20);
+        // Limit délky (držet sync s DB)
+        if (t.length > 50) t = t.slice(0, 50);
         return t;
     }
     
