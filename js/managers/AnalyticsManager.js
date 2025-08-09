@@ -113,9 +113,9 @@ export class AnalyticsManager {
         this.queueEvent('enemy_stats', {
             session_id: this.sessionId,
             enemy_type: String(enemyType),
-            enemy_level: level || 1,
+            enemy_level: Math.floor(level || 1),
             killed_count: 1,
-            damage_taken_from_player: damage || 0
+            damage_taken_from_player: Math.floor(damage || 0)
         });
     }
     
@@ -131,7 +131,7 @@ export class AnalyticsManager {
         this.queueEvent('enemy_stats', {
             session_id: this.sessionId,
             enemy_type: String(enemyType),
-            enemy_level: level || 1,
+            enemy_level: Math.floor(level || 1),
             spawn_count: 1
         });
     }
@@ -160,8 +160,8 @@ export class AnalyticsManager {
         this.queueEvent('enemy_stats', {
             session_id: this.sessionId,
             enemy_type: String(sourceType),
-            enemy_level: sourceLevel || 1,
-            damage_dealt_to_player: amount || 0
+            enemy_level: Math.floor(sourceLevel || 1),
+            damage_dealt_to_player: Math.floor(amount || 0)
         });
     }
     
@@ -172,11 +172,11 @@ export class AnalyticsManager {
             this.queueEvent('powerup_events', {
                 session_id: this.sessionId,
                 event_type: 'offered',
-                powerup_name: powerup.name,
-                level_selected: level,
-                options_offered: options.map(p => p.name),
-                player_hp_at_selection: playerHP,
-                enemies_on_screen: enemiesOnScreen
+                powerup_name: powerup.name || 'unknown',
+                level_selected: Math.floor(level || 1),
+                options_offered: options.map(p => p.name || 'unknown'),
+                player_hp_at_selection: Math.floor(playerHP || 0),
+                enemies_on_screen: Math.floor(enemiesOnScreen || 0)
             });
         });
     }
@@ -187,11 +187,11 @@ export class AnalyticsManager {
         this.queueEvent('powerup_events', {
             session_id: this.sessionId,
             event_type: 'selected',
-            powerup_name: powerupName,
-            level_selected: level,
-            options_offered: options.map(p => p.name),
-            player_hp_at_selection: playerHP,
-            enemies_on_screen: enemiesOnScreen
+            powerup_name: powerupName || 'unknown',
+            level_selected: Math.floor(level || 1),
+            options_offered: options.map(p => p.name || 'unknown'),
+            player_hp_at_selection: Math.floor(playerHP || 0),
+            enemies_on_screen: Math.floor(enemiesOnScreen || 0)
         });
     }
     
@@ -228,23 +228,23 @@ export class AnalyticsManager {
         
         const deathEvent = {
             session_id: this.sessionId,
-            player_name: this.sessionData.player_name,
-            level: gameStats.level,
-            score: gameStats.score,
+            player_name: this.sessionData.player_name || 'anonymous',
+            level: Math.floor(gameStats.level || 1),
+            score: Math.floor(gameStats.score || 0),
             survival_time: Math.floor((Date.now() - this.sessionStartTime) / 1000),
             
-            killer_type: cause.type, // 'enemy:green', 'boss:metastaza', etc.
-            killer_damage: cause.damage || 0,
-            overkill_damage: Math.max(0, (cause.damage || 0) - (context.playerHP || 0)),
+            killer_type: cause.type || 'unknown', // 'enemy:green', 'boss:metastaza', etc.
+            killer_damage: Math.floor(cause.damage || 0),
+            overkill_damage: Math.floor(Math.max(0, (cause.damage || 0) - (context.playerHP || 0))),
             
-            player_hp_before: context.playerHP || 0,
-            player_max_hp: context.playerMaxHP || 100,
-            position_x: Math.floor(position.x),
-            position_y: Math.floor(position.y),
+            player_hp_before: Math.floor(context.playerHP || 0),
+            player_max_hp: Math.floor(context.playerMaxHP || 100),
+            position_x: Math.floor(position.x || 0),
+            position_y: Math.floor(position.y || 0),
             active_power_ups: context.activePowerUps || [],
             
-            enemies_on_screen: context.enemiesOnScreen || 0,
-            projectiles_on_screen: context.projectilesOnScreen || 0,
+            enemies_on_screen: Math.floor(context.enemiesOnScreen || 0),
+            projectiles_on_screen: Math.floor(context.projectilesOnScreen || 0),
             was_boss_fight: context.wasBossFight || false
         };
         
