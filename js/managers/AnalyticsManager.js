@@ -283,10 +283,7 @@ export class AnalyticsManager {
     queueEvent(table, data) {
         this.eventQueue.push({
             table: table,
-            data: {
-                ...data,
-                timestamp: new Date().toISOString()
-            }
+            data: data
         });
     }
     
