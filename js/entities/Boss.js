@@ -354,6 +354,9 @@ export class Boss extends Enemy {
                 
                 // Damage check
                 this.scene.time.delayedCall(1000, () => {
+                    // Kontrola jestli boss a scene ještě existují
+                    if (!this.active || !this.scene || !this.scene.player) return;
+                    
                     const playerDistance = Phaser.Math.Distance.Between(
                         infection.x, infection.y, 
                         this.scene.player.x, this.scene.player.y
@@ -514,6 +517,9 @@ export class Boss extends Enemy {
                 const damageInterval = this.scene.time.addEvent({
                     delay: 500,
                     callback: () => {
+                        // Kontrola jestli boss a scene ještě existují
+                        if (!this.active || !this.scene || !this.scene.player) return;
+                        
                         const playerDistance = Phaser.Math.Distance.Between(
                             randomX, randomY, this.scene.player.x, this.scene.player.y
                         );
@@ -648,6 +654,9 @@ export class Boss extends Enemy {
     
     destroy() {
         console.log('Boss destroy called', this.bossName);
+        
+        // Označit jako neaktivní aby delayed callbacky se ukončily
+        this.active = false;
         
         // Přepnutí hudby zpět (bezpečně)
         if (this.scene && this.scene.audioManager && this.scene.audioManager.playLevelMusic) {
