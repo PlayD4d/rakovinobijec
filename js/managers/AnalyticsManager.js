@@ -162,28 +162,26 @@ export class AnalyticsManager {
     // ===== EVENT TRACKING =====
     // Sanitizace typů nepřátel pro omezenou délku DB sloupce (VARCHAR(20))
     sanitizeEnemyType(rawType) {
-        try {
-            if (!rawType) return 'unknown';
-            let t = String(rawType).toLowerCase();
-            // Odebrat emoji a diakritiku
-            t = t.replace(/[\p{Emoji}\p{Extended_Pictographic}]/gu, '');
-            t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            // Zkrátit bosse na prefix boss:<slug>
-            if (t.startsWith('boss:')) {
-                const name = t.slice(5).replace(/[^a-z0-9]+/g, '-');
-                t = 'boss:' + name;
-            } else {
-                t = t.replace(/[^a-z0-9:]+/g, '-');
-            }
-            // Sloupec má limit 20 znaků
-            if (t.length > 20) {
-                t = t.slice(0, 20);
-            }
-            if (!t || t === 'boss:') return 'unknown';
-            return t;
-        } catch (_) {
-            return 'unknown';
+        if (!rawType) return 'unknown';
+        let t = String(rawType).toLowerCase();
+        // Odstranit diakritiku (bez závislosti na emoji regexech)
+        try { t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (_) {}
+        // Speciální handling pro boss:
+        if (t.startsWith('boss:')) {
+            const name = t.slice(5);
+            const slug = name.replace(/[^a-z0-9]+/g, '-');
+            t = 'boss:' + slug;
         }
+        // Povolit pouze a-z0-9 a ':' a nahradit ostatní za '-'
+        t = t.replace(/[^a-z0-9:]+/g, '-');
+        // Zbavit se vícenásobných '-'
+        t = t.replace(/-+/g, '-');
+        // Oříznout začátky/konce '-'
+        t = t.replace(/^-+/, '').replace(/-+$/, '');
+        if (!t || t === 'boss:') return 'unknown';
+        // Limit délky
+        if (t.length > 20) t = t.slice(0, 20);
+        return t;
     }
     
     trackEnemyKill(enemyType, level, damage) {
