@@ -96,7 +96,7 @@ export class EnemyManager {
         const eliteChance = 0.05 + (playerLevel - 1) * 0.01;
         const isElite = Math.random() < eliteChance && playerLevel >= 3; // Elitní až od levelu 3
         
-        const eliteMultiplier = isElite ? 2 : 1;
+        const eliteMultiplier = isElite ? 1.4 : 1; // Sníženo z 2 na 1.4
         
         const config = {
             ...baseConfig,

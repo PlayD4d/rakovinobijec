@@ -1,9 +1,18 @@
 export class GlobalHighScoreManager {
     constructor() {
-        // JSONBin.io API pro jednoduchý globální storage
-        this.API_URL = 'https://api.jsonbin.io/v3';
-        this.BIN_ID = '677f4a1bad19ca34f8c8e5a2'; // Public bin pro high scores
-        this.API_KEY = '$2a$10$jQ8v8K.vQ.4zq9z8K.4zq8z8K.4zq8z8K.4zq8z8K.4zq8z8K.4z'; // Placeholder
+        // Supabase konfigurace - ANON klíč je bezpečný pro veřejné použití!
+        // Funguje pouze s RLS policies, nemůže způsobit škodu
+        this.SUPABASE_URL = 'https://gonsippgsrbutwanzpyo.supabase.co';
+        this.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvbnNpcHBnc3JidXR3YW56cHlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzAyNDEsImV4cCI6MjA3MDMwNjI0MX0.2FINt1ku94IMVYzp7zKJvFSt0Z7t6gj-lCsAwcwMCXs';
+        
+        // Inicializace Supabase klienta
+        if (typeof window.supabase !== 'undefined') {
+            this.supabase = window.supabase.createClient(this.SUPABASE_URL, this.SUPABASE_ANON_KEY);
+            console.log('✅ Supabase client initialized');
+        } else {
+            console.error('❌ Supabase client not loaded');
+            this.supabase = null;
+        }
         
         // Fallback na lokální scores
         this.localManager = null;
@@ -12,6 +21,9 @@ export class GlobalHighScoreManager {
         this.cachedScores = null;
         this.lastFetchTime = 0;
         this.cacheTimeout = 60000; // 1 minuta cache
+        
+        // Mock storage pro fallback
+        this.mockStorage = [];
         
         this.isOnline = navigator.onLine;
         this.setupNetworkListeners();
@@ -39,18 +51,17 @@ export class GlobalHighScoreManager {
             name: String(name || 'Anonym').substring(0, 12).replace(/[<>\"'&]/g, ''),
             score: Math.max(0, Math.min(999999999, parseInt(score) || 0)),
             level: Math.max(1, Math.min(999, parseInt(level) || 1)),
-            enemiesKilled: Math.max(0, Math.min(99999, parseInt(enemiesKilled) || 0)),
-            time: Math.max(0, Math.min(86400, parseInt(time) || 0)), // Max 24 hodin
-            bossesDefeated: Math.max(0, Math.min(99, parseInt(bossesDefeated) || 0)),
-            timestamp: Date.now(),
+            enemies_killed: Math.max(0, Math.min(99999, parseInt(enemiesKilled) || 0)),
+            play_time: Math.max(0, Math.min(86400, parseInt(time) || 0)), // Max 24 hodin
+            bosses_defeated: Math.max(0, Math.min(99, parseInt(bossesDefeated) || 0)),
             version: '0.1.1'
         };
     }
     
     async fetchGlobalScores() {
-        if (!this.isOnline) {
-            console.log('📡 Offline - returning cached scores');
-            return this.cachedScores || [];
+        if (!this.isOnline || !this.supabase) {
+            console.log('📡 Offline or Supabase not available - returning cached scores');
+            return this.cachedScores || this.mockStorage;
         }
         
         // Check cache
@@ -60,38 +71,38 @@ export class GlobalHighScoreManager {
         }
         
         try {
-            console.log('🌐 Fetching global high scores...');
+            console.log('🌐 Fetching global high scores from Supabase...');
             
-            // Simulace API call - v reálné implementaci by zde byl fetch
-            const response = await this.mockFetchScores();
+            const { data, error } = await this.supabase
+                .from('high_scores')
+                .select('*')
+                .order('score', { ascending: false })
+                .limit(10);
             
-            if (response.success) {
-                this.cachedScores = response.record.scores || [];
-                this.lastFetchTime = Date.now();
-                console.log('✅ Global scores loaded:', this.cachedScores.length);
-                return this.cachedScores;
-            } else {
-                throw new Error('API response failed');
+            if (error) {
+                throw error;
             }
+            
+            this.cachedScores = data || [];
+            this.lastFetchTime = Date.now();
+            console.log('✅ Global scores loaded:', this.cachedScores.length);
+            return this.cachedScores;
+            
         } catch (error) {
             console.warn('❌ Failed to fetch global scores:', error.message);
-            console.log('🔄 Falling back to local scores');
-            return this.localManager ? this.localManager.getHighScores() : [];
+            console.log('🔄 Falling back to mock/local scores');
+            
+            // Fallback na mock API
+            return this.mockFetchScores();
         }
     }
     
-    // Mock API pro demo - v produkci by byl skutečný fetch
+    // Mock API pro demo/fallback - v případě výpadku Supabase
     async mockFetchScores() {
         return new Promise((resolve) => {
             setTimeout(() => {
-                resolve({
-                    success: true,
-                    record: {
-                        scores: [
-                            // Defaultní prázdné záznamy stejně jako lokální verze
-                        ]
-                    }
-                });
+                console.log('📊 Mock fetch - current storage:', this.mockStorage);
+                resolve([...this.mockStorage]); // Vrátit kopii aktuálních scores
             }, 800); // Simulace network latency
         });
     }
@@ -105,44 +116,63 @@ export class GlobalHighScoreManager {
                 sanitizedScore.name, 
                 sanitizedScore.score, 
                 sanitizedScore.level, 
-                sanitizedScore.enemiesKilled, 
-                sanitizedScore.time, 
-                sanitizedScore.bossesDefeated
+                sanitizedScore.enemies_killed, 
+                sanitizedScore.play_time, 
+                sanitizedScore.bosses_defeated
             );
         }
         
-        if (!this.isOnline) {
-            console.log('📡 Offline - score saved locally only');
+        if (!this.isOnline || !this.supabase) {
+            console.log('📡 Offline or Supabase not available - score saved locally only');
+            // Uložit do mock storage jako fallback
+            await this.mockSubmitScore(sanitizedScore);
             return false;
         }
         
         try {
-            console.log('🌐 Submitting score to global leaderboard...');
+            console.log('🌐 Submitting score to Supabase...');
             
-            // Simulace API submit
-            const response = await this.mockSubmitScore(sanitizedScore);
+            const { data, error } = await this.supabase
+                .from('high_scores')
+                .insert([sanitizedScore])
+                .select();
             
-            if (response.success) {
-                console.log('✅ Score submitted globally!');
-                // Invalidate cache
-                this.cachedScores = null;
-                this.lastFetchTime = 0;
-                return true;
-            } else {
-                throw new Error('Submit failed');
+            if (error) {
+                throw error;
             }
+            
+            console.log('✅ Score submitted to Supabase!', data);
+            // Invalidate cache
+            this.cachedScores = null;
+            this.lastFetchTime = 0;
+            return true;
+            
         } catch (error) {
-            console.warn('❌ Failed to submit global score:', error.message);
-            console.log('💾 Score saved locally as backup');
+            console.warn('❌ Failed to submit to Supabase:', error.message);
+            console.log('💾 Saving to mock storage as backup');
+            
+            // Fallback na mock storage
+            await this.mockSubmitScore(sanitizedScore);
             return false;
         }
     }
     
-    // Mock submit pro demo
+    // Mock submit pro fallback
     async mockSubmitScore(scoreData) {
         return new Promise((resolve) => {
             setTimeout(() => {
-                console.log('📊 Score submitted:', scoreData);
+                console.log('📊 Mock submit - adding score:', scoreData);
+                
+                // Přidat nové skóre do mock storage
+                this.mockStorage.push(scoreData);
+                
+                // Seřadit podle skóre (nejvyšší první)
+                this.mockStorage.sort((a, b) => b.score - a.score);
+                
+                // Omezit na TOP 10
+                this.mockStorage = this.mockStorage.slice(0, 10);
+                
+                console.log('📊 Mock storage after submit:', this.mockStorage);
                 resolve({ success: true });
             }, 500);
         });
@@ -152,7 +182,7 @@ export class GlobalHighScoreManager {
         const globalScores = await this.fetchGlobalScores();
         
         // Sort podle score, vzestupně
-        const sortedScores = globalScores
+        const sortedScores = (globalScores || [])
             .sort((a, b) => b.score - a.score)
             .slice(0, 10); // TOP 10
         
@@ -162,9 +192,9 @@ export class GlobalHighScoreManager {
                 name: 'PLAYD4D',
                 score: 0,
                 level: 0,
-                enemiesKilled: 0,
-                time: 0,
-                bossesDefeated: 0,
+                enemies_killed: 0,
+                play_time: 0,
+                bosses_defeated: 0,
                 date: '--.--.--'
             });
         }
@@ -172,10 +202,32 @@ export class GlobalHighScoreManager {
         return sortedScores;
     }
     
-    isHighScore(score) {
-        if (!this.cachedScores) return true; // Pokud nemáme data, považuj za high score
+    async isHighScore(score) {
+        // Nejdřív zkusit Supabase
+        if (this.isOnline && this.supabase) {
+            try {
+                // Získat 10. nejlepší skóre
+                const { data, error } = await this.supabase
+                    .from('high_scores')
+                    .select('score')
+                    .order('score', { ascending: false })
+                    .limit(1)
+                    .range(9, 9); // 10. pozice (index 9)
+                
+                if (error) throw error;
+                
+                // Pokud je méně než 10 záznamů, nebo je score vyšší než 10. místo
+                return !data || data.length === 0 || score > (data[0]?.score || 0);
+                
+            } catch (error) {
+                console.warn('Failed to check high score:', error);
+            }
+        }
         
-        const scores = this.cachedScores.sort((a, b) => b.score - a.score);
+        // Fallback na cache nebo mock
+        if (!this.cachedScores && !this.mockStorage.length) return true;
+        
+        const scores = (this.cachedScores || this.mockStorage).sort((a, b) => b.score - a.score);
         
         // Pokud máme méně než 10 scores, nebo je score vyšší než nejnižší
         return scores.length < 10 || score > (scores[9]?.score || 0);
@@ -184,6 +236,7 @@ export class GlobalHighScoreManager {
     getConnectionStatus() {
         return {
             online: this.isOnline,
+            supabaseAvailable: !!this.supabase,
             cached: !!this.cachedScores,
             lastFetch: this.lastFetchTime,
             hasLocal: !!this.localManager

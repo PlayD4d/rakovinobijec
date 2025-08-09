@@ -503,13 +503,24 @@ export class MainMenu extends Phaser.Scene {
         }
         
         // Connection status info
+        let statusMessage = '📡 Offline • Lokální žebříček';
+        let statusColor = '#ffaa00';
+        
+        if (connectionStatus.online && connectionStatus.supabaseAvailable) {
+            statusMessage = '🌐 Online • Globální žebříček (Supabase)';
+            statusColor = '#00ff88';
+        } else if (connectionStatus.online) {
+            statusMessage = '🌐 Online • Mock žebříček (Supabase not loaded)';
+            statusColor = '#ffff00';
+        }
+        
         const statusText = this.add.text(
             this.cameras.main.width / 2,
             this.cameras.main.height / 2 + 180,
-            connectionStatus.online ? '🌐 Online • Globální žebříček' : '📡 Offline • Lokální žebříček',
+            statusMessage,
             { 
                 ...PRESET_STYLES.controls(),
-                color: connectionStatus.online ? '#00ff88' : '#ffaa00',
+                color: statusColor,
                 fontSize: '14px'
             }
         ).setOrigin(0.5);
