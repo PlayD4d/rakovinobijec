@@ -461,13 +461,12 @@ export class MainMenu extends Phaser.Scene {
                 const rank = (i + 1).toString().padStart(2, '0');
                 const entry = highScores[i] || { name: 'PRÁZDNÉ', score: 0 };
                 
-                // Barva podle pozice
+                // Barva podle pozice - pořadí je důležité!
                 let color = '#ffffff';
                 if (i === 0) color = '#ffdd00'; // Zlatá
                 else if (i === 1) color = '#c0c0c0'; // Stříbrná
                 else if (i === 2) color = '#cd7f32'; // Bronzová
                 else if (i >= 3) color = '#aaaaaa'; // Zešedlá barva pro pozice 4-10
-                else if (entry.score === 0) color = '#666666'; // Tmavě šedá pro defaulty
                 
                 // Pozice - posunuto pro širší okno
                 const rankText = this.add.text(
