@@ -10,6 +10,7 @@ import { PauseMenu } from '../managers/PauseMenu.js';
 import { HighScoreManager } from '../managers/HighScoreManager.js';
 import { GlobalHighScoreManager } from '../managers/GlobalHighScoreManager.js';
 import { AnalyticsManager } from '../managers/AnalyticsManager.js';
+import { SupabaseClient } from '../utils/supabaseClient.js';
 import { createFontConfig, waitForFont, PRESET_STYLES } from '../fontConfig.js';
 
 export class GameScene extends Phaser.Scene {
@@ -132,9 +133,9 @@ export class GameScene extends Phaser.Scene {
         this.globalHighScoreManager = new GlobalHighScoreManager();
         this.globalHighScoreManager.setLocalFallback(this.highScoreManager);
         
-        // Inicializace analytics
+        // Inicializace analytics se sdílenou Supabase instancí
         this.analyticsManager = new AnalyticsManager(
-            this.globalHighScoreManager.supabase,
+            SupabaseClient.getInstance(),
             { allowAnalytics: true } // TODO: Load from settings
         );
         
@@ -627,7 +628,9 @@ export class GameScene extends Phaser.Scene {
             this.enemyManager.spawnEvent.paused = true;
         }
         
+        // Zastavit audio a označit, že už není dostupný
         this.audioManager.stopAll();
+        // Necháme audioManager dostupný pro boss cleanup
         
         // Analytics - track player death (bude aktualizováno s konkrétní příčinou později)
         this.analyticsManager.trackPlayerDeath(

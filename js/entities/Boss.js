@@ -225,9 +225,9 @@ export class Boss extends Enemy {
         // Navádění projektilu
         const scene = this.scene; // Zachovat scene reference
         for (let i = 0; i < 3; i++) {
-            this.scene.time.delayedCall(i * 500, () => {
+            this.safeDelayedCall(i * 500, () => {
                 // Kontrola existence scény a projektile manageru
-                if (!scene || !scene.projectileManager || !this.active) {
+                if (!scene || !scene.projectileManager) {
                     return;
                 }
                 
@@ -245,7 +245,7 @@ export class Boss extends Enemy {
                     0xff00ff,
                     true // tracking
                 );
-            }, null, this);
+            });
         }
     }
     
@@ -253,9 +253,9 @@ export class Boss extends Enemy {
         // Rychlá salva
         const scene = this.scene; // Zachovat scene reference
         for (let i = 0; i < 5; i++) {
-            this.scene.time.delayedCall(i * 100, () => {
+            this.safeDelayedCall(i * 100, () => {
                 // Kontrola existence scény a projektile manageru
-                if (!scene || !scene.projectileManager || !this.active) {
+                if (!scene || !scene.projectileManager) {
                     return;
                 }
                 
@@ -272,7 +272,7 @@ export class Boss extends Enemy {
                     this.damage,
                     0xffff00
                 );
-            }, null, this);
+            });
         }
     }
     
@@ -418,7 +418,7 @@ export class Boss extends Enemy {
             enemy.setTint(0x00ff00); // Zelené zabarvení
             
             // Vrátit zpět po 5 sekundách
-            this.scene.time.delayedCall(5000, () => {
+            this.safeDelayedCall(5000, () => {
                 if (enemy.active) {
                     enemy.speed = originalSpeed;
                     enemy.damage = originalDamage;
@@ -432,7 +432,7 @@ export class Boss extends Enemy {
         // 👑 Kancerogenní Král - kombinovaný devastující útok
         // 1. Temná vlna korupce
         for (let radius = 50; radius <= 200; radius += 50) {
-            this.scene.time.delayedCall((radius - 50) * 100, () => {
+            this.safeDelayedCall((radius - 50) * 100, () => {
                 if (!this.active) return;
                 
                 const corruption = this.scene.add.graphics();
@@ -455,7 +455,7 @@ export class Boss extends Enemy {
         }
         
         // 2. Následný tracking útok
-        this.scene.time.delayedCall(2000, () => {
+        this.safeDelayedCall(2000, () => {
             if (this.active) {
                 this.trackingAttack(player);
             }
@@ -468,7 +468,7 @@ export class Boss extends Enemy {
         for (let i = 0; i < dnaHelixes; i++) {
             const angle = (Math.PI * 2 / dnaHelixes) * i;
             
-            this.scene.time.delayedCall(i * 300, () => {
+            this.safeDelayedCall(i * 300, () => {
                 if (!this.active) return;
                 
                 // Vytvoří DNA helix efekt
@@ -508,7 +508,7 @@ export class Boss extends Enemy {
         const radiationZones = 5;
         
         for (let i = 0; i < radiationZones; i++) {
-            this.scene.time.delayedCall(i * 400, () => {
+            this.safeDelayedCall(i * 400, () => {
                 if (!this.active) return;
                 
                 const randomX = Phaser.Math.Between(50, this.scene.cameras.main.width - 50);
@@ -548,7 +548,7 @@ export class Boss extends Enemy {
                 });
                 
                 // Zničit po 6 sekundách
-                this.scene.time.delayedCall(6000, () => {
+                this.safeDelayedCall(6000, () => {
                     damageInterval.destroy();
                     radiation.destroy();
                 });
@@ -578,7 +578,7 @@ export class Boss extends Enemy {
         
         // Během imunity střílí více projektilů
         for (let i = 0; i < 8; i++) {
-            this.scene.time.delayedCall(i * 600, () => {
+            this.safeDelayedCall(i * 600, () => {
                 if (!this.active) return;
                 
                 const angle = (Math.PI * 2 / 8) * i;
@@ -594,7 +594,7 @@ export class Boss extends Enemy {
         }
         
         // Zrušit imunitu po 5 sekundách
-        this.scene.time.delayedCall(5000, () => {
+        this.safeDelayedCall(5000, () => {
             if (this.active) {
                 this.isImmune = false;
                 this.clearTint();
@@ -608,22 +608,22 @@ export class Boss extends Enemy {
         this.divideAttack();
         
         // 2. Po 1 sekundě radiační pole
-        this.scene.time.delayedCall(1000, () => {
+        this.safeDelayedCall(1000, () => {
             if (this.active) this.radiationAttack();
         });
         
         // 3. Po 2 sekundách genetická mutace
-        this.scene.time.delayedCall(2000, () => {
+        this.safeDelayedCall(2000, () => {
             if (this.active) this.geneticAttack(player);
         });
         
         // 4. Po 3 sekundách korupce
-        this.scene.time.delayedCall(3000, () => {
+        this.safeDelayedCall(3000, () => {
             if (this.active) this.corruptionAttack(player);
         });
         
         // 5. Finální exploze
-        this.scene.time.delayedCall(5000, () => {
+        this.safeDelayedCall(5000, () => {
             if (!this.active) return;
             
             // Obří černá exploze
@@ -669,7 +669,14 @@ export class Boss extends Enemy {
     }
     
     destroy() {
+        // Ochrana proti dvojitému destroy
+        if (this._destroyed) {
+            console.log('Boss already destroyed, skipping:', this.bossName);
+            return;
+        }
+        
         console.log('Boss destroy called', this.bossName);
+        this._destroyed = true;
         
         // Analytics - track boss defeat (if boss was actually killed, not just cleanup)
         if (this.scene && this.scene.analyticsManager && this.hp <= 0 && this.scene.player) {

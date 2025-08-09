@@ -1,18 +1,18 @@
+import { SupabaseClient } from '../utils/supabaseClient.js';
+
 export class GlobalHighScoreManager {
     constructor() {
-        // Supabase konfigurace - ANON klíč je bezpečný pro veřejné použití!
-        // Funguje pouze s RLS policies, nemůže způsobit škodu
-        this.SUPABASE_URL = 'https://gonsippgsrbutwanzpyo.supabase.co';
-        this.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvbnNpcHBnc3JidXR3YW56cHlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzAyNDEsImV4cCI6MjA3MDMwNjI0MX0.2FINt1ku94IMVYzp7zKJvFSt0Z7t6gj-lCsAwcwMCXs';
+        // Použít sdílenou Supabase instanci
+        this.supabase = SupabaseClient.getInstance();
         
-        // Inicializace Supabase klienta
-        if (typeof window.supabase !== 'undefined') {
-            this.supabase = window.supabase.createClient(this.SUPABASE_URL, this.SUPABASE_ANON_KEY);
-            console.log('✅ Supabase client initialized');
+        if (this.supabase) {
+            console.log('✅ Global High Score Manager: Using shared Supabase client');
         } else {
-            console.error('❌ Supabase client not loaded');
-            this.supabase = null;
+            console.error('❌ Global High Score Manager: Supabase not available');
         }
+        
+        // Inicializovat isOnline property (bude aktualizován níže)
+        this.isOnline = SupabaseClient.isAvailable() && this.supabase !== null;
         
         // Fallback na lokální scores
         this.localManager = null;
