@@ -505,7 +505,7 @@ export class AnalyticsManager {
         
         console.log(`📊 Flushing ${this.eventQueue.length} analytics events...`);
         
-        // Group events by table
+        // Group events by table (ignore if supabase is null)
         const eventsByTable = {};
         this.eventQueue.forEach(event => {
             if (!eventsByTable[event.table]) {
@@ -521,7 +521,7 @@ export class AnalyticsManager {
                 const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
                 const { error } = await this.supabase
                     .from(table)
-                    .insert(events);
+                    .insert(events, { returning: 'minimal' });
                 const t1 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
                 this.lastUploadLatencyMs = Math.round(t1 - t0);
                 
@@ -570,10 +570,11 @@ export class AnalyticsManager {
         console.log('📊 Updating session data for:', this.sessionId);
         
         try {
+            // Prefer upsert pro spolehlivost (vyžaduje INSERT i UPDATE policy)
+            const payload = { session_id: this.sessionId, ...sessionUpdate };
             const { error } = await this.supabase
                 .from('game_sessions')
-                .update(sessionUpdate)
-                .eq('session_id', this.sessionId);
+                .upsert(payload, { onConflict: 'session_id' });
             
             if (error) {
                 console.error('❌ Database error updating session:', error.message);

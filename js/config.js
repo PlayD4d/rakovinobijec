@@ -132,7 +132,7 @@ export const GameConfig = {
             color: 0x8b008b,
             size: 60,
             speed: 0.7,
-            damage: 50,
+            damage: 40, // -20% DMG (z 50)
             attackType: 'multi',
             attackInterval: 1500,
             xp: 100,

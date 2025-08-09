@@ -7,6 +7,11 @@ DROP POLICY IF EXISTS "Enable update access for all users" ON game_sessions;
 CREATE POLICY "Enable update access for all users" ON game_sessions
 FOR UPDATE USING (true) WITH CHECK (true);
 
+-- Prefer upsert support: ensure INSERT remains allowed
+DROP POLICY IF EXISTS "Anyone can insert analytics" ON game_sessions;
+CREATE POLICY "Anyone can insert analytics" ON game_sessions
+  FOR INSERT WITH CHECK (true);
+
 -- DEATH_EVENTS
 DROP POLICY IF EXISTS "Enable read access for all users" ON death_events;
 DROP POLICY IF EXISTS "Enable insert access for all users" ON death_events;

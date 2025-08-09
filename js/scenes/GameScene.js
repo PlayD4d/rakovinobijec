@@ -557,6 +557,14 @@ export class GameScene extends Phaser.Scene {
         if (this.player.canTakeDamage()) {
             const prevHp = this.player.hp;
             this.player.takeDamage(projectile.damage);
+            // Akumulovat a logovat damage z projektilů
+            this.gameStats.totalDamageTaken += projectile.damage;
+            try {
+                const srcType = typeof projectile.sourceType === 'string' ? projectile.sourceType : 'projectile';
+                if (this.analyticsManager && this.analyticsManager.trackDamageTaken) {
+                    this.analyticsManager.trackDamageTaken(projectile.damage, srcType, this.gameStats.level);
+                }
+            } catch (_) { /* no-op */ }
             if (this.analyticsManager && this.analyticsManager.recordBossDamageTaken && typeof projectile.sourceType === 'string' && projectile.sourceType.startsWith('boss:')) {
                 this.analyticsManager.recordBossDamageTaken(projectile.damage);
             }
@@ -600,6 +608,12 @@ export class GameScene extends Phaser.Scene {
         
         // Extra XP bonus pro bosse (double drop, ale pomocí optimalizovaného systému)
         if (enemy.bossName) { // Pokud je to boss
+            // Zapsat poraženého bosse do session statistik
+            this.gameStats.bossesDefeated = (this.gameStats.bossesDefeated || 0) + 1;
+            if (!Array.isArray(this.gameStats.bossesDefeatedList)) {
+                this.gameStats.bossesDefeatedList = [];
+            }
+            this.gameStats.bossesDefeatedList.push(enemy.bossName);
             this.lootManager.createOptimalXPOrbs(enemy.x, enemy.y, enemy.xp);
         }
         
