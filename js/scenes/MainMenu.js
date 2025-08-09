@@ -46,14 +46,8 @@ export class MainMenu extends Phaser.Scene {
         this.globalHighScoreManager = new GlobalHighScoreManager();
         this.globalHighScoreManager.setLocalFallback(this.highScoreManager);
         
-        // Pozadí
-        this.add.rectangle(
-            this.cameras.main.width / 2,
-            this.cameras.main.height / 2,
-            this.cameras.main.width,
-            this.cameras.main.height,
-            0x001122
-        );
+        // Pozadí (full screen rect, responsivní)
+        const bg = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x001122).setOrigin(0);
         
         // Titulek hry
         this.add.text(
@@ -120,8 +114,9 @@ export class MainMenu extends Phaser.Scene {
         
         // Menu položky
         this.menuTexts = [];
-        const startY = 260;
-        const itemSpacing = 50;
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+        const startY = isMobile ? 240 : 260;
+        const itemSpacing = isMobile ? 56 : 50;
         
         this.menuItems.forEach((item, index) => {
             const y = startY + (index * itemSpacing);
@@ -153,6 +148,14 @@ export class MainMenu extends Phaser.Scene {
         
         // Přehrát intro zvuk po načtení menu
         this.tryPlayIntro();
+
+        // Responzivní resize handler pro menu
+        this.scale.on('resize', (gameSize) => {
+            bg.setSize(gameSize.width, gameSize.height);
+            // Přepočet pozic titulů a položek
+            // Zjednodušeně: jen centrovat do nových rozměrů
+            // (texty používají kamery, takže se drží středu)
+        });
     }
     
     setupKeyboard() {

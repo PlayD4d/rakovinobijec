@@ -2,20 +2,23 @@
 const MIN_WIDTH = 800;
 const MIN_HEIGHT = 600;
 
-// Výpočet skutečné velikosti
+// Výpočet skutečné velikosti (responsivní pro mobil)
 const calculateGameSize = () => {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
     
     // Rezerva pro padding, rámečky a texty
-    // 100px pro horní texty, 80px pro dolní text, plus trochu prostoru
-    const availableWidth = Math.floor(screenWidth - 60);
-    const availableHeight = Math.floor(screenHeight - 200);
+    // Na mobilu minimální okraje, na desktopu větší rezerva
+    const padW = isMobile ? 16 : 60;
+    const padH = isMobile ? 40 : 200;
+    const availableWidth = Math.max(320, Math.floor(screenWidth - padW));
+    const availableHeight = Math.max(240, Math.floor(screenHeight - padH));
     
     // Použít MENŠÍ z dostupné nebo minimální velikosti
     // Takže se vždy vejde na obrazovku
-    const gameWidth = Math.min(Math.max(MIN_WIDTH, availableWidth), availableWidth);
-    const gameHeight = Math.min(Math.max(MIN_HEIGHT, availableHeight), availableHeight);
+    const gameWidth = availableWidth;
+    const gameHeight = availableHeight;
     
     console.log(`Game size: ${gameWidth}x${gameHeight} (screen: ${screenWidth}x${screenHeight})`);
     return { width: gameWidth, height: gameHeight };
