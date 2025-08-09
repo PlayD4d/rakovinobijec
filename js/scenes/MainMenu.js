@@ -463,16 +463,25 @@ export class MainMenu extends Phaser.Scene {
                 
                 // Barva podle pozice - pořadí je důležité!
                 let color = '#ffffff';
-                if (i === 0) color = '#ffdd00'; // Zlatá
-                else if (i === 1) color = '#c0c0c0'; // Stříbrná
-                else if (i === 2) color = '#cd7f32'; // Bronzová
-                else if (i >= 3) color = '#aaaaaa'; // Zešedlá barva pro pozice 4-10
+                let crownIcon = '';
+                if (i === 0) {
+                    color = '#ffdd00'; // Zlatá
+                    crownIcon = '👑';
+                } else if (i === 1) {
+                    color = '#c0c0c0'; // Stříbrná
+                    crownIcon = '🥈';
+                } else if (i === 2) {
+                    color = '#cd7f32'; // Bronzová
+                    crownIcon = '🥉';
+                } else if (i >= 3) {
+                    color = '#aaaaaa'; // Zešedlá barva pro pozice 4-10
+                }
                 
-                // Pozice - posunuto pro širší okno
+                // Pozice s korunkou pro top 3 - posunuto pro širší okno
                 const rankText = this.add.text(
                     this.cameras.main.width / 2 - 290,
                     y,
-                    `${rank}.`,
+                    `${crownIcon}${rank}.`,
                     { ...PRESET_STYLES.buttonText(), color: color }
                 ).setOrigin(0, 0.5);
                 elements.push(rankText);
