@@ -1,5 +1,23 @@
 # 📋 TODO - Rakovinobijec
 
+## ✅ Nedávno dokončeno (v0.1.2)
+
+### 📊 Analytics systém - HOTOVO!
+- [x] **Kompletní analytics architektura** - 7 databázových tabulek
+- [x] **AnalyticsManager** - automatický tracking všech herních událostí
+- [x] **Performance monitoring** - FPS, latence, error tracking
+- [x] **Supabase integrace** - skutečný cloud backend s RLS policies
+- [x] **Batch upload systém** - optimální výkon (každých 30s)
+- [x] **GDPR compliance** - bezpečný a transparentní sběr dat
+- [x] **Test nástroj** - test_analytics.html pro debugging
+- [x] **Data insights** - předdefinované SQL funkce pro analýzu
+
+### 🌐 Backend vylepšení
+- [x] **High score systém** - globální leaderboard přes Supabase
+- [x] **Offline fallback** - LocalStorage backup při výpadku
+- [x] **Vizuální vylepšení** - TOP 3 odděleno, zlatá/stříbrná/bronzová
+- [x] **SQL optimalizace** - indexy, foreign keys, RLS policies
+
 ## 🚀 Prioritní úkoly
 
 ### 🐛 Bugy k opravě

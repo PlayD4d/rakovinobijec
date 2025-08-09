@@ -1,6 +1,6 @@
 {
   "name": "rakovinobijec",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Arcade-style top-down shooter hra pro podporu v boji proti rakovině",
   "main": "index.html",
   "scripts": {

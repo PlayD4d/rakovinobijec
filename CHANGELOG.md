@@ -7,20 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-01-09
+
 ### Added
-- 🗄️ **Supabase integrace** - skutečný cloud databázový backend
+- 📊 **Kompletní analytics systém** - pokročilý sběr herních dat
+- 🗄️ **Supabase backend integrace** - skutečná cloudová databáze
+- 📈 **7 analytických tabulek** - sessions, enemy_stats, powerup_events, death_events, boss_encounters, performance_metrics, daily_stats
+- 🔬 **AnalyticsManager** - automatický tracking všech herních událostí
 - 📋 **TODO.md** - plány a nápady pro budoucí verze
 - 🔒 **.gitignore** - správná organizace projektu
+- 📊 **Výkonnostní metriky** - FPS tracking a optimalizace
+- 🧪 **Analytics test page** - nástroj pro testování sběru dat
 
 ### Changed
 - 🎨 **High score vizuální vylepšení** - TOP 3 odděleno mezerou, zlatá/stříbrná/bronzová barvy
 - ⚖️ **Elite mob balance** - damage multiplier snížen z 2.0 na 1.4
 - 🔄 **Zjednodušení kódu** - odstraněny mock funkce, čistší architektura
+- 📊 **Rozšířené game stats** - tracking damage dealt/taken, XP, pickups
 
 ### Fixed
 - 🌐 **Globální high scores** - nyní se správně ukládají do Supabase
 - 🎨 **Barvy TOP 3** - opravena logika zobrazení zlaté/stříbrné/bronzové
-- 📊 **SQL kompatibilita** - 'time' změněno na 'play_time' (reserved word)
+- 📊 **SQL kompatibilita** - 'time' změněno na 'play_time', opraveny index syntaxy
+- 🔧 **Analytics timestamp** - opravena chyba s timestamp sloupcem
+
+### Technical
+- Row Level Security (RLS) policies pro databázovou bezpečnost
+- Batch upload systém pro optimální výkon
+- Foreign key constraints a indexy pro rychlé dotazy
+- GDPR-compliant data collection
+- Fallback na LocalStorage pro offline režim
 
 ## [0.1.1] - 2025-01-09
 

@@ -18,7 +18,7 @@ export class AnalyticsManager {
             user_agent: navigator.userAgent,
             screen_width: screen.width,
             screen_height: screen.height,
-            game_version: '0.1.1',
+            game_version: '0.1.2',
             connection_type: this.supabase ? 'supabase' : 'local'
         };
         

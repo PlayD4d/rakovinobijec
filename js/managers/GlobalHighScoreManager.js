@@ -51,7 +51,7 @@ export class GlobalHighScoreManager {
             enemies_killed: Math.max(0, Math.min(99999, parseInt(enemiesKilled) || 0)),
             play_time: Math.max(0, Math.min(86400, parseInt(time) || 0)), // Max 24 hodin
             bosses_defeated: Math.max(0, Math.min(99, parseInt(bossesDefeated) || 0)),
-            version: '0.1.1'
+            version: '0.1.2'
         };
     }
     

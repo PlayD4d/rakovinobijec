@@ -16,6 +16,7 @@ Rakovinobijec je motivační hra vytvořená speciálně pro podporu v boji prot
 - **5 typů nepřátel** s unikátními schopnostmi
 - **XP systém** s level-up mechanikou
 - **🌐 Globální high score** - soutěž s hráči po celém světě
+- **📊 Analytics systém** - pokročilý sběr herních dat pro optimalizaci
 - **📱 Offline fallback** - lokální scores při výpadku připojení
 
 ## 🎮 Ovládání
@@ -30,8 +31,9 @@ Rakovinobijec je motivační hra vytvořená speciálně pro podporu v boji prot
 ### Použité technologie
 - **Phaser.js 3.70.0** - herní framework
 - **ES6 Modules** - modulární architektura
+- **Supabase** - cloud databáze pro high scores a analytics
 - **LocalStorage** - backup high score (offline režim)
-- **Global API** - centralizovaný high score systém
+- **PostgreSQL** - analytics databáze s RLS security
 - **CSS3** - responzivní design
 - **Web Audio API** - zvukové efekty
 
@@ -103,6 +105,9 @@ open http://localhost:8000
 - [x] 5 typů nepřátel + elite variace
 - [x] XP systém a level-up
 - [x] 🌐 Globální high score systém (TOP 10 worldwide)
+- [x] 📊 Kompletní analytics systém s 7 databázovými tabulkami
+- [x] 🔬 AnalyticsManager pro automatický tracking všech událostí
+- [x] 📈 Performance monitoring (FPS, latence, chyby)
 - [x] Pause menu s nastavením
 - [x] Audio systém (hudba + SFX)
 - [x] Responzivní design
@@ -128,7 +133,29 @@ open http://localhost:8000
 - LocalStorage perzistence
 - Žádná data se neztratí
 
-### 🔨 Co je nového (v0.1.1)
+### 📊 Analytics Systém (v0.1.2) - NOVÉ!
+
+**7 analytických tabulek pro kompletní přehled:**
+- **🎮 Game Sessions** - kompletní přehled každé hry
+- **👹 Enemy Statistics** - detaily o každém nepříteli (spawny, kills, damage)
+- **💊 Power-up Events** - tracking výběru a usage power-upů
+- **💀 Death Events** - analýza příčin smrti a kontextu
+- **👑 Boss Encounters** - speciální tracking pro boss fights
+- **📊 Performance Metrics** - FPS, latence, technické metriky
+- **📈 Daily Stats** - agregované denní statistiky
+
+**Key Features:**
+- ⚡ **Batch upload systém** - optimální výkon (upload každých 30s)
+- 🔒 **GDPR compliant** - bezpečný sběr dat s RLS policies
+- 📱 **Offline ready** - funguje i bez připojení
+- 🧪 **Test page** (`test_analytics.html`) pro ladění
+- 📊 **Real-time tracking** - damage, kills, power-upy, deaths, performance
+
+### 🔨 Co je nového (v0.1.2)
+- ✅ **Kompletní analytics systém** - 7 databázových tabulek pro sběr dat
+- ✅ **AnalyticsManager** - automatický tracking všech herních událostí  
+- ✅ **Performance monitoring** - FPS tracking a optimalizace
+- ✅ **Test nástroj** - analytics test page pro debugging
 - ✅ Supabase integrace pro globální leaderboard
 - ✅ Vizuální vylepšení high scores (TOP 3 oddělení)
 - ✅ Elite mob balance (damage 2.0 → 1.4)
@@ -168,12 +195,15 @@ rakovinobijec/
 │       ├── PowerUpManager.js # Power-up systém
 │       ├── UIManager.js    # Uživatelské rozhraní
 │       ├── HighScoreManager.js # Lokální high score
-│       └── GlobalHighScoreManager.js # Globální high score
+│       ├── GlobalHighScoreManager.js # Globální high score
+│       └── AnalyticsManager.js # Analytics a data tracking
 ├── package.json            # NPM konfigurace a versioning
 ├── CHANGELOG.md            # Historie změn
 ├── TODO.md                 # Plánované funkce a nápady
 ├── SUPABASE_SETUP.md       # Návod pro Supabase setup
-├── supabase_setup.sql      # SQL skript pro databázi
+├── supabase_setup.sql      # SQL skript pro high scores databázi
+├── supabase_analytics.sql  # SQL skript pro analytics databázi
+├── test_analytics.html     # Nástroj pro testování analytics systému
 ├── .gitignore              # Git ignore pravidla
 ├── fonts/                  # Public Pixel font
 ├── music/                  # Hudební soubory
@@ -214,4 +244,4 @@ MIT License - viz [LICENSE](LICENSE) soubor.
 
 ---
 
-*Verze: 0.1.1 | Poslední aktualizace: Srpen 2025*
+*Verze: 0.1.2 | Poslední aktualizace: Leden 2025*
