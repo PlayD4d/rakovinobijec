@@ -1,0 +1,70 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Načtení Public Pixel fontu */
+@font-face {
+    font-family: 'PublicPixel';
+    src: url('../fonts/PublicPixel.woff2') format('woff2'),
+         url('../fonts/PublicPixel.woff') format('woff'),
+         url('../fonts/PublicPixel.ttf') format('truetype'),
+         url('../fonts/PublicPixel.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+    /* Nastavit správné metriky pro pixel font */
+    font-size-adjust: none;
+}
+
+body {
+    font-family: 'PublicPixel', monospace;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    flex-direction: column;
+    gap: 15px;
+    padding: 10px;
+    overflow: hidden;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+#game-container {
+    border: 2px solid #444;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+#game-info-top {
+    text-align: center;
+}
+
+#game-info-top h1 {
+    color: #ff6b6b;
+    margin: 0;
+    font-size: 24px;
+    text-shadow: 2px 2px 0px #000000;
+    letter-spacing: 2px;
+}
+
+#game-info-top p {
+    color: #aaaaaa;
+    margin: 8px 0;
+    font-size: 12px;
+    font-style: normal;
+}
+
+#game-info-bottom {
+    text-align: center;
+}
+
+#game-info-bottom p {
+    color: #888888;
+    margin: 0;
+    font-size: 11px;
+}
