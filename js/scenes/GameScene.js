@@ -376,7 +376,10 @@ export class GameScene extends Phaser.Scene {
         projectile.hitEnemies.push(enemy);
         projectile.hitCount = (projectile.hitCount || 0) + 1;
         
-        // Exploze pouze při prvním zásahu (pokud máme explozivní projektily)
+        // VŽDY aplikovat normální damage nejdříve
+        enemy.takeDamage(projectile.damage);
+        
+        // Exploze navíc při prvním zásahu (pokud máme explozivní projektily)
         if (this.player.hasExplosiveBullets && projectile.hitCount === 1) {
             const explosionRadius = 30 + (this.player.explosiveBulletsLevel * 10);
             this.projectileManager.createExplosion(
@@ -386,9 +389,6 @@ export class GameScene extends Phaser.Scene {
                 explosionRadius,
                 this.player.explosiveBulletsLevel
             );
-        } else {
-            // Normální damage
-            enemy.takeDamage(projectile.damage);
         }
         
         // Kontrola jestli má projektil pokračovat dál (cisplatina)
