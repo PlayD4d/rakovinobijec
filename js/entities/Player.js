@@ -338,6 +338,11 @@ export class Player {
             const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y);
             if (distance <= this.auraRadius) {
                 enemy.takeDamage(this.auraDamage * 0.05); // Sníženo z 0.1 na 0.05 (50% původní hodnoty)
+                
+                // Zkontrolovat jestli nepřítel zemřel
+                if (enemy.hp <= 0) {
+                    this.scene.handleEnemyDeath(enemy);
+                }
             }
         });
     }
@@ -436,6 +441,11 @@ export class Player {
         // Poškození nepřítele
         const damage = this.projectileDamage + this.damageBonus;
         target.takeDamage(damage);
+        
+        // Zkontrolovat jestli nepřítel zemřel
+        if (target.hp <= 0) {
+            this.scene.handleEnemyDeath(target);
+        }
         
         // Zvukový efekt (pokud existuje)
         if (this.scene.sound && this.scene.sound.get('hit')) {
