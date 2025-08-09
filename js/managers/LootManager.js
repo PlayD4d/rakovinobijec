@@ -23,8 +23,9 @@ export class LootManager {
             this.createHealthOrb(x, y);
         }
 
-    // Speciální drop: Metotrexat (3%)
-    if (!this.suppressSpecialDrops && Math.random() < 0.03) {
+    // Speciální drop: Metotrexat (konfigurovatelný)
+    const metoCfg = GameConfig.specialDrops?.metotrexat;
+    if (metoCfg && !this.suppressSpecialDrops && Math.random() < (metoCfg.dropChance ?? 0.03)) {
       this.createMetotrexat(x, y);
     }
     }
@@ -138,11 +139,12 @@ export class LootManager {
     }
 
   createMetotrexat(x, y) {
+    const metoCfg = GameConfig.specialDrops?.metotrexat || {};
     const sprite = this.scene.physics.add.sprite(x, y, null);
     const graphics = this.scene.add.graphics();
     const baseSize = GameConfig.xp.orbSize * 0.9;
-    const hexSize = baseSize * 1.1;
-    const orbColor = 0xffffaa; // světle žlutý
+    const hexSize = baseSize * (metoCfg.orbSizeMultiplier ?? 1.1);
+    const orbColor = metoCfg.orbColor ?? 0xffffaa; // světle žlutý
     // Hexagon jako XP orb
     graphics.fillStyle(orbColor, 1);
     graphics.beginPath();
@@ -161,7 +163,7 @@ export class LootManager {
     sprite.setTexture(textureName);
     graphics.destroy();
     sprite.type = 'metotrexat';
-    // Blikání (puls + alpha flicker)
+    // Puls (scale/alpha)
     this.scene.tweens.add({
       targets: sprite,
       scaleX: 1.15,
@@ -172,6 +174,21 @@ export class LootManager {
       repeat: -1,
       ease: 'Sine.easeInOut'
     });
+    // Blikání barvy: původní barva <-> bílá
+    try {
+      sprite.setTint(orbColor);
+      const blink = this.scene.time.addEvent({
+        delay: 180,
+        loop: true,
+        callback: () => {
+          const current = sprite.tintTopLeft;
+          sprite.setTint(current === 0xffffff ? orbColor : 0xffffff);
+        }
+      });
+      sprite.on('destroy', () => {
+        if (blink) blink.remove(false);
+      });
+    } catch (_) { /* no-op */ }
     this.loot.add(sprite);
     return sprite;
   }

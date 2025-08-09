@@ -132,7 +132,7 @@ export const GameConfig = {
             color: 0x8b008b,
             size: 60,
             speed: 0.7,
-            damage: 40, // -20% DMG (z 50)
+            damage: 30, // -25% od předchozí hodnoty 40 (původně 50)
             attackType: 'multi',
             attackInterval: 1500,
             xp: 100,
@@ -144,7 +144,7 @@ export const GameConfig = {
             color: 0x00ff80,
             size: 65,
             speed: 0.6,
-            damage: 65,
+            damage: 49, // -25%
             attackType: 'tracking',
             attackInterval: 1300,
             xp: 150,
@@ -156,7 +156,7 @@ export const GameConfig = {
             color: 0xffff00,
             size: 70,
             speed: 0.5,
-            damage: 80,
+            damage: 60, // -25%
             attackType: 'circle',
             attackInterval: 1200,
             xp: 200,
@@ -168,7 +168,7 @@ export const GameConfig = {
             color: 0xff8c00,
             size: 75,
             speed: 0.4,
-            damage: 100,
+            damage: 75, // -25%
             attackType: 'linear',
             attackInterval: 1000,
             xp: 300,
@@ -180,7 +180,7 @@ export const GameConfig = {
             color: 0x000000,
             size: 80,
             speed: 0.3,
-            damage: 150,
+            damage: 113, // -25%
             attackType: 'multi',
             attackInterval: 800,
             xp: 500,
@@ -199,8 +199,19 @@ export const GameConfig = {
     health: {
         orbSize: 10,
         orbColor: 0xff0000,
-        dropChance: 0.075, // Sníženo o 25% z 0.1
-        healAmount: 0.1 // 10% of max HP
+        dropChance: 0.08, // Sníženo o 20% z 0.1
+        healAmount: 0.15 // 15% of max HP
+    },
+    
+    // Speciální dropy (konfigurovatelné)
+    specialDrops: {
+        metotrexat: {
+            dropChance: 0.03,         // 3% šance z jakéhokoliv NPC
+            orbSizeMultiplier: 1.1,   // násobek oproti XP základu
+            orbColor: 0xffffaa,       // světle žlutá
+            flashDuration: 300,       // ms bílý záblesk kamery
+            affectBosses: true        // zasáhnout i bossy
+        }
     },
     
     spawn: {

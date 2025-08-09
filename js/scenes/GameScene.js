@@ -564,12 +564,13 @@ export class GameScene extends Phaser.Scene {
         } else if (loot.type === 'metotrexat') {
             // Speciální efekt: záblesk, zvuk a zabít všechny aktivní NPC
             try { this.sound.play('metotrexat'); } catch (_) {}
-            try { this.cameras.main.flash(300, 255, 255, 255); } catch (_) {}
+            try { this.cameras.main.flash((GameConfig.specialDrops?.metotrexat?.flashDuration ?? 300), 255, 255, 255); } catch (_) {}
             // Zabránit řetězení speciálních dropů během masakru
             this.lootManager.suppressSpecialDrops = true;
             const enemies = [...this.enemyManager.enemies.children.entries];
             enemies.forEach(enemy => {
-                if (enemy && enemy.active) {
+                const affectBosses = (GameConfig.specialDrops?.metotrexat?.affectBosses ?? true);
+                if (enemy && enemy.active && (affectBosses || !enemy.bossName)) {
                     this.handleEnemyDeath(enemy);
                 }
             });
