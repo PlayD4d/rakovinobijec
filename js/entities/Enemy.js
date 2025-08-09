@@ -184,6 +184,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
     
     takeDamage(amount) {
+        console.log('Enemy takeDamage:', amount, 'HP before:', this.hp + amount, 'HP after:', this.hp - amount);
         this.hp -= amount;
         this.hp = Math.max(0, this.hp);
         

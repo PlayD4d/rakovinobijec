@@ -307,6 +307,9 @@ export class GameScene extends Phaser.Scene {
         this.projectileManager.playerProjectiles.children.entries.forEach(projectile => {
             if (!projectile.active) return;
             
+            // POUZE viditelné projektily mohou způsobit damage
+            if (!projectile.visible) return;
+            
             this.enemyManager.enemies.children.entries.forEach(enemy => {
                 if (!enemy.active) return;
                 
@@ -315,6 +318,7 @@ export class GameScene extends Phaser.Scene {
                 );
                 
                 if (distance < 15) { // collision radius
+                    console.log('HIT! Projectile damage:', projectile.damage, 'Enemy HP before:', enemy.hp);
                     this.handleProjectileEnemyCollision(projectile, enemy);
                 }
             });
