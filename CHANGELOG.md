@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2025-01-10
+
+### Added
+- 📊 Performance snapshots: 1× za minutu + souhrn na konci session (fps, memory, supabase, API latence)
+- 👑 Boss analytics: `player_hp_start`, `damage_taken_from_boss`, `special_attacks_used`, `death_phase`
+
+### Changed
+- ⚖️ Boss balance: zvýšené HP prvních bossů; Onkogen doplněn o salvu; Karcinogenní král zjemněn
+- 🧲 XP Magnet: izotropní přitahování orbů (odstraněn vertikální float tween)
+- 🏆 High score: centralizovaný submit, fix duplicit, async check TOP10
+- 📝 Popisky power‑upů sladěny se skutečnou funkcí (štít, aura, exploze, blesk)
+
+### Fixed
+- 🎯 `game_sessions`: doplněny `death_cause`/pozice; sanitizace `player_name`
+- 📊 `enemy_stats`: `spawn_count`, `damage_dealt_to_player`, `damage_taken_from_player`, `player_deaths_caused`, korektní `killed_count`
+- 💀 `death_events`: `player_hp_before`, kompletní `active_power_ups`, spolehlivé `was_boss_fight`
+- 👑 `death_events.killer_type`: boss kontakty i střely ve formátu `boss:<jméno>`
+
 ## [0.1.2] - 2025-01-09
 
 ### Added

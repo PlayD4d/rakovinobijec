@@ -45,6 +45,7 @@ export class GameScene extends Phaser.Scene {
         
         // Tracking příčiny smrti
         this.lastDeathCause = { type: 'unknown', damage: 0 };
+        this.lastHpBeforeDeath = null;
         
         this.isPaused = false;
         this.isGameOver = false;
@@ -509,11 +510,16 @@ export class GameScene extends Phaser.Scene {
     
     handlePlayerEnemyCollision(playerSprite, enemy) {
         if (this.player.canTakeDamage()) {
+            const prevHp = this.player.hp;
             this.player.takeDamage(enemy.damage);
+            // Encounter: damage taken from boss
+            if (enemy.bossName && this.analyticsManager && this.analyticsManager.recordBossDamageTaken) {
+                this.analyticsManager.recordBossDamageTaken(enemy.damage);
+            }
             
-            // Analytics - track damage taken
-            this.gameStats.totalDamageTaken += enemy.damage;
-            let enemyType = enemy.isElite ? `elite:${enemy.type}` : enemy.type;
+        // Analytics - track damage taken
+        this.gameStats.totalDamageTaken += enemy.damage;
+        let enemyType = enemy.isElite ? `elite:${enemy.type}` : enemy.type;
             if (enemy.bossName) {
                 enemyType = `boss:${enemy.bossName}`;
             }
@@ -524,6 +530,7 @@ export class GameScene extends Phaser.Scene {
             if (this.player.hp <= 0) {
                 // Zaznamenat příčinu smrti
                 this.lastDeathCause = { type: enemyType, damage: enemy.damage };
+                this.lastHpBeforeDeath = prevHp;
                 
                 // Non-blocking call to gameOver - don't await in physics callback
                 this.gameOver().catch(error => {
@@ -548,13 +555,18 @@ export class GameScene extends Phaser.Scene {
     
     handleEnemyProjectilePlayerCollision(playerSprite, projectile) {
         if (this.player.canTakeDamage()) {
+            const prevHp = this.player.hp;
             this.player.takeDamage(projectile.damage);
+            if (this.analyticsManager && this.analyticsManager.recordBossDamageTaken && typeof projectile.sourceType === 'string' && projectile.sourceType.startsWith('boss:')) {
+                this.analyticsManager.recordBossDamageTaken(projectile.damage);
+            }
             this.audioManager.playSound('hit');
             
             // Zaznamenat potenciální příčinu smrti
             if (this.player.hp <= 0) {
                 const src = projectile.sourceType || 'projectile';
                 this.lastDeathCause = { type: src, damage: projectile.damage };
+                this.lastHpBeforeDeath = prevHp;
                 
                 // Non-blocking call to gameOver - don't await in physics callback
                 this.gameOver().catch(error => {
@@ -576,9 +588,9 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.enemiesKilled++;
         this.gameStats.score += enemy.xp * 10;
         
-        // Analytics - track enemy kill
+        // Analytics - track enemy kill (per-kill přírůstek)
         const enemyType = enemy.isElite ? `elite:${enemy.type}` : enemy.type;
-        this.analyticsManager.trackEnemyKill(enemyType, this.gameStats.level, enemy.hp);
+        this.analyticsManager.trackEnemyKill(enemyType, this.gameStats.level, enemy.maxHp - enemy.hp);
         
         // Zvuk smrti nepřítele
         this.audioManager.playSound('enemyDeath');
@@ -700,7 +712,7 @@ export class GameScene extends Phaser.Scene {
             { x: this.player.x, y: this.player.y },
             this.gameStats,
             {
-                playerHP: 0,
+                playerHP: this.lastHpBeforeDeath ?? this.player.hp,
                 playerMaxHP: this.player.maxHp,
                 activePowerUps: this.getActivePowerUps(),
                 enemiesOnScreen: this.enemyManager ? this.enemyManager.enemies.children.entries.length : 0,

@@ -77,7 +77,7 @@ export class ProjectileManager {
         });
     }
     
-    createEnemyProjectile(x, y, velocity, damage, color = 0xff0000, tracking = false) { // Červené projektily
+    createEnemyProjectile(x, y, velocity, damage, color = 0xff0000, tracking = false, sourceType = null) { // Červené projektily
         // Vytvořit jednoduchý kruh
         const projectile = this.scene.add.circle(x, y, 4, color);
         
@@ -87,6 +87,7 @@ export class ProjectileManager {
         projectile.damage = damage;
         projectile.tracking = tracking;
         projectile.startTime = this.scene.time.now;
+        projectile.sourceType = sourceType; // Např. 'boss:Karcinogenní Král'
         
         // Přidat do skupiny
         this.enemyProjectiles.add(projectile);

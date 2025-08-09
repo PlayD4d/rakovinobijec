@@ -92,7 +92,7 @@ export const GameConfig = {
     bosses: [
         {
             name: "💀 Malignitní Buňka",
-            hp: 80, // První boss - baseline
+            hp: 160, // zvýšeno pro delší fight (~2x)
             color: 0x8b0000,
             size: 40,
             speed: 0.8,
@@ -104,7 +104,7 @@ export const GameConfig = {
         },
         {
             name: "🦠 Metastáza",
-            hp: 120, // +50% z 80
+            hp: 220, // zvýšeno
             color: 0xdc143c,
             size: 45,
             speed: 0.9,
@@ -116,7 +116,7 @@ export const GameConfig = {
         },
         {
             name: "⚡ Onkogen",
-            hp: 180, // +50% z 120
+            hp: 300, // zvýšeno
             color: 0xb22222,
             size: 50,
             speed: 0.8,
@@ -128,7 +128,7 @@ export const GameConfig = {
         },
         {
             name: "👑 Karcinogenní Král",
-            hp: 270, // +50% z 180
+            hp: 270, // beze změny HP, nerf v mechanice
             color: 0x8b008b,
             size: 60,
             speed: 0.7,

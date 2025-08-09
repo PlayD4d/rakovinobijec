@@ -180,6 +180,14 @@ export class EnemyManager {
         
         const enemy = new Enemy(this.scene, x, y, type, config);
         this.enemies.add(enemy);
+
+        // Analytics: spawn event pro tento typ nepřítele
+        if (this.scene.analyticsManager) {
+            this.scene.analyticsManager.trackEnemySpawn(
+                enemy.isElite ? `elite:${type}` : type,
+                this.scene.gameStats.level
+            );
+        }
     }
     
     spawnBoss(bossIndex) {

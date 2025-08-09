@@ -38,7 +38,7 @@ export class Boss extends Enemy {
         
         // Analytics - track boss encounter
         if (scene.analyticsManager) {
-            scene.analyticsManager.trackBossEncounter(this.bossName, level);
+            scene.analyticsManager.trackBossEncounter(this.bossName, level, scene.player?.hp || 0);
         }
         
         // Vstupní animace
@@ -110,6 +110,9 @@ export class Boss extends Enemy {
         if (time - this.specialAttackTimer > this.attackInterval * 3) {
             this.performSpecialAttack();
             this.specialAttackTimer = time;
+            if (this.scene.analyticsManager) {
+                this.scene.analyticsManager.incrementBossSpecialAttacksUsed();
+            }
         }
         
         this.updateBossHPBar();
@@ -192,7 +195,9 @@ export class Boss extends Enemy {
                     this.y,
                     velocity,
                     this.damage,
-                    0xff0000
+                    0xff0000,
+                    false,
+                    `boss:${this.bossName}`
                 );
             }
         }
@@ -215,7 +220,9 @@ export class Boss extends Enemy {
                     this.y,
                     velocity,
                     this.damage,
-                    0xff0000
+                    0xff0000,
+                    false,
+                    `boss:${this.bossName}`
                 );
             }
         }
@@ -232,10 +239,12 @@ export class Boss extends Enemy {
                 }
                 
                 const angle = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
-                const velocity = {
-                    x: Math.cos(angle) * 300,
-                    y: Math.sin(angle) * 300
-                };
+                // Mírné snížení rychlosti a přidání inaccuracy pro férovost
+                const inaccuracy = (Math.random() - 0.5) * 0.35;
+                const speed = 220;
+                const vx = Math.cos(angle + inaccuracy) * speed;
+                const vy = Math.sin(angle + inaccuracy) * speed;
+                const velocity = { x: vx, y: vy };
                 
                 scene.projectileManager.createEnemyProjectile(
                     this.x,
@@ -243,7 +252,8 @@ export class Boss extends Enemy {
                     velocity,
                     this.damage,
                     0xff00ff,
-                    true // tracking
+                    true,
+                    `boss:${this.bossName}`
                 );
             });
         }
@@ -270,7 +280,9 @@ export class Boss extends Enemy {
                     this.y,
                     velocity,
                     this.damage,
-                    0xffff00
+                    0xffff00,
+                    false,
+                    `boss:${this.bossName}`
                 );
             });
         }
@@ -413,12 +425,12 @@ export class Boss extends Enemy {
             const originalSpeed = enemy.speed;
             const originalDamage = enemy.damage;
             
-            enemy.speed *= 1.5;
-            enemy.damage *= 1.3;
+            enemy.speed *= 1.3; // menší buff, ale delší trvání
+            enemy.damage *= 1.2;
             enemy.setTint(0x00ff00); // Zelené zabarvení
             
-            // Vrátit zpět po 5 sekundách
-            this.safeDelayedCall(5000, () => {
+            // Vrátit zpět po 8 sekundách
+            this.safeDelayedCall(8000, () => {
                 if (enemy.active) {
                     enemy.speed = originalSpeed;
                     enemy.damage = originalDamage;
@@ -426,36 +438,54 @@ export class Boss extends Enemy {
                 }
             });
         });
+
+        // Onkogen přidá doplňkový útok: krátká salva 3 střel do vějíře
+        const scene = this.scene;
+        for (let i = -1; i <= 1; i++) {
+            this.safeDelayedCall(200 + (i + 1) * 100, () => {
+                if (!scene || !scene.projectileManager) return;
+                const angle = Phaser.Math.Angle.Between(this.x, this.y, this.scene.player.x, this.scene.player.y) + i * 0.25;
+                const speed = 260;
+                const velocity = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
+                scene.projectileManager.createEnemyProjectile(
+                    this.x, this.y, velocity, this.damage * 0.6, 0x00ff00, false, `boss:${this.bossName}`
+                );
+            });
+        }
     }
     
     corruptionAttack(player) {
         // 👑 Kancerogenní Král - kombinovaný devastující útok
-        // 1. Temná vlna korupce
-        for (let radius = 50; radius <= 200; radius += 50) {
+        // 1. Temná vlna korupce (mírně zpomalena a menší šířka zásahu)
+        for (let radius = 60; radius <= 200; radius += 50) {
             this.safeDelayedCall((radius - 50) * 100, () => {
                 if (!this.active) return;
                 
                 const corruption = this.scene.add.graphics();
-                corruption.lineStyle(8, 0x8b008b, 0.8);
+                corruption.lineStyle(6, 0x8b008b, 0.8);
                 corruption.strokeCircle(this.x, this.y, radius);
                 
                 this.scene.tweens.add({
                     targets: corruption,
                     alpha: 0,
-                    duration: 1000,
+                    duration: 1200,
                     onComplete: () => corruption.destroy()
                 });
                 
                 // Damage check
                 const playerDistance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
-                if (Math.abs(playerDistance - radius) < 20 && player.canTakeDamage()) {
-                    player.takeDamage(this.damage * 0.4);
+                if (Math.abs(playerDistance - radius) < 14 && player.canTakeDamage()) {
+                    player.takeDamage(this.damage * 0.35);
+                    if (this.scene.analyticsManager && this.scene.analyticsManager.setBossPhase) {
+                        // Fáze 1: zásah vlnou korupce
+                        this.scene.analyticsManager.setBossPhase(1);
+                    }
                 }
             });
         }
         
         // 2. Následný tracking útok
-        this.safeDelayedCall(2000, () => {
+        this.safeDelayedCall(2200, () => {
             if (this.active) {
                 this.trackingAttack(player);
             }
@@ -588,7 +618,7 @@ export class Boss extends Enemy {
                 };
                 
                 this.scene.projectileManager.createEnemyProjectile(
-                    this.x, this.y, velocity, this.damage * 0.7, 0xff8c00
+                    this.x, this.y, velocity, this.damage * 0.7, 0xff8c00, false, `boss:${this.bossName}`
                 );
             });
         }

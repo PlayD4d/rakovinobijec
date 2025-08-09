@@ -18,7 +18,7 @@ export class AnalyticsManager {
             user_agent: navigator.userAgent,
             screen_width: screen.width,
             screen_height: screen.height,
-            game_version: '0.1.2',
+            game_version: '0.1.3',
             connection_type: this.supabase ? 'supabase' : 'local'
         };
         
@@ -30,6 +30,14 @@ export class AnalyticsManager {
         // Performance monitoring
         this.fpsHistory = [];
         this.startPerformanceMonitoring();
+        
+        // Performance snapshots & diagnostics
+        this.performanceSnapshotIntervalMs = 60000; // 60s
+        this.performanceSnapshotTimer = null;
+        this.lastUploadLatencyMs = null;
+        this.lastLowFpsIssueAt = 0;
+        this.lowFpsDebounceMs = 10000; // min 10s mezi low_fps eventy
+        this.startPerformanceSnapshots();
         
         console.log('📊 Analytics initialized:', this.sessionId);
     }
@@ -57,7 +65,8 @@ export class AnalyticsManager {
         
         console.log('📊 Starting session:', this.sessionId, 'for player:', playerName || 'anonymous');
         
-        this.sessionData.player_name = playerName;
+        // Sanitize player name (DB limit 12 chars)
+        this.sessionData.player_name = playerName ? String(playerName).substring(0, 12) : null;
         this.sessionData.started_at = new Date().toISOString();
         
         try {
@@ -122,6 +131,26 @@ export class AnalyticsManager {
         };
         
         try {
+            // Enqueue summary performance snapshot
+            if (this.supabase) {
+                const fpsStats = this.getFPSStats();
+                const mem = (typeof performance !== 'undefined' && performance.memory) ? performance.memory : null;
+                const memory_used_mb = mem ? Math.round(mem.usedJSHeapSize / (1024 * 1024)) : null;
+                const memory_limit_mb = mem ? Math.round(mem.jsHeapSizeLimit / (1024 * 1024)) : null;
+                const supabase_available = !!this.supabase;
+                const api_latency_ms = this.lastUploadLatencyMs ?? null;
+                this.queueEvent('performance_metrics', {
+                    session_id: this.sessionId,
+                    fps_min: fpsStats.min,
+                    fps_max: fpsStats.max,
+                    fps_average: fpsStats.avg,
+                    fps_drops: fpsStats.drops,
+                    memory_used_mb,
+                    memory_limit_mb,
+                    api_latency_ms,
+                    supabase_available
+                });
+            }
             await this.updateSessionData(sessionUpdate);
             console.log('✅ Session ended successfully:', this.sessionId, 'duration:', duration, 'seconds');
         } catch (error) {
@@ -247,6 +276,7 @@ export class AnalyticsManager {
             damage_taken_from_boss: 0,
             special_attacks_used: 0,
             player_hp_start: Math.floor(Number(playerHPStart) || 0),
+            death_phase: null,
             started_at: Date.now() // Interní tracking pro duration
         };
     }
@@ -300,6 +330,14 @@ export class AnalyticsManager {
         if (!this.enabled || !this.currentBossEncounter) return;
         this.currentBossEncounter.special_attacks_used += 1;
     }
+
+    setBossPhase(phaseCode) {
+        if (!this.enabled || !this.currentBossEncounter) return;
+        const code = parseInt(phaseCode, 10);
+        if (!Number.isNaN(code)) {
+            this.currentBossEncounter.death_phase = code;
+        }
+    }
     
     trackPlayerDeath(cause, position, gameStats, context = {}) {
         if (!this.enabled) return;
@@ -331,6 +369,25 @@ export class AnalyticsManager {
         this.sessionData.death_position_y = Math.floor(Number(position.y) || 0);
         
         this.queueEvent('death_events', deathEvent);
+
+        // Increment enemy_stats.player_deaths_caused pro daný enemy type (mimo boss/projektil)
+        try {
+            const killerType = String(cause.type || 'unknown');
+            const isBoss = killerType.startsWith('boss:');
+            const isProjectile = killerType === 'projectile' || killerType.startsWith('projectile');
+            if (!isBoss && !isProjectile && killerType !== 'unknown') {
+                // Zachovat značení elite: pokud existuje
+                const enemyType = killerType;
+                this.queueEvent('enemy_stats', {
+                    session_id: this.sessionId,
+                    enemy_type: enemyType,
+                    enemy_level: Math.floor(Number(gameStats.level) || 1),
+                    player_deaths_caused: 1
+                });
+            }
+        } catch (e) {
+            // best-effort, neblokovat
+        }
     }
     
     // ===== PERFORMANCE TRACKING =====
@@ -355,6 +412,33 @@ export class AnalyticsManager {
         requestAnimationFrame(trackFPS);
     }
     
+    startPerformanceSnapshots() {
+        if (!this.enabled || this.performanceSnapshotTimer) return;
+        this.performanceSnapshotTimer = setInterval(() => {
+            // Skip, pokud není Supabase nebo je stránka skrytá
+            if (!this.supabase || (typeof document !== 'undefined' && document.hidden)) return;
+            
+            const fpsStats = this.getFPSStats();
+            const mem = (typeof performance !== 'undefined' && performance.memory) ? performance.memory : null;
+            const memory_used_mb = mem ? Math.round(mem.usedJSHeapSize / (1024 * 1024)) : null;
+            const memory_limit_mb = mem ? Math.round(mem.jsHeapSizeLimit / (1024 * 1024)) : null;
+            const supabase_available = !!this.supabase;
+            const api_latency_ms = this.lastUploadLatencyMs ?? null;
+            
+            this.queueEvent('performance_metrics', {
+                session_id: this.sessionId,
+                fps_min: fpsStats.min,
+                fps_max: fpsStats.max,
+                fps_average: fpsStats.avg,
+                fps_drops: fpsStats.drops,
+                memory_used_mb,
+                memory_limit_mb,
+                api_latency_ms,
+                supabase_available
+            });
+        }, this.performanceSnapshotIntervalMs);
+    }
+    
     getAverageFPS() {
         if (this.fpsHistory.length === 0) return 60;
         
@@ -377,6 +461,14 @@ export class AnalyticsManager {
         if (!this.enabled) return;
         
         const fpsStats = this.getFPSStats();
+        
+        // Low FPS: debounce a threshold
+        if (type === 'low_fps') {
+            const now = Date.now();
+            if (now - this.lastLowFpsIssueAt < this.lowFpsDebounceMs) return;
+            if (typeof details.fps === 'number' && details.fps > 45) return;
+            this.lastLowFpsIssueAt = now;
+        }
         
         this.queueEvent('performance_metrics', {
             session_id: this.sessionId,
@@ -426,10 +518,12 @@ export class AnalyticsManager {
         for (const [table, events] of Object.entries(eventsByTable)) {
             try {
                 console.log(`📊 Uploading ${events.length} events to ${table}...`);
-                
+                const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
                 const { error } = await this.supabase
                     .from(table)
                     .insert(events);
+                const t1 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+                this.lastUploadLatencyMs = Math.round(t1 - t0);
                 
                 if (error) {
                     console.warn(`❌ Failed to upload ${table}:`, error.message);
