@@ -19,3 +19,6 @@ npm-debug.log*
 *.tmp
 *.temp
 .cache/
+
+# Internal tools (not for public repo)
+analytics-dashboard/
