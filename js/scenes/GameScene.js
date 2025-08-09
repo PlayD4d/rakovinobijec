@@ -404,7 +404,7 @@ export class GameScene extends Phaser.Scene {
         
         // Analytics - track damage dealt
         this.gameStats.totalDamageDealt += projectile.damage;
-        const enemyType = enemy.isElite ? `elite:${enemy.baseType}` : enemy.baseType;
+        const enemyType = enemy.isElite ? `elite:${enemy.type}` : enemy.type;
         this.analyticsManager.trackDamageDealt(projectile.damage, enemyType);
         
         // Exploze navíc při prvním zásahu (pokud máme explozivní projektily)
@@ -447,7 +447,7 @@ export class GameScene extends Phaser.Scene {
             
             // Analytics - track damage taken
             this.gameStats.totalDamageTaken += enemy.damage;
-            const enemyType = enemy.isElite ? `elite:${enemy.baseType}` : enemy.baseType;
+            const enemyType = enemy.isElite ? `elite:${enemy.type}` : enemy.type;
             this.analyticsManager.trackDamageTaken(enemy.damage, enemyType, this.gameStats.level);
             
             this.audioManager.playSound('hit');
@@ -494,7 +494,7 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.score += enemy.xp * 10;
         
         // Analytics - track enemy kill
-        const enemyType = enemy.isElite ? `elite:${enemy.baseType}` : enemy.baseType;
+        const enemyType = enemy.isElite ? `elite:${enemy.type}` : enemy.type;
         this.analyticsManager.trackEnemyKill(enemyType, this.gameStats.level, enemy.hp);
         
         // Zvuk smrti nepřítele

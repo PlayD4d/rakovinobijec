@@ -89,22 +89,34 @@ export class AnalyticsManager {
     trackEnemyKill(enemyType, level, damage) {
         if (!this.enabled) return;
         
+        // Validace - neposlat NULL hodnoty
+        if (!enemyType) {
+            console.warn('⚠️ Analytics: enemyType is null/undefined, skipping trackEnemyKill');
+            return;
+        }
+        
         this.queueEvent('enemy_stats', {
             session_id: this.sessionId,
-            enemy_type: enemyType,
-            enemy_level: level,
+            enemy_type: String(enemyType),
+            enemy_level: level || 1,
             killed_count: 1,
-            damage_taken_from_player: damage
+            damage_taken_from_player: damage || 0
         });
     }
     
     trackEnemySpawn(enemyType, level) {
         if (!this.enabled) return;
         
+        // Validace - neposlat NULL hodnoty
+        if (!enemyType) {
+            console.warn('⚠️ Analytics: enemyType is null/undefined, skipping trackEnemySpawn');
+            return;
+        }
+        
         this.queueEvent('enemy_stats', {
             session_id: this.sessionId,
-            enemy_type: enemyType,
-            enemy_level: level,
+            enemy_type: String(enemyType),
+            enemy_level: level || 1,
             spawn_count: 1
         });
     }
@@ -124,11 +136,17 @@ export class AnalyticsManager {
     trackDamageTaken(amount, sourceType, sourceLevel = null) {
         if (!this.enabled) return;
         
+        // Validace - neposlat NULL hodnoty
+        if (!sourceType) {
+            console.warn('⚠️ Analytics: sourceType is null/undefined, skipping trackDamageTaken');
+            return;
+        }
+        
         this.queueEvent('enemy_stats', {
             session_id: this.sessionId,
-            enemy_type: sourceType,
-            enemy_level: sourceLevel,
-            damage_dealt_to_player: amount
+            enemy_type: String(sourceType),
+            enemy_level: sourceLevel || 1,
+            damage_dealt_to_player: amount || 0
         });
     }
     
