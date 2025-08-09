@@ -1,6 +1,7 @@
 import { GameConfig } from '../config.js';
 import { createFontConfig, waitForFont, PRESET_STYLES } from '../fontConfig.js';
 import { HighScoreManager } from '../managers/HighScoreManager.js';
+import { GlobalHighScoreManager } from '../managers/GlobalHighScoreManager.js';
 
 export class MainMenu extends Phaser.Scene {
     constructor() {
@@ -38,8 +39,10 @@ export class MainMenu extends Phaser.Scene {
         // Počkat na načtení fontu
         await waitForFont();
         
-        // Inicializace high score manageru
+        // Inicializace high score managerů
         this.highScoreManager = new HighScoreManager();
+        this.globalHighScoreManager = new GlobalHighScoreManager();
+        this.globalHighScoreManager.setLocalFallback(this.highScoreManager);
         
         // Pozadí
         this.add.rectangle(
@@ -87,7 +90,7 @@ export class MainMenu extends Phaser.Scene {
         this.add.text(
             20,
             this.cameras.main.height - 20,
-            'verze: 0.1',
+            'verze: 0.1.1',
             PRESET_STYLES.controls()
         ).setOrigin(0, 0.5);
         
@@ -387,7 +390,7 @@ export class MainMenu extends Phaser.Scene {
         this.currentSubmenu = null;
     }
     
-    showHighScores() {
+    async showHighScores() {
         this.currentSubmenu = 'highscores';
         
         const elements = [];
@@ -413,78 +416,111 @@ export class MainMenu extends Phaser.Scene {
         ).setStrokeStyle(3, 0x00ffff);
         elements.push(frame);
         
-        // Titulek - arkádový styl
+        // Titulek s connection status
+        const connectionStatus = this.globalHighScoreManager.getConnectionStatus();
+        const titleText = connectionStatus.online ? '🌐 GLOBÁLNÍ HIGH SCORES' : '📱 LOKÁLNÍ HIGH SCORES';
         const title = this.add.text(
             this.cameras.main.width / 2,
             this.cameras.main.height / 2 - 200,
-            'HIGH SCORES',
+            titleText,
             { 
                 ...PRESET_STYLES.dialogTitle(),
-                color: '#ffff00',
-                fontSize: '32px'
+                color: connectionStatus.online ? '#00ff00' : '#ffff00',
+                fontSize: '28px'
             }
         ).setOrigin(0.5);
         elements.push(title);
         
-        // Získat high scores (vždy 10 záznamů)
-        const highScores = this.highScoreManager.getHighScores();
-        console.log('High scores to display:', highScores);
+        // Loading indicator
+        const loadingText = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            '⏳ Načítám high scores...',
+            PRESET_STYLES.description()
+        ).setOrigin(0.5);
+        elements.push(loadingText);
         
-        // Vykreslení tabulky - jednoduchý arkádový formát
-        const startY = this.cameras.main.height / 2 - 130;
-        const lineHeight = 30;
+        // Získat globální high scores
+        try {
+            const highScores = await this.globalHighScoreManager.getHighScores();
+            console.log('Global high scores loaded:', highScores);
+            
+            // Odstranit loading text
+            loadingText.destroy();
+            elements.splice(elements.indexOf(loadingText), 1);
         
-        // Jednoduchý test - vykreslit 10 řádků bez ohledu na data
-        for (let i = 0; i < 10; i++) {
-            const y = startY + (i * lineHeight);
-            const rank = (i + 1).toString().padStart(2, '0');
-            const entry = highScores[i] || { name: 'PLAYD4D', score: 0 };
+            // Vykreslení tabulky - jednoduchý arkádový formát
+            const startY = this.cameras.main.height / 2 - 130;
+            const lineHeight = 30;
             
-            // Barva podle pozice
-            let color = '#ffffff';
-            if (i === 0) color = '#ffdd00'; // Zlatá
-            else if (i === 1) color = '#c0c0c0'; // Stříbrná
-            else if (i === 2) color = '#cd7f32'; // Bronzová
-            else if (entry.score === 0) color = '#666666'; // Šedá pro defaulty
+            // Vykreslit 10 řádků
+            for (let i = 0; i < 10; i++) {
+                const y = startY + (i * lineHeight);
+                const rank = (i + 1).toString().padStart(2, '0');
+                const entry = highScores[i] || { name: 'PRÁZDNÉ', score: 0 };
+                
+                // Barva podle pozice
+                let color = '#ffffff';
+                if (i === 0) color = '#ffdd00'; // Zlatá
+                else if (i === 1) color = '#c0c0c0'; // Stříbrná
+                else if (i === 2) color = '#cd7f32'; // Bronzová
+                else if (entry.score === 0) color = '#666666'; // Šedá pro defaulty
+                
+                // Pozice
+                const rankText = this.add.text(
+                    this.cameras.main.width / 2 - 250,
+                    y,
+                    `${rank}.`,
+                    PRESET_STYLES.buttonText()
+                ).setOrigin(0, 0.5);
+                rankText.setTint(color === '#ffdd00' ? 0xffdd00 : color === '#c0c0c0' ? 0xc0c0c0 : color === '#cd7f32' ? 0xcd7f32 : 0xffffff);
+                elements.push(rankText);
+                
+                // Jméno
+                const nameText = this.add.text(
+                    this.cameras.main.width / 2 - 180,
+                    y,
+                    entry.name,
+                    PRESET_STYLES.buttonText()
+                ).setOrigin(0, 0.5);
+                nameText.setTint(color === '#ffdd00' ? 0xffdd00 : color === '#c0c0c0' ? 0xc0c0c0 : color === '#cd7f32' ? 0xcd7f32 : 0xffffff);
+                elements.push(nameText);
+                
+                // Skóre (zarovnané doprava)
+                const scoreText = this.add.text(
+                    this.cameras.main.width / 2 + 200,
+                    y,
+                    entry.score.toString().padStart(8, '0'),
+                    PRESET_STYLES.buttonText()
+                ).setOrigin(1, 0.5);
+                scoreText.setTint(color === '#ffdd00' ? 0xffdd00 : color === '#c0c0c0' ? 0xc0c0c0 : color === '#cd7f32' ? 0xcd7f32 : 0xffffff);
+                elements.push(scoreText);
+            }
             
-            console.log(`Rendering row ${i}: ${rank}. ${entry.name} ${entry.score} (color: ${color})`);
-            
-            // Pozice
-            const rankText = this.add.text(
-                this.cameras.main.width / 2 - 250,
-                y,
-                `${rank}.`,
-                PRESET_STYLES.buttonText()
-            ).setOrigin(0, 0.5);
-            rankText.setTint(color === '#ffdd00' ? 0xffdd00 : color === '#c0c0c0' ? 0xc0c0c0 : color === '#cd7f32' ? 0xcd7f32 : 0xffffff);
-            elements.push(rankText);
-            
-            // Jméno
-            const nameText = this.add.text(
-                this.cameras.main.width / 2 - 180,
-                y,
-                entry.name,
-                PRESET_STYLES.buttonText()
-            ).setOrigin(0, 0.5);
-            nameText.setTint(color === '#ffdd00' ? 0xffdd00 : color === '#c0c0c0' ? 0xc0c0c0 : color === '#cd7f32' ? 0xcd7f32 : 0xffffff);
-            elements.push(nameText);
-            
-            // Skóre (zarovnané doprava)
-            const scoreText = this.add.text(
-                this.cameras.main.width / 2 + 200,
-                y,
-                entry.score.toString().padStart(8, '0'),
-                PRESET_STYLES.buttonText()
-            ).setOrigin(1, 0.5);
-            scoreText.setTint(color === '#ffdd00' ? 0xffdd00 : color === '#c0c0c0' ? 0xc0c0c0 : color === '#cd7f32' ? 0xcd7f32 : 0xffffff);
-            elements.push(scoreText);
+        } catch (error) {
+            // Error handling - fallback na lokální scores
+            loadingText.setText('❌ Chyba načítání - lokální scores');
+            console.error('Failed to load global scores:', error);
         }
+        
+        // Connection status info
+        const statusText = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2 + 180,
+            connectionStatus.online ? '🌐 Online • Globální žebříček' : '📡 Offline • Lokální žebříček',
+            { 
+                ...PRESET_STYLES.controls(),
+                color: connectionStatus.online ? '#00ff88' : '#ffaa00',
+                fontSize: '14px'
+            }
+        ).setOrigin(0.5);
+        elements.push(statusText);
         
         // Instrukce
         const backText = this.add.text(
             this.cameras.main.width / 2,
             this.cameras.main.height / 2 + 220,
-            'ESC - BACK TO MENU',
+            'ESC - ZPĚT DO MENU',
             { 
                 ...PRESET_STYLES.controls(),
                 color: '#00ff00',
@@ -492,8 +528,6 @@ export class MainMenu extends Phaser.Scene {
             }
         ).setOrigin(0.5);
         elements.push(backText);
-        
-        // ESC už je nastavené v setupKeyboard(), nemusíme přidávat nové
         
         this.submenuElements = elements;
     }

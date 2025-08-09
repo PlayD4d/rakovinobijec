@@ -1,0 +1,32 @@
+{
+  "name": "rakovinobijec",
+  "version": "0.1.1",
+  "description": "Arcade-style top-down shooter hra pro podporu v boji proti rakovině",
+  "main": "index.html",
+  "scripts": {
+    "serve": "python3 -m http.server 8000",
+    "serve-alt": "npx serve .",
+    "version": "echo $npm_package_version",
+    "changelog": "echo 'Changelog updated'"
+  },
+  "keywords": [
+    "game", 
+    "phaser", 
+    "javascript", 
+    "healthcare", 
+    "arcade", 
+    "shooter"
+  ],
+  "author": {
+    "name": "PlayD4d",
+    "email": "playd4d.me@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PlayD4d/rakovinobijec.git"
+  },
+  "homepage": "https://playd4d.github.io/rakovinobijec/",
+  "devDependencies": {},
+  "dependencies": {}
+}

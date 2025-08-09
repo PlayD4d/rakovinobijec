@@ -8,6 +8,7 @@ import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { AudioManager } from '../managers/AudioManager.js';
 import { PauseMenu } from '../managers/PauseMenu.js';
 import { HighScoreManager } from '../managers/HighScoreManager.js';
+import { GlobalHighScoreManager } from '../managers/GlobalHighScoreManager.js';
 import { createFontConfig, waitForFont, PRESET_STYLES } from '../fontConfig.js';
 
 export class GameScene extends Phaser.Scene {
@@ -117,8 +118,10 @@ export class GameScene extends Phaser.Scene {
         // Inicializace nepřátel
         this.enemyManager = new EnemyManager(this, this.player);
         
-        // Inicializace high score manageru
+        // Inicializace high score managerů
         this.highScoreManager = new HighScoreManager();
+        this.globalHighScoreManager = new GlobalHighScoreManager();
+        this.globalHighScoreManager.setLocalFallback(this.highScoreManager);
         
         // UI
         this.uiManager = new UIManager(this);
@@ -542,8 +545,8 @@ export class GameScene extends Phaser.Scene {
             this.sound.play('playerDeath');
         }
         
-        // Zkontrolovat, zda je skóre v TOP10
-        if (this.highScoreManager.isHighScore(this.gameStats.score)) {
+        // Zkontrolovat, zda je skóre v TOP10 (globálně)
+        if (this.globalHighScoreManager.isHighScore(this.gameStats.score)) {
             this.showHighScoreDialog();
         } else {
             this.uiManager.showGameOver();
@@ -633,7 +636,17 @@ export class GameScene extends Phaser.Scene {
         // Keyboard input handler
         this.input.keyboard.on('keydown', (event) => {
             if (event.key === 'Enter') {
-                // Uložit high score
+                // Uložit high score globálně
+                this.globalHighScoreManager.submitScore(
+                    playerName || 'Anonym',
+                    this.gameStats.score,
+                    this.gameStats.level,
+                    this.gameStats.enemiesKilled,
+                    this.gameStats.time,
+                    this.gameStats.bossesDefeated
+                );
+                
+                // Pro pozici použij lokální manager (rychlejší)
                 const position = this.highScoreManager.addHighScore(
                     playerName || 'Anonym',
                     this.gameStats.score,
