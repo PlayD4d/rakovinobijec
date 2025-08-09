@@ -174,7 +174,7 @@ MIT License - viz [LICENSE](LICENSE) soubor.
 ## 💌 Kontakt
 
 - Email: playd4d.me@gmail.com
-- GitHub: [@yourusername](https://github.com/yourusername)
+- GitHub: [@PlayD4d](https://github.com/PlayD4d)
 
 ---
 
@@ -182,8 +182,8 @@ MIT License - viz [LICENSE](LICENSE) soubor.
 
 ## 🎯 Live Demo
 
-[**▶️ HRÁT ONLINE**](https://yourusername.github.io/rakovinobijec/)
+[**▶️ HRÁT ONLINE**](https://playd4d.github.io/rakovinobijec/)
 
 ---
 
-*Verze: 0.1 | Poslední aktualizace: Leden 2025*
+*Verze: 0.1 | Poslední aktualizace: Srpen 2025*
