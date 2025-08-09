@@ -318,7 +318,6 @@ export class GameScene extends Phaser.Scene {
                 );
                 
                 if (distance < 15) { // collision radius
-                    console.log('HIT! Projectile damage:', projectile.damage, 'Enemy HP before:', enemy.hp);
                     this.handleProjectileEnemyCollision(projectile, enemy);
                 }
             });

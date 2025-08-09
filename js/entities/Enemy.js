@@ -184,7 +184,6 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
     
     takeDamage(amount) {
-        console.log('Enemy takeDamage:', amount, 'HP before:', this.hp + amount, 'HP after:', this.hp - amount);
         this.hp -= amount;
         this.hp = Math.max(0, this.hp);
         
@@ -196,12 +195,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         
         this.updateHPBar();
         
-        if (this.hp <= 0) {
-            // Nepřítel je mrtvý, ale nebudeme volat handleEnemyDeath zde
-            // protože se už volá v GameScene po kontrole HP
-            // Pouze označit jako mrtvého pro čištění
-            this.isDead = true;
-        }
+        // Neoznačujeme jako mrtvého zde - to udělá handleEnemyDeath()
+        // když se zavolá z GameScene.js
     }
     
     updateHPBar() {
