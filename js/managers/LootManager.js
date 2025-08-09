@@ -7,6 +7,7 @@ export class LootManager {
         
         this.magnetRange = GameConfig.xp.magnetRange;
         this.magnetLevel = 0;
+    this.suppressSpecialDrops = false;
     }
     
     dropLoot(x, y, enemy) {
@@ -21,6 +22,11 @@ export class LootManager {
         if (Math.random() < currentDropChance) {
             this.createHealthOrb(x, y);
         }
+
+    // Speciální drop: Metotrexat (3%)
+    if (!this.suppressSpecialDrops && Math.random() < 0.03) {
+      this.createMetotrexat(x, y);
+    }
     }
     
     calculateHealthDropChance() {
@@ -130,6 +136,45 @@ export class LootManager {
         
         return sprite;
     }
+
+  createMetotrexat(x, y) {
+    const sprite = this.scene.physics.add.sprite(x, y, null);
+    const graphics = this.scene.add.graphics();
+    const baseSize = GameConfig.xp.orbSize * 0.9;
+    const hexSize = baseSize * 1.1;
+    const orbColor = 0xffffaa; // světle žlutý
+    // Hexagon jako XP orb
+    graphics.fillStyle(orbColor, 1);
+    graphics.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i;
+      const px = hexSize + Math.cos(angle) * hexSize;
+      const py = hexSize + Math.sin(angle) * hexSize;
+      if (i === 0) graphics.moveTo(px, py); else graphics.lineTo(px, py);
+    }
+    graphics.closePath();
+    graphics.fill();
+    graphics.lineStyle(2, 0xffffff, 0.9);
+    graphics.strokePath();
+    const textureName = 'metoHex_' + Date.now() + '_' + Math.random();
+    graphics.generateTexture(textureName, hexSize * 2, hexSize * 2);
+    sprite.setTexture(textureName);
+    graphics.destroy();
+    sprite.type = 'metotrexat';
+    // Blikání (puls + alpha flicker)
+    this.scene.tweens.add({
+      targets: sprite,
+      scaleX: 1.15,
+      scaleY: 1.15,
+      alpha: 0.6,
+      duration: 300,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+    this.loot.add(sprite);
+    return sprite;
+  }
     
     createHealthOrb(x, y) {
         const sprite = this.scene.physics.add.sprite(x, y, null);
@@ -180,8 +225,12 @@ export class LootManager {
         const player = this.scene.player;
         const actualMagnetRange = this.magnetRange + (this.magnetLevel * 30); // Zvýšen range bonus
         
-        this.loot.children.entries.forEach(orb => {
-            if (!(orb.active && orb.type === 'xp' && orb.body)) return;
+    this.loot.children.entries.forEach(orb => {
+      if (!(orb.active && orb.body)) return;
+      if (orb.type !== 'xp') {
+        // pouze XP orby jsou magnetizované
+        return;
+      }
 
             const dx = player.x - orb.x;
             const dy = player.y - orb.y;

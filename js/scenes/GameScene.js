@@ -73,6 +73,7 @@ export class GameScene extends Phaser.Scene {
         this.load.audio('readyFight', 'sound/ready_fight.mp3');
         this.load.audio('bossEnter', 'sound/boss_enter.mp3');
         this.load.audio('gameOver', 'sound/game_over.mp3');
+        this.load.audio('metotrexat', 'sound/metotrexat.mp3');
         
         // Debug loading - více detailní
         this.load.on('filecomplete', (key, type, data) => {
@@ -560,6 +561,19 @@ export class GameScene extends Phaser.Scene {
             this.player.heal(GameConfig.health.healAmount * this.player.maxHp);
             this.gameStats.healthPickups++;
             this.audioManager.playSound('heal');
+        } else if (loot.type === 'metotrexat') {
+            // Speciální efekt: záblesk, zvuk a zabít všechny aktivní NPC
+            try { this.sound.play('metotrexat'); } catch (_) {}
+            try { this.cameras.main.flash(300, 255, 255, 255); } catch (_) {}
+            // Zabránit řetězení speciálních dropů během masakru
+            this.lootManager.suppressSpecialDrops = true;
+            const enemies = [...this.enemyManager.enemies.children.entries];
+            enemies.forEach(enemy => {
+                if (enemy && enemy.active) {
+                    this.handleEnemyDeath(enemy);
+                }
+            });
+            this.lootManager.suppressSpecialDrops = false;
         }
         
         loot.destroy();
