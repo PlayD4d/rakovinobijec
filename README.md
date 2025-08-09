@@ -109,32 +109,31 @@ open http://localhost:8000
 - [x] Game over screen
 - [x] Český jazyk a tematika
 
-### 🌐 Globální High Score Systém
+### 🌐 Globální High Score Systém (Supabase)
 
 **Features:**
-- **🏆 Worldwide leaderboard** - soutěž s hráči z celého světa
-- **📡 Smart fallback** - automatické přepínání offline/online
+- **🏆 Skutečný worldwide leaderboard** - Supabase databáze
+- **📡 Smart fallback** - automatické přepínání Supabase/LocalStorage
 - **⚡ Rychlé načítání** - 1-minutový cache systém
-- **🔒 Bezpečnost** - data validation & sanitization
-- **📱 Dual storage** - lokální backup + globální synchronizace
+- **🔒 Bezpečnost** - RLS policies + data sanitization
+- **📱 Dual storage** - vždy se ukládá i lokální backup
 
-**Online režim:** `🌐 GLOBÁLNÍ HIGH SCORES`
-- Zobrazuje TOP 10 ze všech hráčů
-- Real-time submission scores
-- Connection status indikátory
+**Online režim:** `🌐 GLOBÁLNÍ HIGH SCORES (Supabase)`
+- Real-time TOP 10 ze všech hráčů světa
+- Okamžité ukládání do cloudu
+- Vizuální oddělení TOP 3 (zlatá/stříbrná/bronzová)
 
 **Offline režim:** `📱 LOKÁLNÍ HIGH SCORES`  
 - Automatický fallback při výpadku
-- Lokální storage backup
-- Synchronizace při obnovení připojení
+- LocalStorage perzistence
+- Žádná data se neztratí
 
-### 🔨 Plánované vylepšení
-- [ ] Touch ovládání pro mobily
-- [ ] Tutorial pro nové hráče  
-- [ ] Dodatečné particle efekty
-- [ ] Achievements systém
-- [ ] Firebase/Supabase API integrace
-- [ ] Player profiles & statistics
+### 🔨 Co je nového (v0.1.1)
+- ✅ Supabase integrace pro globální leaderboard
+- ✅ Vizuální vylepšení high scores (TOP 3 oddělení)
+- ✅ Elite mob balance (damage 2.0 → 1.4)
+- ✅ Automatické verzování a CHANGELOG
+- ✅ Profesionální dokumentace
 
 ## 🎨 Design a téma
 
@@ -172,6 +171,10 @@ rakovinobijec/
 │       └── GlobalHighScoreManager.js # Globální high score
 ├── package.json            # NPM konfigurace a versioning
 ├── CHANGELOG.md            # Historie změn
+├── TODO.md                 # Plánované funkce a nápady
+├── SUPABASE_SETUP.md       # Návod pro Supabase setup
+├── supabase_setup.sql      # SQL skript pro databázi
+├── .gitignore              # Git ignore pravidla
 ├── fonts/                  # Public Pixel font
 ├── music/                  # Hudební soubory
 └── sound/                  # Zvukové efekty

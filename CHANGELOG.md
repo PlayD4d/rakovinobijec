@@ -5,6 +5,23 @@ All notable changes to Rakovinobijec will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- 🗄️ **Supabase integrace** - skutečný cloud databázový backend
+- 📋 **TODO.md** - plány a nápady pro budoucí verze
+- 🔒 **.gitignore** - správná organizace projektu
+
+### Changed
+- 🎨 **High score vizuální vylepšení** - TOP 3 odděleno mezerou, zlatá/stříbrná/bronzová barvy
+- ⚖️ **Elite mob balance** - damage multiplier snížen z 2.0 na 1.4
+- 🔄 **Zjednodušení kódu** - odstraněny mock funkce, čistší architektura
+
+### Fixed
+- 🌐 **Globální high scores** - nyní se správně ukládají do Supabase
+- 🎨 **Barvy TOP 3** - opravena logika zobrazení zlaté/stříbrné/bronzové
+- 📊 **SQL kompatibilita** - 'time' změněno na 'play_time' (reserved word)
+
 ## [0.1.1] - 2025-01-09
 
 ### Added

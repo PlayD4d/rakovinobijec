@@ -22,9 +22,6 @@ export class GlobalHighScoreManager {
         this.lastFetchTime = 0;
         this.cacheTimeout = 60000; // 1 minuta cache
         
-        // Mock storage pro fallback
-        this.mockStorage = [];
-        
         this.isOnline = navigator.onLine;
         this.setupNetworkListeners();
     }
@@ -59,9 +56,10 @@ export class GlobalHighScoreManager {
     }
     
     async fetchGlobalScores() {
+        // Pokud jsme offline nebo nemáme Supabase, použij lokální scores
         if (!this.isOnline || !this.supabase) {
-            console.log('📡 Offline or Supabase not available - returning cached scores');
-            return this.cachedScores || this.mockStorage;
+            console.log('📡 Offline or Supabase not available - using local scores');
+            return this.localManager ? this.localManager.getHighScores() : [];
         }
         
         // Check cache
@@ -90,21 +88,9 @@ export class GlobalHighScoreManager {
             
         } catch (error) {
             console.warn('❌ Failed to fetch global scores:', error.message);
-            console.log('🔄 Falling back to mock/local scores');
-            
-            // Fallback na mock API
-            return this.mockFetchScores();
+            console.log('🔄 Falling back to local scores');
+            return this.localManager ? this.localManager.getHighScores() : [];
         }
-    }
-    
-    // Mock API pro demo/fallback - v případě výpadku Supabase
-    async mockFetchScores() {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log('📊 Mock fetch - current storage:', this.mockStorage);
-                resolve([...this.mockStorage]); // Vrátit kopii aktuálních scores
-            }, 800); // Simulace network latency
-        });
     }
     
     async submitScore(name, score, level, enemiesKilled, time, bossesDefeated) {
@@ -122,10 +108,9 @@ export class GlobalHighScoreManager {
             );
         }
         
+        // Pokud jsme offline nebo nemáme Supabase, skončíme zde
         if (!this.isOnline || !this.supabase) {
             console.log('📡 Offline or Supabase not available - score saved locally only');
-            // Uložit do mock storage jako fallback
-            await this.mockSubmitScore(sanitizedScore);
             return false;
         }
         
@@ -149,33 +134,9 @@ export class GlobalHighScoreManager {
             
         } catch (error) {
             console.warn('❌ Failed to submit to Supabase:', error.message);
-            console.log('💾 Saving to mock storage as backup');
-            
-            // Fallback na mock storage
-            await this.mockSubmitScore(sanitizedScore);
+            console.log('💾 Score saved locally as backup');
             return false;
         }
-    }
-    
-    // Mock submit pro fallback
-    async mockSubmitScore(scoreData) {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log('📊 Mock submit - adding score:', scoreData);
-                
-                // Přidat nové skóre do mock storage
-                this.mockStorage.push(scoreData);
-                
-                // Seřadit podle skóre (nejvyšší první)
-                this.mockStorage.sort((a, b) => b.score - a.score);
-                
-                // Omezit na TOP 10
-                this.mockStorage = this.mockStorage.slice(0, 10);
-                
-                console.log('📊 Mock storage after submit:', this.mockStorage);
-                resolve({ success: true });
-            }, 500);
-        });
     }
     
     async getHighScores() {
@@ -224,13 +185,13 @@ export class GlobalHighScoreManager {
             }
         }
         
-        // Fallback na cache nebo mock
-        if (!this.cachedScores && !this.mockStorage.length) return true;
+        // Fallback na lokální scores
+        if (this.localManager) {
+            return this.localManager.isHighScore(score);
+        }
         
-        const scores = (this.cachedScores || this.mockStorage).sort((a, b) => b.score - a.score);
-        
-        // Pokud máme méně než 10 scores, nebo je score vyšší než nejnižší
-        return scores.length < 10 || score > (scores[9]?.score || 0);
+        // Pokud nemáme žádná data, považuj za high score
+        return true;
     }
     
     getConnectionStatus() {
