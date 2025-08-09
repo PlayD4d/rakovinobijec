@@ -15,7 +15,8 @@ Rakovinobijec je motivační hra vytvořená speciálně pro podporu v boji prot
 - **13 power-upů** inspirovaných skutečnou léčbou rakoviny
 - **5 typů nepřátel** s unikátními schopnostmi
 - **XP systém** s level-up mechanikou
-- **High score** systém s TOP 10 žebříčkem
+- **🌐 Globální high score** - soutěž s hráči po celém světě
+- **📱 Offline fallback** - lokální scores při výpadku připojení
 
 ## 🎮 Ovládání
 
@@ -29,7 +30,8 @@ Rakovinobijec je motivační hra vytvořená speciálně pro podporu v boji prot
 ### Použité technologie
 - **Phaser.js 3.70.0** - herní framework
 - **ES6 Modules** - modulární architektura
-- **LocalStorage** - ukládání high score
+- **LocalStorage** - backup high score (offline režim)
+- **Global API** - centralizovaný high score systém
 - **CSS3** - responzivní design
 - **Web Audio API** - zvukové efekty
 
@@ -100,19 +102,39 @@ open http://localhost:8000
 - [x] 13 power-upů s progresí
 - [x] 5 typů nepřátel + elite variace
 - [x] XP systém a level-up
-- [x] High score systém (TOP 10)
+- [x] 🌐 Globální high score systém (TOP 10 worldwide)
 - [x] Pause menu s nastavením
 - [x] Audio systém (hudba + SFX)
 - [x] Responzivní design
 - [x] Game over screen
 - [x] Český jazyk a tematika
 
+### 🌐 Globální High Score Systém
+
+**Features:**
+- **🏆 Worldwide leaderboard** - soutěž s hráči z celého světa
+- **📡 Smart fallback** - automatické přepínání offline/online
+- **⚡ Rychlé načítání** - 1-minutový cache systém
+- **🔒 Bezpečnost** - data validation & sanitization
+- **📱 Dual storage** - lokální backup + globální synchronizace
+
+**Online režim:** `🌐 GLOBÁLNÍ HIGH SCORES`
+- Zobrazuje TOP 10 ze všech hráčů
+- Real-time submission scores
+- Connection status indikátory
+
+**Offline režim:** `📱 LOKÁLNÍ HIGH SCORES`  
+- Automatický fallback při výpadku
+- Lokální storage backup
+- Synchronizace při obnovení připojení
+
 ### 🔨 Plánované vylepšení
 - [ ] Touch ovládání pro mobily
-- [ ] Tutorial pro nové hráče
+- [ ] Tutorial pro nové hráče  
 - [ ] Dodatečné particle efekty
 - [ ] Achievements systém
-- [ ] Více hudebních tracků
+- [ ] Firebase/Supabase API integrace
+- [ ] Player profiles & statistics
 
 ## 🎨 Design a téma
 
@@ -146,7 +168,10 @@ rakovinobijec/
 │       ├── EnemyManager.js # Spawn nepřátel
 │       ├── PowerUpManager.js # Power-up systém
 │       ├── UIManager.js    # Uživatelské rozhraní
-│       └── HighScoreManager.js # High score
+│       ├── HighScoreManager.js # Lokální high score
+│       └── GlobalHighScoreManager.js # Globální high score
+├── package.json            # NPM konfigurace a versioning
+├── CHANGELOG.md            # Historie změn
 ├── fonts/                  # Public Pixel font
 ├── music/                  # Hudební soubory
 └── sound/                  # Zvukové efekty
@@ -186,4 +211,4 @@ MIT License - viz [LICENSE](LICENSE) soubor.
 
 ---
 
-*Verze: 0.1 | Poslední aktualizace: Srpen 2025*
+*Verze: 0.1.1 | Poslední aktualizace: Srpen 2025*
