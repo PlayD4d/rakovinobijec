@@ -160,6 +160,31 @@ export class AnalyticsManager {
     }
     
     // ===== EVENT TRACKING =====
+    // Sanitizace typů nepřátel pro omezenou délku DB sloupce (VARCHAR(20))
+    sanitizeEnemyType(rawType) {
+        try {
+            if (!rawType) return 'unknown';
+            let t = String(rawType).toLowerCase();
+            // Odebrat emoji a diakritiku
+            t = t.replace(/[\p{Emoji}\p{Extended_Pictographic}]/gu, '');
+            t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            // Zkrátit bosse na prefix boss:<slug>
+            if (t.startsWith('boss:')) {
+                const name = t.slice(5).replace(/[^a-z0-9]+/g, '-');
+                t = 'boss:' + name;
+            } else {
+                t = t.replace(/[^a-z0-9:]+/g, '-');
+            }
+            // Sloupec má limit 20 znaků
+            if (t.length > 20) {
+                t = t.slice(0, 20);
+            }
+            if (!t || t === 'boss:') return 'unknown';
+            return t;
+        } catch (_) {
+            return 'unknown';
+        }
+    }
     
     trackEnemyKill(enemyType, level, damage) {
         if (!this.enabled) return;
@@ -172,7 +197,7 @@ export class AnalyticsManager {
         
         this.queueEvent('enemy_stats', {
             session_id: this.sessionId,
-            enemy_type: String(enemyType),
+            enemy_type: this.sanitizeEnemyType(enemyType),
             enemy_level: Math.floor(Number(level) || 1),
             killed_count: 1,
             damage_taken_from_player: Math.floor(Number(damage) || 0)
@@ -190,7 +215,7 @@ export class AnalyticsManager {
         
         this.queueEvent('enemy_stats', {
             session_id: this.sessionId,
-            enemy_type: String(enemyType),
+            enemy_type: this.sanitizeEnemyType(enemyType),
             enemy_level: Math.floor(Number(level) || 1),
             spawn_count: 1
         });
@@ -219,7 +244,7 @@ export class AnalyticsManager {
         
         this.queueEvent('enemy_stats', {
             session_id: this.sessionId,
-            enemy_type: String(sourceType),
+            enemy_type: this.sanitizeEnemyType(sourceType),
             enemy_level: Math.floor(Number(sourceLevel) || 1),
             damage_dealt_to_player: Math.floor(Number(amount) || 0)
         });
@@ -377,7 +402,7 @@ export class AnalyticsManager {
             const isProjectile = killerType === 'projectile' || killerType.startsWith('projectile');
             if (!isBoss && !isProjectile && killerType !== 'unknown') {
                 // Zachovat značení elite: pokud existuje
-                const enemyType = killerType;
+                const enemyType = this.sanitizeEnemyType(killerType);
                 this.queueEvent('enemy_stats', {
                     session_id: this.sessionId,
                     enemy_type: enemyType,
