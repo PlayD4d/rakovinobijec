@@ -90,7 +90,7 @@ export class MainMenu extends Phaser.Scene {
         this.add.text(
             20,
             this.cameras.main.height - 20,
-            'verze: 0.1.2',
+            'verze: 0.1.3',
             PRESET_STYLES.controls()
         ).setOrigin(0, 0.5);
         
