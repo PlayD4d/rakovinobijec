@@ -227,12 +227,13 @@ export class AnalyticsManager {
         
         this.currentBossEncounter = {
             session_id: this.sessionId,
-            boss_name: bossName,
-            boss_level: level,
-            start_time: Date.now(),
+            boss_name: String(bossName || 'Unknown Boss'),
+            boss_level: Math.floor(Number(level) || 1),
+            timestamp: new Date().toISOString(), // Použít timestamp místo start_time
             damage_dealt_to_boss: 0,
             damage_taken_from_boss: 0,
-            special_attacks_used: 0
+            special_attacks_used: 0,
+            started_at: Date.now() // Interní tracking pro duration
         };
     }
     
@@ -242,9 +243,12 @@ export class AnalyticsManager {
         const encounter = {
             ...this.currentBossEncounter,
             defeated: true,
-            fight_duration: Math.floor((Date.now() - this.currentBossEncounter.start_time) / 1000),
-            player_hp_end: playerHP
+            fight_duration: Math.floor((Date.now() - this.currentBossEncounter.started_at) / 1000),
+            player_hp_end: Math.floor(Number(playerHP) || 0)
         };
+        
+        // Odstranit started_at před odesláním do databáze
+        delete encounter.started_at;
         
         this.queueEvent('boss_encounters', encounter);
         this.currentBossEncounter = null;

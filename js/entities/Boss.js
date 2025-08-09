@@ -2,6 +2,16 @@ import { Enemy } from './Enemy.js';
 import { createFontConfig } from '../fontConfig.js';
 
 export class Boss extends Enemy {
+    // Utility method pro safe delayed calls
+    safeDelayedCall(delay, callback, context = null) {
+        if (!this.scene || !this.scene.time) return null;
+        
+        return this.scene.time.delayedCall(delay, () => {
+            if (!this.active || !this.scene) return;
+            callback.call(context || this);
+        }, null, this);
+    }
+    
     constructor(scene, x, y, bossConfig, level) {
         // Zvýšení HP, damage i XP podle levelu
         const scaledConfig = {
@@ -213,10 +223,11 @@ export class Boss extends Enemy {
     
     trackingAttack(player) {
         // Navádění projektilu
+        const scene = this.scene; // Zachovat scene reference
         for (let i = 0; i < 3; i++) {
             this.scene.time.delayedCall(i * 500, () => {
                 // Kontrola existence scény a projektile manageru
-                if (!this.scene || !this.scene.projectileManager || !this.active) {
+                if (!scene || !scene.projectileManager || !this.active) {
                     return;
                 }
                 
@@ -226,7 +237,7 @@ export class Boss extends Enemy {
                     y: Math.sin(angle) * 300
                 };
                 
-                this.scene.projectileManager.createEnemyProjectile(
+                scene.projectileManager.createEnemyProjectile(
                     this.x,
                     this.y,
                     velocity,
@@ -234,16 +245,17 @@ export class Boss extends Enemy {
                     0xff00ff,
                     true // tracking
                 );
-            });
+            }, null, this);
         }
     }
     
     burstAttack() {
         // Rychlá salva
+        const scene = this.scene; // Zachovat scene reference
         for (let i = 0; i < 5; i++) {
             this.scene.time.delayedCall(i * 100, () => {
                 // Kontrola existence scény a projektile manageru
-                if (!this.scene || !this.scene.projectileManager || !this.active) {
+                if (!scene || !scene.projectileManager || !this.active) {
                     return;
                 }
                 
@@ -253,14 +265,14 @@ export class Boss extends Enemy {
                     y: Math.sin(randomAngle) * 350
                 };
                 
-                this.scene.projectileManager.createEnemyProjectile(
+                scene.projectileManager.createEnemyProjectile(
                     this.x,
                     this.y,
                     velocity,
                     this.damage,
                     0xffff00
                 );
-            });
+            }, null, this);
         }
     }
     
@@ -290,10 +302,8 @@ export class Boss extends Enemy {
         this.linearAttack(player);
         
         // Malé zpoždění pro circle
-        this.scene.time.delayedCall(500, () => {
-            if (this.active) {
-                this.circleAttack();
-            }
+        this.safeDelayedCall(500, () => {
+            this.circleAttack();
         });
     }
     
@@ -311,20 +321,24 @@ export class Boss extends Enemy {
             const childCell = this.scene.add.circle(childX, childY, 10, 0x800000);
             
             // Animace k hráči
+            const scene = this.scene; // Zachovat reference na scene
             this.scene.tweens.add({
                 targets: childCell,
                 x: this.scene.player.x,
                 y: this.scene.player.y,
                 duration: 2000,
                 onComplete: () => {
-                    // Exploze při dopadu
-                    if (this.scene.projectileManager) {
-                        this.scene.projectileManager.createExplosion(
+                    // Exploze při dopadu - použít zachovanou scene reference
+                    if (scene && scene.projectileManager && scene.projectileManager.createExplosion) {
+                        scene.projectileManager.createExplosion(
                             childCell.x, childCell.y, this.damage * 0.5, 30, 1
                         );
                     }
-                    childCell.destroy();
-                }
+                    if (childCell && childCell.destroy) {
+                        childCell.destroy();
+                    }
+                },
+                onCompleteScope: this
             });
         }
     }
@@ -336,9 +350,7 @@ export class Boss extends Enemy {
             const angle = (Math.PI * 2 / spreadCount) * i;
             const distance = 80;
             
-            this.scene.time.delayedCall(i * 200, () => {
-                if (!this.active) return;
-                
+            this.safeDelayedCall(i * 200, () => {
                 const spreadX = this.x + Math.cos(angle) * distance;
                 const spreadY = this.y + Math.sin(angle) * distance;
                 
@@ -358,9 +370,8 @@ export class Boss extends Enemy {
                 });
                 
                 // Damage check
-                this.scene.time.delayedCall(1000, () => {
-                    // Kontrola jestli boss a scene ještě existují
-                    if (!this.active || !this.scene || !this.scene.player) return;
+                this.safeDelayedCall(1000, () => {
+                    if (!this.scene.player) return;
                     
                     const playerDistance = Phaser.Math.Distance.Between(
                         infection.x, infection.y, 
