@@ -12,7 +12,8 @@ export class MainMenu extends Phaser.Scene {
             { text: 'Začít hru', action: 'start' },
             { text: 'TOP 10', action: 'highscores' },
             { text: 'Zvuk', action: 'audio' },
-            { text: 'Nepřátelé', action: 'enemies' }
+            { text: 'Nepřátelé', action: 'enemies' },
+            { text: 'Nastavení', action: 'settings' }
         ];
         
         this.selectedIndex = 0;
@@ -226,7 +227,71 @@ export class MainMenu extends Phaser.Scene {
             case 'enemies':
                 this.showEnemiesMenu();
                 break;
+            case 'settings':
+                this.showSettingsMenu();
+                break;
         }
+    }
+
+    showSettingsMenu() {
+        this.currentSubmenu = 'settings';
+        const elements = [];
+        const panelWidth = 520;
+        const panelHeight = 360;
+        const panelX = this.cameras.main.width / 2;
+        const panelY = this.cameras.main.height / 2;
+
+        const bg = this.add.rectangle(panelX, panelY, this.cameras.main.width, this.cameras.main.height, 0x000000, 0.7);
+        elements.push(bg);
+        const panel = this.add.rectangle(panelX, panelY, panelWidth, panelHeight, 0x222222, 1).setStrokeStyle(2, 0xffffff);
+        elements.push(panel);
+        const title = this.add.text(panelX, panelY - panelHeight/2 + 30, 'NASTAVENÍ', PRESET_STYLES.dialogTitle()).setOrigin(0.5);
+        elements.push(title);
+
+        const mobileEnabled = localStorage.getItem('mobileControlsEnabled') === 'true';
+        const side = localStorage.getItem('mobileControlsSide') || 'left';
+
+        const mobileLabel = this.add.text(panelX - 180, panelY - 60, 'Ovládání na mobilu', PRESET_STYLES.buttonText());
+        elements.push(mobileLabel);
+        const toggleText = this.add.text(panelX + 120, panelY - 60, mobileEnabled ? 'ZAP' : 'VYP', PRESET_STYLES.buttonText()).setInteractive();
+        toggleText.on('pointerdown', () => {
+            const newVal = !(localStorage.getItem('mobileControlsEnabled') === 'true');
+            localStorage.setItem('mobileControlsEnabled', String(newVal));
+            toggleText.setText(newVal ? 'ZAP' : 'VYP');
+        });
+        elements.push(toggleText);
+
+        const sideLabel = this.add.text(panelX - 180, panelY, 'Strana joysticku', PRESET_STYLES.buttonText());
+        elements.push(sideLabel);
+        const sideLeft = this.add.text(panelX + 60, panelY, 'LEVÁ', PRESET_STYLES.buttonText()).setInteractive();
+        const sideRight = this.add.text(panelX + 160, panelY, 'PRAVÁ', PRESET_STYLES.buttonText()).setInteractive();
+        const updateSideUI = () => {
+            const s = localStorage.getItem('mobileControlsSide') || 'left';
+            sideLeft.setColor(s === 'left' ? '#00ff00' : '#ffffff');
+            sideRight.setColor(s === 'right' ? '#00ff00' : '#ffffff');
+        };
+        sideLeft.on('pointerdown', () => { localStorage.setItem('mobileControlsSide', 'left'); updateSideUI(); });
+        sideRight.on('pointerdown', () => { localStorage.setItem('mobileControlsSide', 'right'); updateSideUI(); });
+        elements.push(sideLeft, sideRight);
+        updateSideUI();
+
+        const fsLabel = this.add.text(panelX - 180, panelY + 60, 'Fullscreen', PRESET_STYLES.buttonText());
+        elements.push(fsLabel);
+        const fsBtn = this.add.text(panelX + 120, panelY + 60, 'PŘEPNOUT', PRESET_STYLES.buttonText()).setInteractive();
+        fsBtn.on('pointerdown', async () => {
+            try {
+                if (!document.fullscreenElement) {
+                    await document.documentElement.requestFullscreen();
+                } else {
+                    await document.exitFullscreen();
+                }
+            } catch (e) { console.warn('Fullscreen toggle failed', e); }
+        });
+        elements.push(fsBtn);
+
+        const backText = this.add.text(panelX, panelY + panelHeight/2 - 40, 'ESC - ZPĚT', PRESET_STYLES.controls()).setOrigin(0.5);
+        elements.push(backText);
+        this.submenuElements = elements;
     }
     
     startGame() {

@@ -5,6 +5,7 @@ import { ProjectileManager } from '../managers/ProjectileManager.js';
 import { UIManager } from '../managers/UIManager.js';
 import { LootManager } from '../managers/LootManager.js';
 import { PowerUpManager } from '../managers/PowerUpManager.js';
+import { MobileControlsManager } from '../managers/MobileControlsManager.js';
 import { AudioManager } from '../managers/AudioManager.js';
 import { PauseMenu } from '../managers/PauseMenu.js';
 import { HighScoreManager } from '../managers/HighScoreManager.js';
@@ -26,6 +27,7 @@ export class GameScene extends Phaser.Scene {
         this.audioManager = null;
         this.pauseMenu = null;
         this.analyticsManager = null;
+        this.mobileControls = null;
         
         this.gameStats = {
             level: 1,
@@ -160,6 +162,16 @@ export class GameScene extends Phaser.Scene {
         // Inicializace pause menu
         this.pauseMenu.create();
         
+        // Mobile controls init (optional per settings)
+        try {
+            const mobileEnabled = localStorage.getItem('mobileControlsEnabled') === 'true';
+            const side = localStorage.getItem('mobileControlsSide') || 'left';
+            if (mobileEnabled) {
+                this.mobileControls = new MobileControlsManager(this, { side });
+                this.mobileControls.enable();
+            }
+        } catch (_) { /* no-op */ }
+
         // Dočasně přeskočit READY/FIGHT sekvenci pro debug
         // this.startReadyFightSequence();
         await this.startGame();
@@ -768,6 +780,12 @@ export class GameScene extends Phaser.Scene {
         
         // Update kamery
         this.cameras.main.setSize(gameSize.width, gameSize.height);
+        // Reposition mobile controls
+        try {
+            if (this.mobileControls && this.mobileControls.isEnabled()) {
+                this.mobileControls.onResize();
+            }
+        } catch (_) { /* no-op */ }
         
         // Pokud je hra pozastavená, aktualizuj UI pozice
         if (this.pauseMenu && this.pauseMenu.isVisible) {

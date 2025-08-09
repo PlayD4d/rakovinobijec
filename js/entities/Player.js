@@ -113,19 +113,24 @@ export class Player {
         // Reset velocity
         this.sprite.body.setVelocity(0);
         
-        // Pohyb
+        // Pohyb: mobilní joystick má přednost
         const actualSpeed = (this.speed + this.speedBonus) * 100;
-        
-        if (cursors.left.isDown || wasd.A.isDown) {
-            this.sprite.body.setVelocityX(-actualSpeed);
-        } else if (cursors.right.isDown || wasd.D.isDown) {
-            this.sprite.body.setVelocityX(actualSpeed);
-        }
-        
-        if (cursors.up.isDown || wasd.W.isDown) {
-            this.sprite.body.setVelocityY(-actualSpeed);
-        } else if (cursors.down.isDown || wasd.S.isDown) {
-            this.sprite.body.setVelocityY(actualSpeed);
+        const mc = this.scene.mobileControls;
+        if (mc && mc.isEnabled()) {
+            const v = mc.getVector();
+            this.sprite.body.setVelocity(v.x * actualSpeed, v.y * actualSpeed);
+        } else {
+            if (cursors.left.isDown || wasd.A.isDown) {
+                this.sprite.body.setVelocityX(-actualSpeed);
+            } else if (cursors.right.isDown || wasd.D.isDown) {
+                this.sprite.body.setVelocityX(actualSpeed);
+            }
+            
+            if (cursors.up.isDown || wasd.W.isDown) {
+                this.sprite.body.setVelocityY(-actualSpeed);
+            } else if (cursors.down.isDown || wasd.S.isDown) {
+                this.sprite.body.setVelocityY(actualSpeed);
+            }
         }
         
         // Normalizace diagonálního pohybu
