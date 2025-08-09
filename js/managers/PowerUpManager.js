@@ -134,6 +134,19 @@ export class PowerUpManager {
             available.splice(index, 1);
         }
         
+        // Analytics - track power-up options offered
+        if (this.scene.analyticsManager) {
+            this.scene.analyticsManager.trackPowerUpOffered(
+                selected,
+                this.scene.gameStats.level,
+                this.scene.player.hp,
+                this.scene.enemyManager ? this.scene.enemyManager.enemies.children.entries.length : 0
+            );
+        }
+        
+        // Store selected options for analytics
+        this.currentOptions = selected;
+        
         // Vytvořit UI
         this.createSelectionUI(selected);
     }
@@ -285,6 +298,20 @@ export class PowerUpManager {
     
     selectPowerUp(powerUp) {
         powerUp.level++;
+        
+        // Analytics - track power-up selection
+        if (this.scene.analyticsManager && this.currentOptions) {
+            this.scene.analyticsManager.trackPowerUpSelected(
+                powerUp.name,
+                this.currentOptions,
+                this.scene.gameStats.level,
+                this.scene.player.hp,
+                this.scene.enemyManager ? this.scene.enemyManager.enemies.children.entries.length : 0
+            );
+        }
+        
+        // Track in game stats
+        this.scene.gameStats.powerUpsCollected++;
         
         // Aplikovat na hráče
         const player = this.scene.player;

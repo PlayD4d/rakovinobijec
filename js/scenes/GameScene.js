@@ -9,6 +9,7 @@ import { AudioManager } from '../managers/AudioManager.js';
 import { PauseMenu } from '../managers/PauseMenu.js';
 import { HighScoreManager } from '../managers/HighScoreManager.js';
 import { GlobalHighScoreManager } from '../managers/GlobalHighScoreManager.js';
+import { AnalyticsManager } from '../managers/AnalyticsManager.js';
 import { createFontConfig, waitForFont, PRESET_STYLES } from '../fontConfig.js';
 
 export class GameScene extends Phaser.Scene {
@@ -23,6 +24,7 @@ export class GameScene extends Phaser.Scene {
         this.powerUpManager = null;
         this.audioManager = null;
         this.pauseMenu = null;
+        this.analyticsManager = null;
         
         this.gameStats = {
             level: 1,
@@ -95,7 +97,14 @@ export class GameScene extends Phaser.Scene {
             score: 0,
             enemiesKilled: 0,
             time: 0,
-            bossesDefeated: 0
+            bossesDefeated: 0,
+            // Analytics tracking
+            totalDamageDealt: 0,
+            totalDamageTaken: 0,
+            xpCollected: 0,
+            healthPickups: 0,
+            powerUpsCollected: 0,
+            bossesDefeatedList: []
         };
         
         // Ujistit se že physics běží
@@ -122,6 +131,12 @@ export class GameScene extends Phaser.Scene {
         this.highScoreManager = new HighScoreManager();
         this.globalHighScoreManager = new GlobalHighScoreManager();
         this.globalHighScoreManager.setLocalFallback(this.highScoreManager);
+        
+        // Inicializace analytics
+        this.analyticsManager = new AnalyticsManager(
+            this.globalHighScoreManager.supabase,
+            { allowAnalytics: true } // TODO: Load from settings
+        );
         
         // UI
         this.uiManager = new UIManager(this);
@@ -224,8 +239,10 @@ export class GameScene extends Phaser.Scene {
     
     startGame() {
         // Spustit hru
-        // Spustit hru
         this.isPaused = false;
+        
+        // Spustit analytics session
+        this.analyticsManager.startSession();
         
         // Motivační zpráva pro Mardu
         const motivationText = this.add.text(
@@ -385,6 +402,11 @@ export class GameScene extends Phaser.Scene {
         // VŽDY aplikovat normální damage nejdříve
         enemy.takeDamage(projectile.damage);
         
+        // Analytics - track damage dealt
+        this.gameStats.totalDamageDealt += projectile.damage;
+        const enemyType = enemy.isElite ? `elite:${enemy.baseType}` : enemy.baseType;
+        this.analyticsManager.trackDamageDealt(projectile.damage, enemyType);
+        
         // Exploze navíc při prvním zásahu (pokud máme explozivní projektily)
         if (this.player.hasExplosiveBullets && projectile.hitCount === 1) {
             const explosionRadius = 30 + (this.player.explosiveBulletsLevel * 10);
@@ -422,6 +444,12 @@ export class GameScene extends Phaser.Scene {
     handlePlayerEnemyCollision(playerSprite, enemy) {
         if (this.player.canTakeDamage()) {
             this.player.takeDamage(enemy.damage);
+            
+            // Analytics - track damage taken
+            this.gameStats.totalDamageTaken += enemy.damage;
+            const enemyType = enemy.isElite ? `elite:${enemy.baseType}` : enemy.baseType;
+            this.analyticsManager.trackDamageTaken(enemy.damage, enemyType, this.gameStats.level);
+            
             this.audioManager.playSound('hit');
             
             if (this.player.hp <= 0) {
@@ -436,6 +464,7 @@ export class GameScene extends Phaser.Scene {
             this.audioManager.playSound('pickup');
         } else if (loot.type === 'health') {
             this.player.heal(GameConfig.health.healAmount * this.player.maxHp);
+            this.gameStats.healthPickups++;
             this.audioManager.playSound('heal');
         }
         
@@ -464,6 +493,10 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.enemiesKilled++;
         this.gameStats.score += enemy.xp * 10;
         
+        // Analytics - track enemy kill
+        const enemyType = enemy.isElite ? `elite:${enemy.baseType}` : enemy.baseType;
+        this.analyticsManager.trackEnemyKill(enemyType, this.gameStats.level, enemy.hp);
+        
         // Zvuk smrti nepřítele
         this.audioManager.playSound('enemyDeath');
         
@@ -481,6 +514,7 @@ export class GameScene extends Phaser.Scene {
     
     gainXP(amount) {
         this.gameStats.xp += amount;
+        this.gameStats.xpCollected += amount;
         
         // Kontrola level up
         while (this.gameStats.xp >= this.gameStats.xpToNext) {
@@ -526,6 +560,24 @@ export class GameScene extends Phaser.Scene {
         this.gameStats.time++;
     }
     
+    getActivePowerUps() {
+        // Vrátí seznam aktivních power-upů
+        const activePowerUps = [];
+        
+        if (this.player.hasShield) activePowerUps.push('shield');
+        if (this.player.hasExplosiveBullets) activePowerUps.push('explosive');
+        if (this.player.hasPiercingArrows) activePowerUps.push('piercing');
+        if (this.player.hasLightningBolt) activePowerUps.push('lightning');
+        if (this.player.hasRadiotherapy) activePowerUps.push('radiotherapy');
+        if (this.player.hasChemotherapy) activePowerUps.push('chemotherapy');
+        if (this.player.hasProtonBeam) activePowerUps.push('proton_beam');
+        if (this.player.hasImmunotherapy) activePowerUps.push('immunotherapy');
+        if (this.player.hasCisplatin) activePowerUps.push('cisplatin');
+        if (this.player.hasMetabolicBooster) activePowerUps.push('metabolic_booster');
+        
+        return activePowerUps;
+    }
+    
     gameOver() {
         this.isGameOver = true;
         this.isPaused = true;
@@ -539,6 +591,24 @@ export class GameScene extends Phaser.Scene {
         }
         
         this.audioManager.stopAll();
+        
+        // Analytics - track player death (bude aktualizováno s konkrétní příčinou později)
+        this.analyticsManager.trackPlayerDeath(
+            { type: 'unknown', damage: 0 }, // Placeholder
+            { x: this.player.x, y: this.player.y },
+            this.gameStats,
+            {
+                playerHP: 0,
+                playerMaxHP: this.player.maxHp,
+                activePowerUps: this.getActivePowerUps(),
+                enemiesOnScreen: this.enemyManager ? this.enemyManager.enemies.children.entries.length : 0,
+                projectilesOnScreen: this.projectileManager ? this.projectileManager.enemyProjectiles.children.entries.length : 0,
+                wasBossFight: false // TODO: Track this
+            }
+        );
+        
+        // End analytics session
+        this.analyticsManager.endSession(this.gameStats);
         
         // Přehrát zvuk smrti
         if (this.sound.get('playerDeath')) {
