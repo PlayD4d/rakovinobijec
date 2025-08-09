@@ -337,7 +337,10 @@ export class Player {
         this.scene.enemyManager.enemies.children.entries.forEach(enemy => {
             const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y);
             if (distance <= this.auraRadius) {
-                enemy.takeDamage(this.auraDamage * 0.05); // Sníženo z 0.1 na 0.05 (50% původní hodnoty)
+                const auraTickDamage = this.auraDamage * 0.05; // Sníženo z 0.1 na 0.05 (50% původní hodnoty)
+                // Univerzální tracking damage
+                this.scene.recordDamageDealt(auraTickDamage, enemy);
+                enemy.takeDamage(auraTickDamage);
                 
                 // Zkontrolovat jestli nepřítel zemřel
                 if (enemy.hp <= 0) {
@@ -440,6 +443,8 @@ export class Player {
         
         // Poškození nepřítele
         const damage = this.projectileDamage + this.damageBonus;
+        // Univerzální tracking damage
+        this.scene.recordDamageDealt(damage, target);
         target.takeDamage(damage);
         
         // Zkontrolovat jestli nepřítel zemřel
@@ -512,6 +517,8 @@ export class Player {
         
         // Poškození nepřítele
         if (startEnemy.takeDamage && typeof startEnemy.takeDamage === 'function') {
+            // Univerzální tracking damage
+            this.scene.recordDamageDealt(damage, startEnemy);
             startEnemy.takeDamage(damage);
             
             if (startEnemy.hp <= 0) {

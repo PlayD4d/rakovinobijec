@@ -24,6 +24,10 @@ export class GlobalHighScoreManager {
         
         this.isOnline = navigator.onLine;
         this.setupNetworkListeners();
+
+        // Idempotence proti dvojímu submitu (např. autorepeat klávesy)
+        this.lastSubmitKey = null;
+        this.lastSubmitResult = null;
     }
     
     setupNetworkListeners() {
@@ -95,48 +99,53 @@ export class GlobalHighScoreManager {
     
     async submitScore(name, score, level, enemiesKilled, time, bossesDefeated) {
         const sanitizedScore = this.sanitizeScore(name, score, level, enemiesKilled, time, bossesDefeated);
-        
-        // Vždy uložit lokálně jako backup
-        if (this.localManager) {
-            this.localManager.addHighScore(
-                sanitizedScore.name, 
-                sanitizedScore.score, 
-                sanitizedScore.level, 
-                sanitizedScore.enemies_killed, 
-                sanitizedScore.play_time, 
+
+        // Jednoduchý idempotentní klíč (jméno+skóre+čas)
+        const submitKey = `${sanitizedScore.name}|${sanitizedScore.score}|${sanitizedScore.play_time}`;
+        if (this.lastSubmitKey === submitKey && this.lastSubmitResult) {
+            console.log('⛔ Duplicate submit ignored');
+            return this.lastSubmitResult;
+        }
+
+        // 1) Lokální zápis a výpočet pozice
+        let position = 1;
+        if (this.localManager && typeof this.localManager.addHighScore === 'function') {
+            position = this.localManager.addHighScore(
+                sanitizedScore.name,
+                sanitizedScore.score,
+                sanitizedScore.level,
+                sanitizedScore.enemies_killed,
+                sanitizedScore.play_time,
                 sanitizedScore.bosses_defeated
             );
         }
-        
-        // Pokud jsme offline nebo nemáme Supabase, skončíme zde
-        if (!this.isOnline || !this.supabase) {
-            console.log('📡 Offline or Supabase not available - score saved locally only');
-            return false;
-        }
-        
-        try {
-            console.log('🌐 Submitting score to Supabase...');
-            
-            const { data, error } = await this.supabase
-                .from('high_scores')
-                .insert([sanitizedScore])
-                .select();
-            
-            if (error) {
-                throw error;
+
+        // 2) Pokus o vzdálený zápis, pokud online a Supabase dostupné
+        let remoteSaved = false;
+        if (this.isOnline && this.supabase) {
+            try {
+                console.log('🌐 Submitting score to Supabase...');
+                const { data, error } = await this.supabase
+                    .from('high_scores')
+                    .insert([sanitizedScore])
+                    .select();
+                if (error) throw error;
+                console.log('✅ Score submitted to Supabase!', data);
+                remoteSaved = true;
+                // Invalidate cache pro čerstvé TOP10
+                this.cachedScores = null;
+                this.lastFetchTime = 0;
+            } catch (error) {
+                console.warn('❌ Failed to submit to Supabase:', error.message);
             }
-            
-            console.log('✅ Score submitted to Supabase!', data);
-            // Invalidate cache
-            this.cachedScores = null;
-            this.lastFetchTime = 0;
-            return true;
-            
-        } catch (error) {
-            console.warn('❌ Failed to submit to Supabase:', error.message);
-            console.log('💾 Score saved locally as backup');
-            return false;
+        } else {
+            console.log('📡 Offline or Supabase not available - remote submit skipped');
         }
+
+        const result = { position, remoteSaved };
+        this.lastSubmitKey = submitKey;
+        this.lastSubmitResult = result;
+        return result;
     }
     
     async getHighScores() {

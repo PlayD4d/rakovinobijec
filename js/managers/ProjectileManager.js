@@ -62,6 +62,9 @@ export class ProjectileManager {
                     const damageMultiplier = 1 - (distance / radius);
                     const actualDamage = damage * damageMultiplier * (1 + level * 0.2);
                     
+                    // Univerzální tracking damage
+                    this.scene.recordDamageDealt(actualDamage, enemy);
+                    
                     if (enemy.takeDamage && typeof enemy.takeDamage === 'function') {
                         enemy.takeDamage(actualDamage);
                         

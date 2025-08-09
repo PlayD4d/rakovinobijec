@@ -22,6 +22,44 @@ export class EnemyManager {
         this.startSpawning();
     }
     
+    // Najde bezpečnou pozici pro spawn bosse s ohledem na vzdálenost od hráče
+    getSafeBossSpawnPosition(safetyRadius = 220) {
+        const camera = this.scene.cameras.main;
+        const width = camera.width;
+        const height = camera.height;
+        const playerX = this.scene.player?.x ?? width / 2;
+        const playerY = this.scene.player?.y ?? height / 2;
+        
+        // Kandidátní pozice na okrajích obrazovky (mírně dovnitř kvůli viditelnosti)
+        const margin = 50;
+        const candidates = [
+            { x: width / 2, y: margin },                 // Top center
+            { x: width - margin, y: height / 2 },        // Right center
+            { x: width / 2, y: height - margin },        // Bottom center
+            { x: margin, y: height / 2 },                // Left center
+            { x: margin, y: margin },                    // Top-left
+            { x: width - margin, y: margin },            // Top-right
+            { x: width - margin, y: height - margin },  // Bottom-right
+            { x: margin, y: height - margin }           // Bottom-left
+        ];
+        
+        const distanceToPlayer = (p) => {
+            const dx = p.x - playerX;
+            const dy = p.y - playerY;
+            return Math.hypot(dx, dy);
+        };
+        
+        // Preferuj pozice s dostatečnou vzdáleností
+        const safe = candidates.filter(p => distanceToPlayer(p) >= safetyRadius);
+        if (safe.length > 0) {
+            // Vyber náhodně z bezpečných pozic (přirozenější spawn)
+            return safe[Math.floor(Math.random() * safe.length)];
+        }
+        
+        // Fallback: vyber obecně nejvzdálenější z kandidátů
+        return candidates.reduce((best, p) => distanceToPlayer(p) > distanceToPlayer(best) ? p : best, candidates[0]);
+    }
+    
     updateAvailableEnemyTypes() {
         const playerLevel = this.scene.gameStats.level;
         
@@ -156,9 +194,10 @@ export class EnemyManager {
         
         const bossConfig = bossConfigs[bossIndex];
         
-        // Spawn uprostřed horní části obrazovky
-        const x = this.scene.cameras.main.width / 2;
-        const y = 100;
+        // Najít bezpečnou pozici vzhledem k hráči
+        const safePos = this.getSafeBossSpawnPosition(240);
+        const x = safePos.x;
+        const y = safePos.y;
         
         this.currentBoss = new Boss(this.scene, x, y, bossConfig, bossIndex);
         this.enemies.add(this.currentBoss);
@@ -183,29 +222,11 @@ export class EnemyManager {
         const bossIndex = this.defeatedBosses[randomIndex];
         
         console.log(`Spawning random defeated boss: ${bossIndex}`);
-        
-        // Spawn na náhodné pozici z okrajů
-        const side = Math.floor(Math.random() * 4);
-        let x, y;
-        
-        switch (side) {
-            case 0: // Top
-                x = Math.random() * this.scene.cameras.main.width;
-                y = -50;
-                break;
-            case 1: // Right  
-                x = this.scene.cameras.main.width + 50;
-                y = Math.random() * this.scene.cameras.main.height;
-                break;
-            case 2: // Bottom
-                x = Math.random() * this.scene.cameras.main.width;
-                y = this.scene.cameras.main.height + 50;
-                break;
-            case 3: // Left
-                x = -50;
-                y = Math.random() * this.scene.cameras.main.height;
-                break;
-        }
+
+        // Bezpečná pozice vzhledem k hráči
+        const safePos = this.getSafeBossSpawnPosition(240);
+        const x = safePos.x;
+        const y = safePos.y;
         
         // Spawnovat bosse s trochu sníženým HP (80% původního)
         const bossConfigs = GameConfig.bosses;
@@ -225,6 +246,10 @@ export class EnemyManager {
             this.currentBoss = null;
             this.spawnEvent.paused = false;
             this.scene.gameStats.bossesDefeated++;
+            // Přidat jméno bosse do seznamu poražených
+            if (enemy.bossName) {
+                this.scene.gameStats.bossesDefeatedList.push(enemy.bossName);
+            }
         }
         
         // Odstranit z groupy před destroy

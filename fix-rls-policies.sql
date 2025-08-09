@@ -1,6 +1,12 @@
 -- ===== FIX RLS POLICIES FOR ANALYTICS TABLES =====
 -- Spusť v Supabase SQL Editor
 
+-- GAME_SESSIONS UPDATE
+DROP POLICY IF EXISTS "Enable update access for all users" ON game_sessions;
+
+CREATE POLICY "Enable update access for all users" ON game_sessions
+FOR UPDATE USING (true) WITH CHECK (true);
+
 -- DEATH_EVENTS
 DROP POLICY IF EXISTS "Enable read access for all users" ON death_events;
 DROP POLICY IF EXISTS "Enable insert access for all users" ON death_events;

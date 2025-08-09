@@ -114,7 +114,11 @@ export class AnalyticsManager {
             xp_collected: Math.floor(Number(gameStats.xpCollected) || 0),
             health_pickups: Math.floor(Number(gameStats.healthPickups) || 0),
             power_ups_collected: Math.floor(Number(gameStats.powerUpsCollected) || 0),
-            fps_average: this.getAverageFPS()
+            fps_average: this.getAverageFPS(),
+            // Doplnit data o smrti i do game_sessions
+            death_cause: this.sessionData?.death_cause ?? null,
+            death_position_x: (this.sessionData?.death_position_x ?? null),
+            death_position_y: (this.sessionData?.death_position_y ?? null)
         };
         
         try {
@@ -201,6 +205,7 @@ export class AnalyticsManager {
                 event_type: 'offered',
                 powerup_name: String(powerup.name || 'unknown'),
                 level_selected: Math.floor(Number(level) || 1),
+                current_tier: Math.floor(Number((powerup.level || 0) + 1)),
                 options_offered: options.map(p => String(p.name || 'unknown')),
                 player_hp_at_selection: Math.floor(Number(playerHP) || 0),
                 enemies_on_screen: Math.floor(Number(enemiesOnScreen) || 0)
@@ -211,18 +216,26 @@ export class AnalyticsManager {
     trackPowerUpSelected(powerupName, options, level, playerHP, enemiesOnScreen) {
         if (!this.enabled) return;
         
+        // Najít aktuální tier vybraného powerupu (po zvýšení úrovně)
+        let currentTier = 1;
+        try {
+            const selected = (options || []).find(p => String(p.name || 'unknown') === String(powerupName || 'unknown'));
+            currentTier = Math.floor(Number(selected?.level || 1));
+        } catch (e) { /* ignore */ }
+
         this.queueEvent('powerup_events', {
             session_id: this.sessionId,
             event_type: 'selected',
             powerup_name: String(powerupName || 'unknown'),
             level_selected: Math.floor(Number(level) || 1),
+            current_tier: currentTier,
             options_offered: options.map(p => String(p.name || 'unknown')),
             player_hp_at_selection: Math.floor(Number(playerHP) || 0),
             enemies_on_screen: Math.floor(Number(enemiesOnScreen) || 0)
         });
     }
     
-    trackBossEncounter(bossName, level) {
+    trackBossEncounter(bossName, level, playerHPStart = null) {
         if (!this.enabled) return;
         
         this.currentBossEncounter = {
@@ -233,6 +246,7 @@ export class AnalyticsManager {
             damage_dealt_to_boss: 0,
             damage_taken_from_boss: 0,
             special_attacks_used: 0,
+            player_hp_start: Math.floor(Number(playerHPStart) || 0),
             started_at: Date.now() // Interní tracking pro duration
         };
     }
@@ -252,6 +266,39 @@ export class AnalyticsManager {
         
         this.queueEvent('boss_encounters', encounter);
         this.currentBossEncounter = null;
+    }
+    
+    abortBossEncounter(playerHP) {
+        if (!this.enabled || !this.currentBossEncounter) return;
+        const encounter = {
+            ...this.currentBossEncounter,
+            defeated: false,
+            fight_duration: Math.floor((Date.now() - this.currentBossEncounter.started_at) / 1000),
+            player_hp_end: Math.floor(Number(playerHP) || 0)
+        };
+        delete encounter.started_at;
+        this.queueEvent('boss_encounters', encounter);
+        this.currentBossEncounter = null;
+    }
+
+    // ===== BOSS ENCOUNTER LIVE UPDATES (in-memory, uloží se při defeat) =====
+    recordBossDamageDealt(amount) {
+        if (!this.enabled || !this.currentBossEncounter) return;
+        const dmg = Math.floor(Number(amount) || 0);
+        if (dmg <= 0) return;
+        this.currentBossEncounter.damage_dealt_to_boss += dmg;
+    }
+    
+    recordBossDamageTaken(amount) {
+        if (!this.enabled || !this.currentBossEncounter) return;
+        const dmg = Math.floor(Number(amount) || 0);
+        if (dmg <= 0) return;
+        this.currentBossEncounter.damage_taken_from_boss += dmg;
+    }
+    
+    incrementBossSpecialAttacksUsed() {
+        if (!this.enabled || !this.currentBossEncounter) return;
+        this.currentBossEncounter.special_attacks_used += 1;
     }
     
     trackPlayerDeath(cause, position, gameStats, context = {}) {

@@ -396,21 +396,23 @@ export class PowerUpManager {
             case 'flamethrower':
                 return `${powerUp.level + 1} laserový paprsek\nCílí na nejbližší nepřátele`;
             case 'explosiveBullets':
-                return `Exploze ${30 + (powerUp.level + 1) * 10}px poloměr\nPoškodí okolní nepřátele při dopadu`;
+                return `Exploze ${30 + (powerUp.level + 1) * 10}px poloměr\nSpustí se při prvním zásahu projektilu`;
             case 'xpMagnet':
-                return `+${(powerUp.level + 1) * 20}px dosah\nAutomaticky sbírá XP`;
+                return `+${(powerUp.level + 1) * 30}px dosah\nAutomaticky sbírá XP`;
             case 'lightningChain':
-                return `Imunoterapie mezi ${2 + powerUp.level} buňkami\nActivuje imunitní odezvu`;
+                return `Imunoterapie až ${2 + powerUp.level} cílů\nAktivuje imunitní odezvu`;
             case 'piercingArrows':
                 return `Projde ${powerUp.level + 1} buňkami\n-10% poškození za každý průchod`;
             case 'shield':
-                const shieldHP = 50 + powerUp.level * 25; // 75, 100, 125, 150, 175
-                const regenTime = Math.max(6, 10 - powerUp.level); // 9s, 8s, 7s, 6s, 6s
-                return `${shieldHP} HP štít, regenerace ${regenTime}s\nAbsorbuje veškeré poškození`;
+                // Zobrazit hodnoty pro příští level (shodně s titulkem "Level X/Y")
+                const nextShieldLevel = powerUp.level + 1;
+                const shieldHP = 50 + (nextShieldLevel - 1) * 25; // 50, 75, 100, 125, 150...
+                const regenTime = Math.max(6, 10 - (nextShieldLevel - 1)); // 10,9,8,7,6...
+                return `${shieldHP} HP štít, regenerace ${regenTime}s\nAbsorbuje příchozí poškození`;
             case 'speedBoots':
                 return `+${((powerUp.level + 1) * powerUp.value * 100).toFixed(0)}% rychlost pohybu\nZrychluje Mardův metabolismus`;
             case 'aura':
-                return `${powerUp.value * (powerUp.level + 1)} poškození/s léky\n50px poloměr účinku`;
+                return `Kontinuální poškození v okolí\nPoloměr účinku roste s levelem`;
             case 'attackSpeed':
                 return `-${((powerUp.level + 1) * powerUp.value * 100).toFixed(0)}% interval útoků\nRychlejší střelba`;
             case 'projectileRange':
@@ -434,7 +436,7 @@ export class PowerUpManager {
                     return `+${(powerUp.level * speedValue * 100).toFixed(0)}%`;
                 case 'aura':
                     const auraValue = powerUp.value || 5;
-                    return `${powerUp.level * auraValue}/s`;
+                    return `+${powerUp.level * auraValue} kontinuální dmg`;
                 case 'attackSpeed':
                     const attackValue = powerUp.value || 0.1;
                     return `-${(powerUp.level * attackValue * 100).toFixed(0)}%`;
@@ -453,10 +455,10 @@ export class PowerUpManager {
                     const explosionRadius = 30 + powerUp.level * 10;
                     return `${explosionRadius}px`;
                 case 'xpMagnet':
-                    const magnetRange = powerUp.level * 20;
+                    const magnetRange = powerUp.level * 30;
                     return `+${magnetRange}px`;
                 case 'lightningChain':
-                    return `${1 + powerUp.level} cílů`;
+                    return `až ${1 + powerUp.level} cílů`;
                 case 'piercingArrows':
                     return `+${powerUp.level} průchodů`;
                 case 'shield':

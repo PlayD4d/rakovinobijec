@@ -102,6 +102,14 @@ export class HighScoreManager {
         return scores;
     }
     
+    getLastPlayerName() {
+        if (this.highScores.length > 0) {
+            // Vrátit jméno posledního přidaného hráče (první v seznamu)
+            return this.highScores[0].name;
+        }
+        return null;
+    }
+    
     getRank(score) {
         // Vrátit pozici, na kterou by skóre bylo zařazeno (1-based)
         let rank = 1;

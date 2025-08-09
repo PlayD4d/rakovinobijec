@@ -115,11 +115,12 @@ export class LootManager {
         sprite.type = 'xp';
         sprite.value = value;
         
-        // Floating animace
+        // Vizualní puls (nemění pozici, neovlivní fyziku)
         this.scene.tweens.add({
             targets: sprite,
-            y: y - 10,
-            duration: 1000,
+            scaleX: 1.05,
+            scaleY: 1.05,
+            duration: 800,
             yoyo: true,
             repeat: -1,
             ease: 'Sine.easeInOut'
@@ -180,40 +181,45 @@ export class LootManager {
         const actualMagnetRange = this.magnetRange + (this.magnetLevel * 30); // Zvýšen range bonus
         
         this.loot.children.entries.forEach(orb => {
-            if (orb.active && orb.type === 'xp' && orb.body) {
-                const distance = Phaser.Math.Distance.Between(
-                    orb.x, orb.y,
-                    player.x, player.y
-                );
-                
-                if (distance < actualMagnetRange && distance > 15) {
-                    // Vypočítat směr k hráči (normalizovaný vektor)
-                    const dx = player.x - orb.x;
-                    const dy = player.y - orb.y;
-                    const dirX = dx / distance;
-                    const dirY = dy / distance;
-                    
-                    // Exponenciální síla vysavače (silnější čím blíže)
-                    const magnetStrength = Math.pow(1 - (distance / actualMagnetRange), 2);
-                    const baseSpeed = 150;
-                    const speed = baseSpeed + (magnetStrength * 500);
-                    
-                    // Aplikovat rychlost přímo ve směru k hráči
-                    orb.body.setVelocity(dirX * speed, dirY * speed);
-                    
-                    // Vizuální efekt - rotace
-                    orb.rotation += 0.15;
-                    
-                } else if (distance <= 15) {
-                    // Velmi blízko - okamžitě přesunout k hráči (auto-pickup)
-                    orb.body.setVelocity(0, 0);
-                    orb.x = player.x;
-                    orb.y = player.y;
-                } else {
-                    // Mimo dosah magnetu - zastavit pohyb
-                    orb.body.setVelocity(0, 0);
-                }
+            if (!(orb.active && orb.type === 'xp' && orb.body)) return;
+
+            const dx = player.x - orb.x;
+            const dy = player.y - orb.y;
+            const distance = Math.hypot(dx, dy);
+
+            if (distance > actualMagnetRange) {
+                // Mimo dosah magnetu - zastavit pohyb
+                orb.body.setVelocity(0, 0);
+                return;
             }
+
+            if (distance <= 15) {
+                // Auto-pickup v blízkosti
+                orb.body.setVelocity(0, 0);
+                orb.x = player.x;
+                orb.y = player.y;
+                return;
+            }
+
+            // Stabilní normalizovaný směr (izotropní ve všech osách)
+            const invDist = 1 / (distance || 1);
+            const dirX = dx * invDist;
+            const dirY = dy * invDist;
+
+            // Síla magnetu roste při přiblížení (hladká křivka, bez skoků)
+            const t = 1 - (distance / actualMagnetRange);
+            const magnetStrength = t * t; // kvadratická
+
+            // Rychlost nastavitelná, ale omezená pro stabilitu
+            const baseSpeed = 120;
+            const maxBonus = 480; // celkem do 600 px/s
+            const speed = baseSpeed + magnetStrength * maxBonus;
+
+            // Aplikovat rychlost rovnoměrně v obou osách
+            orb.body.setVelocity(dirX * speed, dirY * speed);
+
+            // Jemná rotace pro vizuál
+            orb.rotation += 0.12;
         });
     }
     

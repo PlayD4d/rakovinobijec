@@ -34,8 +34,17 @@ export class GameScene extends Phaser.Scene {
             score: 0,
             enemiesKilled: 0,
             time: 0,
-            bossesDefeated: 0
+            bossesDefeated: 0,
+            bossesDefeatedList: [], // Array jmen poražených bossů
+            totalDamageDealt: 0,
+            totalDamageTaken: 0, 
+            xpCollected: 0,
+            healthPickups: 0,
+            powerUpsCollected: 0
         };
+        
+        // Tracking příčiny smrti
+        this.lastDeathCause = { type: 'unknown', damage: 0 };
         
         this.isPaused = false;
         this.isGameOver = false;
@@ -243,7 +252,12 @@ export class GameScene extends Phaser.Scene {
         this.isPaused = false;
         
         // Spustit analytics session
-        await this.analyticsManager.startSession();
+        // Pokusit se získat jméno z localStorage nebo high scores
+        const lastPlayerName = localStorage.getItem('lastPlayerName') || 
+                               this.highScoreManager.getLastPlayerName() ||
+                               null;
+        
+        await this.analyticsManager.startSession(lastPlayerName);
         
         // Motivační zpráva pro Mardu
         const motivationText = this.add.text(
@@ -346,6 +360,36 @@ export class GameScene extends Phaser.Scene {
         
     }
     
+    // Univerzální tracking uděleného poškození (centrální místo)
+    recordDamageDealt(amount, enemyOrType) {
+        const numericAmount = Number(amount);
+        if (!isFinite(numericAmount) || numericAmount <= 0) {
+            return;
+        }
+        
+        // Akumulace do session statistik
+        this.gameStats.totalDamageDealt += numericAmount;
+        
+        // Určení typu nepřítele pro analytics
+        let enemyType = 'unknown';
+        if (typeof enemyOrType === 'string') {
+            enemyType = enemyOrType;
+        } else if (enemyOrType) {
+            const baseType = enemyOrType.type || 'unknown';
+            enemyType = enemyOrType.isElite ? `elite:${baseType}` : baseType;
+        }
+        
+        // Pokud cíl je boss, akumulovat boss damage
+        if (enemyOrType && enemyOrType.bossName && this.analyticsManager && typeof this.analyticsManager.recordBossDamageDealt === 'function') {
+            this.analyticsManager.recordBossDamageDealt(numericAmount);
+        }
+        
+        // Odeslat do analytics (pokud je dostupný)
+        if (this.analyticsManager && typeof this.analyticsManager.trackDamageDealt === 'function') {
+            this.analyticsManager.trackDamageDealt(numericAmount, enemyType);
+        }
+    }
+    
     checkCollisions() {
         // Manuální kolize projektilů s nepřáteli
         this.projectileManager.playerProjectiles.children.entries.forEach(projectile => {
@@ -426,10 +470,8 @@ export class GameScene extends Phaser.Scene {
         // VŽDY aplikovat normální damage nejdříve
         enemy.takeDamage(projectile.damage);
         
-        // Analytics - track damage dealt
-        this.gameStats.totalDamageDealt += projectile.damage;
-        const enemyType = enemy.isElite ? `elite:${enemy.type}` : enemy.type;
-        this.analyticsManager.trackDamageDealt(projectile.damage, enemyType);
+        // Analytics - univerzální tracking damage
+        this.recordDamageDealt(projectile.damage, enemy);
         
         // Exploze navíc při prvním zásahu (pokud máme explozivní projektily)
         if (this.player.hasExplosiveBullets && projectile.hitCount === 1) {
@@ -471,12 +513,18 @@ export class GameScene extends Phaser.Scene {
             
             // Analytics - track damage taken
             this.gameStats.totalDamageTaken += enemy.damage;
-            const enemyType = enemy.isElite ? `elite:${enemy.type}` : enemy.type;
+            let enemyType = enemy.isElite ? `elite:${enemy.type}` : enemy.type;
+            if (enemy.bossName) {
+                enemyType = `boss:${enemy.bossName}`;
+            }
             this.analyticsManager.trackDamageTaken(enemy.damage, enemyType, this.gameStats.level);
             
             this.audioManager.playSound('hit');
             
             if (this.player.hp <= 0) {
+                // Zaznamenat příčinu smrti
+                this.lastDeathCause = { type: enemyType, damage: enemy.damage };
+                
                 // Non-blocking call to gameOver - don't await in physics callback
                 this.gameOver().catch(error => {
                     console.error('❌ Failed to handle game over:', error);
@@ -502,14 +550,19 @@ export class GameScene extends Phaser.Scene {
         if (this.player.canTakeDamage()) {
             this.player.takeDamage(projectile.damage);
             this.audioManager.playSound('hit');
-            projectile.destroy();
             
+            // Zaznamenat potenciální příčinu smrti
             if (this.player.hp <= 0) {
+                const src = projectile.sourceType || 'projectile';
+                this.lastDeathCause = { type: src, damage: projectile.damage };
+                
                 // Non-blocking call to gameOver - don't await in physics callback
                 this.gameOver().catch(error => {
                     console.error('❌ Failed to handle game over:', error);
                 });
             }
+            
+            projectile.destroy();
         }
     }
     
@@ -597,7 +650,7 @@ export class GameScene extends Phaser.Scene {
         if (this.player.hasShield) activePowerUps.push('shield');
         if (this.player.hasExplosiveBullets) activePowerUps.push('explosive');
         if (this.player.hasPiercingArrows) activePowerUps.push('piercing');
-        if (this.player.hasLightningBolt) activePowerUps.push('lightning');
+        if (this.player.hasLightningChain) activePowerUps.push('lightning');
         if (this.player.hasRadiotherapy) activePowerUps.push('radiotherapy');
         if (this.player.hasChemotherapy) activePowerUps.push('chemotherapy');
         if (this.player.hasProtonBeam) activePowerUps.push('proton_beam');
@@ -632,9 +685,18 @@ export class GameScene extends Phaser.Scene {
         this.audioManager.stopAll();
         // Necháme audioManager dostupný pro boss cleanup
         
-        // Analytics - track player death (bude aktualizováno s konkrétní příčinou později)
+        // Analytics - pokud probíhá encounter s bossem, uložit jako neúspěšný
+        try {
+            if (this.analyticsManager && this.analyticsManager.currentBossEncounter) {
+                if (typeof this.analyticsManager.abortBossEncounter === 'function') {
+                    this.analyticsManager.abortBossEncounter(0);
+                }
+            }
+        } catch (e) { /* no-op */ }
+        
+        // Analytics - track player death se skutečnou příčinou
         this.analyticsManager.trackPlayerDeath(
-            { type: 'unknown', damage: 0 }, // Placeholder
+            this.lastDeathCause, // Skutečná příčina smrti
             { x: this.player.x, y: this.player.y },
             this.gameStats,
             {
@@ -643,9 +705,16 @@ export class GameScene extends Phaser.Scene {
                 activePowerUps: this.getActivePowerUps(),
                 enemiesOnScreen: this.enemyManager ? this.enemyManager.enemies.children.entries.length : 0,
                 projectilesOnScreen: this.projectileManager ? this.projectileManager.enemyProjectiles.children.entries.length : 0,
-                wasBossFight: false // TODO: Track this
+                wasBossFight: !!(this.analyticsManager && this.analyticsManager.currentBossEncounter)
             }
         );
+        
+        // Pokusit se ihned odeslat události před ukončením session
+        try {
+            if (this.analyticsManager && typeof this.analyticsManager.flushEvents === 'function') {
+                await this.analyticsManager.flushEvents();
+            }
+        } catch (e) { /* ignore */ }
         
         // End analytics session - AWAIT to ensure it completes!
         try {
@@ -661,7 +730,7 @@ export class GameScene extends Phaser.Scene {
         }
         
         // Zkontrolovat, zda je skóre v TOP10 (globálně)
-        if (this.globalHighScoreManager.isHighScore(this.gameStats.score)) {
+        if (await this.globalHighScoreManager.isHighScore(this.gameStats.score)) {
             this.showHighScoreDialog();
         } else {
             this.uiManager.showGameOver();
@@ -748,28 +817,35 @@ export class GameScene extends Phaser.Scene {
             PRESET_STYLES.controls()
         ).setOrigin(0.5);
         
-        // Keyboard input handler
-        this.input.keyboard.on('keydown', (event) => {
+        // Keyboard input handler (guard proti dvojímu odeslání)
+        let hasSubmitted = false;
+        const onKeyDown = async (event) => {
             if (event.key === 'Enter') {
-                // Uložit high score globálně
-                this.globalHighScoreManager.submitScore(
-                    playerName || 'Anonym',
-                    this.gameStats.score,
-                    this.gameStats.level,
-                    this.gameStats.enemiesKilled,
-                    this.gameStats.time,
-                    this.gameStats.bossesDefeated
-                );
+                if (hasSubmitted) return; // prevence dvojího submitu
+                hasSubmitted = true;
+                // Okamžitě odregistrovat handler, aby se Enter nezopakovalo
+                this.input.keyboard.off('keydown', onKeyDown);
+                const finalPlayerName = playerName || 'Anonym';
                 
-                // Pro pozici použij lokální manager (rychlejší)
-                const position = this.highScoreManager.addHighScore(
-                    playerName || 'Anonym',
+                // Uložit jméno pro příští session
+                localStorage.setItem('lastPlayerName', finalPlayerName);
+                
+                // Centralizovaný submit (lokální + vzdálený + návrat pozice)
+                const { position, remoteSaved } = await this.globalHighScoreManager.submitScore(
+                    finalPlayerName,
                     this.gameStats.score,
                     this.gameStats.level,
                     this.gameStats.enemiesKilled,
                     this.gameStats.time,
                     this.gameStats.bossesDefeated
                 );
+                console.log('🏁 HighScore submitted', {
+                    name: finalPlayerName,
+                    score: this.gameStats.score,
+                    level: this.gameStats.level,
+                    position,
+                    remoteSaved
+                });
                 
                 // Odstranit UI
                 bg.destroy();
@@ -781,7 +857,6 @@ export class GameScene extends Phaser.Scene {
                 instructions.destroy();
                 
                 // Zobrazit game over s pozicí
-                this.input.keyboard.off('keydown');
                 this.showHighScoreResult(position);
                 
             } else if (event.key === 'Backspace') {
@@ -796,7 +871,8 @@ export class GameScene extends Phaser.Scene {
                     inputText.setText(playerName + '_');
                 }
             }
-        });
+        };
+        this.input.keyboard.on('keydown', onKeyDown);
         
         this.highScoreDialogElements = [bg, congratsText, scoreInfo, namePrompt, inputBox, inputText, instructions];
     }
