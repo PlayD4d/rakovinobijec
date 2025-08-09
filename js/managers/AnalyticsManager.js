@@ -172,11 +172,11 @@ export class AnalyticsManager {
             this.queueEvent('powerup_events', {
                 session_id: this.sessionId,
                 event_type: 'offered',
-                powerup_name: powerup.name || 'unknown',
-                level_selected: Math.floor(level || 1),
-                options_offered: options.map(p => p.name || 'unknown'),
-                player_hp_at_selection: Math.floor(playerHP || 0),
-                enemies_on_screen: Math.floor(enemiesOnScreen || 0)
+                powerup_name: String(powerup.name || 'unknown'),
+                level_selected: Math.floor(Number(level) || 1),
+                options_offered: options.map(p => String(p.name || 'unknown')),
+                player_hp_at_selection: Math.floor(Number(playerHP) || 0),
+                enemies_on_screen: Math.floor(Number(enemiesOnScreen) || 0)
             });
         });
     }
@@ -187,11 +187,11 @@ export class AnalyticsManager {
         this.queueEvent('powerup_events', {
             session_id: this.sessionId,
             event_type: 'selected',
-            powerup_name: powerupName || 'unknown',
-            level_selected: Math.floor(level || 1),
-            options_offered: options.map(p => p.name || 'unknown'),
-            player_hp_at_selection: Math.floor(playerHP || 0),
-            enemies_on_screen: Math.floor(enemiesOnScreen || 0)
+            powerup_name: String(powerupName || 'unknown'),
+            level_selected: Math.floor(Number(level) || 1),
+            options_offered: options.map(p => String(p.name || 'unknown')),
+            player_hp_at_selection: Math.floor(Number(playerHP) || 0),
+            enemies_on_screen: Math.floor(Number(enemiesOnScreen) || 0)
         });
     }
     
