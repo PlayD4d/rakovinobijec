@@ -26,6 +26,11 @@ export class Boss extends Enemy {
         // Boss UI
         this.createBossUI();
         
+        // Analytics - track boss encounter
+        if (scene.analyticsManager) {
+            scene.analyticsManager.trackBossEncounter(this.bossName, level);
+        }
+        
         // Vstupní animace
         this.entrance();
     }
@@ -654,6 +659,11 @@ export class Boss extends Enemy {
     
     destroy() {
         console.log('Boss destroy called', this.bossName);
+        
+        // Analytics - track boss defeat (if boss was actually killed, not just cleanup)
+        if (this.scene && this.scene.analyticsManager && this.hp <= 0 && this.scene.player) {
+            this.scene.analyticsManager.trackBossDefeat(this.scene.player.hp);
+        }
         
         // Označit jako neaktivní aby delayed callbacky se ukončily
         this.active = false;

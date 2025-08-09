@@ -276,25 +276,48 @@ export class GameScene extends Phaser.Scene {
     update(time, delta) {
         if (this.isGameOver || this.isPaused) return;
         
-        // Automatická střelba
-        if (time - this.lastShoot > 1000) { // 1 sekunda
-            this.playerShoot();
-            this.lastShoot = time;
+        // Performance tracking - track low FPS issues
+        if (this.analyticsManager && delta > 33) { // Více než 33ms = pod 30 FPS
+            this.analyticsManager.trackPerformanceIssue('low_fps', {
+                delta: delta,
+                fps: Math.round(1000 / delta),
+                level: this.gameStats.level,
+                enemies: this.enemyManager?.enemies?.children?.entries?.length || 0
+            });
         }
         
-        // Update hráče
-        this.player.update(this.cursors, this.wasd, time, delta);
-        
-        // Update manažerů
-        this.enemyManager.update(time, delta);
-        this.projectileManager.update(time, delta);
-        this.lootManager.update(time, delta);
-        
-        // Kontrola kolizí
-        this.checkCollisions();
-        
-        // Update UI
-        this.uiManager.update();
+        try {
+            // Automatická střelba
+            if (time - this.lastShoot > 1000) { // 1 sekunda
+                this.playerShoot();
+                this.lastShoot = time;
+            }
+            
+            // Update hráče
+            this.player.update(this.cursors, this.wasd, time, delta);
+            
+            // Update manažerů
+            this.enemyManager.update(time, delta);
+            this.projectileManager.update(time, delta);
+            this.lootManager.update(time, delta);
+            
+            // Kontrola kolizí
+            this.checkCollisions();
+            
+            // Update UI
+            this.uiManager.update();
+            
+        } catch (error) {
+            // Track game update errors
+            if (this.analyticsManager) {
+                this.analyticsManager.trackPerformanceIssue('error', {
+                    error: error.message,
+                    stack: error.stack,
+                    level: this.gameStats.level
+                });
+            }
+            console.error('Game update error:', error);
+        }
     }
     
     playerShoot() {
