@@ -1,0 +1,103 @@
+{
+  // Audio Manifest - PR7 kompatibilní
+  // Centrální konfigurace všech audio souborů ve hře
+  
+  // Hudba
+  music: {
+    'levelMusic1': 'music/level_1.mp3',
+    'levelMusic2': 'music/level_2.mp3', 
+    'levelMusic3': 'music/level_3.mp3',
+    'bossMusic': 'music/boss.mp3'
+  },
+  
+  // Základní sound efekty (primárně používané)
+  sfx: {
+    // Hráč
+    'hit': 'sound/player_hit.mp3',
+    'playerDeath': 'sound/player_death.mp3',
+    'playerHit': 'sound/player_hit.mp3',
+    'levelup': 'sound/levelup.mp3',
+    'heal': 'sound/heal.mp3',
+    
+    // Zbraně a útoky
+    'shoot': 'sound/shoot.mp3',
+    'laser': 'sound/laser.mp3',
+    'lightning': 'sound/lightning.mp3',
+    'projectileHit': 'sound/projectile_hit.mp3',
+    
+    // Nepřátelé
+    'npcDeath1': 'sound/npc_death_1.mp3',
+    'npcDeath2': 'sound/npc_death_2.mp3',
+    'eliteDeath': 'sound/elite_death.mp3',
+    
+    // Boss
+    'bossEnter': 'sound/boss_enter.mp3',
+    'bossHit': 'sound/boss_hit.mp3',
+    'bossDeath': 'sound/boss_death.mp3',
+    
+    // Pickupy a power-upy
+    'pickup': 'sound/pickup.mp3',
+    'powerup': 'sound/powerup.mp3',
+    'metotrexat': 'sound/metotrexat.mp3',
+    
+    // UI a systém
+    'intro': 'sound/intro.mp3',
+    'readyFight': 'sound/ready_fight.mp3',
+    'gameOver': 'sound/game_over.mp3',
+    'bleep': 'sound/bleep.mp3',
+    'chime': 'sound/chime.mp3'
+  },
+  
+  // Rozšířené sound efekty (pro budoucí použití)
+  sfxExtended: {
+    // Organické zvuky
+    'decay': 'sound/decay.mp3',
+    'npc_spawn': 'sound/npc_spawn.mp3',
+    'npc_hit': 'sound/npc_hit.mp3',
+    'npc_death': 'sound/npc_death.mp3',
+    
+    // Exploze
+    'explosion_small': 'sound/explosion_small.mp3',
+    'explosion_large': 'sound/explosion_large.mp3',
+    
+    // Další zbraně
+    'laser1': 'sound/laser1.mp3',
+    'laser2': 'sound/laser2.mp3',
+    'machinegun': 'sound/machinegun.mp3',
+    
+    // Boss fáze
+    'boss_phase': 'sound/boss_phase.mp3',
+    
+    // Hráč speciální
+    'player_spawn': 'sound/player_spawn.mp3',
+    'player_shoot': 'sound/player_shoot.mp3',
+    
+    // Kritické zásahy
+    'hit_soft': 'sound/hit_soft.mp3',
+    'hit_hard': 'sound/hit_hard.mp3',
+    'hit_critical': 'sound/hit_critical.mp3'
+  },
+  
+  // Konfigurace načítání
+  loadConfig: {
+    // Které kategorie načítat automaticky
+    autoLoad: ['music', 'sfx'],
+    
+    // Které kategorie načítat na vyžádání
+    onDemand: ['sfxExtended'],
+    
+    // Priorita načítání (vyšší = dříve)
+    priority: {
+      music: 100,
+      sfx: 90,
+      sfxExtended: 50
+    },
+    
+    // Timeout pro načítání (ms)
+    loadTimeout: 10000,
+    
+    // Retry konfigurace
+    retryAttempts: 3,
+    retryDelay: 1000
+  }
+}

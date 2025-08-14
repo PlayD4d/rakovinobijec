@@ -1,11 +1,30 @@
+/**
+ * MobileControlsManager - Správce mobilního ovládání
+ * 
+ * PR7 kompatibilní - všechny parametry z ConfigResolver
+ * Používá InputSystem a CameraSystem místo přímých Phaser API volání
+ * Virtuální joystick pro mobilní zařízení
+ */
+
+import { getInputSystem } from '../core/systems/InputSystem.js';
+import { getCameraSystem } from '../core/systems/CameraSystem.js';
+
 export class MobileControlsManager {
   constructor(scene, options = {}) {
     this.scene = scene;
     this.enabled = false;
     this.activePointerId = null;
+    
+    // Inicializace systémů
+    this.inputSystem = getInputSystem(scene);
+    this.cameraSystem = getCameraSystem(scene);
+    
+    // PR7: Získat parametry z ConfigResolver
+    const CR = this.scene.configResolver || window.ConfigResolver;
+    
     this.side = options.side === 'right' ? 'right' : 'left';
-    this.maxRadius = options.maxRadius || 70;
-    this.deadzone = options.deadzone || 0.15;
+    this.maxRadius = options.maxRadius || CR?.get('mobile.joystick.maxRadius', { defaultValue: 70 }) || 70;
+    this.deadzone = options.deadzone || CR?.get('mobile.joystick.deadzone', { defaultValue: 0.15 }) || 0.15;
     this.base = null;
     this.knob = null;
     this.vector = { x: 0, y: 0 };
@@ -54,10 +73,17 @@ export class MobileControlsManager {
 
   _createVisuals() {
     const s = this.scene;
+    
+    // PR7: Získat depth hodnoty z ConfigResolver
+    const CR = this.scene.configResolver || window.ConfigResolver;
+    const baseDepth = CR?.get('mobile.joystick.baseDepth', { defaultValue: 1000 }) || 1000;
+    const knobDepth = CR?.get('mobile.joystick.knobDepth', { defaultValue: 1001 }) || 1001;
+    
+    // Vytvoření grafických objektů
     this.base = s.add.graphics();
     this.knob = s.add.graphics();
-    this.base.setScrollFactor(0).setDepth(1000);
-    this.knob.setScrollFactor(0).setDepth(1001);
+    this.base.setScrollFactor(0).setDepth(baseDepth);
+    this.knob.setScrollFactor(0).setDepth(knobDepth);
     this._draw();
   }
 
@@ -72,22 +98,32 @@ export class MobileControlsManager {
     if (!this.base || !this.knob) return;
     this.base.clear();
     this.knob.clear();
-    // Base circle
-    this.base.fillStyle(0x000000, 0.25);
+    
+    // PR7: Získat vizuální parametry z ConfigResolver
+    const CR = this.scene.configResolver || window.ConfigResolver;
+    const baseColor = CR?.get('mobile.joystick.baseColor', { defaultValue: 0x000000 }) || 0x000000;
+    const baseAlpha = CR?.get('mobile.joystick.baseAlpha', { defaultValue: 0.25 }) || 0.25;
+    const knobSize = CR?.get('mobile.joystick.knobSize', { defaultValue: 24 }) || 24;
+    
+    // Základní kruh
+    this.base.fillStyle(baseColor, baseAlpha);
     this.base.fillCircle(0, 0, this.maxRadius + 8);
     this.base.lineStyle(2, 0xffffff, 0.4);
     this.base.strokeCircle(0, 0, this.maxRadius + 8);
     this.base.setAlpha(0.9);
-    // Knob
+    
+    // Ovládací knoflík
     this.knob.fillStyle(0xffffff, 0.8);
-    this.knob.fillCircle(0, 0, 24);
+    this.knob.fillCircle(0, 0, knobSize);
     this.knob.lineStyle(2, 0x000000, 0.4);
-    this.knob.strokeCircle(0, 0, 24);
+    this.knob.strokeCircle(0, 0, knobSize);
   }
 
   _bindInput() {
-    const input = this.scene.input;
-    if (input.pointersTotal < 2) input.addPointer(2);
+    // Připojení vstupních událostí přes InputSystem
+    if (this.inputSystem.getPointersTotal() < 2) {
+      this.inputSystem.addPointers(2 - this.inputSystem.getPointersTotal());
+    }
     this._onDown = (pointer) => {
       if (!this.enabled || this.activePointerId !== null) return;
       if (!this._isInZone(pointer.x, pointer.y)) return;
@@ -105,26 +141,26 @@ export class MobileControlsManager {
       this.vector = { x: 0, y: 0 };
       this._positionKnob(this.basePos.x, this.basePos.y);
     };
-    input.on('pointerdown', this._onDown);
-    input.on('pointermove', this._onMove);
-    input.on('pointerup', this._onUp);
-    input.on('pointerupoutside', this._onUp);
+    this.inputSystem.on('pointerdown', this._onDown, this);
+    this.inputSystem.on('pointermove', this._onMove, this);
+    this.inputSystem.on('pointerup', this._onUp, this);
+    this.inputSystem.on('pointerupoutside', this._onUp, this);
   }
 
   _unbindInput() {
-    const input = this.scene.input;
-    if (this._onDown) input.off('pointerdown', this._onDown);
-    if (this._onMove) input.off('pointermove', this._onMove);
+    // Odpojení vstupních událostí přes InputSystem
+    if (this._onDown) this.inputSystem.off('pointerdown', this._onDown, this);
+    if (this._onMove) this.inputSystem.off('pointermove', this._onMove, this);
     if (this._onUp) {
-      input.off('pointerup', this._onUp);
-      input.off('pointerupoutside', this._onUp);
+      this.inputSystem.off('pointerup', this._onUp, this);
+      this.inputSystem.off('pointerupoutside', this._onUp, this);
     }
     this._onDown = this._onMove = this._onUp = null;
   }
 
   _reposition() {
-    const w = this.scene.cameras.main.width;
-    const h = this.scene.cameras.main.height;
+    const w = this.cameraSystem.getWidth();
+    const h = this.cameraSystem.getHeight();
     const margin = 90;
     const x = this.side === 'right' ? (w - margin) : margin;
     const y = h - margin;

@@ -1,3 +1,12 @@
+/**
+ * AudioManager - Správce zvuků a hudby
+ * 
+ * PR7 kompatibilní - všechny hodnoty z ConfigResolver
+ * Nepoužívá přímé Phaser API, vše přes registry
+ */
+
+import { globalAudioLoader } from './AudioLoader.js';
+
 export class AudioManager {
     constructor(scene) {
         this.scene = scene;
@@ -11,7 +20,9 @@ export class AudioManager {
             pickup: null,
             levelup: null,
             heal: null,
-            shoot: null,
+            shoot: null,        // Základní útok
+            laser: null,        // Radioterapie  
+            lightning: null,    // Imunoterapie
             enemyDeath: null,
             bossDeath: null
         };
@@ -19,36 +30,98 @@ export class AudioManager {
         this.currentLevelTrack = null;
         this.levelTracks = ['levelMusic1', 'levelMusic2', 'levelMusic3'];
         
-        // Individuální hlasitosti pro různé level tracky (normalizace)
+        // PR7: Získat ConfigResolver - definovat PŘED použitím
+        const CR = this.scene.configResolver || window.ConfigResolver;
+        
+        // PR7: Individuální hlasitosti z ConfigResolver - teď můžeme použít CR
         this.trackVolumes = {
-            'levelMusic1': 1.0,   // Normální hlasitost
-            'levelMusic2': 0.8,   // Trochu tišší
-            'levelMusic3': 1.1    // Trochu hlasitější
+            'levelMusic1': CR?.get('audio.tracks.levelMusic1.volume', { defaultValue: 1.0 }) || 1.0,
+            'levelMusic2': CR?.get('audio.tracks.levelMusic2.volume', { defaultValue: 0.8 }) || 0.8,
+            'levelMusic3': CR?.get('audio.tracks.levelMusic3.volume', { defaultValue: 1.1 }) || 1.1
         };
         
         this.currentMusic = null;
-        this.musicVolume = 0.35;  // Sníženo o 30% z 0.5
-        this.sfxVolume = 0.7;
+        this.musicVolume = CR?.get('audio.musicVolume', { defaultValue: 0.35 }) || 0.35;
+        this.sfxVolume = CR?.get('audio.sfxVolume', { defaultValue: 0.7 }) || 0.7;
         
         this.createSounds();
+        
+        // Inicializovat stav povolení zvuků
+        this.musicEnabled = true;
+        this.soundsEnabled = true;
+    }
+    
+    /**
+     * Aplikuje uživatelská nastavení z SettingsManager
+     * PR7 kompatibilní - priorita: uživatelské > systémové > výchozí
+     * @param {object} settings - Objekt s nastaveními
+     */
+    applyUserSettings(settings) {
+        if (!settings) return;
+        
+        // Aktualizovat hlasitosti
+        const masterVolume = settings.masterVolume ?? 1.0;
+        const musicEnabled = settings.musicEnabled ?? true;
+        const soundsEnabled = settings.soundsEnabled ?? true;
+        
+        // Aplikovat hlasitost hudby
+        if (settings.musicVolume !== undefined) {
+            this.musicVolume = settings.musicVolume * masterVolume;
+            
+            // Aktualizovat všechny hudební tracky
+            Object.keys(this.sounds).forEach(key => {
+                if (key.includes('Music') && this.sounds[key]) {
+                    const trackVolume = this.trackVolumes[key] || 1.0;
+                    this.sounds[key].setVolume(this.musicVolume * trackVolume);
+                }
+            });
+        }
+        
+        // Aplikovat hlasitost zvuků
+        if (settings.soundsVolume !== undefined) {
+            this.sfxVolume = settings.soundsVolume * masterVolume;
+            
+            // Aktualizovat všechny zvukové efekty
+            Object.keys(this.sounds).forEach(key => {
+                if (!key.includes('Music') && this.sounds[key]) {
+                    this.sounds[key].setVolume(this.sfxVolume);
+                }
+            });
+        }
+        
+        // Zapnout/vypnout hudbu
+        if (!musicEnabled && this.currentMusic) {
+            this.stopCurrentMusic();
+        }
+        
+        // Uložit stav nastavení
+        this.musicEnabled = musicEnabled;
+        this.soundsEnabled = soundsEnabled;
+        
+        console.log('[AudioManager] Uživatelská nastavení aplikována:', {
+            musicVolume: this.musicVolume,
+            sfxVolume: this.sfxVolume,
+            musicEnabled: this.musicEnabled,
+            soundsEnabled: this.soundsEnabled
+        });
     }
     
     createSounds() {
-        console.log('Creating sound objects...');
+        // Debug logy byly omezeny kvůli čitelnosti konzole
         
         // Zkontroluj že zvuky jsou načtené v cache
         const checkAndCreateSound = (key, config, logName) => {
             if (this.scene.cache.audio.has(key)) {
                 try {
                     const sound = this.scene.sound.add(key, config);
-                    console.log(`✓ ${logName} sound object created`);
+                    // console.log(`✓ ${logName} sound object created`);
                     return sound;
                 } catch (e) {
                     console.error(`✗ Failed to create ${logName} sound object:`, e);
                     return null;
                 }
             } else {
-                console.warn(`✗ ${logName} not found in audio cache (${key})`);
+                // console.warn(`✗ ${logName} not found in audio cache (${key})`);
                 return null;
             }
         };
@@ -83,7 +156,20 @@ export class AudioManager {
             ['intro', 'Intro'],
             ['readyFight', 'Ready Fight'],
             ['bossEnter', 'Boss Enter'],
-            ['gameOver', 'Game Over']
+            ['gameOver', 'Game Over'],
+            // Specifické zvuky pro různé útoky hráče
+            ['shoot', 'Basic attack'],
+            ['laser', 'Radiotherapy'],
+            ['lightning', 'Immunotherapy'],
+            ['npcDeath1', 'Enemy death 1'],
+            ['npcDeath2', 'Enemy death 2'],
+            ['eliteDeath', 'Elite enemy death'],
+            ['bossHit', 'Boss hit'],
+            ['bossDeath', 'Boss death'],
+            ['projectileHit', 'Projectile impact'],
+            ['playerHit', 'Player hit (alternative)'],
+            ['metotrexat', 'Metotrexat special'],
+            ['heal', 'Heal pickup']
         ];
         
         soundEffects.forEach(([key, name]) => {
@@ -92,14 +178,14 @@ export class AudioManager {
             }, name);
         });
         
-        // Player death sound
-        this.sounds.enemyDeath = checkAndCreateSound('playerDeath', {
+        // Player death sound (specific)
+        this.sounds.playerDeath = checkAndCreateSound('playerDeath', {
             volume: this.sfxVolume * 0.5
         }, 'Player death');
         
         // Shrnutí
-        const loadedSounds = Object.entries(this.sounds).filter(([key, sound]) => sound !== null);
-        console.log(`Audio setup complete: ${loadedSounds.length}/${Object.keys(this.sounds).length} sounds ready`);
+        // const loadedSounds = Object.entries(this.sounds).filter(([key, sound]) => sound !== null);
+        // console.log(`Audio setup complete: ${loadedSounds.length}/${Object.keys(this.sounds).length} sounds ready`);
     }
     
     createSyntheticSounds() {
@@ -108,12 +194,15 @@ export class AudioManager {
     }
     
     playLevelMusic() {
-        console.log('Attempting to play level music...');
+        // Kontrola, zda je hudba povolená
+        if (!this.musicEnabled) return;
+        
+        // Pokus o přehrání hudby levelu
         this.stopCurrentMusic();
         
         // Vybrat náhodný level track
         const randomTrack = this.levelTracks[Math.floor(Math.random() * this.levelTracks.length)];
-        console.log(`🎵 Selected random level track: ${randomTrack}`);
+        // console.log(`🎵 Selected random level track: ${randomTrack}`);
         
         this.currentLevelTrack = randomTrack;
         
@@ -126,38 +215,41 @@ export class AudioManager {
                 if (playPromise && typeof playPromise.then === 'function') {
                     playPromise.then(() => {
                         this.currentMusic = this.sounds[randomTrack];
-                        console.log(`✓ Level music started successfully: ${randomTrack}`);
+                        // console.log(`✓ Level music started successfully: ${randomTrack}`);
                     }).catch((error) => {
-                        console.warn('✗ Level music autoplay blocked:', error.message);
-                        console.log('📌 Klikni do hry pro spuštění hudby');
+                        // console.warn('✗ Level music autoplay blocked:', error.message);
+                        // console.log('📌 Klikni do hry pro spuštění hudby');
                     });
                 } else {
                     // Starší browsery
                     this.currentMusic = this.sounds[randomTrack];
-                    console.log(`✓ Level music started (legacy): ${randomTrack}`);
+                    // console.log(`✓ Level music started (legacy): ${randomTrack}`);
                 }
             } catch (e) {
                 console.error('✗ Failed to play level music:', e);
             }
         } else {
-            console.warn(`✗ Level music track not available: ${randomTrack}`);
+            // console.warn(`✗ Level music track not available: ${randomTrack}`);
         }
     }
     
     playBossMusic() {
-        console.log('Attempting to play boss music');
+        // Kontrola, zda je hudba povolená
+        if (!this.musicEnabled) return;
+        
+        // Přehrání boss hudby
         this.stopCurrentMusic();
         
         if (this.sounds.bossMusic) {
             try {
                 this.sounds.bossMusic.play();
                 this.currentMusic = this.sounds.bossMusic;
-                console.log('Boss music started playing');
+                // console.log('Boss hudba spuštěna');
             } catch (e) {
-                console.error('Failed to play boss music:', e);
+                console.error('Nepodařilo se přehrát boss hudbu:', e);
             }
         } else {
-            console.warn('Boss music not loaded');
+            // console.warn('Boss hudba není načtena');
         }
     }
     
@@ -168,24 +260,27 @@ export class AudioManager {
     }
     
     playSound(soundName) {
-        console.log(`🔊 Attempting to play sound: ${soundName}`);
+        // Kontrola, zda jsou zvuky povolené
+        if (!this.soundsEnabled) return;
+        
+        // Ztišené: logování každého zvuku by zahltilo konzoli
         
         // Použít skutečné zvuky pokud existují
         if (this.sounds[soundName] && this.sounds[soundName] !== null) {
             try {
-                console.log(`✓ Playing real sound: ${soundName}`);
+                // console.log(`✓ Přehrávám zvuk: ${soundName}`);
                 this.sounds[soundName].play();
                 return;
             } catch (e) {
-                console.warn(`Failed to play ${soundName}:`, e.message);
+                console.warn(`Nepodařilo se přehrát ${soundName}:`, e.message);
             }
         } else {
-            console.warn(`⚠️ Sound ${soundName} not found in this.sounds object`);
-            console.log('Available sounds:', Object.keys(this.sounds));
+            // console.warn(`⚠️ Zvuk ${soundName} nenalezen`);
+            // console.log('Dostupné zvuky:', Object.keys(this.sounds));
         }
         
         // Záložní syntetické zvuky pro ty, které nemáme
-        console.log(`🔊 Playing synthetic sound: ${soundName}`);
+        // console.log(`🔊 Playing synthetic sound: ${soundName}`);
         switch(soundName) {
             case 'heal':
                 if (this.sounds.powerup && this.sounds.powerup !== null) {
@@ -224,33 +319,6 @@ export class AudioManager {
         }
     }
     
-    playTone(frequency, duration, delay = 0) {
-        // Použití Web Audio API pro vytvoření jednoduchých tónů
-        if (!window.AudioContext && !window.webkitAudioContext) {
-            return;
-        }
-        
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioContext = new AudioContext();
-        
-        setTimeout(() => {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = frequency;
-            oscillator.type = 'square';
-            
-            gainNode.gain.setValueAtTime(this.sfxVolume * 0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + duration);
-        }, delay);
-    }
-    
     stopAll() {
         this.stopCurrentMusic();
         // Zastavit všechny zvuky
@@ -267,7 +335,7 @@ export class AudioManager {
         if (availableTracks.length === 0) return; // Jen jeden track dostupný
         
         const newTrack = availableTracks[Math.floor(Math.random() * availableTracks.length)];
-        console.log(`🎵 Switching to new level track: ${newTrack}`);
+        // console.log(`🎵 Switching to new level track: ${newTrack}`);
         
         this.stopCurrentMusic();
         this.currentLevelTrack = newTrack;
@@ -276,7 +344,7 @@ export class AudioManager {
             try {
                 this.sounds[newTrack].play();
                 this.currentMusic = this.sounds[newTrack];
-                console.log(`✓ Level music switched to: ${newTrack}`);
+                // console.log(`✓ Level music switched to: ${newTrack}`);
             } catch (e) {
                 console.error('✗ Failed to switch level music:', e);
             }
@@ -308,12 +376,12 @@ export class AudioManager {
             this.currentMusic.setVolume(this.musicVolume * multiplier);
         }
         
-        console.log(`🔊 Track ${trackName} volume set to ${multiplier}x (${(this.musicVolume * multiplier).toFixed(2)} absolute)`);
+        // console.log(`🔊 Track ${trackName} volume set to ${multiplier}x (${(this.musicVolume * multiplier).toFixed(2)} absolute)`);
     }
     
     // Zobrazit aktuální hlasitosti všech tracků
     showTrackVolumes() {
-        console.log('🎵 Track volumes:');
+        // console.log('🎵 Track volumes:');
         Object.entries(this.trackVolumes).forEach(([track, multiplier]) => {
             const absolute = (this.musicVolume * multiplier).toFixed(2);
             console.log(`  ${track}: ${multiplier}x (${absolute} absolute)`);

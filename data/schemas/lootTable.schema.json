@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "lootTable.schema.json",
+  "title": "Loot Table Schema",
+  "type": "object",
+  "required": ["id", "type", "pools"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^loot\\.[a-z_]+$",
+      "description": "Unique loot table identifier"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["loot_table"]
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "enemyType": { "type": "string" },
+        "category": { "type": "string" },
+        "tier": { "type": "string" },
+        "rarity": { "type": "string" }
+      }
+    },
+    "pools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "weight", "items"],
+        "properties": {
+          "id": { "type": "string" },
+          "weight": { "type": "number", "minimum": 0 },
+          "minItems": { "type": "integer", "minimum": 0 },
+          "maxItems": { "type": "integer", "minimum": 0 },
+          "pity": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "maxNoDrop": { "type": "integer", "minimum": 1 },
+              "guaranteedWeight": { "type": "number", "minimum": 0 }
+            }
+          },
+          "conditions": { "type": "object" },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["ref", "weight"],
+              "properties": {
+                "ref": {
+                  "type": "string",
+                  "description": "Reference to drop/powerup/mutator"
+                },
+                "weight": { "type": "number", "minimum": 0 },
+                "qty": {
+                  "type": "object",
+                  "properties": {
+                    "min": { "type": "integer", "minimum": 1 },
+                    "max": { "type": "integer", "minimum": 1 }
+                  }
+                },
+                "conditions": { "type": "object" },
+                "properties": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "modifiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "operation", "value", "priority"],
+        "properties": {
+          "type": { "type": "string" },
+          "operation": {
+            "type": "string",
+            "enum": ["SET", "ADD", "MUL", "ENABLE"]
+          },
+          "value": { "oneOf": [{ "type": "number" }, { "type": "string" }] },
+          "priority": { "type": "integer" },
+          "affectsWeight": { "type": "boolean" },
+          "affectsQuality": { "type": "boolean" },
+          "conditions": { "type": "object" }
+        }
+      }
+    },
+    "display": {
+      "type": "object",
+      "required": ["key", "name"],
+      "properties": {
+        "key": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "rarity": { "type": "string" },
+        "icon": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

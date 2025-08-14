@@ -1,0 +1,124 @@
+{
+  // BlueprintLoader konfigurace - PR7 kompatibilní
+  // Definuje všechny cesty a nastavení pro načítání blueprintů
+  
+  // Základní cesty
+  paths: {
+    dataRoot: '/data',
+    blueprintsRoot: '/data/blueprints',
+    registryIndex: '/data/registries/index.json'
+  },
+  
+  // Spawn tabulky k načtení - PR7 formát spawnTable.XXX
+  spawnTables: [
+    {
+      id: 'spawnTable.level1',
+      path: 'spawn/level1.json5',
+      autoLoad: true
+    },
+    {
+      id: 'spawnTable.level2',
+      path: 'spawn/level2.json5',
+      autoLoad: true
+    },
+    {
+      id: 'spawnTable.level3',
+      path: 'spawn/level3.json5',
+      autoLoad: true
+    }
+  ],
+  
+  // System konfigurace k načtení
+  systemConfigs: [
+    {
+      id: 'ng_plus_scaling',
+      path: 'system/ng_plus_scaling.json5',
+      autoLoad: true
+    },
+    {
+      id: 'pity_system',
+      path: 'system/pity_system.json5',
+      autoLoad: true
+    }
+  ],
+  
+  // Kategorie blueprintů
+  categories: [
+    'enemy',
+    'boss',
+    'unique',
+    'miniboss',
+    'powerup',
+    'drop',
+    'projectile',
+    'lootTable',
+    'spawnTable',
+    'system'
+  ],
+  
+  // Načítací konfigurace
+  loadConfig: {
+    // Paralelní načítání
+    parallel: true,
+    maxConcurrent: 10,
+    
+    // Retry politika
+    retryAttempts: 3,
+    retryDelay: 500,
+    
+    // Timeout
+    loadTimeout: 5000,
+    
+    // Cache
+    enableCache: true,
+    cacheExpiry: 300000, // 5 minut
+    
+    // Validace
+    validateOnLoad: false,
+    strictMode: false
+  },
+  
+  // Mapování ID prefixů na kategorie - PR7 kompatibilní
+  categoryMapping: {
+    'enemy.': 'enemy',
+    'boss.': 'boss',
+    'unique.': 'unique',
+    'miniboss.': 'miniboss',
+    'powerup.': 'powerup',
+    'drop.': 'drop',
+    'projectile.': 'projectile',
+    'proj.': 'projectile',
+    'lootTable.': 'lootTable',
+    'loot.': 'lootTable',
+    'spawnTable.': 'spawnTable',  // Správný formát
+    'spawn.': 'spawnTable',
+    'system.': 'system'
+  },
+  
+  // Výchozí hodnoty pro chybějící blueprinty
+  defaults: {
+    enemy: {
+      stats: {
+        hp: 10,
+        damage: 5,
+        speed: 50,
+        xp: 1
+      },
+      mechanics: {
+        movementType: 'basic',
+        aggroRange: 200
+      }
+    },
+    drop: {
+      stats: {
+        value: 1,
+        lifetime: 20000,
+        weight: 0.5
+      },
+      mechanics: {
+        effectType: 'resource',
+        autoPickup: false
+      }
+    }
+  }
+}

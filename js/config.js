@@ -3,24 +3,29 @@ const MIN_WIDTH = 800;
 const MIN_HEIGHT = 600;
 
 // Výpočet skutečné velikosti (responsivní pro mobil)
-const calculateGameSize = () => {
+export const calculateGameSize = () => {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+    const isFullscreen = !!document.fullscreenElement;
     
-    // Rezerva pro padding, rámečky a texty
-    // Na mobilu minimální okraje, na desktopu větší rezerva
-    const padW = isMobile ? 16 : 60;
-    const padH = isMobile ? 40 : 200;
-    const availableWidth = Math.max(320, Math.floor(screenWidth - padW));
-    const availableHeight = Math.max(240, Math.floor(screenHeight - padH));
+    let gameWidth, gameHeight;
     
-    // Použít MENŠÍ z dostupné nebo minimální velikosti
-    // Takže se vždy vejde na obrazovku
-    const gameWidth = availableWidth;
-    const gameHeight = availableHeight;
+    if (isFullscreen) {
+        // Ve fullscreen použít celou obrazovku
+        gameWidth = screenWidth;
+        gameHeight = screenHeight;
+    } else {
+        // V normálním režimu nechat místo pro UI elementy
+        const headerHeight = 60; // přibližná výška header + spacing
+        const footerHeight = 30; // přibližná výška footer + spacing
+        const horizontalPadding = isMobile ? 20 : 40;
+        
+        gameWidth = Math.max(320, screenWidth - horizontalPadding);
+        gameHeight = Math.max(240, screenHeight - headerHeight - footerHeight);
+    }
     
-    console.log(`Game size: ${gameWidth}x${gameHeight} (screen: ${screenWidth}x${screenHeight})`);
+    console.log(`Game size: ${gameWidth}x${gameHeight} (screen: ${screenWidth}x${screenHeight}, fullscreen: ${isFullscreen})`);
     return { width: gameWidth, height: gameHeight };
 };
 
@@ -31,15 +36,54 @@ export const GameConfig = {
     height: gameSize.height,
     backgroundColor: 0x111111,
     
+    // Debug settings
+    debug: {
+        spawnLogging: false      // Disable spawn position logging
+    },
+    
+    // Layer depths
+    layers: {
+        enemies: 20,            // Enemy sprite depth
+        projectiles: 30,        // Projectile depth
+        loot: 15,              // Loot drop depth
+        ui: 100                // UI elements depth
+    },
+    
+    // Feature flags
+    features: {
+        lootTablesEnabled: true,  // Enable loot system
+        telemetryLogger: false,   // Disable telemetry
+        debugOverlay: false      // Debug overlay starts hidden
+    },
+    
+    // Collision radiuses - centralizované konstanty  
+    collision: {
+        projectile: 15,          // Projectile ↔ Enemy
+        lootPickup: 15,         // LootSystem pickup radius
+        lootOverlap: 20,        // Physics.overlap radius  
+        playerEnemy: 25,        // Player ↔ Enemy contact damage
+        explosion: 50           // Base explosion radius
+    },
+    
     player: {
         baseHP: 100,
         baseSpeed: 1.125, // sníženo o 25% z 1.5
         baseProjectiles: 4,
         projectileSpeed: 150, // sníženo ještě více pro lepší kontrolu
         projectileDamage: 10,
+        projectileRange: 600,  // Default range in pixels
+        muzzleOffset: 24,      // Offset from player center for projectile spawn
         projectileInterval: 1000, // ms
         size: 30, // Zvětšeno z 20 na 30 (1.5x)
-        color: 0x4444ff
+        color: 0x4444ff,
+        
+        // PR3: Rendering constants
+        rendering: {
+            borderWidth: 2,
+            borderAlpha: 0.8,
+            alphaFrequency: 0.02,  // Frequency for alpha animation during invincibility
+            speedMultiplier: 100   // Multiplier for movement speed
+        }
     },
     
     enemies: {
@@ -223,5 +267,233 @@ export const GameConfig = {
         intervalDecrease: 50,
         maxEnemies: 50,        // Zvýšeno z 30 na 50 pro vyšší levely
         bossLevelInterval: 5
+    },
+
+    // === NOVÉ SEKCE PRO ConfigResolver/ModifierEngine ===
+    
+    // Globální performance limity
+    limits: {
+        maxEmitters: 24,
+        maxProjectiles: 100,
+        maxEnemies: 50,
+        maxTrails: 10,
+        maxVoices: 16,          // Max současných zvuků
+        maxParticles: 1000      // Max částic v systému
+    },
+
+    // Scaling formule pro progresivní obtížnost
+    scaling: {
+        boss: {
+            hp: { base: 1.0, perLevel: 0.2 },       // +20% HP per level
+            damage: { base: 1.0, perLevel: 0.1 },   // +10% damage per level
+            xp: { base: 1.0, perLevel: 0.3 }        // +30% XP reward per level
+        },
+        elite: {
+            chance: { base: 0.05, perLevel: 0.01 }, // 5% + 1% per level
+            statMultiplier: 1.4,                    // 40% stat boost
+            xpMultiplier: 1.6                       // 60% více XP
+        },
+        xp: {
+            perLevel: 0.2,                          // 20% více XP per level
+            requirement: { base: 10, multiplier: 1.25 }
+        }
+    },
+
+    // Ability konstanty a timery
+    abilities: {
+        radiotherapy: {
+            baseInterval: 1000,     // 1 sekunda base cooldown
+            intervalPerLevel: -100, // -100ms per level
+            minInterval: 300,       // Minimálně 300ms
+            baseRange: 200,         // Base dosah paprsků
+            rangePerLevel: 50       // +50px per level
+        },
+        lightning: {
+            baseInterval: 2000,     // 2 sekundy base cooldown
+            intervalPerLevel: -200, // -200ms per level
+            minInterval: 800,       // Minimálně 800ms
+            baseRange: 200,         // Base dosah chain lightning
+            baseDamage: 15,         // Base damage per jump
+            damagePerLevel: 10,     // +10 damage per level
+            jumpRange: 80,          // Base dosah mezi jumpy
+            jumpRangePerLevel: 20,  // +20px jump range per level
+            damageReduction: 0.8    // 80% damage retained per jump (20% reduction)
+        },
+        aura: {
+            tickRate: 0.05,         // Damage per tick jako % z total
+            baseRadius: 50,         // Základní radius v px
+            radiusGrowth: 1.15,     // Growth per level (15%)
+            baseDamagePerTick: 15   // Base damage per tick
+        },
+        shield: {
+            baseHP: 50,             // HP na level 1
+            hpPerLevel: 25,         // +25 HP per level
+            baseRegenTime: 10000,   // 10s regenerace na level 1
+            regenTimePerLevel: -1000, // -1s per level
+            minRegenTime: 6000      // Minimálně 6s
+        },
+        boss: {
+            linearAttack: {
+                projectileSpeed: 250,     // Boss linear attack speed
+                spreadAngle: 0.2          // Spread angle between projectiles
+            },
+            circleAttack: {
+                projectileCount: 12,      // Number of projectiles in circle
+                projectileSpeed: 200      // Circle attack projectile speed
+            },
+            divideAttack: {
+                damageMultiplier: 0.5     // Damage multiplier for child explosions
+            },
+            spreadAttack: {
+                damageMultiplier: 0.6     // Damage multiplier for infection spread
+            },
+            corruptionAttack: {
+                damageMultiplier: 0.35    // Corruption wave damage multiplier
+            },
+            geneticAttack: {
+                damageMultiplier: 0.3     // Genetic helix damage multiplier
+            },
+            radiationAttack: {
+                damageMultiplier: 0.2     // Radiation field damage multiplier
+            }
+        }
+    },
+
+    // Weapon effects a damage multiplikátory
+    weapons: {
+        explosive: {
+            baseRadius: 30,         // Základní explosion radius
+            radiusPerLevel: 10,     // +10px per level
+            damageMultiplier: 0.8,  // 80% base damage
+            maxRadius: 120          // Cap na radius
+        },
+        piercing: {
+            damageReduction: 0.9,   // 90% damage po průchodu (10% loss)
+            maxPierces: 8           // Max počet průchodů
+        },
+        homing: {
+            turnRate: 2.0,          // Rychlost otáčení (radiany/s)
+            detectionRange: 150,    // Dosah detekce cílů
+            maxLifetime: 5000       // Max lifetime (ms)
+        }
+    },
+
+    // Power-up default values a progression
+    powerups: {
+        damage: {
+            baseIncrease: 5,        // +5 damage per level
+            maxLevel: 10,           // Max level
+            stackable: true         // Lze stackovat více levelů
+        },
+        speed: {
+            baseIncrease: 0.15,     // +15% speed per level
+            maxLevel: 8,
+            maxSpeedBonus: 2.0      // Max 200% speed bonus
+        },
+        projectiles: {
+            baseIncrease: 2,        // +2 projektily per level (od 4 základních)
+            maxLevel: 5,
+            maxProjectiles: 14      // Max 14 projektilů
+        },
+        attackSpeed: {
+            baseReduction: -0.15,   // -15% cooldown per level
+            maxLevel: 6,
+            minInterval: 200        // Min 200ms mezi výstřely
+        },
+        range: {
+            baseIncrease: 0.2,      // +20% range per level
+            maxLevel: 5,
+            maxRangeBonus: 1.5      // Max 150% bonus
+        }
+    },
+
+    // Validation rules pro blueprinty
+    validation: {
+        required: {
+            powerup: ['id', 'type', 'maxLevel', 'display.devNameFallback'],
+            enemy: ['id', 'type', 'stats.hp', 'stats.damage', 'stats.xp'],
+            boss: ['id', 'type', 'stats.hp', 'stats.damage'],
+            projectile: ['id', 'type', 'stats.damage', 'stats.speed']
+        },
+        limits: {
+            'stats.hp': { min: 1, max: 10000 },
+            'stats.damage': { min: 0, max: 1000 },
+            'stats.speed': { min: 0, max: 20 },
+            'maxLevel': { min: 1, max: 15 }
+        }
+        // PR7: Feature flags removed - PR7 is the only way, no conditional paths
+    },
+    
+    // Loot System Configuration
+    loot: {
+        // Global settings
+        globalPity: {
+            enabled: true,
+            maxStreakNoDrop: 20,        // Po 20 kills bez dropu garantuj něco
+            guaranteedDrop: 'drop.xp_small'
+        },
+        
+        // Anti-flood limits
+        limits: {
+            maxDropsPerMinute: 50,       // Globální limit dropů za minutu
+            maxSameDropStreak: 5,        // Max stejných dropů za sebou
+            cooldownBetweenRare: 8000,   // 8s mezi vzácnými dropy
+            powerupCooldown: 20000,      // 20s mezi power-upy z běžných nepřátel
+            metotrexatCooldown: 30000    // 30s mezi metotrexaty
+        },
+        
+        // Luck system
+        luck: {
+            basePlayerLuck: 1.0,         // Základní player luck
+            luckPerLevel: 0.05,          // +5% luck za level
+            maxLuck: 2.0,                // Maximum luck multiplier
+            eliteLuckBonus: 0.2,         // +20% luck z elite kills
+            bossLuckBonus: 0.5           // +50% luck z boss kills
+        },
+        
+        // Rarity weights - výchozí váhy pro rarity tiers
+        rarityWeights: {
+            common: 1.0,
+            uncommon: 0.3,
+            rare: 0.1,
+            epic: 0.03,
+            legendary: 0.01,
+            mythic: 0.003
+        },
+        
+        // Quality scaling
+        quality: {
+            baseQuality: 1.0,            // Základní kvalita dropů
+            qualityPerLevel: 0.02,       // +2% quality za level
+            eliteQualityBonus: 0.3,      // +30% quality z elit
+            bossQualityBonus: 0.8,       // +80% quality z bossů
+            survivalQualityBonus: 0.5    // +50% quality po dlouhém přežití
+        },
+        
+        // Default pity settings pro tabulky
+        defaultPity: {
+            enabled: true,
+            maxNoDropCommon: 8,          // Pro běžné nepřátele
+            maxNoDropElite: 3,           // Pro elity
+            maxNoDropBoss: 1             // Pro bosse (vždy dropnou něco)
+        },
+        
+        // Telemetrie settings
+        telemetry: {
+            enabled: true,
+            trackHitRates: true,         // Sledovat hit rates jednotlivých entries
+            trackPityActivations: true,  // Sledovat aktivace pity systému
+            trackQualityDistribution: true, // Sledovat rozložení rarity dropů
+            logRareDrops: true,          // Logovat vzácné dropy do konzole
+            logPityActivations: false    // Nelogovat běžné pity aktivace
+        },
+        
+        // Debug settings
+        debug: {
+            enabled: false,              // Debug režim
+            logAllRolls: false,          // Logovat všechny roll pokusy
+            logPoolConditions: false,    // Logovat pool condition checks
+            showDropProbabilities: false // Zobrazit pravděpodobnosti v UI
+        }
     }
 };

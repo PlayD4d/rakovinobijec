@@ -4,6 +4,11 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
 /* Načtení Public Pixel fontu */
 @font-face {
     font-family: 'PublicPixel';
@@ -27,7 +32,7 @@ body {
     align-items: center;
     min-height: 100vh;
     flex-direction: column;
-    gap: 15px;
+    gap: 8px;
     padding: 10px;
     overflow: hidden;
     image-rendering: pixelated;
@@ -35,9 +40,27 @@ body {
     image-rendering: crisp-edges;
 }
 
+#game {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
 #game-container {
     border: 2px solid #444;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    /* Flex kontejner pro centrování canvas */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Ensure canvas has proper rendering */
+canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
 }
 
 #game-info-top {
@@ -47,15 +70,15 @@ body {
 #game-info-top h1 {
     color: #ff6b6b;
     margin: 0;
-    font-size: 24px;
+    font-size: 20px;  /* Zmenšeno z 24px */
     text-shadow: 2px 2px 0px #000000;
     letter-spacing: 2px;
 }
 
 #game-info-top p {
     color: #aaaaaa;
-    margin: 8px 0;
-    font-size: 12px;
+    margin: 4px 0;  /* Zmenšeno z 8px */
+    font-size: 10px;  /* Zmenšeno z 12px */
     font-style: normal;
 }
 
@@ -66,5 +89,74 @@ body {
 #game-info-bottom p {
     color: #888888;
     margin: 0;
-    font-size: 11px;
+    font-size: 9px;  /* Zmenšeno z 11px */
+}
+
+/* Fullscreen režim - skrýt okolní elementy a maximalizovat canvas */
+body:fullscreen #game-info-top,
+body:fullscreen #game-info-bottom {
+    display: none;
+}
+
+body:fullscreen #game-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    z-index: 9999;
+}
+
+body:fullscreen {
+    gap: 0;
+    padding: 0;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+/* Webkit fullscreen varianta */
+body:-webkit-full-screen #game-info-top,
+body:-webkit-full-screen #game-info-bottom {
+    display: none;
+}
+
+body:-webkit-full-screen #game-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    z-index: 9999;
+}
+
+body:-webkit-full-screen {
+    gap: 0;
+    padding: 0;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+/* Mozilla fullscreen varianta */
+body:-moz-full-screen #game-info-top,
+body:-moz-full-screen #game-info-bottom {
+    display: none;
+}
+
+body:-moz-full-screen #game-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    z-index: 9999;
+}
+
+body:-moz-full-screen {
+    gap: 0;
+    padding: 0;
+    justify-content: flex-start;
+    align-items: flex-start;
 }

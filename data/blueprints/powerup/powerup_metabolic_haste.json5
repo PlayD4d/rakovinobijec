@@ -1,0 +1,69 @@
+{
+  id: 'powerup.metabolic_haste',
+  type: 'powerup',
+  stats: {
+    maxLevel: 6,
+  },
+  mechanics: {
+    modifiersPerLevel: [
+      {
+        path: 'projectile.interval',
+        type: 'mul',
+        value: -0.12,
+      },
+      {
+        path: 'player.speed',
+        type: 'mul',
+        value: 0.08,
+      },
+      {
+        path: 'player.dodgeChance',
+        type: 'add',
+        value: 0.015,
+      },
+      {
+        path: 'projectile.count',
+        type: 'add',
+        value: 0.5,
+      },
+    ],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    attackSpeedCap: 5,
+  },
+  vfx: {
+    pickup: 'vfx.powerup.pickup.speed',
+    levelup: 'vfx.powerup.levelup',
+    apply: 'vfx.player.haste.aura',
+    dodge: 'vfx.player.dodge.blur',
+  },
+  sfx: {
+    pickup: 'sfx.powerup.pickup.energetic',
+    levelup: 'sfx.powerup.levelup',
+    apply: 'sfx.player.haste.pulse',
+  },
+  display: {
+    key: 'powerup.metabolic_haste.name',
+    descKey: 'powerup.metabolic_haste.desc',
+    templates: {
+      short: '+{{mechanics.modifiersPerLevel.0.value|percent}} ÚS • +{{mechanics.modifiersPerLevel.1.value|percent}} rychlost • +{{mechanics.modifiersPerLevel.2.value|percent}} uhýbání',
+      desc: 'Zvyšuje útočnou rychlost o {{mechanics.modifiersPerLevel.0.value|percent}}, pohybovou rychlost o {{mechanics.modifiersPerLevel.1.value|percent}} a šanci na uhnutí o {{mechanics.modifiersPerLevel.2.value|percent}} za úroveň.',
+    },
+    color: '#FF9800',
+    rarity: 'common',
+    icon: 'powerup.metabolic_haste',
+    category: 'speed',
+    sortOrder: 220,
+    tags: [
+      'powerup',
+      'attack-speed',
+      'movement',
+      'dodge',
+      'tempo',
+      'metabolic',
+    ],
+    devNameFallback: 'Metabolický spěch',
+    devDescFallback: 'Zrychluje metabolismus',
+  },
+}

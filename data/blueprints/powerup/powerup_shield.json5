@@ -1,0 +1,67 @@
+{
+  // Blueprint: powerup.shield
+  "id": "powerup.shield",
+  "type": "powerup",
+  "stats": {
+    "maxLevel": 5
+  },
+  "mechanics": {
+    "modifiersPerLevel": [
+      {
+        "path": "player.shield.active",
+        "type": "set",
+        "value": 1,
+        "valuePerLevel": 1,
+        "description": "Number of hits shield can absorb"
+      },
+      {
+        "path": "player.shield.immunityDuration",
+        "type": "set",
+        "value": 3000,
+        "description": "Immunity duration in ms after shield blocks hit"
+      }
+    ],
+    "stackable": true,
+    "persistent": true,
+    "applyOnPickup": true,
+    "effectType": "shield"
+  },
+  "ability": {
+    "type": "shield",
+    "baseRegenMs": 10000,
+    "minRegenMs": 6000
+  },
+  "vfx": {
+    "pickup": "vfx.powerup.pickup.shield",
+    "levelUp": "vfx.powerup.levelup",
+    "hit": "vfx.hit.spark"
+  },
+  "sfx": {
+    "pickup": "sfx.powerup.pickup",
+    "apply": "sfx.powerup.apply",
+    "levelUp": "sfx.powerup.levelup",
+    "hit": "sfx.player.hit"
+  },
+  "display": {
+    "key": "powerup.shield.name",
+    "descKey": "powerup.shield.desc",
+    "devNameFallback": "🛡️ Imunitní štít",
+    "devDescFallback": "Poskytuje regenerující se štít",
+    "icon": "powerup_shield",
+    "color": "#607D8B",
+    "rarity": "rare",
+    "category": "defense",
+    "sortOrder": 280,
+    "tags": [
+      "powerup",
+      "shield",
+      "defense",
+      "ability"
+    ],
+    "templates": {
+      "short": "Regenerující štít ({{ability.baseRegenMs}}ms)",
+      "long": "Poskytuje regenerující se štít. Čas regenerace klesá s úrovní z {{ability.baseRegenMs}}ms na min {{ability.minRegenMs}}ms. Max level {{stats.maxLevel}}."
+    },
+    "srKey": "sr.powerup.shield"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  id: 'enemy.micro_shooter',
+  type: 'enemy',
+  stats: {
+    hp: 20,
+    damage: 5,
+    speed: 95,
+    size: 10,
+    armor: 0,
+    xp: 2,
+  },
+  mechanics: {
+    movementType: 'kite_player',
+    contactDamage: 5,
+    aggroRange: 450,
+    kiteDistance: 280,
+    canShoot: true,
+    shootInterval: 2400,
+    projectileDamage: 8,
+    inaccuracyRange: 0.4,
+    dropChance: 1,
+    healthDropChance: 0.07,
+  },
+  projectileRef: 'projectile.cytotoxin_small',
+  // PR7 Compliant: graphics field for visual configuration
+  graphics: {
+    sprite: 'enemy_micro_shooter',
+    tint: 0xFF5722,
+    scale: 0.9,
+    animation: {
+      idle: 'shooter_idle',
+      move: 'shooter_move',
+      attack: 'shooter_attack'
+    }
+  },
+  // PR7 Compliant: ai field for behavior configuration
+  ai: {
+    behavior: 'shoot',
+    params: {
+      aggroRange: 450,
+      attackRange: 280,
+      movePattern: 'kite_player',
+      targetPriority: 'nearest',
+      projectileType: 'projectile.cytotoxin_small',
+      shootInterval: 2400
+    }
+  },
+  // PR7 Compliant: lootTable reference
+  lootTable: 'lootTable.level1.common',
+  vfx: {
+    spawn: 'vfx.enemy.spawn.shooter',
+    hit: 'vfx.hit.spark.small',
+    death: 'vfx.enemy.death.burst.blue',
+    muzzleFlash: 'vfx.muzzle.micro',
+  },
+  sfx: {
+    spawn: 'sfx.enemy.spawn.chirp',
+    hit: 'sfx.enemy.hit.soft',
+    death: 'sfx.enemy.death.pop',
+    shoot: 'sfx.weapon.fire.bio',
+  },
+  display: {
+    key: 'enemy.micro_shooter.name',
+    descKey: 'enemy.micro_shooter.desc',
+    templates: {
+      short: '{{stats.hp}} HP • střelba • {{mechanics.projectileDamage}} proj DMG',
+      desc: 'Mikro střelec s {{stats.hp}} HP. Udržuje odstup a střílí cytotoxické projektily ({{mechanics.projectileDamage}} DMG).',
+    },
+    color: '#00BCD4',
+    rarity: 'common',
+    icon: 'enemy.micro_shooter',
+    category: 'enemy',
+    sortOrder: 140,
+    tags: [
+      'enemy',
+      'ranged',
+      'kite',
+      'shooter',
+      'fast',
+    ],
+    devNameFallback: 'Mikro střelec',
+    devDescFallback: 'Malý ale přesný střelec',
+  },
+}

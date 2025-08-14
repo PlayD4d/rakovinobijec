@@ -1,0 +1,116 @@
+{
+    // PR7 Compliant Spawn Table - Level 1
+    id: "spawnTable.level1",
+    type: "spawnTable",
+    level: 1,
+    
+    // Enemy waves - basic progression
+    enemyWaves: [
+        {
+            enemyId: "enemy.necrotic_cell",
+            weight: 100,
+            countRange: [1, 2],
+            interval: 2000,
+            startAt: 0,
+            endAt: 30000
+        },
+        {
+            enemyId: "enemy.viral_swarm",
+            weight: 80,
+            countRange: [1, 2],
+            interval: 3000,
+            startAt: 10000,
+            endAt: 60000
+        },
+        {
+            enemyId: "enemy.aberrant_cell",
+            weight: 60,
+            countRange: [1, 1],
+            interval: 2500,
+            startAt: 30000,
+            endAt: 90000
+        }
+    ],
+    
+    // Elite spawn windows
+    eliteWindows: [
+        {
+            enemyId: "enemy.viral_swarm_alpha",
+            weight: 30,
+            countRange: [1, 1],
+            cooldown: 15000,
+            startAt: 20000,
+            endAt: 120000
+        }
+    ],
+    
+    // Unique/rare spawns
+    uniqueSpawns: [],
+    
+    // Boss triggers - PR7 compliant
+    bossTriggers: [
+        {
+            condition: "time",
+            value: 60000,
+            bossId: "boss.radiation_core",
+            spawnDelay: 2000,
+            clearEnemies: false
+        }
+    ],
+    
+    // Loot tables - PR7 data-driven
+    lootTables: {
+        normal: {
+            "drop.xp.small": 60,
+            "drop.xp.medium": 30,
+            "drop.leukocyte_pack": 8,
+            "drop.metotrexat": 0.5,
+            "drop.adrenal_surge": 1.5
+        },
+        elite: {
+            "drop.xp.medium": 50,
+            "drop.xp.large": 40,
+            "drop.leukocyte_pack": 25,
+            "drop.protein_cache": 20,
+            "drop.adrenal_surge": 10,
+            "drop.metotrexat": 2,
+            "powerup.immuno_boost": 3
+        },
+        boss: {
+            "drop.xp.large": 100,
+            "drop.leukocyte_pack": 100,
+            "drop.protein_cache": 70,
+            "drop.adrenal_surge": 50,
+            "powerup.immuno_boost": 30,
+            "powerup.metabolic_haste": 20,
+            "powerup.aegis_macrophage": 15,
+            "powerup.apoptosis_pierce": 10,
+            "drop.metotrexat": 3
+        }
+    },
+    
+    // Difficulty settings - PR7 ConfigResolver compatible
+    difficulty: {
+        enemyHpMultiplier: 1.0,
+        enemyDamageMultiplier: 1.0,
+        enemySpeedMultiplier: 1.0,
+        spawnRateMultiplier: 1.0,
+        eliteFrequency: 0.8,
+        targetTTK: 3000,
+        progressiveScaling: {
+            hpGrowth: 0.001,
+            damageGrowth: 0.0008,
+            spawnGrowth: 0.0015
+        }
+    },
+    
+    // Meta information
+    meta: {
+        name: "level1",
+        displayName: "Úroveň 1 - Základní výzva",
+        description: "Začátečnická obtížnost pro nové hráče",
+        estimatedDuration: 120000,
+        recommendedLevel: 1,
+        tags: ["beginner", "tutorial", "basic"]
+    }
+}

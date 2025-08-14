@@ -1,4 +1,4 @@
-export const DEFAULT_GAME_VERSION = '0.1.3';
+export const DEFAULT_GAME_VERSION = '0.3.1';
 
 export function getGameVersion() {
   if (typeof window !== 'undefined' && window.__GAME_VERSION__) {

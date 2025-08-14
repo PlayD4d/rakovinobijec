@@ -1,0 +1,2798 @@
+{
+  "timestamp": "2025-08-14T08:54:54.799Z",
+  "options": {
+    "strictI18n": false,
+    "fixI18nPlaceholders": false,
+    "generateMarkdown": false
+  },
+  "summary": {
+    "validatedFiles": 43,
+    "totalErrors": 436,
+    "totalWarnings": 23,
+    "totalFixed": 0,
+    "duplicateIds": 0,
+    "missingTranslations": 22,
+    "todoTranslations": 0,
+    "registryEntries": 43
+  },
+  "errors": [
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.spawn' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.hit.heavy' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.death.burst.boss' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.change' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.fan' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.tracking' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.circle' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.enter' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.hit' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.death' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.change' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.fan' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.tracking' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.circle' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_chemorezistence.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.spawn' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.hit.heavy' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.death.burst.boss' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.change' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.circle' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.tracking' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.fan' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.enter' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.hit' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.death' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.change' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.circle' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.tracking' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.fan' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_genova_mutace.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.spawn' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.845Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.hit.heavy' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.death.burst.boss' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.change' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.fan' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.circle' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.tracking' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.enter' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.hit' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.death' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.change' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.fan' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.circle' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.tracking' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_karcinogenni_kral.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.spawn' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.hit.medium' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.death.burst.boss' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.change' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.tracking' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.fan' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.circle' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.enter' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.hit' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.death' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.change' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.tracking' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.fan' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.circle' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.spawn.onkogen' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.moderate' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.aggressive' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.extreme' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.death.explosion' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.dash.onkogen' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.laser.sweep' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.enrage.aura' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.spawn.major' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.change' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.change' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.final' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.death.explosion' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.dash.impact' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.laser.charge' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.enrage.roar' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_onkogen_prime.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.spawn' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.hit.heavy' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.death.burst.boss' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.change' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.radiation.zone.create' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.circle' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.muzzle.tracking' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.radiation.damage' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.enter' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.hit' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.death' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.change' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.radiation.zone.create' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.circle' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.shoot.tracking' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.radiation.ambient' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.spawn.radiation' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.radiation.low' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.radiation.medium' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.phase.radiation.high' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.death.radiation.explosion' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.radiation.pulse' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.radiation.beam' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.radiation.storm' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.radiation.overload' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.boss.radiation.aura' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.spawn.radiation' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.change' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.change' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.phase.critical' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.death.radiation' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.radiation.pulse' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.radiation.beam' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.radiation.storm' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.boss.radiation.overload' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/boss/boss_radiation_core.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.elite.major' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_aberrant_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.armored' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_aberrant_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.elite.explosion' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_aberrant_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.enrage.burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_aberrant_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.aura.aberrant' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_aberrant_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.resist.glow' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_aberrant_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.elite.major' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_aberrant_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.heavy' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_aberrant_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.elite.major' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_aberrant_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.enrage.roar' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_aberrant_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.acidic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_acidic_blob.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.acid.splash' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_acidic_blob.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.acid.pool' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_acidic_blob.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.trail.acid.drip' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_acidic_blob.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.bubble' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_acidic_blob.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.acid' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_acidic_blob.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.splash' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_acidic_blob.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.fungal' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_fungal_parasite.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.toxic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_fungal_parasite.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.spore_burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_fungal_parasite.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.drain.parasitic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_fungal_parasite.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spores.release' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_fungal_parasite.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.fungal' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_fungal_parasite.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.organic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_fungal_parasite.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.fungal' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_fungal_parasite.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.drain.parasitic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_fungal_parasite.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.dash' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_metastasis_runner.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.red' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_metastasis_runner.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.burst.red' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_metastasis_runner.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.dash.charge' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_metastasis_runner.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.dash.trail' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_metastasis_runner.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.aggressive' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_metastasis_runner.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.flesh' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_metastasis_runner.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.burst' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_metastasis_runner.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.dash.charge' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_metastasis_runner.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.dash.whoosh' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_metastasis_runner.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.shooter' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.burst.blue' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.muzzle.micro' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.chirp' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.soft' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.pop' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.weapon.fire.bio' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.elite' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter_enhanced.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.medium' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter_enhanced.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.burst.blue' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter_enhanced.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.muzzle.enhanced' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter_enhanced.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.aura.elite' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter_enhanced.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.elite' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter_enhanced.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.metal' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter_enhanced.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.explosion' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter_enhanced.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.weapon.fire.enhanced' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_micro_shooter_enhanced.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.necrotic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_necrotic_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.necrotic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_necrotic_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.necrotic.burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_necrotic_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.aura.necrotic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_necrotic_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.effect.decay' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_necrotic_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.heavy' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_necrotic_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.necrotic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_necrotic_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.heavy' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_necrotic_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.effect.decay' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_necrotic_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.support' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_shielding_helper.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.shield' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_shielding_helper.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.shield.break' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_shielding_helper.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.buff.shield' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_shielding_helper.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.aura.protective' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_shielding_helper.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.harmonic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_shielding_helper.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.shield' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_shielding_helper.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.shield' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_shielding_helper.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.buff.cast' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_shielding_helper.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.support' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_support_bacteria.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_support_bacteria.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.support' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_support_bacteria.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.heal.pulse' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_support_bacteria.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.aura.support' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_support_bacteria.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.light' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_support_bacteria.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.soft' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_support_bacteria.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.light' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_support_bacteria.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.heal.pulse' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_support_bacteria.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.swarm' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.burst.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.trail.viral' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.trail.swarm' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.swarm' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.small' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.small' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.spawn.elite.swarm' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm_alpha.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.elite' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm_alpha.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.death.elite.burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm_alpha.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.trail.viral.enhanced' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm_alpha.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.enemy.aura.elite' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm_alpha.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.spawn.elite' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm_alpha.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.hit.enhanced' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm_alpha.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.enemy.death.elite' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/enemy/enemy_viral_swarm_alpha.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.spawn.chromoblast' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.death.cellular.overload' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.leukemic.burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.temporal.field' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.chrono.blast' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.time.echo' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.temporal.rift' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.cellular.overload' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.spawn.chromoblast' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.death.overload' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.leukemic.burst' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.temporal.field' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.chrono.blast' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.time.echo' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_chromoblast.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.spawn.golden' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_golden_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.golden' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_golden_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.death.golden_explosion' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_golden_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.golden.pulse' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_golden_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.aura.golden' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_golden_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.spawn.golden' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_golden_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.hit.metallic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_golden_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.death.golden' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_golden_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.golden.pulse' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_golden_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.spawn.splicer' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.death.mutation.burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.mutation.adapt' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.rapid.strikes' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.genetic.instability' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.final.evolution' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.toxic.trail' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.damage.nova' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.spawn.splicer' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.death.mutation' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.mutation.change' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.rapid.strikes' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.genetic.chaos' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.evolution.complete' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_mutagen_splicer.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.spawn.necrocyte' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.death.necrotic.explosion' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.necrotic.aura' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.armor.shield' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.summon.necrotic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.necrotic.debuff' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.spawn.sentinel' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.death.necrotic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.necrotic.pulse' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.shield.activate' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.summon.dark' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_necrocyte_sentinel.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.spawn.phage' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.death.viral.burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.phage.spore' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.viral.infection' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.viral.spread' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.phase.dash' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.phage.burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.spawn.overlord' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.death.viral' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.phage.shoot' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.viral.infect' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.viral.spread' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.phase.dash' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_phage_overlord.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.spawn.titan' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.death.radiation.titan' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.radiation.pulse' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.phase.shift.titan' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.radiation.zones' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.titan.enrage' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.titan.death.blast' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.radiation.debuff' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.spawn.titan' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.death.radiation.blast' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.radiation.pulse' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.phase.shift' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.radiation.zones' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.titan.enrage' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_radiomorph_titan.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.spawn.rainbow' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark.prismatic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.death.rainbow_burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.rainbow.phase_shift' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.rainbow.beam' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.unique.rainbow.burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.spawn.rainbow' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.hit.prismatic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.death.rainbow' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.rainbow.phase' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.unique.rainbow.beam' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/unique/unique_rainbow_virus.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.pickup.chemo' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_chemo_reservoir.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.levelup' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_chemo_reservoir.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.projectile.explosion.enhance' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_chemo_reservoir.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.abilities.chemo.cloud' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_chemo_reservoir.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.explosion.chemo' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_chemo_reservoir.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.pickup.chemical' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_chemo_reservoir.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.levelup' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_chemo_reservoir.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.abilities.chemo.activate' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_chemo_reservoir.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.explosion.chemical' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_chemo_reservoir.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.pickup.damage' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_damage_boost.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.levelup' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_damage_boost.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.pickup' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_damage_boost.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.apply' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_damage_boost.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.levelup' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_damage_boost.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.pickup.flame' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_flamethrower.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.levelup' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_flamethrower.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_flamethrower.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.pickup' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_flamethrower.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.apply' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_flamethrower.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.levelup' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_flamethrower.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.weapon.lightning.fire' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_flamethrower.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.projectile.hit' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_flamethrower.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.pickup.speed' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_metabolic_haste.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.levelup' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_metabolic_haste.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.haste.aura' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_metabolic_haste.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.dodge.blur' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_metabolic_haste.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.pickup.energetic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_metabolic_haste.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.levelup' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_metabolic_haste.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.haste.pulse' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_metabolic_haste.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.pickup.piercing' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_piercing_arrows.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.levelup' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_piercing_arrows.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_piercing_arrows.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.pickup' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_piercing_arrows.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.apply' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_piercing_arrows.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.levelup' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_piercing_arrows.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.projectile.hit' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_piercing_arrows.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.pickup.shield' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_shield.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.powerup.levelup' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_shield.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.spark' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_shield.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.pickup' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_shield.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.apply' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_shield.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.powerup.levelup' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_shield.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.hit' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/powerup/powerup_shield.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.spawn.buff' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_adrenal_surge.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.pulse.orange' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_adrenal_surge.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.buff.adrenal' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_adrenal_surge.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.aura.haste' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_adrenal_surge.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.buff.expire' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_adrenal_surge.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.spawn.energy' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_adrenal_surge.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.buff.adrenal' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_adrenal_surge.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.buff.fade' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_adrenal_surge.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.spawn.energy' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_energy_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.pulse.yellow' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_energy_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.energy.recharge' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_energy_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.magnet.energy' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_energy_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.expire.fade' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_energy_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.spawn.energy' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_energy_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.energy.recharge' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_energy_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.magnet' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_energy_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.fade' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_energy_cell.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.spawn.health.medium' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_heal_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.idle.health.medium' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_heal_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.heal.medium' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_heal_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.magnet.health' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_heal_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.expire.fade' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_heal_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.spawn.health' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_heal_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.heal.medium' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_heal_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.magnet' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_heal_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.fade' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_heal_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.spawn.health.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_health_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.idle.health.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_health_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.heal.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_health_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.magnet.health' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_health_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.expire.fade' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_health_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.spawn.health' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_health_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.heal.small' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_health_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.magnet' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_health_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.fade' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_health_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.spawn.xp.large' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_protein_cache.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.pulse.blue' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_protein_cache.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.xp.burst' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_protein_cache.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.xp.bonus' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_protein_cache.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.magnet.xp' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_protein_cache.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.spawn.valuable' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_protein_cache.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.xp.large' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_protein_cache.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.xp.bonus' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_protein_cache.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.spawn.research' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_research_point.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.glow.purple' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_research_point.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.research.collect' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_research_point.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.magnet.research' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_research_point.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.expire.fade' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_research_point.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.spawn.valuable' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_research_point.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.research.collect' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_research_point.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.magnet' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_research_point.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.fade' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_research_point.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.spawn.xp.large' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_large.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.idle.xp.large' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_large.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.xp.gain.large' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_large.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.magnet.xp' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_large.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.expire.fade' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_large.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.spawn.xp' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_large.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.xp.large' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_large.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.magnet' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_large.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.fade' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_large.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.spawn.xp.medium' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_medium.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.idle.xp.medium' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_medium.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.xp.gain.medium' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_medium.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.magnet.xp' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_medium.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.expire.fade' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_medium.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.spawn.xp' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_medium.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.xp.medium' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_medium.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.magnet' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_medium.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.fade' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_medium.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.spawn.xp.basic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.idle.xp.basic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.xp.collect' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.magnet.xp' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.expire.fade' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.spawn.default' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.xp.basic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.magnet' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.expire.default' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_orb.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.spawn.xp.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.idle.xp.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.player.xp.gain.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.magnet.xp' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.drop.expire.fade' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.spawn.xp' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.player.xp.small' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.magnet' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.drop.fade' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/drop/drop_xp_small.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.trail.basic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/proj_basic.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.impact.small' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/proj_basic.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.muzzle.basic' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/proj_basic.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.fire.basic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/proj_basic.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.hit.small' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/proj_basic.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.ricochet.basic' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/proj_basic.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.muzzle.cytotoxin' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/projectile_cytotoxin.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.trail.cytotoxin' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/projectile_cytotoxin.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.hit.cytotoxin' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/projectile_cytotoxin.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "VFX_REFERENCE_NOT_FOUND",
+      "message": "VFX reference 'vfx.projectile.fade' not found in VFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/projectile_cytotoxin.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.weapon.fire.bio' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/projectile_cytotoxin.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.weapon.hit.bio' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/projectile_cytotoxin.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "SFX_REFERENCE_NOT_FOUND",
+      "message": "SFX reference 'sfx.projectile.fade' not found in SFXRegistry",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/projectile/projectile_cytotoxin.json5",
+      "timestamp": "2025-08-14T08:54:54.846Z"
+    },
+    {
+      "code": "ELITE_ENEMY_NOT_FOUND",
+      "message": "Elite enemy 'elite.tank_cell' in window 0 not found",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/spawn/level3.json5",
+      "timestamp": "2025-08-14T08:54:54.848Z"
+    },
+    {
+      "code": "ELITE_ENEMY_NOT_FOUND",
+      "message": "Elite enemy 'elite.speed_virus' in window 1 not found",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/spawn/level3.json5",
+      "timestamp": "2025-08-14T08:54:54.848Z"
+    },
+    {
+      "code": "ELITE_ENEMY_NOT_FOUND",
+      "message": "Elite enemy 'elite.artillery_fungus' in window 2 not found",
+      "filePath": "/Users/miroslav/Desktop/Rakovinobijec/data/blueprints/spawn/level3.json5",
+      "timestamp": "2025-08-14T08:54:54.848Z"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "PRELOAD_SCENE_NOT_FOUND",
+      "message": "PreloadScene.js not found - cannot validate asset coverage",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.848Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing cs translation for key: enemy.fungal_parasite.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing cs translation for key: enemy.fungal_parasite.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing cs translation for key: enemy.support_bacteria.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing cs translation for key: enemy.support_bacteria.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing cs translation for key: unique.golden_cell.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing cs translation for key: unique.golden_cell.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing cs translation for key: unique.rainbow_virus.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing cs translation for key: unique.rainbow_virus.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.energy_cell.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.energy_cell.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.heal_orb.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.heal_orb.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.health_small.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.health_small.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.research_point.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.research_point.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.xp_large.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.xp_large.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.xp_medium.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.xp_medium.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.xp_orb.name",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    },
+    {
+      "code": "MISSING_TRANSLATION",
+      "message": "Missing en translation for key: drop.xp_orb.desc",
+      "filePath": null,
+      "timestamp": "2025-08-14T08:54:54.849Z"
+    }
+  ],
+  "fixed": [],
+  "duplicates": [],
+  "missingReferences": [],
+  "i18nIssues": [],
+  "coverage": {
+    "totalEntities": 43,
+    "byType": {
+      "boss": 7,
+      "enemy": 11,
+      "unique": 7,
+      "powerup": 6,
+      "drop": 10,
+      "proj": 1,
+      "projectile": 1
+    },
+    "i18nCoverage": {
+      "totalKeys": 96,
+      "missingKeys": 22,
+      "todoKeys": 0,
+      "coverage": "77.1%"
+    }
+  }
+}

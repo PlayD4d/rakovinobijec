@@ -1,764 +1,511 @@
+/**
+ * Boss.js - Třída bosse
+ * 
+ * PR7 kompatibilní - 100% data-driven implementace
+ * Podpora fází a schopností z blueprintů
+ * Žádné hardcodované útoky, vše přes ConfigResolver
+ */
+
 import { Enemy } from './Enemy.js';
-import { createFontConfig } from '../fontConfig.js';
 
 export class Boss extends Enemy {
-    // Utility method pro safe delayed calls
-    safeDelayedCall(delay, callback, context = null) {
-        if (!this.scene || !this.scene.time) return null;
-        
-        return this.scene.time.delayedCall(delay, () => {
-            if (!this.active || !this.scene) return;
-            callback.call(context || this);
-        }, null, this);
-    }
-    
-    constructor(scene, x, y, bossConfig, level) {
-        // Zvýšení HP, damage i XP podle levelu
-        const scaledConfig = {
-            ...bossConfig,
-            hp: bossConfig.hp * Math.pow(1.2, level),
-            damage: bossConfig.damage * Math.pow(1.1, level),
-            xp: Math.floor(bossConfig.xp * Math.pow(1.3, level)) // XP roste o 30% za level
-        };
-        
-        super(scene, x, y, 'boss', scaledConfig);
-        
-        // Překreslit boss jako větší kruh
-        this.redrawBoss();
-        
-        this.bossName = bossConfig.name;
-        this.attackType = bossConfig.attackType;
-        this.specialAttack = bossConfig.specialAttack;
-        this.attackInterval = bossConfig.attackInterval;
-        this.lastAttack = 0;
-        this.specialAttackTimer = 0;
-        
-        // Boss UI
-        this.createBossUI();
-        
-        // Analytics - track boss encounter
-        if (scene.analyticsManager) {
-            scene.analyticsManager.trackBossEncounter(this.bossName, level, scene.player?.hp || 0);
+    constructor(scene, x, y, blueprint, opts = {}) {
+        // Validace povinných systémů (PR7 - fail fast)
+        if (!scene) throw new Error('[Boss] Chybí scéna');
+        if (!scene.configResolver) throw new Error('[Boss] Chybí ConfigResolver');
+        if (!scene.projectileSystem?.createEnemyProjectile) throw new Error('[Boss] Chybí ProjectileSystem');
+        if (!scene.spawnDirector) throw new Error('[Boss] Chybí SpawnDirector');
+        if (!blueprint || blueprint.type !== 'boss' || !blueprint.id) {
+            throw new Error('[Boss] Neplatný boss blueprint');
         }
         
-        // Vstupní animace
+        // Příprava konfigurace pro konstruktor Enemy
+        const enemyConfig = {
+            ...blueprint.stats,
+            texture: blueprint.id, // Použití ID jako klíč textury (GameScene ji vygeneruje)
+            color: blueprint.display?.color ? parseInt(blueprint.display.color.replace('#', '0x')) : 0xFF0000,
+            size: blueprint.stats?.size || 60,
+            sfx: blueprint.sfx,
+            vfx: blueprint.vfx,
+            ...blueprint.mechanics
+        };
+        
+        // Inicializace jako Enemy (Boss dědí z Enemy)
+        super(scene, x, y, blueprint.id, enemyConfig);
+        
+        // ConfigResolver přes dependency injection
+        const CR = scene.configResolver;
+        
+        // Specifické vlastnosti bosse
+        this.blueprint = blueprint;
+        this.bossName = blueprint.name || blueprint.id;
+        
+        // Konfigurace pohybu - PR7: přímo z blueprintu
+        this.movementType = blueprint.mechanics?.phases?.[0]?.movePattern || 'seek_player';
+        this.moveSpeed = blueprint.stats?.speed || 30;
+        
+        // Systém fází bosse
+        this._phases = this._resolvePhases(CR, blueprint); // Načtení fází z blueprintu
+        this._phaseIndex = 0; // Aktuální fáze
+        this._currentPhase = this._phases[0]; // Začínáme první fází
+        this._applyPhase(this._currentPhase);
+        
+        // Stav schopností za běhu
+        this._abilityState = this._initAbilityRuntimeState(this._currentPhase);
+        
+        // Boss-specific VFX/SFX
+        this.vfx = {
+            ...this.vfx, // Inherit from Enemy
+            phase: blueprint.vfx?.phase1 || 'vfx.boss.phase',
+            enter: blueprint.vfx?.spawn || 'vfx.boss.enter'
+        };
+        this.sfx = {
+            ...this.sfx, // Inherit from Enemy
+            phase: blueprint.sfx?.phase1 || 'sfx.boss.phase',
+            enter: blueprint.sfx?.spawn || 'sfx.boss.enter'
+        };
+        
+        // Boss entrance
         this.entrance();
-    }
-    
-    redrawBoss() {
-        // Vytvořit novou grafiku pro bosse
-        const graphics = this.scene.add.graphics();
-        graphics.fillStyle(this.config.color, 1);
-        graphics.fillCircle(this.size / 2, this.size / 2, this.size / 2);
         
-        // Přidat výrazný obrys
-        graphics.lineStyle(3, 0xffffff, 0.8);
-        graphics.strokeCircle(this.size / 2, this.size / 2, this.size / 2);
+        // Analytics
+        if (scene.analyticsManager) {
+            scene.analyticsManager.trackBossEncounter(this.bossName, opts.level || 1, scene.player?.hp || 0);
+        }
         
-        // Vytvoření textury
-        const textureName = `boss_${Date.now()}`;
-        graphics.generateTexture(textureName, this.size, this.size);
-        this.setTexture(textureName);
-        graphics.destroy();
-    }
-    
-    createBossUI() {
-        // Boss jméno
-        this.nameText = this.scene.add.text(
-            this.scene.cameras.main.width / 2,
-            50,
-            this.bossName,
-            createFontConfig('medium', 'red', { stroke: true, strokeThickness: 4 })
-        ).setOrigin(0.5);
-        
-        // Boss HP bar
-        this.bossHPBar = this.scene.add.graphics();
-        this.bossHPBarBg = this.scene.add.graphics();
-        
-        this.updateBossHPBar();
+        // Debug hook
+        scene.frameworkDebug?.onBossSpawn?.(this);
     }
     
     entrance() {
-        // Přehrát boss enter zvuk
-        this.scene.audioManager.playSound('bossEnter');
+        // Play entrance effects
+        this.playVFX('enter');
+        this.playSFX('enter');
         
-        // Fade in boss - bez rušivého textu na středu obrazovky
+        // Simple fade-in (no tweens for visuals)
         this.alpha = 0;
-        this.scene.tweens.add({
-            targets: this,
-            alpha: 1,
-            duration: 2000
+        this.scene.time.delayedCall(50, () => {
+            this.alpha = 1;
         });
         
-        // Malý shake efekt pro dramatičnost
+        // Camera shake for drama
         this.scene.cameras.main.shake(1000, 0.01);
         
-        // Přepnutí hudby
-        this.scene.audioManager.playBossMusic();
+        // Switch to boss music
+        if (this.scene.audioManager) {
+            this.scene.audioManager.playBossMusic();
+        }
+        
+        // Show boss health bar
+        if (this.scene.unifiedHUD) {
+            const displayName = this.blueprint.display?.devNameFallback || this.bossName || 'Boss';
+            console.log('[Boss] Showing health bar for:', displayName, 'HP:', this.hp, '/', this.maxHp);
+            this.scene.unifiedHUD.showBoss(displayName, this.hp, this.maxHp);
+        } else {
+            console.warn('[Boss] No unifiedHUD available!');
+        }
     }
     
+    /**
+     * Aktualizace bosse každý frame
+     * Přidává správu fází a schopností navíc k Enemy update
+     */
     update(time, delta) {
-        super.update(time, delta);
-        
-        // Speciální útoky
-        if (time - this.lastAttack > this.attackInterval) {
-            this.performBasicAttack();
-            this.lastAttack = time;
+        if (!this._loggedFirstUpdate) {
+            console.log('[Boss] First update call, active:', this.active, 'body:', !!this.body);
+            this._loggedFirstUpdate = true;
         }
         
-        // Speciální útoky se spouštějí méně často
-        if (time - this.specialAttackTimer > this.attackInterval * 3) {
-            this.performSpecialAttack();
-            this.specialAttackTimer = time;
-            if (this.scene.analyticsManager) {
-                this.scene.analyticsManager.incrementBossSpecialAttacksUsed();
-            }
-        }
-        
-        this.updateBossHPBar();
-    }
-    
-    takeDamage(amount) {
-        // Chemorezistence je imunitní
-        if (this.isImmune) {
+        if (this.scene.isPaused) {
+            this.body.setVelocity(0, 0);
             return;
         }
         
-        // Normální poškození
-        super.takeDamage(amount);
+        // Pohyb bosse
+        this._updateMovement(delta);
+        
+        // Aktivace schopností
+        this._tickAbilities(delta);
+        
+        // Kontrola přechodu mezi fázemi
+        this._checkPhaseTransition();
     }
     
-    performBasicAttack() {
+    _updateMovement(dt) {
         const player = this.scene.player;
+        if (!player?.active) {
+            this.body.setVelocity(0, 0);
+            return;
+        }
         
-        switch (this.attackType) {
-            case 'linear':
-                this.linearAttack(player);
+        switch (this.movementType) {
+            case 'seek_player': {
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const len = Math.hypot(dx, dy) || 1;
+                const vx = (dx / len) * this.moveSpeed;
+                const vy = (dy / len) * this.moveSpeed;
+                this.body.setVelocity(vx, vy);
+                this.rotation = Math.atan2(vy, vx);
                 break;
-            case 'circle':
-                this.circleAttack();
+            }
+            case 'pattern': {
+                // Delegate to pattern system if available
+                this.body.setVelocity(0, 0);
                 break;
-            case 'tracking':
-                this.trackingAttack(player);
-                break;
-            case 'multi':
-                this.multiAttack(player);
+            }
+            case 'stationary':
+            default:
+                this.body.setVelocity(0, 0);
                 break;
         }
     }
     
-    performSpecialAttack() {
-        const player = this.scene.player;
-        
-        switch (this.specialAttack) {
-            case 'divide':
-                this.divideAttack();
-                break;
-            case 'spread':
-                this.spreadAttack();
-                break;
-            case 'mutate':
-                this.mutateAttack();
-                break;
-            case 'corruption':
-                this.corruptionAttack(player);
-                break;
-            case 'genetic':
-                this.geneticAttack(player);
-                break;
-            case 'radiation':
-                this.radiationAttack();
-                break;
-            case 'immunity':
-                this.immunityAttack(player);
-                break;
-            case 'apocalypse':
-                this.apocalypseAttack(player);
-                break;
+    // Phase management
+    _resolvePhases(CR, blueprint) {
+        const phases = CR.get('mechanics.phases', { blueprint });
+        if (!Array.isArray(phases) || phases.length === 0) {
+            // Default single phase if none specified
+            return [{
+                id: 'default',
+                thresholdPct: 0,
+                abilities: CR.get('mechanics.abilities', { blueprint }) || []
+            }];
         }
+        
+        // Normalize phases
+        return phases.map((p, i) => ({
+            id: p.id || `phase_${i}`,
+            thresholdPct: p.thresholdPct || 0,
+            abilities: p.abilities || []
+        }));
     }
     
-    linearAttack(player) {
-        // Střelba v linii směrem k hráči
-        const angle = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
-        for (let i = -2; i <= 2; i++) {
-            const spreadAngle = angle + (i * 0.2);
-            const velocity = {
-                x: Math.cos(spreadAngle) * 250,
-                y: Math.sin(spreadAngle) * 250
-            };
-            
-            // Kontrola existence scény a projektile manageru
-            if (this.scene && this.scene.projectileManager && this.active) {
-                this.scene.projectileManager.createEnemyProjectile(
-                    this.x,
-                    this.y,
-                    velocity,
-                    this.damage,
-                    0xff0000,
-                    false,
-                    `boss:${this.bossName}`
-                );
+    _applyPhase(phase) {
+        this._currentPhase = phase;
+        this._abilityState = this._initAbilityRuntimeState(phase);
+        
+        // Phase change effects
+        this.playVFX('phase');
+        this.playSFX('phase');
+        
+        // Notify HUD
+        if (this.scene.unifiedHUD?.setBossPhase) {
+            this.scene.unifiedHUD.setBossPhase(phase.id);
+        }
+        
+        // Debug
+        this.scene.frameworkDebug?.onBossPhase?.(this, phase.id);
+    }
+    
+    _checkPhaseTransition() {
+        const hpPct = this.hp / this.maxHp;
+        const nextIndex = this._phaseIndex + 1;
+        
+        if (nextIndex < this._phases.length) {
+            const nextPhase = this._phases[nextIndex];
+            if (hpPct <= nextPhase.thresholdPct) {
+                this._phaseIndex = nextIndex;
+                this._applyPhase(nextPhase);
             }
         }
     }
     
-    circleAttack() {
-        // Střelba do všech směrů
-        const projectiles = 12;
-        for (let i = 0; i < projectiles; i++) {
-            const angle = (Math.PI * 2 / projectiles) * i;
-            const velocity = {
-                x: Math.cos(angle) * 200,
-                y: Math.sin(angle) * 200
-            };
+    _initAbilityRuntimeState(phase) {
+        const state = [];
+        for (let i = 0; i < phase.abilities.length; i++) {
+            const ability = phase.abilities[i];
+            state.push({
+                id: ability.id || `ability_${i}`,
+                type: ability.type,
+                params: ability.params || {},
+                vfxId: ability.vfxId,
+                sfxId: ability.sfxId,
+                cooldownMs: ability.cooldownMs || 2000,
+                timer: ability.initialDelayMs || 0
+            });
+        }
+        return state;
+    }
+    
+    // Ability execution
+    _tickAbilities(dt) {
+        if (!this._abilityState || this._abilityState.length === 0) return;
+        
+        for (let i = 0; i < this._abilityState.length; i++) {
+            const ability = this._abilityState[i];
+            ability.timer -= dt;
             
-            // Kontrola existence scény a projektile manageru
-            if (this.scene && this.scene.projectileManager && this.active) {
-                this.scene.projectileManager.createEnemyProjectile(
-                    this.x,
-                    this.y,
-                    velocity,
-                    this.damage,
-                    0xff0000,
-                    false,
-                    `boss:${this.bossName}`
-                );
+            if (ability.timer <= 0) {
+                this._executeAbility(ability);
+                ability.timer = ability.cooldownMs;
             }
         }
     }
     
-    trackingAttack(player) {
-        // Navádění projektilu
-        const scene = this.scene; // Zachovat scene reference
-        for (let i = 0; i < 3; i++) {
-            this.safeDelayedCall(i * 500, () => {
-                // Kontrola existence scény a projektile manageru
-                if (!scene || !scene.projectileManager) {
-                    return;
-                }
+    _executeAbility(ability) {
+        // Get ability params from blueprint
+        const abilityData = this.blueprint.mechanics?.abilities?.[ability.id] || {};
+        const params = { ...abilityData, ...ability.params };
+        
+        // Play ability effects
+        if (ability.vfxId) {
+            this.scene.newVFXSystem?.play(ability.vfxId, this.x, this.y);
+        }
+        if (ability.sfxId) {
+            this.scene.newSFXSystem?.play(ability.sfxId);
+        }
+        
+        // Execute based on type
+        switch (ability.type) {
+            case 'linear_shot':
+                this._executeLinearShot(params);
+                break;
+            case 'circle_shot':
+                this._executeCircleShot(params);
+                break;
+            case 'pulse':
+                this._executePulse(params);
+                break;
+            case 'spawn_minions':
+                this._executeSpawnMinions(params);
+                break;
+            case 'dash':
+                this._executeDash(params);
+                break;
+            case 'multi_shot':
+                this._executeMultiShot(params);
+                break;
+            case 'tracking_shot':
+                this._executeTrackingShot(params);
+                break;
+            default:
+                console.warn(`[Boss] Unknown ability type: ${ability.type}`);
+        }
+        
+        // Analytics
+        if (this.scene.analyticsManager) {
+            this.scene.analyticsManager.incrementBossSpecialAttacksUsed();
+        }
+        
+        // Debug
+        this.scene.frameworkDebug?.onBossAbility?.(this, ability.id);
+    }
+    
+    _executeLinearShot(params) {
+        const player = this.scene.player;
+        if (!player?.active) return;
+        
+        const baseAngle = Math.atan2(player.y - this.y, player.x - this.x);
+        const spread = ((params.inaccuracyDeg || 0) * Math.PI) / 180;
+        const burst = Math.max(1, params.burst || 1);
+        
+        const fireOnce = () => {
+            const jitter = (Math.random() - 0.5) * spread;
+            this.scene.projectileSystem.createEnemyProjectile({
+                x: this.x,
+                y: this.y,
+                projectileBlueprintId: params.projectileRef,
+                damage: params.damage || this.damage,
+                speed: params.speed || 250,
+                range: params.range || 500,
+                angleRad: baseAngle + jitter,
+                owner: this
+            });
+        };
+        
+        if (burst === 1) {
+            fireOnce();
+        } else {
+            // Burst fire
+            for (let i = 0; i < burst; i++) {
+                this.scene.time.delayedCall(i * (params.burstIntervalMs || 100), fireOnce);
+            }
+        }
+    }
+    
+    _executeCircleShot(params) {
+        const count = Math.max(1, params.projectileCount || 12);
+        
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2;
+            this.scene.projectileSystem.createEnemyProjectile({
+                x: this.x,
+                y: this.y,
+                projectileBlueprintId: params.projectileRef,
+                damage: params.damage || this.damage,
+                speed: params.speed || 200,
+                range: params.range || 400,
+                angleRad: angle,
+                owner: this
+            });
+        }
+    }
+    
+    _executeTrackingShot(params) {
+        const player = this.scene.player;
+        if (!player?.active) return;
+        
+        const count = params.count || 3;
+        for (let i = 0; i < count; i++) {
+            this.scene.time.delayedCall(i * 500, () => {
+                if (!this.active || !player.active) return;
                 
-                const angle = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
-                // Mírné snížení rychlosti a přidání inaccuracy pro férovost
+                const angle = Math.atan2(player.y - this.y, player.x - this.x);
                 const inaccuracy = (Math.random() - 0.5) * 0.35;
-                const speed = 220;
-                const vx = Math.cos(angle + inaccuracy) * speed;
-                const vy = Math.sin(angle + inaccuracy) * speed;
-                const velocity = { x: vx, y: vy };
                 
-                scene.projectileManager.createEnemyProjectile(
-                    this.x,
-                    this.y,
-                    velocity,
-                    this.damage,
-                    0xff00ff,
-                    true,
-                    `boss:${this.bossName}`
-                );
-            });
-        }
-    }
-    
-    burstAttack() {
-        // Rychlá salva
-        const scene = this.scene; // Zachovat scene reference
-        for (let i = 0; i < 5; i++) {
-            this.safeDelayedCall(i * 100, () => {
-                // Kontrola existence scény a projektile manageru
-                if (!scene || !scene.projectileManager) {
-                    return;
-                }
-                
-                const randomAngle = Math.random() * Math.PI * 2;
-                const velocity = {
-                    x: Math.cos(randomAngle) * 350,
-                    y: Math.sin(randomAngle) * 350
-                };
-                
-                scene.projectileManager.createEnemyProjectile(
-                    this.x,
-                    this.y,
-                    velocity,
-                    this.damage,
-                    0xffff00,
-                    false,
-                    `boss:${this.bossName}`
-                );
-            });
-        }
-    }
-    
-    chaosAttack(player) {
-        // Kombinace všech útoků
-        const attacks = ['linear', 'circle', 'tracking', 'burst'];
-        const randomAttack = attacks[Math.floor(Math.random() * attacks.length)];
-        
-        switch (randomAttack) {
-            case 'linear':
-                this.linearAttack(player);
-                break;
-            case 'circle':
-                this.circleAttack();
-                break;
-            case 'tracking':
-                this.trackingAttack(player);
-                break;
-            case 'burst':
-                this.burstAttack();
-                break;
-        }
-    }
-    
-    multiAttack(player) {
-        // Kombinovaný útok - linear + circle současně
-        this.linearAttack(player);
-        
-        // Malé zpoždění pro circle
-        this.safeDelayedCall(500, () => {
-            this.circleAttack();
-        });
-    }
-    
-    // === SPECIÁLNÍ ÚTOKY ===
-    
-    divideAttack() {
-        // 💀 Malignitní Buňka - vytvoří malé "dceřiné buňky"
-        for (let i = 0; i < 3; i++) {
-            const angle = (Math.PI * 2 / 3) * i;
-            const distance = 50;
-            const childX = this.x + Math.cos(angle) * distance;
-            const childY = this.y + Math.sin(angle) * distance;
-            
-            // Vytvořit dočasného malého nepřítele
-            const childCell = this.scene.add.circle(childX, childY, 10, 0x800000);
-            
-            // Animace k hráči
-            const scene = this.scene; // Zachovat reference na scene
-            this.scene.tweens.add({
-                targets: childCell,
-                x: this.scene.player.x,
-                y: this.scene.player.y,
-                duration: 2000,
-                onComplete: () => {
-                    // Exploze při dopadu - použít zachovanou scene reference
-                    if (scene && scene.projectileManager && scene.projectileManager.createExplosion) {
-                        scene.projectileManager.createExplosion(
-                            childCell.x, childCell.y, this.damage * 0.5, 30, 1
-                        );
-                    }
-                    if (childCell && childCell.destroy) {
-                        childCell.destroy();
-                    }
-                },
-                onCompleteScope: this
-            });
-        }
-    }
-    
-    spreadAttack() {
-        // 🦠 Metastáza - vytvoří "nákazu" která se šíří
-        const spreadCount = 8;
-        for (let i = 0; i < spreadCount; i++) {
-            const angle = (Math.PI * 2 / spreadCount) * i;
-            const distance = 80;
-            
-            this.safeDelayedCall(i * 200, () => {
-                const spreadX = this.x + Math.cos(angle) * distance;
-                const spreadY = this.y + Math.sin(angle) * distance;
-                
-                // Vytvořit šířící se "nákazu"
-                const infection = this.scene.add.circle(spreadX, spreadY, 15, 0xff4444);
-                infection.setAlpha(0.7);
-                
-                // Pulsing effect
-                this.scene.tweens.add({
-                    targets: infection,
-                    scaleX: 1.5,
-                    scaleY: 1.5,
-                    duration: 1000,
-                    yoyo: true,
-                    repeat: 2,
-                    onComplete: () => infection.destroy()
-                });
-                
-                // Damage check
-                this.safeDelayedCall(1000, () => {
-                    if (!this.scene.player) return;
-                    
-                    const playerDistance = Phaser.Math.Distance.Between(
-                        infection.x, infection.y, 
-                        this.scene.player.x, this.scene.player.y
-                    );
-                    
-                    if (playerDistance < 25 && this.scene.player.canTakeDamage()) {
-                        this.scene.player.takeDamage(this.damage * 0.6);
+                this.scene.projectileSystem.createEnemyProjectile({
+                    x: this.x,
+                    y: this.y,
+                    projectileBlueprintId: params.projectileRef,
+                    damage: params.damage || this.damage,
+                    speed: params.speed || 220,
+                    range: params.range || 600,
+                    angleRad: angle + inaccuracy,
+                    owner: this,
+                    homing: {
+                        turnRateDeg: params.turnRateDeg || 180,
+                        target: player
                     }
                 });
             });
         }
     }
     
-    mutateAttack() {
-        // ⚡ Onkogen - změní vlastnosti dalších nepřátel
-        const nearbyEnemies = this.scene.enemyManager.enemies.children.entries.filter(enemy => {
-            if (enemy === this || !enemy.active) return false;
-            
-            const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y);
-            return distance < 150;
-        });
-        
-        nearbyEnemies.forEach(enemy => {
-            // Vizuální efekt mutace
-            const mutationEffect = this.scene.add.circle(enemy.x, enemy.y, enemy.size + 10, 0x00ff00);
-            mutationEffect.setAlpha(0.5);
-            
-            this.scene.tweens.add({
-                targets: mutationEffect,
-                scaleX: 2,
-                scaleY: 2,
-                alpha: 0,
-                duration: 800,
-                onComplete: () => mutationEffect.destroy()
-            });
-            
-            // Dočasné zvýšení rychlosti a damage
-            const originalSpeed = enemy.speed;
-            const originalDamage = enemy.damage;
-            
-            enemy.speed *= 1.3; // menší buff, ale delší trvání
-            enemy.damage *= 1.2;
-            enemy.setTint(0x00ff00); // Zelené zabarvení
-            
-            // Vrátit zpět po 8 sekundách
-            this.safeDelayedCall(8000, () => {
-                if (enemy.active) {
-                    enemy.speed = originalSpeed;
-                    enemy.damage = originalDamage;
-                    enemy.clearTint();
-                }
-            });
-        });
-
-        // Onkogen přidá doplňkový útok: krátká salva 3 střel do vějíře
-        const scene = this.scene;
-        for (let i = -1; i <= 1; i++) {
-            this.safeDelayedCall(200 + (i + 1) * 100, () => {
-                if (!scene || !scene.projectileManager) return;
-                const angle = Phaser.Math.Angle.Between(this.x, this.y, this.scene.player.x, this.scene.player.y) + i * 0.25;
-                const speed = 260;
-                const velocity = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
-                scene.projectileManager.createEnemyProjectile(
-                    this.x, this.y, velocity, this.damage * 0.6, 0x00ff00, false, `boss:${this.bossName}`
-                );
-            });
-        }
-    }
-    
-    corruptionAttack(player) {
-        // 👑 Kancerogenní Král - kombinovaný devastující útok
-        // 1. Temná vlna korupce (mírně zpomalena a menší šířka zásahu)
-        for (let radius = 60; radius <= 200; radius += 50) {
-            this.safeDelayedCall((radius - 50) * 100, () => {
-                if (!this.active) return;
-                
-                const corruption = this.scene.add.graphics();
-                corruption.lineStyle(6, 0x8b008b, 0.8);
-                corruption.strokeCircle(this.x, this.y, radius);
-                
-                this.scene.tweens.add({
-                    targets: corruption,
-                    alpha: 0,
-                    duration: 1200,
-                    onComplete: () => corruption.destroy()
-                });
-                
-                // Damage check
-                const playerDistance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
-                if (Math.abs(playerDistance - radius) < 14 && player.canTakeDamage()) {
-                    player.takeDamage(this.damage * 0.35);
-                    if (this.scene.analyticsManager && this.scene.analyticsManager.setBossPhase) {
-                        // Fáze 1: zásah vlnou korupce
-                        this.scene.analyticsManager.setBossPhase(1);
-                    }
-                }
-            });
-        }
-        
-        // 2. Následný tracking útok
-        this.safeDelayedCall(2200, () => {
+    _executeMultiShot(params) {
+        // Combination attack
+        this._executeLinearShot(params.linear || {});
+        this.scene.time.delayedCall(500, () => {
             if (this.active) {
-                this.trackingAttack(player);
+                this._executeCircleShot(params.circle || {});
             }
         });
     }
     
-    geneticAttack(player) {
-        // 🧬 Genová Mutace - přepisuje DNA okolí
-        const dnaHelixes = 6;
-        for (let i = 0; i < dnaHelixes; i++) {
-            const angle = (Math.PI * 2 / dnaHelixes) * i;
-            
-            this.safeDelayedCall(i * 300, () => {
-                if (!this.active) return;
-                
-                // Vytvoří DNA helix efekt
-                const helixLength = 150;
-                const segments = 10;
-                
-                for (let j = 0; j < segments; j++) {
-                    const progress = j / segments;
-                    const helixAngle = angle + (progress * Math.PI * 4); // 2 otočky
-                    const radius = 20 + (progress * 30);
-                    
-                    const x = this.x + Math.cos(helixAngle) * radius;
-                    const y = this.y + Math.sin(helixAngle) * radius;
-                    
-                    const segment = this.scene.add.circle(x, y, 5, 0x00ff80);
-                    segment.setAlpha(0.8);
-                    
-                    // Poškození při kontaktu s hráčem
-                    const playerDistance = Phaser.Math.Distance.Between(x, y, player.x, player.y);
-                    if (playerDistance < 25 && player.canTakeDamage()) {
-                        player.takeDamage(this.damage * 0.3);
-                    }
-                    
-                    this.scene.tweens.add({
-                        targets: segment,
-                        alpha: 0,
-                        duration: 2000,
-                        onComplete: () => segment.destroy()
-                    });
-                }
-            });
-        }
-    }
-    
-    radiationAttack() {
-        // ☢️ Radiační Záření - vytváří radioaktivní pole
-        const radiationZones = 5;
+    _executePulse(params) {
+        // Radial AoE damage
+        const player = this.scene.player;
+        if (!player?.active) return;
         
-        for (let i = 0; i < radiationZones; i++) {
-            this.safeDelayedCall(i * 400, () => {
-                if (!this.active) return;
-                
-                const randomX = Phaser.Math.Between(50, this.scene.cameras.main.width - 50);
-                const randomY = Phaser.Math.Between(100, this.scene.cameras.main.height - 50);
-                
-                // Vytvořit radioaktivní pole
-                const radiation = this.scene.add.graphics();
-                radiation.fillStyle(0xffff00, 0.3);
-                radiation.fillCircle(randomX, randomY, 60);
-                
-                // Pulsing efekt
-                this.scene.tweens.add({
-                    targets: radiation,
-                    scaleX: 1.2,
-                    scaleY: 1.2,
-                    duration: 800,
-                    yoyo: true,
-                    repeat: -1
-                });
-                
-                // Kontinuální poškozování v poli
-                const damageInterval = this.scene.time.addEvent({
-                    delay: 500,
-                    callback: () => {
-                        // Kontrola jestli boss a scene ještě existují
-                        if (!this.active || !this.scene || !this.scene.player) return;
-                        
-                        const playerDistance = Phaser.Math.Distance.Between(
-                            randomX, randomY, this.scene.player.x, this.scene.player.y
-                        );
-                        
-                        if (playerDistance < 60 && this.scene.player.canTakeDamage()) {
-                            this.scene.player.takeDamage(this.damage * 0.2);
-                        }
-                    },
-                    repeat: 10
-                });
-                
-                // Zničit po 6 sekundách
-                this.safeDelayedCall(6000, () => {
-                    damageInterval.destroy();
-                    radiation.destroy();
-                });
-            });
-        }
-    }
-    
-    immunityAttack(player) {
-        // 🔬 Chemorezistence - stane se dočasně imunitní vůči útokům
-        // Vytvoří ochranné pole
-        const shield = this.scene.add.graphics();
-        shield.lineStyle(5, 0xff8c00, 0.8);
-        shield.strokeCircle(this.x, this.y, this.size + 15);
+        const radius = params.radius || 150;
+        const damage = params.damage || this.damage;
         
-        // Rotující efekt
-        this.scene.tweens.add({
-            targets: shield,
-            rotation: Math.PI * 2,
-            duration: 1000,
-            repeat: 4,
-            onComplete: () => shield.destroy()
-        });
-        
-        // Dočasná imunita
-        this.isImmune = true;
-        this.setTint(0xff8c00);
-        
-        // Během imunity střílí více projektilů
-        for (let i = 0; i < 8; i++) {
-            this.safeDelayedCall(i * 600, () => {
-                if (!this.active) return;
-                
-                const angle = (Math.PI * 2 / 8) * i;
-                const velocity = {
-                    x: Math.cos(angle) * 300,
-                    y: Math.sin(angle) * 300
-                };
-                
-                this.scene.projectileManager.createEnemyProjectile(
-                    this.x, this.y, velocity, this.damage * 0.7, 0xff8c00, false, `boss:${this.bossName}`
-                );
+        // VFX for pulse
+        if (this.scene.newVFXSystem) {
+            this.scene.newVFXSystem.play('boss.pulse', {
+                x: this.x,
+                y: this.y,
+                radius: radius
             });
         }
         
-        // Zrušit imunitu po 5 sekundách
-        this.safeDelayedCall(5000, () => {
-            if (this.active) {
-                this.isImmune = false;
-                this.clearTint();
-            }
-        });
+        // Check player distance
+        const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+        if (distance <= radius && player.canTakeDamage?.()) {
+            player.takeDamage(damage, { source: this, type: 'pulse' });
+        }
     }
     
-    apocalypseAttack(player) {
-        // 💀 Finální Nádor - apokalyptický útok kombinující všechny předchozí
-        // 1. Rozdělí se (jako divideAttack)
-        this.divideAttack();
-        
-        // 2. Po 1 sekundě radiační pole
-        this.safeDelayedCall(1000, () => {
-            if (this.active) this.radiationAttack();
-        });
-        
-        // 3. Po 2 sekundách genetická mutace
-        this.safeDelayedCall(2000, () => {
-            if (this.active) this.geneticAttack(player);
-        });
-        
-        // 4. Po 3 sekundách korupce
-        this.safeDelayedCall(3000, () => {
-            if (this.active) this.corruptionAttack(player);
-        });
-        
-        // 5. Finální exploze
-        this.safeDelayedCall(5000, () => {
-            if (!this.active) return;
-            
-            // Obří černá exploze
-            const apocalypse = this.scene.add.graphics();
-            apocalypse.fillStyle(0x000000, 0.8);
-            apocalypse.fillCircle(this.x, this.y, 200);
-            
-            this.scene.tweens.add({
-                targets: apocalypse,
-                scaleX: 2,
-                scaleY: 2,
-                alpha: 0,
-                duration: 2000,
-                onComplete: () => apocalypse.destroy()
-            });
-            
-            // Masivní poškození v oblasti
-            const playerDistance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
-            if (playerDistance < 200 && player.canTakeDamage()) {
-                const damageMultiplier = 1 - (playerDistance / 200);
-                player.takeDamage(this.damage * damageMultiplier);
-            }
-        });
-    }
-    
-    updateBossHPBar() {
-        const barWidth = 400;
-        const barHeight = 20;
-        const barX = (this.scene.cameras.main.width - barWidth) / 2;
-        const barY = 80;
-        
-        this.bossHPBarBg.clear();
-        this.bossHPBar.clear();
-        
-        // Pozadí
-        this.bossHPBarBg.fillStyle(0x000000, 0.8);
-        this.bossHPBarBg.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
-        
-        // HP
-        const hpPercent = this.hp / this.maxHp;
-        this.bossHPBar.fillStyle(0xff0000, 1);
-        this.bossHPBar.fillRect(barX, barY, barWidth * hpPercent, barHeight);
-    }
-    
-    destroy() {
-        // Ochrana proti dvojitému destroy
-        if (this._destroyed) {
-            console.log('Boss already destroyed, skipping:', this.bossName);
+    _executeSpawnMinions(params) {
+        if (!this.scene.spawnDirector) {
+            console.warn('[Boss] SpawnDirector not available');
             return;
         }
         
-        console.log('Boss destroy called', this.bossName);
-        this._destroyed = true;
+        const count = Math.max(1, params.count || params.poolCount || 3);
+        const spreadRadius = params.spreadRadius || params.spawnRadius || 100;
+        const enemyTypes = params.enemyTypes || ['enemy.necrotic_cell'];
         
-        // Analytics - track boss defeat (if boss was actually killed, not just cleanup)
-        if (this.scene && this.scene.analyticsManager && this.hp <= 0 && this.scene.player) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const r = Math.random() * spreadRadius;
+            const x = this.x + Math.cos(angle) * r;
+            const y = this.y + Math.sin(angle) * r;
+            
+            // Pick random enemy type from list
+            const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+            this.scene.spawnDirector.spawnImmediate(enemyType, x, y);
+        }
+    }
+    
+    _executeDash(params) {
+        // This is the ONLY tween allowed (for movement, not visuals)
+        const player = this.scene.player;
+        if (!player?.active) return;
+        
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = dx / len;
+        const ny = dy / len;
+        const distance = params.distance || 200;
+        const duration = params.durationMs || 500;
+        
+        // Temporarily boost speed for dash
+        const oldSpeed = this.moveSpeed;
+        this.moveSpeed = 0; // Disable normal movement during dash
+        
+        this.scene.tweens.add({
+            targets: this,
+            x: this.x + nx * distance,
+            y: this.y + ny * distance,
+            duration: duration,
+            onComplete: () => {
+                this.moveSpeed = oldSpeed;
+                this.scene.frameworkDebug?.onBossDash?.(this);
+            }
+        });
+    }
+    
+    // Override Enemy's takeDamage
+    takeDamage(amount, source) {
+        const result = super.takeDamage(amount, source);
+        
+        // Update boss health bar in HUD
+        if (this.scene.unifiedHUD?.setBossHealth) {
+            this.scene.unifiedHUD.setBossHealth(this.hp, this.maxHp);
+        }
+        
+        return result;
+    }
+    
+    // Override Enemy's die
+    die(source) {
+        if (!this.active) return;
+        
+        // Death effects
+        this.playVFX('death');
+        this.playSFX('death');
+        
+        // Boss-specific death event
+        this.scene.events.emit('boss:die', {
+            boss: this,
+            source: source
+        });
+        
+        // Analytics
+        if (this.scene.analyticsManager && this.scene.player) {
             this.scene.analyticsManager.trackBossDefeat(this.scene.player.hp);
         }
         
-        // Označit jako neaktivní aby delayed callbacky se ukončily
-        this.active = false;
-        
-        // Přepnutí hudby zpět (bezpečně)
-        if (this.scene && this.scene.audioManager && this.scene.audioManager.playLevelMusic) {
+        // Switch music back
+        if (this.scene.audioManager) {
             this.scene.audioManager.playLevelMusic();
-        } else {
-            console.warn('AudioManager not available during boss destroy');
         }
         
-        // Odstranění UI (bezpečně)
-        if (this.nameText && this.nameText.destroy) {
-            this.nameText.destroy();
-        }
-        if (this.bossHPBar && this.bossHPBar.destroy) {
-            this.bossHPBar.destroy();
-        }
-        if (this.bossHPBarBg && this.bossHPBarBg.destroy) {
-            this.bossHPBarBg.destroy();
+        // Victory effect through VFX system
+        if (this.scene.newVFXSystem) {
+            this.scene.newVFXSystem.play('boss.victory', this.x, this.y);
         }
         
-        // Victory efekt (bezpečně)
-        if (this.scene && this.scene.add && this.scene.tweens) {
-            for (let i = 0; i < 20; i++) {
-                const angle = (Math.PI * 2 / 20) * i;
-                const particle = this.scene.add.graphics();
-                particle.fillStyle(0xffff00, 1);
-                particle.fillCircle(0, 0, 5);
-                particle.x = this.x;
-                particle.y = this.y;
-                
-                this.scene.tweens.add({
-                    targets: particle,
-                    x: this.x + Math.cos(angle) * 100,
-                    y: this.y + Math.sin(angle) * 100,
-                    alpha: 0,
-                    duration: 1000,
-                    onComplete: () => {
-                        if (particle && particle.destroy) {
-                            particle.destroy();
-                        }
-                    }
-                });
-            }
+        // Hide boss health bar
+        if (this.scene.unifiedHUD?.hideBossHealth) {
+            this.scene.unifiedHUD.hideBossHealth();
         }
         
         super.destroy();
     }
 }
+
+// Export for GameScene integration
+export default Boss;

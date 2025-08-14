@@ -1,0 +1,57 @@
+{
+  // Blueprint: proj.basic
+  "id": "proj.basic",
+  "type": "projectile",
+  "stats": {
+    "damage": 25,
+    "speed": 700,
+    "range": 800,
+    "size": 6,
+    "critChance": 0.05,
+    "critMultiplier": 1.5
+  },
+  "mechanics": {
+    "homing": false,
+    "piercing": false,
+    "explosive": false,
+    "homingTurnRate": 0,
+    "homingDelay": 0,
+    "aimError": 0,
+    "critChance": 0.05,
+    "byRange": true,
+    "maxMs": 2000,
+    "collideWorldBounds": true,
+    "bounceOffWalls": false
+  },
+  "vfx": {
+    "trail": "vfx.trail.basic",
+    "impact": "vfx.impact.small",
+    "muzzle": "vfx.muzzle.basic"
+  },
+  "sfx": {
+    "fire": "sfx.fire.basic",
+    "hit": "sfx.hit.small",
+    "ricochet": "sfx.ricochet.basic"
+  },
+  "display": {
+    "key": "projectile.basic.name",
+    "descKey": "projectile.basic.desc",
+    "devNameFallback": "Basic Projectile",
+    "devDescFallback": "Standard projectile with balanced stats",
+    "icon": "proj_basic",
+    "color": "#ffffff",
+    "rarity": "common",
+    "category": "projectile",
+    "sortOrder": 100,
+    "tags": [
+      "projectile",
+      "basic",
+      "standard"
+    ],
+    "templates": {
+      "short": "{{stats.damage|damage}} • {{stats.speed|px}}/s",
+      "long": "Dosah {{stats.range|px}}, krit {{mechanics.critChance|crit}} ({{stats.critMultiplier|mult}}). Rychlost {{stats.speed|px}}/s."
+    },
+    "srKey": "sr.projectile.basic"
+  }
+}

@@ -1,0 +1,294 @@
+{
+  "boss": {
+    "chemorezistence": {
+      "desc": "Boss resistant to chemotherapy",
+      "name": "Chemoresistance"
+    },
+    "genova_mutace": {
+      "desc": "Boss causing genetic changes",
+      "name": "Gene Mutation"
+    },
+    "karcinogenni_kral": {
+      "desc": "Powerful ruler of cancer cells",
+      "name": "Carcinogenic King"
+    },
+    "metastaza": {
+      "desc": "Dangerous boss capable of spreading cancer",
+      "name": "Metastasis"
+    },
+    "onkogen": {
+      "desc": "Mutagenic boss altering DNA",
+      "name": "Oncogenic Mutation"
+    },
+    "onkogen_prime": {
+      "desc": "Enhanced oncogene version with advanced mutation abilities",
+      "name": "Oncogene Prime"
+    },
+    "radiation": {
+      "desc": "Boss causing radiation damage",
+      "name": "Radiation Syndrome"
+    },
+    "radiation_core": {
+      "desc": "Concentrated radiation source causing massive damage",
+      "name": "Radiation Core"
+    }
+  },
+  "drop": {
+    "adrenal_surge": {
+      "desc": "Provides temporary boost to all abilities",
+      "name": "Adrenaline Surge"
+    },
+    "health": {
+      "desc": "Restores player health",
+      "name": "Medicine"
+    },
+    "metotrexat": {
+      "desc": "Special medicine eliminating all enemies",
+      "name": "Methotrexate"
+    },
+    "protein_cache": {
+      "desc": "Concentrated protein providing large XP amount",
+      "name": "Protein Cache"
+    },
+    "xp": {
+      "desc": "Increases player experience",
+      "name": "Experience Point"
+    },
+    "xp_small": {
+      "desc": "Basic experience unit for development",
+      "name": "Small XP"
+    }
+  },
+  "enemy": {
+    "aberrant_cell": {
+      "desc": "Elite cell with disrupted structure and high resistance",
+      "name": "Aberrant Cell"
+    },
+    "acidic_blob": {
+      "desc": "Corrosive mass dealing chemical damage",
+      "name": "Acidic Blob"
+    },
+    "basic_cell": {
+      "desc": "The simplest type of cancer cell",
+      "name": "Basic Cell"
+    },
+    "brown_shooter": {
+      "desc": "Shoots projectiles at distant targets",
+      "name": "Necrotic Tissue"
+    },
+    "green_heavy": {
+      "desc": "Slow but resilient cancer cell",
+      "name": "Heavy Cell"
+    },
+    "metastasis_runner": {
+      "desc": "Fast cell spreading cancer over long distances",
+      "name": "Metastasis Runner"
+    },
+    "micro_shooter": {
+      "desc": "Small cell attacking with precise ranged projectiles",
+      "name": "Micro Shooter"
+    },
+    "micro_shooter_enhanced": {
+      "desc": "Enhanced micro shooter with dual projectile attack",
+      "name": "Micro Shooter Enhanced"
+    },
+    "necrotic_cell": {
+      "desc": "Dying cell with toxic touch",
+      "name": "Necrotic Cell"
+    },
+    "orange_tumor": {
+      "desc": "Fast and aggressive cancer cell",
+      "name": "Tumor Cell"
+    },
+    "purple_support": {
+      "desc": "Supports nearby cells with its abilities",
+      "name": "Oncogene"
+    },
+    "shielding_helper": {
+      "desc": "Support cell providing shields to nearby enemies",
+      "name": "Shielding Helper"
+    },
+    "support_bacteria": {
+      "desc": "Heals nearby enemies within range",
+      "name": "Support Bacteria"
+    },
+    "fungal_parasite": {
+      "desc": "Drains health and releases spores on death",
+      "name": "Fungal Parasite"
+    },
+    "viral_swarm": {
+      "desc": "Fast viral organism attacking in groups",
+      "name": "Viral Swarm"
+    },
+    "viral_swarm_alpha": {
+      "desc": "Enhanced viral swarm variant with higher speed",
+      "name": "Viral Swarm Alpha"
+    }
+  },
+  "player": {
+    "default": {
+      "desc": "Main character fighting against cancer cells",
+      "name": "Mard"
+    }
+  },
+  "powerup": {
+    "attack_speed": {
+      "desc": "Decreases interval between attacks",
+      "name": "Fire Rate"
+    },
+    "aura": {
+      "desc": "Continuous damage around player",
+      "name": "Toxic Field"
+    },
+    "chemo_reservoir": {
+      "desc": "Chemical reservoir providing sustained treatment effects",
+      "name": "Chemo Reservoir"
+    },
+    "damage_boost": {
+      "desc": "Increases damage of all attacks",
+      "name": "Increased Damage"
+    },
+    "explosive_bullets": {
+      "desc": "Projectiles explode on impact",
+      "name": "Proton Cannon"
+    },
+    "flamethrower": {
+      "desc": "Laser beams targeting closest enemies",
+      "name": "Radiotherapy"
+    },
+    "lightning_chain": {
+      "desc": "Chain lightning between enemies",
+      "name": "Immunotherapy"
+    },
+    "max_hp": {
+      "desc": "Increases maximum health",
+      "name": "Enhanced Vitality"
+    },
+    "metabolic_haste": {
+      "desc": "Accelerates metabolic processes for increased speed",
+      "name": "Metabolic Haste"
+    },
+    "piercing_arrows": {
+      "desc": "Projectiles pierce through enemies",
+      "name": "Cisplatin"
+    },
+    "projectile_count": {
+      "desc": "Fires more projectiles at once",
+      "name": "More Projectiles"
+    },
+    "projectile_range": {
+      "desc": "Increases range of all attacks",
+      "name": "Increased Range"
+    },
+    "shield": {
+      "desc": "Absorbs incoming damage",
+      "name": "Immune System"
+    },
+    "speed_boots": {
+      "desc": "Increases movement speed",
+      "name": "Metabolic Accelerator"
+    },
+    "xp_magnet": {
+      "desc": "Automatically collects XP from greater distance",
+      "name": "XP Magnet"
+    }
+  },
+  "projectile": {
+    "basic": {
+      "desc": "Standard projectile",
+      "name": "Basic Projectile"
+    },
+    "cytotoxin": {
+      "desc": "Poisonous projectile damaging cellular structure",
+      "name": "Cytotoxin"
+    },
+    "homing": {
+      "desc": "Projectile that tracks target",
+      "name": "Homing Projectile"
+    }
+  },
+  "sr": {
+    "boss": {
+      "chemorezistence": "Chemoresistant boss resistant to treatment with multiple attack phases",
+      "genova_mutace": "Genetically mutating boss altering DNA structure during combat",
+      "karcinogenni_kral": "Powerful carcinogenic king ruling over cancer cells",
+      "onkogen": "Oncogenic mutation causing changes in genetic code",
+      "radiation": "Radiation syndrome causing continuous radiation damage"
+    },
+    "powerup": {
+      "damage_boost": "Damage boost enhancing all attacks for more effective combat",
+      "explosive_bullets": "Proton Cannon - bullets explode on impact dealing area damage",
+      "flamethrower": "Radiotherapy beams targeting closest enemies",
+      "piercing_arrows": "Cisplatin projectiles piercing through multiple enemies",
+      "shield": "Immune system shield absorbing incoming damage"
+    },
+    "projectile": {
+      "basic": "Basic projectile for standard attack maneuvers"
+    }
+  },
+  "ui": {
+    "armor": "Armor",
+    "common": {
+      "damage": "Damage",
+      "health": "Health",
+      "level": "Level",
+      "range": "Range",
+      "speed": "Speed"
+    },
+    "crit": "Crit",
+    "damage": "Damage",
+    "dps": "DPS",
+    "health": "Health",
+    "interval": "Interval",
+    "maxLevel": "Max Level",
+    "mult": "Multiplier",
+    "range": "Range",
+    "speed": "Speed",
+    "value": "Value",
+    "xp": "XP"
+  },
+  "elite": {
+    "tank_cell": {
+      "desc": "Heavily armored elite cell with regenerating shield",
+      "name": "Elite Tank Cell"
+    },
+    "speed_virus": {
+      "desc": "Extremely fast elite virus with dash abilities",
+      "name": "Elite Speed Virus"
+    },
+    "artillery_fungus": {
+      "desc": "Elite fungus shooting explosive spores at long range",
+      "name": "Elite Artillery Fungus"
+    }
+  },
+  "unique": {
+    "chromoblast": {
+      "desc": "Time-manipulating entity with leukemic bursts",
+      "name": "Chromoblast"
+    },
+    "mutagen_splicer": {
+      "desc": "Adaptive enemy changing abilities during combat",
+      "name": "Mutagen Splicer"
+    },
+    "necrocyte_sentinel": {
+      "desc": "Necrotic guardian with decay aura and summoning abilities",
+      "name": "Necrocyte Sentinel"
+    },
+    "phage_overlord": {
+      "desc": "Dominant entity spreading viral infections through projectiles",
+      "name": "Phage Overlord"
+    },
+    "radiomorph_titan": {
+      "desc": "Massive radiation mutant with phase shifting",
+      "name": "Radiomorph Titan"
+    },
+    "golden_cell": {
+      "desc": "Rare golden cell providing large rewards",
+      "name": "Golden Cell"
+    },
+    "rainbow_virus": {
+      "desc": "Mystical virus changing colors with unique abilities",
+      "name": "Rainbow Virus"
+    }
+  }
+}

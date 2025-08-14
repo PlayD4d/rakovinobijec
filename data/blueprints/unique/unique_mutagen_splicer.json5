@@ -1,0 +1,154 @@
+{
+  // Blueprint: unique.mutagen_splicer
+  "id": "unique.mutagen_splicer",
+  "type": "unique",
+  "baseType": "enemy.viral_swarm",
+  "stats": {
+    "hp": 70,
+    "damage": 20,
+    "speed": 160,
+    "size": 20,
+    "armor": 1,
+    "xp": 35
+  },
+  "mechanics": {
+    "movementType": "adaptive_hunter",
+    "contactDamage": 20,
+    "adaptiveMutation": {
+      "enabled": true,
+      "mutationInterval": 4000,
+      "availableMutations": [
+        {
+          "type": "speed_boost",
+          "speedMultiplier": 1.8,
+          "duration": 5000,
+          "cooldown": 8000
+        },
+        {
+          "type": "damage_spike",
+          "damageMultiplier": 2.2,
+          "duration": 3000,
+          "cooldown": 10000
+        },
+        {
+          "type": "armor_shell",
+          "armorBonus": 5,
+          "duration": 6000,
+          "cooldown": 12000
+        },
+        {
+          "type": "regen_burst",
+          "regenRate": 8,
+          "duration": 4000,
+          "cooldown": 15000
+        }
+      ],
+      "mutationVfx": "vfx.unique.mutation.adapt"
+    },
+    "rapidStrikes": {
+      "enabled": true,
+      "strikeCount": 4,
+      "strikeDamage": 10,
+      "strikeInterval": 250,
+      "cooldown": 6000,
+      "dashDistance": 80,
+      "criticalChance": 0.3,
+      "criticalMultiplier": 1.8
+    },
+    "geneticInstability": {
+      "enabled": true,
+      "instabilityChance": 0.15,
+      "effects": [
+        "heal_burst",
+        "damage_nova",
+        "speed_burst",
+        "clone_spawn",
+        "toxic_trail"
+      ],
+      "effectDuration": 2000
+    },
+    "finalEvolution": {
+      "enabled": true,
+      "triggerHealthPercent": 0.2,
+      "evolutionEffects": {
+        "hpRestore": 0.4,
+        "allMutationsActive": true,
+        "permanentSpeedBoost": 1.5,
+        "permanentDamageBoost": 1.4
+      },
+      "oneTimeOnly": true
+    },
+    "specialLoot": {
+      "mutatorChance": 0.7,
+      "researchPointChance": 0.5,
+      "researchPointQty": 2,
+      "skinFragmentChance": 0.2,
+      "skinFragmentType": "mutation",
+      "guaranteedRareDrop": true,
+      "adaptiveDrops": true
+    },
+    "resistances": {
+      "mutation": 1,
+      "poison": 0.8,
+      "viral": 0.7
+    }
+  },
+  "aiProfile": {
+    "type": "adaptive_assassin",
+    "aggressionLevel": "very_high",
+    "preferredRange": 50,
+    "retreatThreshold": 0.1,
+    "abilityPriority": [
+      "rapidStrikes",
+      "adaptiveMutation",
+      "geneticInstability",
+      "finalEvolution"
+    ],
+    "targetingType": "weakest",
+    "flankingBehavior": true,
+    "hitAndRunBehavior": true,
+    "adaptiveBehavior": true
+  },
+  "vfx": {
+    "spawn": "vfx.unique.spawn.splicer",
+    "death": "vfx.unique.death.mutation.burst",
+    "mutation": "vfx.unique.mutation.adapt",
+    "strikes": "vfx.unique.rapid.strikes",
+    "instability": "vfx.unique.genetic.instability",
+    "evolution": "vfx.unique.final.evolution",
+    "trail": "vfx.unique.toxic.trail",
+    "nova": "vfx.unique.damage.nova"
+  },
+  "sfx": {
+    "spawn": "sfx.unique.spawn.splicer",
+    "death": "sfx.unique.death.mutation",
+    "mutation": "sfx.unique.mutation.change",
+    "strikes": "sfx.unique.rapid.strikes",
+    "instability": "sfx.unique.genetic.chaos",
+    "evolution": "sfx.unique.evolution.complete"
+  },
+  "display": {
+    "key": "unique.mutagen_splicer.name",
+    "descKey": "unique.mutagen_splicer.desc",
+    "name": "Mutagen Splicer",
+    "templates": {
+      "short": "UNIQUE • {{stats.hp}} HP • Adaptive mutations • Rapid strikes",
+      "desc": "Rychlý mutagenní štěpič s {{stats.hp}} HP. Adaptuje se v boji a provádí série devastujících útoků."
+    },
+    "color": "#7B1FA2",
+    "rarity": "epic",
+    "icon": "unique.mutagen_splicer",
+    "category": "unique",
+    "sortOrder": 380,
+    "tags": [
+      "unique",
+      "named",
+      "splicer",
+      "mutation",
+      "adaptive",
+      "rapid",
+      "assassin",
+      "evolution"
+    ]
+  }
+}

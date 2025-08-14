@@ -1,0 +1,71 @@
+{
+  // Blueprint: elite.speed_virus
+  "id": "elite.speed_virus",
+  "type": "elite",
+  "stats": {
+    "hp": 90,
+    "damage": 8,
+    "speed": 85,
+    "size": 18,
+    "armor": 2,
+    "xp": 18
+  },
+  "visuals": {
+    "textureKey": "elite.speed_virus",
+    "tint": 0xE91E63,
+    "size": { "w": 18, "h": 18 }
+  },
+  "mechanics": {
+    "movementType": "hyper_agile",
+    "contactDamage": 8,
+    "aggroRange": 250,
+    "wanderRadius": 80,
+    "dashSpeed": 180,
+    "dashCooldown": 2000,
+    "dashDistance": 120,
+    "evasionChance": 0.3,
+    "dropChance": 1.0,
+    "healthDropChance": 0.2,
+    "eliteModifiers": {
+      "speedBoost": 1.5,
+      "hitAndRun": true,
+      "afterimageCount": 3
+    }
+  },
+  "vfx": {
+    "spawn": "vfx.elite.spawn.speed",
+    "hit": "vfx.hit.spark.fast",
+    "death": "vfx.elite.death.speed_burst",
+    "dash": "vfx.elite.dash.trail",
+    "afterimage": "vfx.elite.afterimage.virus",
+    "aura": "vfx.elite.aura.speed"
+  },
+  "sfx": {
+    "spawn": "sfx.elite.spawn.fast",
+    "hit": "sfx.elite.hit.quick",
+    "death": "sfx.elite.death.speed",
+    "dash": "sfx.elite.dash.whoosh"
+  },
+  "display": {
+    "key": "elite.speed_virus.name",
+    "descKey": "elite.speed_virus.desc",
+    "devNameFallback": "Elitní rychlý virus",
+    "devDescFallback": "Extrémně rychlý elitní virus s dash schopnostmi",
+    "templates": {
+      "short": "{{stats.hp}} HP • rychlost {{stats.speed}} • dash",
+      "desc": "Elitní rychlý virus s {{stats.hp}} HP. Pohybuje se rychlostí {{stats.speed}} a může dashovat {{mechanics.dashDistance}} jednotek každé {{mechanics.dashCooldown|ms}}."
+    },
+    "color": "#E91E63",
+    "rarity": "elite",
+    "icon": "elite.speed_virus",
+    "category": "elite",
+    "sortOrder": 520,
+    "tags": [
+      "elite",
+      "speed",
+      "agile",
+      "dash",
+      "virus"
+    ]
+  }
+}

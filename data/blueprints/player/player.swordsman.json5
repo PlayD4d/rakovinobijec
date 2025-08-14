@@ -1,0 +1,166 @@
+{
+  // PR7 Compliant Player Blueprint
+  id: "player.swordsman",
+  type: "player",
+  
+  // Vizuální nastavení
+  visuals: {
+    textureKey: "player", // PR7: Používáme generovanou texturu
+    tint: 0x4169E1, // Royal blue
+    size: { w: 24, h: 24 }
+  },
+  
+  // Základní statistiky
+  stats: {
+    hp: 100,
+    maxHp: 100,
+    armor: 0,
+    speed: 135, // pixels/sec
+    size: 24,
+    level: 1
+  },
+  
+  // Herní mechaniky
+  mechanics: {
+    // Útok
+    attack: {
+      intervalMs: 1000,
+      damageBase: 10,
+      critChance: 0.05,
+      critMultiplier: 2.0
+    },
+    
+    // Projektily
+    projectile: {
+      ref: "projectile.player_basic",
+      count: 1,
+      spreadDeg: 15,
+      stats: {
+        damage: 10,
+        speed: 300,
+        range: 600,
+        piercing: false
+      }
+    },
+    
+    // Obrana
+    defense: {
+      dodgeChance: 0,
+      blockChance: 0,
+      damageReduction: 0
+    },
+    
+    // Regenerace
+    regeneration: {
+      hpPerSecond: 0,
+      interval: 1000
+    },
+    
+    // Nezranitelnost po zásahu
+    iFrames: {
+      ms: 1000
+    },
+    
+    // XP a levelování
+    progression: {
+      xpMultiplier: 1.0,
+      xpMagnetRange: 50,
+      xpAttractSpeed: 100
+    },
+    
+    // Schopnosti
+    abilities: {
+      dash: {
+        enabled: false,
+        cooldownMs: 3000,
+        distance: 100,
+        invulnerable: true
+      },
+      shield: {
+        enabled: false,
+        duration: 3000,
+        charges: 1,
+        cooldownMs: 10000
+      }
+    },
+    
+    // Modifikátory per level (pro power-up systém)
+    modifiersPerLevel: [
+      {
+        path: "stats.hp",
+        type: "add",
+        value: 10
+      },
+      {
+        path: "mechanics.attack.damageBase",
+        type: "add", 
+        value: 2
+      }
+    ]
+  },
+  
+  // VFX efekty
+  vfx: {
+    spawn: "vfx.player.spawn",
+    hit: "vfx.player.hit",
+    death: "vfx.player.death",
+    shoot: "vfx.weapon.muzzle",
+    heal: "vfx.player.heal",
+    levelUp: "vfx.player.levelup",
+    shield: {
+      activate: "vfx.shield.activate",
+      block: "vfx.shield.block",
+      break: "vfx.shield.break"
+    }
+  },
+  
+  // SFX zvuky
+  sfx: {
+    spawn: "sfx.player.spawn",
+    hit: "sfx.player.hit",
+    death: "sfx.player.death",
+    shoot: "sfx.weapon.laser1",
+    heal: "sfx.player.heal",
+    levelUp: "sfx.player.levelup",
+    shield: {
+      activate: "sfx.shield.activate",
+      block: "sfx.shield.block",
+      break: "sfx.shield.break"
+    }
+  },
+  
+  // Display a i18n
+  display: {
+    key: "player.swordsman.name",
+    descKey: "player.swordsman.desc",
+    devNameFallback: "Šermíř",
+    devDescFallback: "Odvážný bojovník s mečem, připravený čelit rakovinným buňkám",
+    
+    // UI texty
+    templates: {
+      stats: "HP: {{stats.hp}}/{{stats.maxHp}} • DMG: {{mechanics.attack.damageBase}}",
+      level: "Level {{stats.level}} Šermíř"
+    },
+    
+    // Kategorie a tagy
+    category: "player",
+    rarity: "common",
+    icon: "player.swordsman.icon",
+    sortOrder: 100,
+    
+    tags: [
+      "player",
+      "melee",
+      "starter",
+      "balanced"
+    ]
+  },
+  
+  // Metadata
+  meta: {
+    version: "1.0.0",
+    author: "PR7 System",
+    createdAt: "2024-01-13",
+    notes: "Základní hráčská postava pro PR7 kompatibilní systém"
+  }
+}

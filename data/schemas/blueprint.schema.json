@@ -1,0 +1,237 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "blueprint.schema.json",
+  "title": "Game Entity Blueprint Schema",
+  "type": "object",
+  "required": ["id", "type", "display"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z]+\\.[a-z_]+$",
+      "description": "Unique identifier following type.slug naming convention"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["boss", "enemy", "miniboss", "unique", "powerup", "drop", "projectile"],
+      "description": "Entity type matching folder structure"
+    },
+    "baseType": {
+      "type": "string",
+      "description": "Optional base blueprint to inherit from"
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "hp": { "type": "number", "minimum": 1 },
+        "maxHp": { "type": "number", "minimum": 1 },
+        "damage": { "type": "number", "minimum": 0 },
+        "speed": { "type": "number", "minimum": 0 },
+        "armor": { "type": "number", "minimum": 0 },
+        "size": { "type": "number", "minimum": 1 },
+        "xp": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "maxLevel": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Maximum level for powerups"
+    },
+    "modifiers": {
+      "type": "array",
+      "description": "Modifier list for powerups",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "mechanics": {
+      "type": "object",
+      "properties": {
+        "movementType": { "type": "string" },
+        "contactDamage": { "type": "number" },
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+              "thresholdPct": { "type": "number", "minimum": 0, "maximum": 1 },
+              "hpPercentage": { "type": "number", "minimum": 0, "maximum": 100 },
+              "fsmState": { "type": "string" },
+              "abilities": { 
+                "type": "array", 
+                "items": { 
+                  "oneOf": [
+                    { "type": "string" },
+                    { 
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "type": { "type": "string" },
+                        "cooldownMs": { "type": "number" }
+                      },
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              },
+              "movementSpeed": { "type": "number" },
+              "movePattern": { "type": "string" },
+              "description": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "abilities": { "type": "object", "additionalProperties": true },
+        "resistances": { "type": "object", "additionalProperties": true },
+        "passiveAuras": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+        "aggroRange": { "type": "number" },
+        "immuneToKnockback": { "type": "boolean" },
+        "canBeStunned": { "type": "boolean" },
+        "dashDistance": { "type": "number" },
+        "dashCooldown": { "type": "number" },
+        "dashSpeed": { "type": "number" },
+        "chargeTime": { "type": "number" },
+        "dropChance": { "type": "number" },
+        "healthDropChance": { "type": "number" }
+      },
+      "additionalProperties": true
+    },
+    "aiProfile": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "aggressionLevel": { 
+          "type": "string",
+          "enum": ["very_low", "low", "moderate", "high", "very_high", "defensive", "tactical"]
+        },
+        "preferredRange": { "type": "number", "minimum": 0 },
+        "retreatThreshold": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": true
+    },
+    "vfx": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z_]+$": {
+          "type": "string",
+          "pattern": "^vfx\\."
+        }
+      },
+      "additionalProperties": true
+    },
+    "sfx": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z_]+$": {
+          "type": "string",
+          "pattern": "^sfx\\."
+        }
+      },
+      "additionalProperties": true
+    },
+    "graphics": {
+      "type": "object",
+      "properties": {
+        "sprite": { "type": "string" },
+        "textureKey": { "type": "string" },
+        "tint": { "type": "number" },
+        "scale": { "type": "number" },
+        "animation": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": true
+    },
+    "ai": {
+      "type": "object",
+      "properties": {
+        "behavior": { "type": "string" },
+        "params": { "type": "object", "additionalProperties": true },
+        "idleWander": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "lootTable": { "type": "string" },
+    "loot": {
+      "type": "object",
+      "properties": {
+        "lootTableId": { "type": "string" },
+        "xp": { "type": "number" }
+      },
+      "additionalProperties": true
+    },
+    "visuals": {
+      "type": "object",
+      "properties": {
+        "textureKey": { "type": "string" },
+        "tint": { "type": "number" },
+        "size": { 
+          "type": "object",
+          "properties": {
+            "w": { "type": "number" },
+            "h": { "type": "number" }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "rarity": { "type": "string" },
+        "displayName": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "display": {
+      "type": "object",
+      "required": ["key"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "i18n key for name"
+        },
+        "descKey": {
+          "type": "string",
+          "description": "i18n key for description"
+        },
+        "devNameFallback": {
+          "type": "string",
+          "description": "Development fallback name"
+        },
+        "devDescFallback": {
+          "type": "string",
+          "description": "Development fallback description"
+        },
+        "templates": {
+          "type": "object",
+          "properties": {
+            "short": { "type": "string" },
+            "desc": { "type": "string" },
+            "long": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$"
+        },
+        "rarity": {
+          "type": "string",
+          "enum": ["common", "uncommon", "rare", "epic", "legendary", "mythic", "boss", "elite", "unique", "special"]
+        },
+        "icon": { "type": "string" },
+        "category": { "type": "string" },
+        "sortOrder": { "type": "number" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "srKey": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,138 @@
+{
+  // Blueprint: unique.chromoblast
+  "id": "unique.chromoblast",
+  "type": "unique",
+  "baseType": "enemy.micro_shooter",
+  "stats": {
+    "hp": 90,
+    "damage": 16,
+    "speed": 110,
+    "size": 28,
+    "armor": 3,
+    "xp": 40
+  },
+  "mechanics": {
+    "movementType": "temporal_shifter",
+    "contactDamage": 16,
+    "leukemicBurst": {
+      "enabled": true,
+      "burstCount": 5,
+      "burstRadius": 80,
+      "burstDamage": 12,
+      "burstInterval": 400,
+      "cooldown": 7000,
+      "spreadPattern": "spiral",
+      "finalBlastRadius": 120,
+      "finalBlastDamage": 20
+    },
+    "temporalField": {
+      "enabled": true,
+      "fieldRadius": 100,
+      "timeSlowFactor": 0.6,
+      "fieldDuration": 4000,
+      "cooldown": 12000,
+      "affectsProjectiles": true,
+      "fieldVfx": "vfx.unique.temporal.field"
+    },
+    "chronoBlast": {
+      "enabled": true,
+      "chargeTime": 2000,
+      "blastRadius": 140,
+      "blastDamage": 25,
+      "temporalRiftDuration": 6000,
+      "riftDamage": 8,
+      "riftTickInterval": 1000,
+      "cooldown": 10000
+    },
+    "timeEcho": {
+      "enabled": true,
+      "echoCount": 2,
+      "echoDuration": 3000,
+      "echoHealthPercent": 0.3,
+      "echoDamagePercent": 0.6,
+      "triggerHealthPercent": 0.5,
+      "cooldown": 15000
+    },
+    "cellularOverload": {
+      "enabled": true,
+      "overloadRadius": 180,
+      "overloadDamage": 30,
+      "leukemicSpread": true,
+      "spawnMinionsCount": 4,
+      "minionType": "enemy.viral_swarm",
+      "minionLifetime": 8000
+    },
+    "specialLoot": {
+      "researchPointChance": 0.6,
+      "researchPointQty": 2,
+      "skinFragmentChance": 0.3,
+      "skinFragmentType": "chrono",
+      "mutatorChance": 0.4,
+      "guaranteedRareDrop": true,
+      "temporalDrops": true
+    },
+    "resistances": {
+      "temporal": 1,
+      "psychic": 0.8,
+      "energy": 0.7
+    }
+  },
+  "aiProfile": {
+    "type": "temporal_controller",
+    "aggressionLevel": "high",
+    "preferredRange": 120,
+    "retreatThreshold": 0.25,
+    "abilityPriority": [
+      "temporalField",
+      "leukemicBurst",
+      "chronoBlast",
+      "timeEcho"
+    ],
+    "targetingType": "area_control",
+    "flankingBehavior": false,
+    "zoneControlBehavior": true,
+    "predictiveBehavior": true
+  },
+  "vfx": {
+    "spawn": "vfx.unique.spawn.chromoblast",
+    "death": "vfx.unique.death.cellular.overload",
+    "burst": "vfx.unique.leukemic.burst",
+    "temporal": "vfx.unique.temporal.field",
+    "chrono": "vfx.unique.chrono.blast",
+    "echo": "vfx.unique.time.echo",
+    "rift": "vfx.unique.temporal.rift",
+    "overload": "vfx.unique.cellular.overload"
+  },
+  "sfx": {
+    "spawn": "sfx.unique.spawn.chromoblast",
+    "death": "sfx.unique.death.overload",
+    "burst": "sfx.unique.leukemic.burst",
+    "temporal": "sfx.unique.temporal.field",
+    "chrono": "sfx.unique.chrono.blast",
+    "echo": "sfx.unique.time.echo"
+  },
+  "display": {
+    "key": "unique.chromoblast.name",
+    "descKey": "unique.chromoblast.desc",
+    "name": "Chromoblast",
+    "templates": {
+      "short": "UNIQUE • {{stats.hp}} HP • Leukemic bursts • Temporal control",
+      "desc": "Chromoblast s {{stats.hp}} HP. Ovládá čas a prostor, vytváří série explozí a zpomaluje okolí."
+    },
+    "color": "#3F51B5",
+    "rarity": "epic",
+    "icon": "unique.chromoblast",
+    "category": "unique",
+    "sortOrder": 390,
+    "tags": [
+      "unique",
+      "named",
+      "chromoblast",
+      "leukemic",
+      "temporal",
+      "burst",
+      "control",
+      "echo"
+    ]
+  }
+}

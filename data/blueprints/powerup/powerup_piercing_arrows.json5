@@ -1,0 +1,55 @@
+{
+  // Blueprint: powerup.piercing_arrows
+  "id": "powerup.piercing_arrows",
+  "type": "powerup",
+  "stats": {
+    "maxLevel": 5
+  },
+  "mechanics": {
+    "modifiersPerLevel": [
+      {
+        "path": "projectile.piercing",
+        "type": "enable",
+        "value": true,
+        "description": "Enables projectile piercing through enemies"
+      }
+    ],
+    "stackable": true,
+    "persistent": true,
+    "applyOnPickup": true,
+    "effectType": "piercing_arrows"
+  },
+  "vfx": {
+    "pickup": "vfx.powerup.pickup.piercing",
+    "levelUp": "vfx.powerup.levelup",
+    "impact": "vfx.hit.spark"
+  },
+  "sfx": {
+    "pickup": "sfx.powerup.pickup",
+    "apply": "sfx.powerup.apply",
+    "levelUp": "sfx.powerup.levelup",
+    "impact": "sfx.projectile.hit"
+  },
+  "display": {
+    "key": "powerup.piercing_arrows.name",
+    "descKey": "powerup.piercing_arrows.desc",
+    "devNameFallback": "🧪 Cisplatina",
+    "devDescFallback": "Projektily pronikají skrz nepřátele",
+    "icon": "powerup_piercing_arrows",
+    "color": "#00BCD4",
+    "rarity": "rare",
+    "category": "offense",
+    "sortOrder": 270,
+    "tags": [
+      "powerup",
+      "piercing",
+      "offense",
+      "upgrade"
+    ],
+    "templates": {
+      "short": "Průrazné projektily",
+      "long": "Umožňuje projektilům prorazit skrz nepřátele. Vyšší úrovně zvyšují efektivitu. Max level {{stats.maxLevel}}."
+    },
+    "srKey": "sr.powerup.piercing_arrows"
+  }
+}

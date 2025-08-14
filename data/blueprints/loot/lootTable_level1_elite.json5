@@ -1,0 +1,60 @@
+{
+  id: 'lootTable.level1.elite',
+  type: 'lootTable',
+  stats: {
+    dropChance: 0.8,
+    maxDrops: 5,
+    weight: 1,
+    guaranteedDrops: 1,
+  },
+  pools: [
+    {
+      rolls: 1,
+      entries: [
+        {
+          ref: 'drop.xp_medium',
+          weight: 0.4,
+          qty: {
+            min: 1,
+            max: 2,
+          },
+        },
+        {
+          ref: 'drop.xp_large',
+          weight: 0.2,
+          qty: {
+            min: 1,
+            max: 1,
+          },
+        },
+        {
+          ref: 'drop.health_small',
+          weight: 0.3,
+          qty: {
+            min: 1,
+            max: 2,
+          },
+        },
+        {
+          ref: 'drop.energy_cell',
+          weight: 0.1,
+          qty: {
+            min: 1,
+            max: 1,
+          },
+        },
+      ],
+    },
+  ],
+  modifiers: {
+    timeScaling: true,
+    timeScalingRate: 0.01,
+    luckInfluence: 1,
+    eliteBonus: 1,
+  },
+  caps: {
+    maxDropsPerMinute: 300,
+    maxSameDropStreak: 3,
+    cooldownBetweenRare: 1000,
+  },
+}

@@ -1,0 +1,77 @@
+{
+  // Blueprint: elite.artillery_fungus
+  "id": "elite.artillery_fungus",
+  "type": "elite",
+  "stats": {
+    "hp": 120,
+    "damage": 15,
+    "speed": 30,
+    "size": 22,
+    "armor": 3,
+    "xp": 22
+  },
+  "visuals": {
+    "textureKey": "elite.artillery_fungus",
+    "tint": 0x795548,
+    "size": { "w": 22, "h": 22 }
+  },
+  "mechanics": {
+    "movementType": "artillery_position",
+    "contactDamage": 10,
+    "aggroRange": 350,
+    "wanderRadius": 20,
+    "attackType": "ranged_artillery",
+    "projectileType": "spore_mortar",
+    "attackRange": 300,
+    "attackInterval": 1800,
+    "projectileCount": 3,
+    "projectileSpread": 45,
+    "aoeRadius": 60,
+    "aoeDamage": 8,
+    "dropChance": 1.0,
+    "healthDropChance": 0.22,
+    "eliteModifiers": {
+      "criticalChance": 0.25,
+      "criticalMultiplier": 2.0,
+      "piercingShots": true
+    }
+  },
+  "vfx": {
+    "spawn": "vfx.elite.spawn.artillery",
+    "hit": "vfx.hit.spark.explosive",
+    "death": "vfx.elite.death.artillery_explosion",
+    "shoot": "vfx.elite.shoot.mortar",
+    "impact": "vfx.elite.impact.spore_explosion",
+    "aura": "vfx.elite.aura.artillery"
+  },
+  "sfx": {
+    "spawn": "sfx.elite.spawn.artillery",
+    "hit": "sfx.elite.hit.impact",
+    "death": "sfx.elite.death.explosive",
+    "shoot": "sfx.elite.shoot.mortar",
+    "impact": "sfx.elite.impact.explosion"
+  },
+  "display": {
+    "key": "elite.artillery_fungus.name",
+    "descKey": "elite.artillery_fungus.desc",
+    "devNameFallback": "Elitní dělostřelecká houba",
+    "devDescFallback": "Elitní houba střílející výbušné spory na velkou vzdálenost",
+    "templates": {
+      "short": "{{stats.hp}} HP • dosah {{mechanics.attackRange}} • AOE {{mechanics.aoeRadius}}",
+      "desc": "Elitní dělostřelecká houba s {{stats.hp}} HP. Střílí {{mechanics.projectileCount}} výbušné spory na vzdálenost {{mechanics.attackRange}} s AOE {{mechanics.aoeRadius}}."
+    },
+    "color": "#795548",
+    "rarity": "elite",
+    "icon": "elite.artillery_fungus",
+    "category": "elite",
+    "sortOrder": 530,
+    "tags": [
+      "elite",
+      "artillery",
+      "ranged",
+      "aoe",
+      "fungus",
+      "explosive"
+    ]
+  }
+}

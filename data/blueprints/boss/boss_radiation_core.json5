@@ -1,0 +1,188 @@
+{
+  // Blueprint: boss.radiation_core
+  "id": "boss.radiation_core",
+  "type": "boss",
+  "stats": {
+    "hp": 1400,
+    "damage": 20,
+    "speed": 30,
+    "size": 40,
+    "armor": 12,
+    "xp": 200
+  },
+  "mechanics": {
+    "phases": [
+      {
+        "thresholdPct": 1.0,
+        "abilities": [
+          { "id": "radiation_pulse", "type": "pulse", "cooldownMs": 3500 },
+          { "id": "toxic_pools", "type": "spawn_minions", "cooldownMs": 6000 }
+        ],
+        "movePattern": "seek_player"
+      },
+      {
+        "thresholdPct": 0.7,
+        "abilities": [
+          { "id": "beam_sweep", "type": "linear_shot", "cooldownMs": 4200 },
+          { "id": "toxic_pools", "type": "spawn_minions", "cooldownMs": 6000 },
+          { "id": "summon_irradiated", "type": "spawn_minions", "cooldownMs": 9000 }
+        ],
+        "movePattern": "seek_player"
+      },
+      {
+        "thresholdPct": 0.35,
+        "abilities": [
+          { "id": "radiation_storm", "type": "pulse", "cooldownMs": 8500 },
+          { "id": "rapid_beams", "type": "circle_shot", "cooldownMs": 5500 },
+          { "id": "massive_summon", "type": "spawn_minions", "cooldownMs": 12000 },
+          { "id": "core_overload", "type": "pulse", "cooldownMs": 15000 }
+        ],
+        "movePattern": "seek_player"
+      }
+    ],
+    "abilities": {
+      "radiation_pulse": {
+        "damage": 8,
+        "radius": 180,
+        "expandSpeed": 150,
+        "interval": 3500,
+        "pulseCount": 3,
+        "pulsInterval": 800,
+        "warningTime": 1200
+      },
+      "toxic_pools": {
+        "poolCount": 5,
+        "poolRadius": 45,
+        "poolDamage": 6,
+        "poolDuration": 8000,
+        "interval": 6000,
+        "spawnRadius": 250,
+        "dotInterval": 500
+      },
+      "beam_sweep": {
+        "beamCount": 4,
+        "damage": 15,
+        "sweepSpeed": 90,
+        "beamWidth": 12,
+        "sweepAngle": 180,
+        "interval": 4200,
+        "chargeTime": 1500,
+        "range": 350
+      },
+      "summon_irradiated": {
+        "enemyTypes": [
+          "enemy.viral_swarm_alpha",
+          "enemy.acidic_blob"
+        ],
+        "count": 6,
+        "interval": 9000,
+        "spawnRadius": 180,
+        "maxMinions": 12,
+        "minionBonus": {
+          "hp": 1.5,
+          "damage": 1.3,
+          "radiationAura": true
+        }
+      },
+      "radiation_storm": {
+        "damage": 4,
+        "radius": 300,
+        "stormDuration": 6000,
+        "interval": 8500,
+        "tickInterval": 300,
+        "intensityRamp": 1.2,
+        "maxIntensity": 3
+      },
+      "rapid_beams": {
+        "beamCount": 8,
+        "damage": 12,
+        "fireRate": 0.4,
+        "duration": 4000,
+        "interval": 5500,
+        "trackingSpeed": 120,
+        "range": 400
+      },
+      "massive_summon": {
+        "enemyTypes": [
+          "enemy.necrotic_cell",
+          "enemy.viral_swarm",
+          "enemy.acidic_blob"
+        ],
+        "count": 12,
+        "interval": 12000,
+        "spawnRadius": 220,
+        "spawnWaves": 3,
+        "waveInterval": 1500
+      },
+      "core_overload": {
+        "trigger": "critical_hp",
+        "damage": 25,
+        "radius": 250,
+        "chargeTime": 4000,
+        "explosionCount": 5,
+        "explosionInterval": 800,
+        "selfDamage": 50
+      }
+    },
+    "resistances": {
+      "radiation": 1,
+      "explosion": 0.2
+    },
+    "passiveAuras": [
+      {
+        "type": "radiation_field",
+        "radius": 120,
+        "damage": 2,
+        "tickInterval": 1000,
+        "slowEffect": 0.15
+      }
+    ]
+  },
+  "vfx": {
+    "spawn": "vfx.boss.spawn.radiation",
+    "phase1": "vfx.boss.phase.radiation.low",
+    "phase2": "vfx.boss.phase.radiation.medium",
+    "phase3": "vfx.boss.phase.radiation.high",
+    "death": "vfx.boss.death.radiation.explosion",
+    "pulse": "vfx.boss.radiation.pulse",
+    "beam": "vfx.boss.radiation.beam",
+    "storm": "vfx.boss.radiation.storm",
+    "overload": "vfx.boss.radiation.overload",
+    "aura": "vfx.boss.radiation.aura"
+  },
+  "sfx": {
+    "spawn": "sfx.boss.spawn.radiation",
+    "phase1": "sfx.boss.phase.change",
+    "phase2": "sfx.boss.phase.change",
+    "phase3": "sfx.boss.phase.critical",
+    "death": "sfx.boss.death.radiation",
+    "pulse": "sfx.boss.radiation.pulse",
+    "beam": "sfx.boss.radiation.beam",
+    "storm": "sfx.boss.radiation.storm",
+    "overload": "sfx.boss.radiation.overload"
+  },
+  "display": {
+    "key": "boss.radiation_core.name",
+    "descKey": "boss.radiation_core.desc",
+    "devNameFallback": "Radiační jádro",
+    "devDescFallback": "Koncentrovaný zdroj radiace způsobující masivní poškození",
+    "templates": {
+      "short": "{{stats.hp}} HP • 3 fáze • {{stats.armor}} pancíř • radiace + zóny",
+      "desc": "Radiační jádro s {{stats.hp}} HP a {{stats.armor}} pancířem. Kontroluje oblast pomocí radiačních pulsů, toxických bazénů a paprsků. Má pasivní radiační auru."
+    },
+    "color": "#4CAF50",
+    "rarity": "boss",
+    "icon": "boss.radiation_core",
+    "category": "boss",
+    "sortOrder": 920,
+    "tags": [
+      "boss",
+      "radiation",
+      "zones",
+      "beams",
+      "summon",
+      "area-control",
+      "dot"
+    ]
+  }
+}

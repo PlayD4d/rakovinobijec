@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "spawnTable.schema.json",
+  "title": "Spawn Table Schema",
+  "type": "object",
+  "required": ["id", "level", "enemyWaves", "eliteWindows", "bossConditions"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^level[0-9]+$"
+    },
+    "level": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "enemyWaves": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["enemyId", "weight", "countRange", "interval", "startAt", "endAt"],
+        "properties": {
+          "enemyId": {
+            "type": "string",
+            "description": "Reference to enemy blueprint"
+          },
+          "weight": { "type": "number", "minimum": 0 },
+          "countRange": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 1 },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "interval": { "type": "number", "minimum": 100 },
+          "startAt": { "type": "number", "minimum": 0 },
+          "endAt": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "eliteWindows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["enemyId", "weight", "countRange", "startAt", "endAt", "cooldown"],
+        "properties": {
+          "enemyId": { "type": "string" },
+          "weight": { "type": "number", "minimum": 0 },
+          "countRange": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 1 },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "startAt": { "type": "number", "minimum": 0 },
+          "endAt": { "type": "number", "minimum": 0 },
+          "cooldown": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "uniqueSpawns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["enemyId", "weight", "countRange", "startAt", "endAt", "cooldown"],
+        "properties": {
+          "enemyId": { "type": "string" },
+          "weight": { "type": "number", "minimum": 0, "maximum": 100 },
+          "countRange": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 1 },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "startAt": { "type": "number", "minimum": 0 },
+          "endAt": { "type": "number", "minimum": 0 },
+          "cooldown": { "type": "number", "minimum": 0 },
+          "conditions": { "type": "object" }
+        }
+      }
+    },
+    "bossConditions": {
+      "type": "object",
+      "required": ["timeCondition", "killCondition", "bossId"],
+      "properties": {
+        "timeCondition": {
+          "type": "object",
+          "required": ["minTime", "maxTime"],
+          "properties": {
+            "minTime": { "type": "number", "minimum": 0 },
+            "maxTime": { "type": "number", "minimum": 0 }
+          }
+        },
+        "killCondition": {
+          "type": "object",
+          "required": ["minKills", "targetTypes"],
+          "properties": {
+            "minKills": { "type": "integer", "minimum": 0 },
+            "targetTypes": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "bossId": { "type": "string" },
+        "spawnDelay": { "type": "number", "minimum": 0 },
+        "clearEnemies": { "type": "boolean" }
+      }
+    },
+    "lootTables": { "type": "object" },
+    "difficulty": { "type": "object" },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "displayName": { "type": "string" },
+        "description": { "type": "string" },
+        "estimatedDuration": { "type": "number" },
+        "recommendedLevel": { "type": "integer" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

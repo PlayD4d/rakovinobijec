@@ -1,0 +1,40 @@
+{
+  "id": "features",
+  "type": "config",
+  "version": "1.0.0",
+  "features": {
+    // Debug and Development Features
+    "debugOverlay": true,        // Enable new real-time debug overlay (F3)
+    "telemetryLogger": true,     // Enable gameplay telemetry logging
+    "devConsole": true,          // Enable development console commands
+    
+    // Performance and Testing Features
+    "perfProfiler": true,        // Enable performance profiling
+    "coreECS": true,            // Enable core ECS systems
+    
+    // VFX and Audio Features
+    "vfxSystem": true,          // Enable new VFX system
+    "sfxSystem": true,          // Enable new SFX system
+    "audioVisualization": false, // Audio waveform visualization
+    
+    // Gameplay Features (can be toggled for A/B testing)
+    "ngPlusSystem": true,       // New Game Plus system
+    "lootPitySystem": true,     // Anti-frustration loot guarantees
+    "adaptiveDifficulty": false, // Dynamic difficulty adjustment
+    
+    // UI and Accessibility Features
+    "mobileControls": true,     // Touch controls for mobile
+    "highContrastMode": false,  // High contrast UI theme
+    "reducedMotion": false,     // Accessibility: reduce animations
+    
+    // Analytics and Tracking
+    "analytics": true,          // General analytics system
+    "sessionAnalytics": true,   // Per-session detailed tracking
+    "performanceMonitoring": true, // Performance issue tracking
+    
+    // Experimental Features (disabled by default)
+    "experimentalAI": false,    // Advanced AI behaviors
+    "proceduralContent": false, // Procedural level generation
+    "multiplayerMode": false    // Future multiplayer support
+  }
+}

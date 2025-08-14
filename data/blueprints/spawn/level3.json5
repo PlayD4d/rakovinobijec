@@ -1,0 +1,308 @@
+{
+  // PR7 Compliant Spawn Table - Level 3
+  id: "spawnTable.level3",
+  type: "spawnTable",
+  level: 3,
+  "enemyWaves": [
+    // Wave 1: Initial burst (0-30s)
+    {
+      "enemyId": "enemy.acidic_blob",
+      "weight": 40,
+      "countRange": [2, 3],
+      "interval": 2000,
+      "startAt": 0,
+      "endAt": 30000
+    },
+    {
+      "enemyId": "enemy.micro_shooter",
+      "weight": 30,
+      "countRange": [1, 2],
+      "interval": 2500,
+      "startAt": 5000,
+      "endAt": 30000
+    },
+    {
+      "enemyId": "enemy.support_bacteria",
+      "weight": 20,
+      "countRange": [1, 1],
+      "interval": 4000,
+      "startAt": 10000,
+      "endAt": 30000
+    },
+    {
+      "enemyId": "enemy.necrotic_cell",
+      "weight": 10,
+      "countRange": [2, 4],
+      "interval": 3000,
+      "startAt": 0,
+      "endAt": 30000
+    },
+    
+    // Wave 2: Escalation (30-70s)
+    {
+      "enemyId": "enemy.acidic_blob",
+      "weight": 35,
+      "countRange": [3, 4],
+      "interval": 1800,
+      "startAt": 30000,
+      "endAt": 70000
+    },
+    {
+      "enemyId": "enemy.micro_shooter",
+      "weight": 35,
+      "countRange": [2, 3],
+      "interval": 2000,
+      "startAt": 30000,
+      "endAt": 70000
+    },
+    {
+      "enemyId": "enemy.support_bacteria",
+      "weight": 20,
+      "countRange": [1, 2],
+      "interval": 3500,
+      "startAt": 35000,
+      "endAt": 70000
+    },
+    {
+      "enemyId": "enemy.fungal_parasite",
+      "weight": 10,
+      "countRange": [1, 1],
+      "interval": 5000,
+      "startAt": 40000,
+      "endAt": 70000
+    },
+    
+    // Wave 3: Chaos (70-120s)
+    {
+      "enemyId": "enemy.acidic_blob",
+      "weight": 25,
+      "countRange": [3, 5],
+      "interval": 1500,
+      "startAt": 70000,
+      "endAt": 120000
+    },
+    {
+      "enemyId": "enemy.micro_shooter",
+      "weight": 30,
+      "countRange": [2, 4],
+      "interval": 1600,
+      "startAt": 70000,
+      "endAt": 120000
+    },
+    {
+      "enemyId": "enemy.support_bacteria",
+      "weight": 20,
+      "countRange": [2, 3],
+      "interval": 3000,
+      "startAt": 70000,
+      "endAt": 120000
+    },
+    {
+      "enemyId": "enemy.fungal_parasite",
+      "weight": 15,
+      "countRange": [1, 2],
+      "interval": 4000,
+      "startAt": 75000,
+      "endAt": 120000
+    },
+    {
+      "enemyId": "enemy.viral_swarm",
+      "weight": 10,
+      "countRange": [4, 6],
+      "interval": 2500,
+      "startAt": 80000,
+      "endAt": 120000
+    },
+    
+    // Wave 4: Endgame (120s+)
+    {
+      "enemyId": "enemy.acidic_blob",
+      "weight": 20,
+      "countRange": [4, 6],
+      "interval": 1200,
+      "startAt": 120000,
+      "endAt": 999999
+    },
+    {
+      "enemyId": "enemy.micro_shooter",
+      "weight": 25,
+      "countRange": [3, 5],
+      "interval": 1300,
+      "startAt": 120000,
+      "endAt": 999999
+    },
+    {
+      "enemyId": "enemy.support_bacteria",
+      "weight": 20,
+      "countRange": [2, 4],
+      "interval": 2500,
+      "startAt": 120000,
+      "endAt": 999999
+    },
+    {
+      "enemyId": "enemy.fungal_parasite",
+      "weight": 20,
+      "countRange": [2, 3],
+      "interval": 3000,
+      "startAt": 120000,
+      "endAt": 999999
+    },
+    {
+      "enemyId": "enemy.viral_swarm",
+      "weight": 15,
+      "countRange": [5, 8],
+      "interval": 2000,
+      "startAt": 125000,
+      "endAt": 999999
+    }
+  ],
+  
+  "eliteWindows": [
+    {
+      "enemyId": "elite.tank_cell",
+      "weight": 5,
+      "countRange": [1, 1],
+      "cooldown": 15000,
+      "startAt": 45000,
+      "endAt": 999999
+    },
+    {
+      "enemyId": "elite.speed_virus",
+      "weight": 5,
+      "countRange": [1, 2],
+      "cooldown": 20000,
+      "startAt": 60000,
+      "endAt": 999999
+    },
+    {
+      "enemyId": "elite.artillery_fungus",
+      "weight": 3,
+      "countRange": [1, 1],
+      "cooldown": 25000,
+      "startAt": 90000,
+      "endAt": 999999
+    }
+  ],
+  
+  "uniqueSpawns": [
+    {
+      "enemyId": "unique.golden_cell",
+      "weight": 2,
+      "countRange": [1, 1],
+      "cooldown": 60000,
+      "startAt": 30000,
+      "endAt": 999999,
+      "conditions": {
+        "playerLevel": { "min": 5 },
+        "enemiesKilled": { "min": 100 }
+      }
+    },
+    {
+      "enemyId": "unique.rainbow_virus",
+      "weight": 1,
+      "countRange": [1, 1],
+      "cooldown": 90000,
+      "startAt": 60000,
+      "endAt": 999999,
+      "conditions": {
+        "playerLevel": { "min": 8 },
+        "enemiesKilled": { "min": 250 }
+      }
+    }
+  ],
+  
+  // Boss triggers - PR7 compliant (unified format)
+  bossTriggers: [
+    {
+      condition: "time",
+      value: 150000,
+      bossId: "boss.onkogen",
+      spawnDelay: 3000,
+      clearEnemies: true
+    },
+    {
+      condition: "kills",
+      value: 150,
+      bossId: "boss.karcinogenni_kral",
+      spawnDelay: 3000,
+      clearEnemies: true
+    },
+    {
+      condition: "time",
+      value: 300000,
+      bossId: "boss.genova_mutace",
+      spawnDelay: 5000,
+      clearEnemies: true
+    }
+  ],
+  
+  // Loot tables - PR7 data-driven
+  lootTables: {
+    normal: {
+      "drop.xp.small": 40,
+      "drop.xp.medium": 40,
+      "drop.xp.large": 15,
+      "drop.leukocyte_pack": 15,
+      "drop.metotrexat": 2,
+      "drop.adrenal_surge": 3,
+      "drop.protein_cache": 2.5
+    },
+    elite: {
+      "drop.xp.large": 70,
+      "drop.leukocyte_pack": 50,
+      "drop.protein_cache": 35,
+      "drop.adrenal_surge": 20,
+      "drop.metotrexat": 4,
+      "powerup.immuno_boost": 10,
+      "powerup.metabolic_haste": 8,
+      "powerup.aegis_macrophage": 6,
+      "powerup.apoptosis_pierce": 4,
+      "powerup.chemo_reservoir": 3
+    },
+    boss: {
+      "drop.xp.large": 100,
+      "drop.leukocyte_pack": 100,
+      "drop.protein_cache": 90,
+      "drop.adrenal_surge": 70,
+      "powerup.immuno_boost": 40,
+      "powerup.aegis_macrophage": 35,
+      "powerup.metabolic_haste": 30,
+      "powerup.apoptosis_pierce": 25,
+      "powerup.chemo_reservoir": 20,
+      "powerup.hematopoiesis": 15,
+      "powerup.radioterapie": 10,
+      "drop.metotrexat": 8
+    }
+  },
+  
+  // Difficulty settings - PR7 ConfigResolver compatible
+  difficulty: {
+    enemyHpMultiplier: 1.6,
+    enemyDamageMultiplier: 1.4,
+    enemySpeedMultiplier: 1.2,
+    spawnRateMultiplier: 1.8,
+    eliteFrequency: 1.5,
+    targetTTK: 1500,
+    progressiveScaling: {
+      hpGrowth: 0.003,
+      damageGrowth: 0.002,
+      spawnGrowth: 0.003
+    }
+  },
+  
+  // Meta information
+  meta: {
+    name: "level3",
+    displayName: "Úroveň 3 - Extrémní výzva",
+    description: "Nejvyšší obtížnost s intenzivními vlnami, více elitními nepřáteli a podpornými jednotkami",
+    estimatedDuration: 360000,
+    recommendedLevel: 8,
+    tags: [
+      "extreme",
+      "endgame",
+      "swarms",
+      "support-heavy",
+      "multi-boss"
+    ]
+  }
+}

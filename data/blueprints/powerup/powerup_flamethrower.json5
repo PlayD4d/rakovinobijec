@@ -1,0 +1,61 @@
+{
+  // Blueprint: powerup.flamethrower
+  "id": "powerup.flamethrower",
+  "type": "powerup",
+  "stats": {
+    "maxLevel": 5
+  },
+  "mechanics": {
+    "modifiersPerLevel": [
+      {
+        "path": "abilities.radiotherapy.intervalMs",
+        "type": "mul",
+        "value": -0.2,
+        "description": "Reduces radiotherapy interval"
+      }
+    ],
+    "stackable": true,
+    "persistent": true,
+    "applyOnPickup": true,
+    "effectType": "flamethrower"
+  },
+  "ability": {
+    "type": "radiotherapy",
+    "baseIntervalMs": 1000,
+    "minIntervalMs": 300
+  },
+  "vfx": {
+    "pickup": "vfx.powerup.pickup.flame",
+    "levelUp": "vfx.powerup.levelup",
+    "impact": "vfx.hit.spark"
+  },
+  "sfx": {
+    "pickup": "sfx.powerup.pickup",
+    "apply": "sfx.powerup.apply",
+    "levelUp": "sfx.powerup.levelup",
+    "fire": "sfx.weapon.lightning.fire",
+    "impact": "sfx.projectile.hit"
+  },
+  "display": {
+    "key": "powerup.flamethrower.name",
+    "descKey": "powerup.flamethrower.desc",
+    "devNameFallback": "🔥 Radioterapie",
+    "devDescFallback": "Vytváří ohnivé paprsky kolem hráče",
+    "icon": "powerup_flamethrower",
+    "color": "#FF5722",
+    "rarity": "rare",
+    "category": "special",
+    "sortOrder": 250,
+    "tags": [
+      "powerup",
+      "weapon",
+      "special",
+      "ability"
+    ],
+    "templates": {
+      "short": "Ohnivé paprsky (interval {{ability.baseIntervalMs}}ms)",
+      "long": "Vytváří ohnivé paprsky kolem hráče. Interval klesá s úrovní z {{ability.baseIntervalMs}}ms na min {{ability.minIntervalMs}}ms. Max level {{stats.maxLevel}}."
+    },
+    "srKey": "sr.powerup.flamethrower"
+  }
+}

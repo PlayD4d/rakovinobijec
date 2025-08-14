@@ -1,0 +1,69 @@
+{
+  // Blueprint: elite.tank_cell
+  "id": "elite.tank_cell",
+  "type": "elite",
+  "stats": {
+    "hp": 180,
+    "damage": 12,
+    "speed": 25,
+    "size": 24,
+    "armor": 5,
+    "xp": 20
+  },
+  "visuals": {
+    "textureKey": "elite.tank_cell",
+    "tint": 0x9E9E9E,
+    "size": { "w": 24, "h": 24 }
+  },
+  "mechanics": {
+    "movementType": "heavy_tank",
+    "contactDamage": 12,
+    "aggroRange": 150,
+    "wanderRadius": 30,
+    "shieldPoints": 50,
+    "shieldRegen": 2,
+    "shieldRegenDelay": 3000,
+    "stunResistance": 0.8,
+    "dropChance": 1.0,
+    "healthDropChance": 0.25,
+    "eliteModifiers": {
+      "damageReduction": 0.2,
+      "knockbackResistance": 0.9
+    }
+  },
+  "vfx": {
+    "spawn": "vfx.elite.spawn.tank",
+    "hit": "vfx.hit.spark.heavy",
+    "death": "vfx.elite.death.tank_explosion",
+    "shield": "vfx.elite.shield.active",
+    "aura": "vfx.elite.aura.tank"
+  },
+  "sfx": {
+    "spawn": "sfx.elite.spawn.heavy",
+    "hit": "sfx.elite.hit.armored",
+    "death": "sfx.elite.death.heavy",
+    "shield": "sfx.elite.shield.impact"
+  },
+  "display": {
+    "key": "elite.tank_cell.name",
+    "descKey": "elite.tank_cell.desc",
+    "devNameFallback": "Elitní tanková buňka",
+    "devDescFallback": "Těžce pancéřovaná elitní buňka s regenerujícím štítem",
+    "templates": {
+      "short": "{{stats.hp}} HP • {{stats.armor}} pancíř • štít {{mechanics.shieldPoints}} HP",
+      "desc": "Elitní tanková buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Má štít s {{mechanics.shieldPoints}} HP který se regeneruje {{mechanics.shieldRegen}} HP/s."
+    },
+    "color": "#9E9E9E",
+    "rarity": "elite",
+    "icon": "elite.tank_cell",
+    "category": "elite",
+    "sortOrder": 510,
+    "tags": [
+      "elite",
+      "tank",
+      "armored",
+      "shield",
+      "heavy"
+    ]
+  }
+}

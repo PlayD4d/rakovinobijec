@@ -1,0 +1,47 @@
+{
+  "timestamp": "2025-08-12T06:18:15.628Z",
+  "status": "PASS_WITH_WARNINGS",
+  "duration": 4,
+  "metrics": {
+    "spawnTablesFound": 2,
+    "totalWaves": 24,
+    "estimatedSpawns": 62,
+    "uniqueEnemyTypes": 6,
+    "eliteWindows": 5,
+    "uniqueSpawns": 3,
+    "spawnsFromSpawnTables": 10,
+    "spawnsFromLegacy": 0,
+    "uniqueVFXReferences": 120,
+    "uniqueSFXReferences": 95,
+    "vfxCalls": 240,
+    "sfxCalls": 190,
+    "lootTablesFound": 7,
+    "totalDropTypes": 0,
+    "dropsFromLootTables": 3,
+    "legacyLootDrops": 0,
+    "enemiesAnalyzed": 9,
+    "averageEnemyHP": 39,
+    "estimatedTTK": {
+      "level1": 2585,
+      "level2": 2801,
+      "level3": 3102
+    },
+    "uptime": 60,
+    "systemsReady": true,
+    "modernSystemsActive": true
+  },
+  "validation": {
+    "legacySpawnsInactive": true,
+    "sufficientSpawnTableUsage": true,
+    "vfxSystemActive": true,
+    "sfxSystemActive": true,
+    "lootTablesActive": true,
+    "ttkLevel1": true,
+    "ttkLevel2": false,
+    "ttkLevel3": false,
+    "allSystemsGo": false,
+    "criticalSystemsGo": true
+  },
+  "errors": [],
+  "warnings": []
+}

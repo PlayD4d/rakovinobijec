@@ -1,0 +1,84 @@
+name: Data Audit CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  data-audit:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run data audit
+      run: npm run audit:data:strict
+
+    - name: Generate reports
+      if: always()
+      run: npm run audit:report
+
+    - name: Upload audit artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: data-audit-reports-node-${{ matrix.node-version }}
+        path: |
+          build/data_audit_report.json
+          build/data_audit_report.md
+          build/i18n_report.json
+          build/i18n_report.md
+        retention-days: 30
+
+    - name: Comment PR with audit results
+      if: github.event_name == 'pull_request' && matrix.node-version == '20.x'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          try {
+            const reportPath = path.join(process.cwd(), 'build', 'data_audit_report.json');
+            const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+            
+            const summary = `
+          ## 📊 Data Audit Results
+          
+          - **Files validated:** ${report.summary.validatedFiles}
+          - **Errors:** ${report.summary.totalErrors}
+          - **Warnings:** ${report.summary.totalWarnings}
+          - **Registry entries:** ${report.summary.registryEntries}
+          - **Missing translations:** ${report.summary.missingTranslations}
+          - **TODO translations:** ${report.summary.todoTranslations}
+          
+          ${report.summary.totalErrors > 0 ? '❌ **Audit failed with errors**' : '✅ **Audit passed**'}
+          
+          View detailed reports in the CI artifacts.
+          `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+          } catch (error) {
+            console.log('Could not read audit report:', error.message);
+          }

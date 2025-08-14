@@ -1,10 +1,25 @@
+/**
+ * AnalyticsManager - Správce analytických dat
+ * 
+ * PR7 kompatibilní - všechny konstanty z ConfigResolver
+ * Sbírá a odesílá herní data pro analýzu a vylepšení hry
+ */
+
+import { getCachedVersion } from '../utils/version.js';
+
 export class AnalyticsManager {
     constructor(supabase, settings = {}) {
         this.supabase = supabase;
-        this.enabled = settings.allowAnalytics !== false; // Default true
+        this.enabled = settings.allowAnalytics !== false && !!supabase; // Enabled only with valid supabase
         
         if (!this.enabled) {
-            console.log('📊 Analytics disabled by user settings');
+            console.log('📊 Analytics disabled', !supabase ? '(no Supabase)' : '(user settings)');
+            // Initialize minimal state for no-op mode
+            this.sessionId = this.generateSessionId();
+            this.sessionStartTime = Date.now();
+            this.sessionData = {};
+            this.eventQueue = [];
+            this.fpsHistory = [];
             return;
         }
         
@@ -18,13 +33,20 @@ export class AnalyticsManager {
             user_agent: navigator.userAgent,
             screen_width: screen.width,
             screen_height: screen.height,
-            game_version: (typeof window !== 'undefined' && window.__GAME_VERSION__) ? window.__GAME_VERSION__ : '0.1.4',
+            game_version: getCachedVersion(),
             connection_type: this.supabase ? 'supabase' : 'local'
         };
         
         // Event queue pro batch upload
         this.eventQueue = [];
-        this.flushInterval = 30000; // 30 sekund
+        
+        // PR7: Flag pro kontrolu, zda je session vytvořena
+        this.sessionCreated = false;
+        this.sessionCreationPending = false;
+        
+        // PR7: Získat interval z ConfigResolver
+        const CR = window.ConfigResolver;
+        this.flushInterval = CR?.get('analytics.flushInterval', { defaultValue: 30000 }) || 30000; // 30 sekund
         this.startFlushTimer();
         
         // Performance monitoring
@@ -32,14 +54,63 @@ export class AnalyticsManager {
         this.startPerformanceMonitoring();
         
         // Performance snapshots & diagnostics
-        this.performanceSnapshotIntervalMs = 60000; // 60s
+        this.performanceSnapshotIntervalMs = CR?.get('analytics.performanceSnapshotInterval', { defaultValue: 60000 }) || 60000; // 60s
         this.performanceSnapshotTimer = null;
         this.lastUploadLatencyMs = null;
         this.lastLowFpsIssueAt = 0;
-        this.lowFpsDebounceMs = 10000; // min 10s mezi low_fps eventy
+        this.lowFpsDebounceMs = CR?.get('analytics.lowFpsDebounce', { defaultValue: 10000 }) || 10000; // min 10s mezi low_fps eventy
         this.startPerformanceSnapshots();
         
         console.log('📊 Analytics initialized:', this.sessionId);
+        
+        // PR7: Okamžitě vytvořit session v databázi, aby enemy_stats měly foreign key
+        this.createInitialSession();
+    }
+    
+    /**
+     * Vytvoří počáteční session záznam v databázi
+     * PR7 kompatibilní - řeší foreign key constraint
+     */
+    async createInitialSession() {
+        if (!this.enabled || !this.supabase) return;
+        
+        if (this.sessionCreationPending || this.sessionCreated) return;
+        this.sessionCreationPending = true;
+        
+        try {
+            const initialData = {
+                session_id: this.sessionId,
+                player_name: this.sessionData.player_name,
+                browser: this.sessionData.browser,
+                user_agent: this.sessionData.user_agent,
+                screen_width: this.sessionData.screen_width,
+                screen_height: this.sessionData.screen_height,
+                game_version: this.sessionData.game_version,
+                connection_type: this.sessionData.connection_type,
+                started_at: new Date().toISOString(),
+                // Placeholder hodnoty - budou aktualizovány později
+                level_reached: 1,
+                enemies_killed: 0,
+                score: 0
+                // Poznámka: duration_seconds je GENERATED column v DB, nepotřebujeme ho posílat
+            };
+            
+            const { error } = await this.supabase
+                .from('game_sessions')
+                .insert([initialData]);
+                
+            if (error) {
+                console.warn('⚠️ Failed to create initial session:', error.message);
+                this.sessionCreationPending = false;
+            } else {
+                console.log('✅ Initial session created:', this.sessionId);
+                this.sessionCreated = true;
+                this.sessionCreationPending = false;
+            }
+        } catch (error) {
+            console.warn('⚠️ Failed to create initial session:', error.message);
+            this.sessionCreationPending = false;
+        }
     }
     
     generateSessionId() {
@@ -65,8 +136,12 @@ export class AnalyticsManager {
         
         console.log('📊 Starting session:', this.sessionId, 'for player:', playerName || 'anonymous');
         
-        // Sanitize player name (DB limit 12 chars)
-        this.sessionData.player_name = playerName ? String(playerName).substring(0, 12) : null;
+        // PR7: Získat limity z ConfigResolver
+        const CR = window.ConfigResolver;
+        const nameLimit = CR?.get('analytics.limits.playerName', { defaultValue: 12 }) || 12;
+        
+        // Sanitizace jména hráče (DB limit)
+        this.sessionData.player_name = playerName ? String(playerName).substring(0, nameLimit) : null;
         this.sessionData.started_at = new Date().toISOString();
         
         try {
@@ -303,6 +378,21 @@ export class AnalyticsManager {
             started_at: Date.now() // Interní tracking pro duration
         };
     }
+
+    // Logování boss akce/patternu (odlehčené)
+    trackBossAction(actionName, phaseIndex) {
+        if (!this.enabled || !this.currentBossEncounter) return;
+        try {
+            this.queueEvent('boss_encounters', {
+                session_id: this.sessionId,
+                boss_name: this.currentBossEncounter.boss_name,
+                event_type: 'action',
+                action_name: String(actionName || 'unknown'),
+                phase_index: Math.floor(Number(phaseIndex) || 0),
+                occurred_at: new Date().toISOString()
+            });
+        } catch (_) { /* no-op */ }
+    }
     
     trackBossDefeat(playerHP) {
         if (!this.enabled || !this.currentBossEncounter) return;
@@ -365,21 +455,26 @@ export class AnalyticsManager {
     trackPlayerDeath(cause, position, gameStats, context = {}) {
         if (!this.enabled) return;
         
+        // PR7: Null protection pro cause parameter
+        const safePosition = position || { x: 0, y: 0 };
+        const safeGameStats = gameStats || {};
+        const safeCause = cause || { type: 'unknown', damage: 0 };
+        
         const deathEvent = {
             session_id: this.sessionId,
             player_name: String(this.sessionData.player_name || 'anonymous'),
-            level: Math.floor(Number(gameStats.level) || 1),
-            score: Math.floor(Number(gameStats.score) || 0),
+            level: Math.floor(Number(safeGameStats.level) || 1),
+            score: Math.floor(Number(safeGameStats.score) || 0),
             survival_time: Math.floor((Date.now() - this.sessionStartTime) / 1000),
             
-            killer_type: String(cause.type || 'unknown'), // 'enemy:green', 'boss:metastaza', etc.
-            killer_damage: Math.floor(Number(cause.damage) || 0),
-            overkill_damage: Math.floor(Math.max(0, (Number(cause.damage) || 0) - (Number(context.playerHP) || 0))),
+            killer_type: String(safeCause.type || 'unknown'), // 'enemy:green', 'boss:metastaza', etc.
+            killer_damage: Math.floor(Number(safeCause.damage) || 0),
+            overkill_damage: Math.floor(Math.max(0, (Number(safeCause.damage) || 0) - (Number(context.playerHP) || 0))),
             
             player_hp_before: Math.floor(Number(context.playerHP) || 0),
             player_max_hp: Math.floor(Number(context.playerMaxHP) || 100),
-            position_x: Math.floor(Number(position.x) || 0),
-            position_y: Math.floor(Number(position.y) || 0),
+            position_x: Math.floor(Number(safePosition.x) || 0),
+            position_y: Math.floor(Number(safePosition.y) || 0),
             active_power_ups: context.activePowerUps || [],
             
             enemies_on_screen: Math.floor(Number(context.enemiesOnScreen) || 0),
@@ -387,15 +482,15 @@ export class AnalyticsManager {
             was_boss_fight: context.wasBossFight || false
         };
         
-        this.sessionData.death_cause = String(cause.type || 'unknown');
-        this.sessionData.death_position_x = Math.floor(Number(position.x) || 0);
-        this.sessionData.death_position_y = Math.floor(Number(position.y) || 0);
+        this.sessionData.death_cause = String(safeCause.type || 'unknown');
+        this.sessionData.death_position_x = Math.floor(Number(safePosition.x) || 0);
+        this.sessionData.death_position_y = Math.floor(Number(safePosition.y) || 0);
         
         this.queueEvent('death_events', deathEvent);
 
         // Increment enemy_stats.player_deaths_caused pro daný enemy type (mimo boss/projektil)
         try {
-            const killerType = String(cause.type || 'unknown');
+            const killerType = String(safeCause.type || 'unknown');
             const isBoss = killerType.startsWith('boss:');
             const isProjectile = killerType === 'projectile' || killerType.startsWith('projectile');
             if (!isBoss && !isProjectile && killerType !== 'unknown') {
@@ -526,6 +621,18 @@ export class AnalyticsManager {
             return;
         }
         
+        // PR7: Počkat na vytvoření session před odesláním eventů
+        if (!this.sessionCreated) {
+            if (!this.sessionCreationPending) {
+                await this.createInitialSession();
+            }
+            // Pokud stále není vytvořena, počkat na další flush
+            if (!this.sessionCreated) {
+                console.log('📊 Čekám na vytvoření session...');
+                return;
+            }
+        }
+        
         console.log(`📊 Flushing ${this.eventQueue.length} analytics events...`);
         
         // Group events by table (ignore if supabase is null)
@@ -628,6 +735,40 @@ export class AnalyticsManager {
     }
     
     // ===== PUBLIC API =====
+    
+    // Safe public method for external use (always available)
+    trackEvent(name, payload = {}) {
+        if (!this.enabled) return; // no-op when disabled
+        
+        try {
+            // Route to appropriate internal method based on event name
+            switch(name) {
+                case 'enemy_killed':
+                    if (payload.enemy_type) {
+                        this.trackEnemyKill(payload.enemy_type, payload.level || 1, payload.damage || 0);
+                    }
+                    break;
+                case 'enemy_spawned':
+                    if (payload.enemy_type) {
+                        this.trackEnemySpawn(payload.enemy_type, payload.level || 1);
+                    }
+                    break;
+                default:
+                    // Generic event (not implemented for now)
+                    break;
+            }
+        } catch (error) {
+            console.warn('[Analytics] Failed to track event:', name, error);
+        }
+    }
+    
+    // Safe flush method (always available)
+    flush() {
+        if (!this.enabled) return Promise.resolve(); // no-op when disabled
+        return this.flushEvents().catch(err => {
+            console.warn('[Analytics] Flush failed:', err);
+        });
+    }
     
     getSessionStats() {
         return {

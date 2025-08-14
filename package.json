@@ -1,20 +1,36 @@
 {
   "name": "rakovinobijec",
-  "version": "0.1.4",
+  "version": "0.3.1",
   "description": "Arcade-style top-down shooter hra pro podporu v boji proti rakovině",
   "main": "index.html",
   "scripts": {
     "serve": "python3 -m http.server 8000",
     "serve-alt": "npx serve .",
     "version": "echo $npm_package_version",
-    "changelog": "echo 'Changelog updated'"
+    "changelog": "echo 'Changelog updated'",
+    "audit:data": "node scripts/enhanced-data-audit.mjs",
+    "audit:data:strict": "node scripts/enhanced-data-audit.mjs --strict-i18n",
+    "audit:report": "node scripts/enhanced-data-audit.mjs --report-md",
+    "fix:i18n": "node scripts/fix-i18n.mjs",
+    "balance:test": "node scripts/balance-smoke.mjs",
+    "smoke:test": "node scripts/smoke-run.mjs",
+    "verify:all": "npm run audit:data:strict && npm run smoke:test",
+    "analyze:session": "node scripts/analyze-telemetry.mjs --mode=session",
+    "analyze:pattern": "node scripts/analyze-telemetry.mjs --mode=pattern",
+    "analyze:latest": "node scripts/analyze-telemetry.mjs --mode=latest",
+    "analyze:aggregate": "node scripts/analyze-telemetry.mjs --mode=pattern --aggregate",
+    "analyze:verbose": "node scripts/analyze-telemetry.mjs --mode=latest --verbose --html",
+    "compare:runs": "node scripts/compare-telemetry.mjs",
+    "validate:telemetry": "node scripts/validate-telemetry-analyzer.mjs",
+    "rebuild:index": "node scripts/rebuild-registry-index.mjs",
+    "postinstall": "simple-git-hooks"
   },
   "keywords": [
-    "game", 
-    "phaser", 
-    "javascript", 
-    "healthcare", 
-    "arcade", 
+    "game",
+    "phaser",
+    "javascript",
+    "healthcare",
+    "arcade",
     "shooter"
   ],
   "author": {
@@ -27,6 +43,19 @@
     "url": "https://github.com/PlayD4d/rakovinobijec.git"
   },
   "homepage": "https://playd4d.github.io/rakovinobijec/",
-  "devDependencies": {},
-  "dependencies": {}
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "json5": "^2.2.3",
+    "glob": "^10.3.0"
+  },
+  "devDependencies": {
+    "simple-git-hooks": "^2.9.0"
+  },
+  "optionalDependencies": {
+    "chart.js": "^3.9.1",
+    "chartjs-node-canvas": "^4.1.6"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npm run audit:data"
+  }
 }

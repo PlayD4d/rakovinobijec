@@ -1,0 +1,53 @@
+{
+  // Blueprint: powerup.damage_boost
+  "id": "powerup.damage_boost",
+  "type": "powerup",
+  "stats": {
+    "maxLevel": 10
+  },
+  "mechanics": {
+    "modifiersPerLevel": [
+      {
+        "path": "projectile.damage",
+        "type": "add",
+        "value": 5,
+        "description": "Increases projectile damage"
+      }
+    ],
+    "stackable": true,
+    "persistent": true,
+    "applyOnPickup": true,
+    "effectType": "damage_boost"
+  },
+  "vfx": {
+    "pickup": "vfx.powerup.pickup.damage",
+    "levelUp": "vfx.powerup.levelup"
+  },
+  "sfx": {
+    "pickup": "sfx.powerup.pickup",
+    "apply": "sfx.powerup.apply",
+    "levelUp": "sfx.powerup.levelup"
+  },
+  "display": {
+    "key": "powerup.damage_boost.name",
+    "descKey": "powerup.damage_boost.desc",
+    "devNameFallback": "💪 Zvýšené poškození",
+    "devDescFallback": "Zvyšuje poškození všech útoků",
+    "icon": "powerup_damage_boost",
+    "color": "#FF4444",
+    "rarity": "common",
+    "category": "offense",
+    "sortOrder": 210,
+    "tags": [
+      "powerup",
+      "damage",
+      "offense",
+      "passive"
+    ],
+    "templates": {
+      "short": "+{{mechanics.modifiersPerLevel.0.value}} poškození za level",
+      "long": "Zvyšuje poškození všech projektilů o {{mechanics.modifiersPerLevel.0.value}} za úroveň. Aktuálně max level {{stats.maxLevel}}."
+    },
+    "srKey": "sr.powerup.damage_boost"
+  }
+}

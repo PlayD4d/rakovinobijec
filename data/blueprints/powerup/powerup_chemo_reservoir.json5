@@ -1,0 +1,73 @@
+{
+  id: 'powerup.chemo_reservoir',
+  type: 'powerup',
+  stats: {
+    maxLevel: 4,
+  },
+  mechanics: {
+    modifiersPerLevel: [
+      {
+        path: 'projectile.explosionRadius',
+        type: 'mul',
+        value: 0.2,
+      },
+      {
+        path: 'projectile.explosionDamage',
+        type: 'mul',
+        value: 0.25,
+      },
+      {
+        path: 'abilities.chemo.frequency',
+        type: 'mul',
+        value: 0.15,
+      },
+      {
+        path: 'projectile.onHit.explosion',
+        type: 'enable',
+        value: true,
+      },
+    ],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    chemoCloudDuration: 6000,
+    chemoCloudDamage: 4,
+    chemoCloudRadius: 35,
+  },
+  vfx: {
+    pickup: 'vfx.powerup.pickup.chemo',
+    levelup: 'vfx.powerup.levelup',
+    apply: 'vfx.projectile.explosion.enhance',
+    chemoCloud: 'vfx.abilities.chemo.cloud',
+    explosion: 'vfx.explosion.chemo',
+  },
+  sfx: {
+    pickup: 'sfx.powerup.pickup.chemical',
+    levelup: 'sfx.powerup.levelup',
+    apply: 'sfx.abilities.chemo.activate',
+    explosion: 'sfx.explosion.chemical',
+  },
+  display: {
+    key: 'powerup.chemo_reservoir.name',
+    descKey: 'powerup.chemo_reservoir.desc',
+    templates: {
+      short: '+{{mechanics.modifiersPerLevel.0.value|percent}} radius exploze • +{{mechanics.modifiersPerLevel.1.value|percent}} DMG exploze • chemo mraky',
+      desc: 'Zvyšuje poloměr explozí o {{mechanics.modifiersPerLevel.0.value|percent}} a jejich poškození o {{mechanics.modifiersPerLevel.1.value|percent}}. Vytváří poškozující chemické mraky ({{mechanics.chemoCloudDamage}} DMG/s).',
+    },
+    color: '#4CAF50',
+    rarity: 'epic',
+    icon: 'powerup.chemo_reservoir',
+    category: 'ability',
+    sortOrder: 420,
+    tags: [
+      'powerup',
+      'explosion',
+      'aoe',
+      'chemical',
+      'cloud',
+      'dot',
+    ],
+    devNameFallback: 'Chemoterapeutický rezervoár',
+    devDescFallback: 'Zásobník chemikálií',
+  },
+}

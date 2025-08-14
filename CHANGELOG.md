@@ -7,6 +7,171 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-08-13
+
+### 🐛 Bug Fixes & Database Improvements
+
+Opravy kritických chyb v loot systému, analytice a databázové struktuře.
+
+#### Fixed
+- **Loot System**: Opraveno volání správné metody `getDropsForEnemy` místo neexistující `tryDropFor`
+- **XP Drops**: XP se nyní správně čte z blueprintů (`enemy.xp`, `enemy.data.xp`, `enemy.stats.xp`)
+- **PowerUpSystem**: Přidána podpora pro chybějící `piercing_arrows` effect type
+- **AnalyticsSystem**: Upraveno pro silent mode když chybí AnalyticsManager
+- **HOTFIX V3 Removal**: Odstraněny všechny fallback mechanismy, vše nyní čte z blueprintů
+
+#### Added  
+- **Database Schema**: Kompletní schéma s `duration_seconds` jako GENERATED column
+- **High Scores Table**: Přidána tabulka `high_scores` z původního `supabase_setup.sql`
+- **Loot Drop Methods**: Nové metody `spawnLootDrop`, `spawnHealthPickup`, `spawnMetotrexatPickup`
+- **Foreign Keys**: Všechny tabulky mají správné foreign key constraints s ON DELETE CASCADE
+
+#### Database
+- Vytvořen `schema_complete.sql` s kompletní databázovou strukturou
+- Přidány všechny chybějící sloupce a aliasy pro kompatibilitu
+- GENERATED column `duration_seconds` automaticky počítá délku hry
+- Správné indexy s `IF NOT EXISTS` pro všechny tabulky
+
+## [0.3.0] - 2025-08-12
+
+### 🏗️ PR7 Architecture Compliance & System Refactoring
+
+Kompletní refaktoring pro dosažení 100% PR7 (Pure Data-Driven) kompatibility.
+
+#### Added
+- **BlueprintLoader**: Centralizovaný systém načítání všech dat z /data/blueprints/
+- **Registry Index System**: Automatické generování indexu všech blueprintů
+- **Wrapper Systems**: InputSystem a CameraSystem pro abstrakci Phaser API
+- **ConfigResolver.initialize()**: Asynchronní načítání externích konfigurací
+- **AudioLoader**: Manifest systém pro zvukové soubory (JSON5)
+- **Smoke Test Framework**: Automatické testování herních mechanik
+
+#### Changed
+- **AudioManager**: Přechod z přímých Phaser API volání na SFXSystem
+- **LootSystemBootstrap**: Načítání z BlueprintLoader místo vlastních blueprintů
+- **Spawn Table Format**: Jednotný formát `spawnTable.XXX` pro všechny spawn tabulky
+- **Blueprint IDs**: Konzistentní pojmenování všech entit (enemy., boss., drop., atd.)
+- **ConfigResolver**: Přesun na statickou třídu s hierarchickým fallbackem
+- **Main.js**: Opraveno pořadí inicializace (ConfigResolver před Phaser)
+
+#### Fixed
+- AudioManager ReferenceError (duplicitní deklarace const CR)
+- ConfigResolver timing v AudioLoader
+- Drop blueprint validace (přidána povinná sekce stats)
+- LootTable validace (přidána povinná sekce stats)
+- SpawnDirector kompatibilita s novým formátem spawn tabulek
+- Registry index duplicity
+
+#### Technical Debt Resolved
+- ✅ Odstraněna všechna přímá Phaser API volání
+- ✅ 100% data-driven konfigurace
+- ✅ Jednotný formát blueprintů
+- ✅ Centralizované načítání dat
+- ✅ Kompletní PR7 compliance
+
+## [0.2.0] - 2025-08-12
+
+### 🎯 Major Balance & Data Consolidation Release
+
+This release represents a comprehensive game balance overhaul, data system consolidation, and preparation for 30-minute gameplay sessions.
+
+#### Added
+
+##### ⚖️ Balance System
+- **TTK (Time-to-Kill) Optimization**: Perfect tuning for 30-minute sessions
+  - Level 1: 2500ms target TTK ✅
+  - Level 2: 2000ms target TTK ✅ 
+  - Level 3: 1500ms target TTK ✅
+- **Balance Smoke Test**: Automated validation script (`scripts/balance-smoke.mjs`)
+- **Balance Playbook**: Comprehensive 30-minute gameplay balance framework
+- **Wave Pacing Analysis**: Optimized enemy spawn intervals and intensity curves
+
+##### 🎲 Pity System
+- **Anti-Frustration Mechanics**: Guarantees drops after dry spells
+  - XP drought protection (max 8 kills without XP)
+  - Health emergency system (guaranteed health at <50% HP)
+  - Power-up stagnation prevention (guaranteed after 80-120 kills)
+  - Elite spawn guarantee (max 3 minutes without elite)
+  - Unique encounter insurance (3-5 minute guarantees)
+  - Special drop guarantee (Metotrexat after 200 kills)
+
+##### 🔄 NG+ (New Game Plus) System
+- **Infinite Replayability**: 5+ tier progression system
+  - Tier 0: Base game (1.0× multipliers)
+  - Tier 1: Veteran (+25% challenge, +10% rewards)
+  - Tier 2: Expert (+60% challenge, +25% rewards)  
+  - Tier 3: Master (+100% challenge, +50% rewards)
+  - Tier 4+: Infinite scaling with smart caps
+- **Advanced Features**: Dual/triple boss encounters, elite variants, chaos waves
+- **ConfigResolver Integration**: Hierarchical difficulty scaling
+
+##### 📊 Data Consolidation
+- **JSON5 Blueprint System**: All entities now use unified blueprint schema
+- **Schema Validation**: JSON Schema Draft 07 with comprehensive validation
+- **Data Audit System**: 100% validation guarantee with exit codes
+- **Registry Generation**: Automated entity indexing and validation
+
+##### 🌍 Internationalization
+- **Complete I18n System**: Full Czech/English translations (72 keys)
+- **TODO Workflow**: Placeholder system for missing translations
+- **Medical Terminology**: Contextually appropriate cancer treatment themes
+
+##### 🛠️ Infrastructure
+- **CI/CD Pipeline**: Automated data validation on PRs
+- **Pre-commit Hooks**: Quality assurance before commits
+- **Enhanced Audit Script**: Comprehensive reporting with markdown output
+
+#### Fixed
+
+##### 🔧 Orphaned References
+- **enemy.viral_swarm**: Created missing base enemy blueprint (12 HP, 4 DMG)
+- **enemy.necrotic_cell**: Created missing base enemy blueprint (45 HP, 8 DMG)
+- **Reference Validation**: Achieved 0 orphaned references in audit
+
+##### 📝 Translation Completeness
+- **104 TODO Translations**: Replaced with proper Czech/English text
+- **Medical Accuracy**: Improved terminology consistency
+- **Coverage**: Achieved 100% translation coverage
+
+#### Changed
+
+##### 📁 File Structure Reorganization
+```
+data/
+├── blueprints/           # JSON5 entity definitions
+│   ├── boss/            # Boss enemies
+│   ├── enemy/           # Base enemies  
+│   ├── unique/          # Named unique enemies
+│   ├── powerup/         # Player upgrades
+│   ├── drop/            # Collectible items
+│   ├── projectile/      # Weapons & bullets
+│   ├── lootTable/       # Drop probability tables
+│   ├── spawn/           # Level spawn configurations
+│   └── system/          # Game systems (pity, NG+)
+├── schemas/             # JSON validation schemas
+├── registries/          # Auto-generated entity indexes
+└── i18n/               # Translation files
+```
+
+##### 📚 New Documentation
+- **Balance Playbook**: Complete 30-minute gameplay balance guide
+- **Entity Catalog**: Updated implementation status and features
+- **Data Folder Guide**: Blueprint structure and naming conventions  
+- **I18n Conventions**: Translation workflow and best practices
+
+#### Technical
+
+##### 🎮 Gameplay Optimization
+- **Spawn Rate Tuning**: Smooth difficulty progression curves
+- **Loot Distribution**: Balanced reward pacing for engagement
+- **TTK Consistency**: Eliminated frustrating difficulty spikes
+- **Validation Pipeline**: JSON Schema with automated CI/CD checks
+
+##### 🔒 Data Integrity
+- **Schema Enforcement**: Prevents invalid blueprint data
+- **Type Safety**: JSON5 with strict validation rules
+- **Audit Trail**: Comprehensive validation reporting
+
 ## [0.1.3] - 2025-01-10
 
 ### Added

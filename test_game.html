@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Test - Syntax Check</title>
+    <script>
+        // Console capture
+        const logs = [];
+        const errors = [];
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function() {
+            logs.push(Array.from(arguments).join(' '));
+            originalLog.apply(console, arguments);
+        };
+        
+        console.error = function() {
+            errors.push(Array.from(arguments).join(' '));
+            originalError.apply(console, arguments);
+        };
+        
+        window.addEventListener('error', function(e) {
+            errors.push(`${e.message} at ${e.filename}:${e.lineno}:${e.colno}`);
+        });
+        
+        // Report after 5 seconds
+        setTimeout(() => {
+            document.getElementById('report').innerHTML = `
+                <h2>Test Report</h2>
+                <h3>Errors (${errors.length}):</h3>
+                <pre>${errors.length > 0 ? errors.join('\n') : 'No errors detected!'}</pre>
+                <h3>First 10 logs:</h3>
+                <pre>${logs.slice(0, 10).join('\n')}</pre>
+            `;
+        }, 5000);
+    </script>
+</head>
+<body>
+    <h1>Game Syntax Test</h1>
+    <div id="report">Loading game files...</div>
+    
+    <!-- Load game files to check for syntax errors -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <script src="https://unpkg.com/json5@2.2.3/dist/index.min.js"></script>
+    
+    <script type="module">
+        // Test imports
+        try {
+            await import('./js/config.js');
+            await import('./js/entities/Player.js');
+            await import('./js/entities/Boss.js');
+            await import('./js/entities/Enemy.js');
+            await import('./js/scenes/GameScene.js');
+            await import('./js/scenes/MainMenu.js');
+            console.log('All modules loaded successfully!');
+        } catch (e) {
+            console.error('Module load error:', e);
+        }
+    </script>
+</body>
+</html>

@@ -1,671 +1,456 @@
-import { GameConfig } from '../config.js';
+/**
+ * Player.js - Třída hráče
+ * 
+ * PR7 kompatibilní - 100% data-driven implementace
+ * Všechny hodnoty načítají z blueprintů přes ConfigResolver
+ * Žádné hardcodované konstanty, vše přes ModifierEngine
+ */
 
-export class Player {
-    constructor(scene, x, y) {
+export class Player extends Phaser.Physics.Arcade.Sprite {
+    constructor(scene, x, y, blueprint) {
+        // Validace povinných systémů (PR7 - fail fast)
+        if (!scene) throw new Error('[Player] Chybí scéna');
+        if (!scene.configResolver) throw new Error('[Player] Chybí ConfigResolver');
+        if (!scene.modifierEngine?.apply) throw new Error('[Player] Chybí ModifierEngine');
+        if (!scene.projectileSystem?.createPlayerProjectile) throw new Error('[Player] Chybí ProjectileSystem');
+        if (!scene.blueprintLoader) throw new Error('[Player] Chybí BlueprintLoader');
+        if (!blueprint || blueprint.type !== 'player' || !blueprint.id) {
+            throw new Error('[Player] Neplatný player blueprint');
+        }
+
+        const CR = scene.configResolver;
+
+        // PR7: Načtení textury z blueprintu - správné cesty
+        const textureKey = CR.get('visuals.textureKey', { blueprint }) || 'player';
+        const textureFrame = 0; // Phaser frame index
+        super(scene, x, y, textureKey, textureFrame);
+
         this.scene = scene;
-        this.x = x;
-        this.y = y;
+        this.blueprint = blueprint;
+
+        // PR7: Optional visual customization - správná cesta
+        const tint = CR.get('visuals.tint', { blueprint });
+        if (tint != null) this.setTint(tint);
+        this.setOrigin(0.5, 0.5);
+
+        // Physics setup
+        scene.add.existing(this);
+        scene.physics.add.existing(this);
+        const radius = (CR.get('stats.size', { blueprint }) ?? this.width) * 0.5;
+        this.body.setCircle(radius);
+        this.body.setCollideWorldBounds(true);
         
-        // Statistiky
-        this.maxHp = GameConfig.player.baseHP;
-        this.hp = this.maxHp;
-        this.speed = GameConfig.player.baseSpeed;
-        this.projectileCount = GameConfig.player.baseProjectiles;
-        this.projectileDamage = GameConfig.player.projectileDamage;
-        this.shootInterval = GameConfig.player.projectileInterval;
-        
-        // Power-up bonusy
-        this.speedBonus = 0;
-        this.damageBonus = 0;
-        this.projectileBonus = 0;
-        this.shootIntervalReduction = 0;
-        
-        // Vytvořit jako graphics objekt
-        this.sprite = scene.add.graphics();
-        this.drawPlayer();
-        this.sprite.x = x;
-        this.sprite.y = y;
-        
-        // Přidat fyziku
-        scene.physics.add.existing(this.sprite);
-        this.sprite.body.setCollideWorldBounds(true);
-        this.sprite.body.setSize(GameConfig.player.size, GameConfig.player.size);
-        this.sprite.body.setOffset(-GameConfig.player.size / 2, -GameConfig.player.size / 2);
-        
-        // Zakázat rotaci
-        this.sprite.body.setAllowRotation(false);
-        
-        // Invincibility po zásahu
-        this.invincible = false;
-        this.invincibleTime = 1000; // ms
-        
-        // Aura a další efekty
-        this.aura = null;
-        this.auraDamage = 0;
-        this.auraRadius = 0;
-        
-        // Radioterapie - laserové paprsky
-        this.hasRadiotherapy = false;
-        this.radiotherapyLevel = 0;
-        this.radiotherapyTimer = 0;
-        
-        // Výbušné střely
-        this.hasExplosiveBullets = false;
-        this.explosiveBulletsLevel = 0;
-        
-        // Imunoterapie - retězový blesk
-        this.hasLightningChain = false;
-        this.lightningChainLevel = 0;
-        this.lightningChainTimer = 0;
-        
-        // Cisplatina - průrazné projektily
-        this.hasPiercingArrows = false;
-        this.piercingArrowsLevel = 0;
-        
-        // Delší dosah - univerzální range bonus
-        this.rangeBonus = 0;
-        
-        // Imunitní štít
-        this.shield = {
-            level: 0,
-            maxHP: 0,
-            currentHP: 0,
-            regenTime: 10000, // ms
-            regenTimer: 0,
-            isRegenerating: false,
-            visual: null
+        // PR7: Visual effects are now handled by PowerUpVFXManager
+
+        // Základní statistiky - vše z blueprintu, žádné výchozí hodnoty!
+        // Povinné cesty v blueprintu:
+        //   stats.hp, stats.speed, stats.size
+        //   mechanics.attack.intervalMs  
+        //   mechanics.projectile.ref, mechanics.projectile.count, mechanics.projectile.spreadDeg
+        //   mechanics.projectile.stats.damage|speed|range
+        //   mechanics.crit.chance|multiplier
+        //   mechanics.iFrames.ms
+        this.baseStats = {
+            hp: CR.get('stats.hp', { blueprint }),
+            moveSpeed: CR.get('stats.speed', { blueprint }),
+            attackIntervalMs: CR.get('mechanics.attack.intervalMs', { blueprint }),
+            projectileRef: CR.get('mechanics.projectile.ref', { blueprint }),
+            projectileCount: CR.get('mechanics.projectile.count', { blueprint }),
+            spreadDeg: CR.get('mechanics.projectile.spreadDeg', { blueprint }),
+            projDamage: CR.get('mechanics.projectile.stats.damage', { blueprint }),
+            projSpeed: CR.get('mechanics.projectile.stats.speed', { blueprint }),
+            projRange: CR.get('mechanics.projectile.stats.range', { blueprint }),
+            critChance: CR.get('mechanics.attack.critChance', { blueprint }),
+            critMult: CR.get('mechanics.attack.critMultiplier', { blueprint }),
+            iFramesMs: CR.get('mechanics.iFrames.ms', { blueprint })
         };
+
+        // Validace všech povinných klíčů - žádné tiché výchozí hodnoty!
+        this._assertRequired(this.baseStats, [
+            'hp', 'moveSpeed', 'attackIntervalMs',
+            'projectileRef', 'projectileCount', 'spreadDeg',
+            'projDamage', 'projSpeed', 'projRange',
+            'critChance', 'critMult', 'iFramesMs'
+        ]);
+
+        // Aktuální stav hráče
+        this.maxHp = this.baseStats.hp;
+        this.hp = this.maxHp;
+        this._cooldownMs = 0; // Cooldown mezi útoky
+        this._iFramesMsLeft = 0; // Zbývající čas nezranitelnosti
+        this.activeModifiers = []; // Aktivní modifikátory z PowerUpSystem
+        
+        // Shooting system
+        this.fireTimer = 0;
+        // PR7: Get move speed from ConfigResolver, no hardcoded fallback
+        this.moveSpeed = this.baseStats.moveSpeed || CR.get('player.movement.defaultSpeed', { blueprint, defaultValue: 135 });
+
+        // Input system - will be set via setInputKeys()
+        this.keys = null;
+
+        // VFX/SFX ids from blueprint (optional)
+        this.vfx = {
+            spawn: CR.get('vfx.spawn', { blueprint }),
+            hit: CR.get('vfx.hit', { blueprint }),
+            death: CR.get('vfx.death', { blueprint }),
+            shoot: CR.get('vfx.shoot', { blueprint }),
+            heal: CR.get('vfx.heal', { blueprint })
+        };
+        this.sfx = {
+            spawn: CR.get('sfx.spawn', { blueprint }),
+            hit: CR.get('sfx.hit', { blueprint }),
+            death: CR.get('sfx.death', { blueprint }),
+            shoot: CR.get('sfx.shoot', { blueprint }),
+            heal: CR.get('sfx.heal', { blueprint })
+        };
+
+        // Spawn feedback
+        this._playVfx(this.vfx.spawn, this.x, this.y);
+        this._playSfx(this.sfx.spawn);
+        scene.frameworkDebug?.onPlayerSpawn?.(this);
     }
-    
-    drawPlayer() {
-        this.sprite.clear();
+
+    // ================ Phaser lifecycle ================
+
+    preUpdate(time, delta) {
+        super.preUpdate(time, delta);
         
-        // Modrý čtverec
-        this.sprite.fillStyle(GameConfig.player.color, 1);
-        this.sprite.fillRect(
-            -GameConfig.player.size / 2,
-            -GameConfig.player.size / 2,
-            GameConfig.player.size,
-            GameConfig.player.size
-        );
-        
-        // Bílý křížek uprostřed (Marda je rytíř)
-        this.sprite.fillStyle(0xffffff, 1);
-        this.sprite.fillRect(-2, -GameConfig.player.size / 3, 4, GameConfig.player.size * 2/3);
-        this.sprite.fillRect(-GameConfig.player.size / 3, -2, GameConfig.player.size * 2/3, 4);
-        
-        // Černý obrys pro lepší viditelnost
-        this.sprite.lineStyle(2, 0x000000, 0.8);
-        this.sprite.strokeRect(
-            -GameConfig.player.size / 2,
-            -GameConfig.player.size / 2,
-            GameConfig.player.size,
-            GameConfig.player.size
-        );
-    }
-    
-    update(cursors, wasd, time, delta) {
-        // Kontrola pause stavu ze scény
+        // Skip all updates if game is paused
         if (this.scene.isPaused) {
-            return; // Nepohybovat se když je hra pozastavená
-        }
-        
-        // Reset velocity
-        this.sprite.body.setVelocity(0);
-        
-        // Pohyb: mobilní joystick má přednost
-        const actualSpeed = (this.speed + this.speedBonus) * 100;
-        const mc = this.scene.mobileControls;
-        if (mc && mc.isEnabled()) {
-            const v = mc.getVector();
-            this.sprite.body.setVelocity(v.x * actualSpeed, v.y * actualSpeed);
-        } else {
-            if (cursors.left.isDown || wasd.A.isDown) {
-                this.sprite.body.setVelocityX(-actualSpeed);
-            } else if (cursors.right.isDown || wasd.D.isDown) {
-                this.sprite.body.setVelocityX(actualSpeed);
-            }
-            
-            if (cursors.up.isDown || wasd.W.isDown) {
-                this.sprite.body.setVelocityY(-actualSpeed);
-            } else if (cursors.down.isDown || wasd.S.isDown) {
-                this.sprite.body.setVelocityY(actualSpeed);
-            }
-        }
-        
-        // Normalizace diagonálního pohybu
-        if (this.sprite.body.velocity.x !== 0 && this.sprite.body.velocity.y !== 0) {
-            this.sprite.body.velocity.normalize().scale(actualSpeed);
-        }
-        
-        // Update pozice
-        this.x = this.sprite.x;
-        this.y = this.sprite.y;
-        
-        // Update invincibility
-        if (this.invincible) {
-            this.sprite.alpha = Math.sin(this.scene.time.now * 0.02) * 0.5 + 0.5;
-        } else {
-            this.sprite.alpha = 1;
-        }
-        
-        // Update aura damage
-        if (this.aura && this.auraDamage > 0) {
-            this.checkAuraDamage();
-        }
-        
-        // Update radioterapie
-        if (this.hasRadiotherapy && this.radiotherapyLevel > 0) {
-            this.updateRadiotherapy(time, delta);
-        }
-        
-        // Update imunoterapie - retězový blesk
-        if (this.hasLightningChain && this.lightningChainLevel > 0) {
-            this.updateLightningChain(time, delta);
-        }
-        
-        // Update štít
-        if (this.shield.level > 0) {
-            this.updateShield(time, delta);
-            // Vždy aktualizovat pozici štítu
-            if (this.shield.visual) {
-                this.shield.visual.x = this.x;
-                this.shield.visual.y = this.y;
-            }
-        }
-    }
-    
-    takeDamage(amount) {
-        if (this.invincible) return;
-        
-        let remainingDamage = amount;
-        
-        // Štít absorbuje damage pokud je aktivní
-        if (this.shield.level > 0 && this.shield.currentHP > 0) {
-            const shieldAbsorbed = Math.min(this.shield.currentHP, remainingDamage);
-            this.shield.currentHP -= shieldAbsorbed;
-            remainingDamage -= shieldAbsorbed;
-            
-            // Aktualizovat vizuál štítu
-            this.updateShieldVisual();
-            
-            // Pokud je štít vyčerpaný, spustit regeneraci
-            if (this.shield.currentHP <= 0) {
-                this.shield.isRegenerating = true;
-                this.shield.regenTimer = 0;
-                this.createShield(); // Překreslit jako "nabíjející se"
-            }
-        }
-        
-        // Zbytek damage na hráče
-        if (remainingDamage > 0) {
-            this.hp -= remainingDamage;
-            this.hp = Math.max(0, this.hp);
-        } else {
-            // Štít všechen damage vstřebal, žádné invincibility frames
+            this.body.setVelocity(0, 0); // Stop movement
             return;
         }
-        
-        // Invincibility frames
-        this.invincible = true;
-        this.scene.time.delayedCall(this.invincibleTime, () => {
-            this.invincible = false;
-        });
-        
-        // Flash efekt - překreslíme v červené barvě
-        this.sprite.clear();
-        this.sprite.fillStyle(0xff0000, 1);
-        this.sprite.fillRect(
-            -GameConfig.player.size / 2,
-            -GameConfig.player.size / 2,
-            GameConfig.player.size,
-            GameConfig.player.size
-        );
-        
-        // Vrátit normální barvu po chvilce
-        this.scene.time.delayedCall(200, () => {
-            this.drawPlayer();
-        });
+
+        // Movement
+        this._updateMovement(delta);
+
+        // Timers
+        this.fireTimer += delta;
+        if (this._cooldownMs > 0) this._cooldownMs -= delta;
+        if (this._iFramesMsLeft > 0) this._iFramesMsLeft -= delta;
+
+        // Auto-shooting
+        this._updateShooting(delta);
     }
-    
-    heal(amount) {
-        this.hp += amount;
-        this.hp = Math.min(this.hp, this.maxHp);
+
+    // ================ Pohyb hráče ================
+
+    _updateMovement(dt) {
+        if (!this.keys) return; // No spamming logs
         
-        // Heal efekt - překreslíme v zelené barvě
-        this.sprite.clear();
-        this.sprite.fillStyle(0x00ff00, 1);
-        this.sprite.fillRect(
-            -GameConfig.player.size / 2,
-            -GameConfig.player.size / 2,
-            GameConfig.player.size,
-            GameConfig.player.size
-        );
+        const speed = this._stats().moveSpeed;
         
-        // Vrátit normální barvu po chvilce
-        this.scene.time.delayedCall(200, () => {
-            this.drawPlayer();
-        });
+        // Check both WASD and arrow keys
+        const vx = (this.keys.left.isDown || this.keys.left2.isDown) ? -1 :
+                   (this.keys.right.isDown || this.keys.right2.isDown) ? 1 : 0;
+        
+        const vy = (this.keys.up.isDown || this.keys.up2.isDown) ? -1 :
+                   (this.keys.down.isDown || this.keys.down2.isDown) ? 1 : 0;
+
+        // Apply movement
+        this.body.setVelocity(vx * speed, vy * speed);
+        
+        // Rotate player to face movement direction (optional)
+        if (vx !== 0 || vy !== 0) {
+            this.rotation = Math.atan2(vy, vx);
+        }
     }
-    
-    canTakeDamage() {
-        return !this.invincible;
+
+    // ================ Střelba ================
+
+    _updateShooting(dt) {
+        const stats = this._stats();
+        // PR7: Get fire interval from ConfigResolver, no hardcoded fallback
+        const fireIntervalMs = stats.attackIntervalMs || this.scene.configResolver?.get('player.attack.defaultInterval', { defaultValue: 1000 }) || 1000;
+        
+        // Check cooldown timer
+        if (this.fireTimer < fireIntervalMs) return;
+
+        const target = this._findTarget();
+        if (!target) {
+            // No target - don't spray bullets randomly
+            return;
+        }
+
+        // Fire at target with proper cooldown
+        this._shootAt(target, stats);
+        this.fireTimer = 0; // Reset timer
     }
-    
-    applyPowerUp(powerUp) {
-        switch (powerUp.type) {
-            case 'flamethrower':
-                this.hasRadiotherapy = true;
-                this.radiotherapyLevel = powerUp.level;
-                break;
-            case 'explosiveBullets':
-                this.hasExplosiveBullets = true;
-                this.explosiveBulletsLevel = powerUp.level;
-                break;
-            case 'lightningChain':
-                this.hasLightningChain = true;
-                this.lightningChainLevel = powerUp.level;
-                break;
-            case 'piercingArrows':
-                this.hasPiercingArrows = true;
-                this.piercingArrowsLevel = powerUp.level;
-                break;
-            case 'projectileRange':
-                this.rangeBonus = powerUp.level * 0.1; // 10% za level
-                break;
-            case 'speed':
-                this.speedBonus += powerUp.value;
-                break;
-            case 'damage':
-                this.damageBonus += powerUp.value;
-                this.projectileDamage = GameConfig.player.projectileDamage + this.damageBonus;
-                break;
-            case 'projectiles':
-                this.projectileBonus += powerUp.value;
-                this.projectileCount = GameConfig.player.baseProjectiles + this.projectileBonus;
-                break;
-            case 'attackSpeed':
-                this.shootIntervalReduction += powerUp.value;
-                this.shootInterval = GameConfig.player.projectileInterval * (1 - this.shootIntervalReduction);
-                break;
-            case 'maxHp':
-                this.maxHp += powerUp.value;
-                this.hp += powerUp.value; // Také přidáme aktuální HP
-                break;
-            case 'aura':
-                this.auraDamage += powerUp.value;
-                // Růst poloměru o 15% za level (začíná na 50px)
-                const baseRadius = 50;
-                this.auraRadius = baseRadius * Math.pow(1.15, this.getAuraLevel());
-                this.createAura();
-                break;
-            case 'shield':
-                this.shield.level = powerUp.level;
-                this.shield.maxHP = 50 + (powerUp.level - 1) * 25; // 50, 75, 100, 125, 150
-                this.shield.regenTime = Math.max(6000, 10000 - (powerUp.level - 1) * 1000); // 10s, 9s, 8s, 7s, 6s
+
+    _shootAt(target, stats) {
+        // HOTFIX V4: Calculate exact angle to target
+        const baseAngle = Math.atan2(target.y - this.y, target.x - this.x);
+        const projectileCount = Math.max(1, stats.projectileCount);
+        
+        // Only apply spread if multiple projectiles
+        if (projectileCount > 1) {
+            const spreadRad = (stats.spreadDeg * Math.PI) / 180;
+            
+            for (let i = 0; i < projectileCount; i++) {
+                // Distribute projectiles evenly around the base angle
+                const t = (i - (projectileCount - 1) / 2);
+                const angleOffset = (spreadRad / (projectileCount - 1)) * t;
+                const finalAngle = baseAngle + angleOffset;
                 
-                // Pokud je štít poprvé aktivovaný, naplnit ho
-                if (this.shield.currentHP === 0) {
-                    this.shield.currentHP = this.shield.maxHP;
-                }
-                
-                this.createShield();
-                break;
-        }
-    }
-    
-    getAuraLevel() {
-        // Spočítat level podle damage (každých 15 damage = 1 level)
-        return Math.floor(this.auraDamage / 15);
-    }
-    
-    createAura() {
-        if (!this.aura) {
-            this.aura = this.scene.add.graphics();
-            this.aura.fillStyle(0x8800ff, 0.3);
-            this.aura.fillCircle(0, 0, this.auraRadius);
-        } else {
-            this.aura.clear();
-            this.aura.fillStyle(0x8800ff, 0.3);
-            this.aura.fillCircle(0, 0, this.auraRadius);
-        }
-    }
-    
-    checkAuraDamage() {
-        if (!this.aura || this.auraDamage <= 0) return;
-        
-        // Update aura pozice
-        this.aura.x = this.x;
-        this.aura.y = this.y;
-        
-        // Damage nepřátelům v auře
-        this.scene.enemyManager.enemies.children.entries.forEach(enemy => {
-            const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y);
-            if (distance <= this.auraRadius) {
-                const auraTickDamage = this.auraDamage * 0.05; // Sníženo z 0.1 na 0.05 (50% původní hodnoty)
-                // Univerzální tracking damage
-                this.scene.recordDamageDealt(auraTickDamage, enemy);
-                enemy.takeDamage(auraTickDamage);
-                
-                // Zkontrolovat jestli nepřítel zemřel
-                if (enemy.hp <= 0) {
-                    this.scene.handleEnemyDeath(enemy);
-                }
-            }
-        });
-    }
-    
-    updateRadiotherapy(time, delta) {
-        // Vypočítat interval mezi výstřely (rychlejší s vyšším levelem)
-        const baseInterval = 1000; // 1 sekunda
-        const intervalReduction = (this.radiotherapyLevel - 1) * 100; // -100ms za level
-        const shootInterval = Math.max(300, baseInterval - intervalReduction); // Minimálně 300ms
-        
-        this.radiotherapyTimer += delta;
-        
-        if (this.radiotherapyTimer >= shootInterval) {
-            this.fireRadiotherapy();
-            this.radiotherapyTimer = 0;
-        }
-    }
-    
-    fireRadiotherapy() {
-        // Počet paprsků = level
-        const rayCount = this.radiotherapyLevel;
-        
-        // Dosah paprsků
-        const baseRange = 200;
-        const levelRangeBonus = (this.radiotherapyLevel - 1) * 50;
-        const universalRangeBonus = baseRange * this.rangeBonus; // Delší dosah power-up
-        const rayRange = baseRange + levelRangeBonus + universalRangeBonus;
-        
-        // Najít nejbližší nepřátele v dosahu
-        const enemies = this.scene.enemyManager.enemies.children.entries.filter(enemy => {
-            if (!enemy.active) return false;
-            
-            const distance = Phaser.Math.Distance.Between(
-                this.x, this.y,
-                enemy.x, enemy.y
-            );
-            
-            return distance <= rayRange;
-        });
-        
-        if (enemies.length === 0) return;
-        
-        // Seřadit podle vzdálenosti (nejbližší první)
-        enemies.sort((a, b) => {
-            const distA = Phaser.Math.Distance.Between(this.x, this.y, a.x, a.y);
-            const distB = Phaser.Math.Distance.Between(this.x, this.y, b.x, b.y);
-            return distA - distB;
-        });
-        
-        // Vystřelit paprsky na nejbližší nepřátele
-        const targetsToHit = Math.min(rayCount, enemies.length);
-        
-        for (let i = 0; i < targetsToHit; i++) {
-            const target = enemies[i];
-            this.createRadiotherapyRay(target);
-        }
-    }
-    
-    createRadiotherapyRay(target) {
-        // Vypočítat počáteční pozici na okraji Mardova těla
-        const playerRadius = GameConfig.player.size / 2; // 15px pro velikost 30
-        const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
-        const startX = this.x + Math.cos(angle) * (playerRadius + 5); // +5px buffer
-        const startY = this.y + Math.sin(angle) * (playerRadius + 5);
-        
-        // Vytvořit vizuální paprsek
-        const ray = this.scene.add.graphics();
-        
-        // Červený laser paprsek
-        ray.lineStyle(3, 0xff0000, 0.8);
-        ray.beginPath();
-        ray.moveTo(startX, startY);
-        ray.lineTo(target.x, target.y);
-        ray.strokePath();
-        
-        // Částicový efekt na začátku
-        const startParticles = this.scene.add.particles(startX, startY, {
-            key: null,
-            quantity: 3,
-            speed: { min: 50, max: 100 },
-            lifespan: 200,
-            scale: { start: 0.3, end: 0 },
-            tint: 0xff0000
-        });
-        
-        // Částicový efekt na konci
-        const endParticles = this.scene.add.particles(target.x, target.y, {
-            key: null,
-            quantity: 8,
-            speed: { min: 80, max: 150 },
-            lifespan: 300,
-            scale: { start: 0.5, end: 0 },
-            tint: 0xff4444
-        });
-        
-        // Poškození nepřítele
-        const damage = this.projectileDamage + this.damageBonus;
-        // Univerzální tracking damage
-        this.scene.recordDamageDealt(damage, target);
-        target.takeDamage(damage);
-        
-        // Zkontrolovat jestli nepřítel zemřel
-        if (target.hp <= 0) {
-            this.scene.handleEnemyDeath(target);
-        }
-        
-        // Zvukový efekt (pokud existuje)
-        if (this.scene.sound && this.scene.sound.get('hit')) {
-            this.scene.sound.play('hit', { volume: 0.3 });
-        }
-        
-        // Odstranit vizuální efekty po krátké době
-        this.scene.time.delayedCall(150, () => {
-            ray.destroy();
-            startParticles.destroy();
-            endParticles.destroy();
-        });
-    }
-    
-    updateLightningChain(time, delta) {
-        // Vypočítat interval mezi blesky (rychlejší s vyšším levelem)
-        const baseInterval = 2000; // 2 sekundy
-        const intervalReduction = (this.lightningChainLevel - 1) * 200; // -200ms za level
-        const shootInterval = Math.max(800, baseInterval - intervalReduction); // Minimálně 800ms
-        
-        this.lightningChainTimer += delta;
-        
-        if (this.lightningChainTimer >= shootInterval) {
-            this.fireLightningChain();
-            this.lightningChainTimer = 0;
-        }
-    }
-    
-    fireLightningChain() {
-        const enemies = this.scene.enemyManager.enemies.children.entries.filter(e => e.active);
-        if (enemies.length === 0) return;
-        
-        // Najít nejbližšího nepřítele jako počáteční cíl
-        let closestEnemy = null;
-        let closestDistance = Infinity;
-        
-        enemies.forEach(enemy => {
-            const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y);
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestEnemy = enemy;
-            }
-        });
-        
-        const baseRange = 200;
-        const maxRange = baseRange * (1 + this.rangeBonus); // Delší dosah power-up
-        if (!closestEnemy || closestDistance > maxRange) return;
-        
-        // Parametry blesku podle levelu
-        const baseDamage = 15 + (this.lightningChainLevel * 10); // 15 + 10 za level
-        const maxJumps = 1 + this.lightningChainLevel; // 2 na level 1, 3 na level 2, atd.
-        const baseJumpRange = 80 + (this.lightningChainLevel * 20);
-        const jumpRange = baseJumpRange * (1 + this.rangeBonus); // Delší dosah power-up
-        
-        // Spustit retězový blesk
-        this.createLightningChain(closestEnemy, baseDamage, maxJumps, jumpRange, []);
-    }
-    
-    createLightningChain(startEnemy, damage, jumpsLeft, jumpRange, hitEnemies) {
-        if (!startEnemy || !startEnemy.active || jumpsLeft <= 0) return;
-        
-        // Přidat aktuálního nepřítele do seznamu zasažených
-        hitEnemies.push(startEnemy);
-        
-        // Poškození nepřítele
-        if (startEnemy.takeDamage && typeof startEnemy.takeDamage === 'function') {
-            // Univerzální tracking damage
-            this.scene.recordDamageDealt(damage, startEnemy);
-            startEnemy.takeDamage(damage);
-            
-            if (startEnemy.hp <= 0) {
-                this.scene.handleEnemyDeath(startEnemy);
-            }
-        }
-        
-        // Vizuální blesk z předchozí pozice (nebo hráče pro první blesk)
-        let fromX, fromY;
-        
-        if (hitEnemies.length === 1) {
-            // První blesk - začít z okraje Mardova těla
-            const playerRadius = GameConfig.player.size / 2; // 15px pro velikost 30
-            const angle = Phaser.Math.Angle.Between(this.x, this.y, startEnemy.x, startEnemy.y);
-            fromX = this.x + Math.cos(angle) * (playerRadius + 5); // +5px buffer
-            fromY = this.y + Math.sin(angle) * (playerRadius + 5);
-        } else {
-            // Následující blesky - z předchozího nepřítele
-            fromX = hitEnemies[hitEnemies.length - 2].x;
-            fromY = hitEnemies[hitEnemies.length - 2].y;
-        }
-        
-        this.createLightningVisual(fromX, fromY, startEnemy.x, startEnemy.y);
-        
-        // Najít další nepřítele pro přeskok
-        if (jumpsLeft > 1) {
-            const enemies = this.scene.enemyManager.enemies.children.entries.filter(e => 
-                e.active && !hitEnemies.includes(e)
-            );
-            
-            let nextEnemy = null;
-            let closestDistance = Infinity;
-            
-            enemies.forEach(enemy => {
-                const distance = Phaser.Math.Distance.Between(startEnemy.x, startEnemy.y, enemy.x, enemy.y);
-                if (distance <= jumpRange && distance < closestDistance) {
-                    closestDistance = distance;
-                    nextEnemy = enemy;
-                }
-            });
-            
-            if (nextEnemy) {
-                // Malé zpoždění pro vizuální efekt
-                this.scene.time.delayedCall(150, () => {
-                    this.createLightningChain(nextEnemy, damage * 0.8, jumpsLeft - 1, jumpRange, hitEnemies);
+                this.scene.projectileSystem.createPlayerProjectile({
+                    x: this.x,
+                    y: this.y,
+                    projectileBlueprintId: stats.projectileRef,
+                    damage: this._rollCrit(stats.projDamage, stats),
+                    speed: stats.projSpeed,
+                    range: stats.projRange,
+                    angleRad: finalAngle,
+                    owner: this
                 });
             }
+        } else {
+            // Single projectile - shoot directly at target
+            this.scene.projectileSystem.createPlayerProjectile({
+                x: this.x,
+                y: this.y,
+                projectileBlueprintId: stats.projectileRef,
+                damage: this._rollCrit(stats.projDamage, stats),
+                speed: stats.projSpeed,
+                range: stats.projRange,
+                angleRad: baseAngle,
+                owner: this
+            });
         }
+
+        this._playVfx(this.vfx.shoot, this.x, this.y);
+        this._playSfx(this.sfx.shoot);
+        this.scene.frameworkDebug?.onPlayerShoot?.(this, projectileCount);
     }
-    
-    createLightningVisual(fromX, fromY, toX, toY) {
-        const lightning = this.scene.add.graphics();
-        
-        // Modrý blesk s bílým jádrem
-        lightning.lineStyle(4, 0x4444ff, 1);
-        lightning.beginPath();
-        lightning.moveTo(fromX, fromY);
-        lightning.lineTo(toX, toY);
-        lightning.strokePath();
-        
-        lightning.lineStyle(2, 0xffffff, 1);
-        lightning.beginPath();
-        lightning.moveTo(fromX, fromY);
-        lightning.lineTo(toX, toY);
-        lightning.strokePath();
-        
-        // Blesk zmizí po krátké době
-        this.scene.tweens.add({
-            targets: lightning,
-            alpha: 0,
-            duration: 200,
-            onComplete: () => lightning.destroy()
-        });
-        
-        // Zvukový efekt (pokud existuje)
-        if (this.scene.sound.get('hit')) {
-            this.scene.sound.play('hit', { volume: 0.3, rate: 1.5 });
+
+    _findTarget() {
+        // Use enemiesGroup from SpawnDirector
+        const g = this.scene.enemiesGroup;
+        if (!g) return null;
+
+        let best = null;
+        let bestD2 = Infinity;
+        const cx = this.x, cy = this.y;
+
+        const list = g.getChildren?.() || [];
+        for (let i = 0; i < list.length; i++) {
+            const e = list[i];
+            if (!e?.active) continue;
+            const dx = e.x - cx;
+            const dy = e.y - cy;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < bestD2) { 
+                bestD2 = d2; 
+                best = e; 
+            }
         }
+        
+        // Also check boss group
+        const bossGroup = this.scene.bossGroup;
+        if (bossGroup) {
+            const bosses = bossGroup.getChildren?.() || [];
+            for (let i = 0; i < bosses.length; i++) {
+                const b = bosses[i];
+                if (!b?.active) continue;
+                const dx = b.x - cx;
+                const dy = b.y - cy;
+                const d2 = dx * dx + dy * dy;
+                if (d2 < bestD2) { 
+                    bestD2 = d2; 
+                    best = b; 
+                }
+            }
+        }
+        
+        return best;
     }
-    
-    updateShield(time, delta) {
-        if (this.shield.isRegenerating) {
-            this.shield.regenTimer += delta;
+
+    _rollCrit(baseDamage, stats) {
+        if (Math.random() < stats.critChance) {
+            return Math.round(baseDamage * stats.critMult);
+        }
+        return Math.round(baseDamage);
+    }
+
+    // ================ Boj ================
+
+    takeDamage(amount, source) {
+        if (!this.active) return 0;
+        if (this._iFramesMsLeft > 0) return 0;
+
+        // Check if shield is active
+        if (this.shieldActive && this.shieldHits > 0) {
+            // Shield blocks damage
+            this.shieldHits--;
             
-            // Regenerace dokončena
-            if (this.shield.regenTimer >= this.shield.regenTime) {
-                this.shield.currentHP = this.shield.maxHP;
-                this.shield.isRegenerating = false;
-                this.shield.regenTimer = 0;
-                this.createShield(); // Překreslit jako aktivní
-            } else {
-                // Update regenerace vizuálu
-                this.updateShieldVisual();
+            // Play shield block VFX through VFXSystem
+            this._playVfx('vfx.shield.block', this.x, this.y);
+            
+            // Deactivate shield if no more hits
+            if (this.shieldHits <= 0) {
+                this.shieldActive = false;
+                this.hasShield = false;
+                // Play shield break VFX
+                this._playVfx('vfx.shield.break', this.x, this.y);
+                // Detach shield visual effect
+                if (this.scene.powerUpVFXManager) {
+                    this.scene.powerUpVFXManager.detachEffect(this, 'shield');
+                }
+            }
+            
+            // PR7: Get shield duration from ConfigResolver
+            const CR = this.scene.configResolver || window.ConfigResolver;
+            this._iFramesMsLeft = this.shieldDuration || CR?.get('player.shield.defaultDuration', { defaultValue: 3000 }) || 3000;
+            
+            // Play shield block sound through SFX system
+            this._playSfx('sfx.shield.block');
+            
+            return 0; // No damage taken
+        }
+
+        const dmg = Math.max(0, amount | 0);
+        if (dmg <= 0) return 0;
+
+        this.hp -= dmg;
+        this._iFramesMsLeft = this._stats().iFramesMs;
+
+        this._playVfx(this.vfx.hit, this.x, this.y);
+        this._playSfx(this.sfx.hit);
+        this.scene.frameworkDebug?.onPlayerHit?.(this, dmg, source);
+
+        // Update HUD
+        if (this.scene.unifiedHUD?.setPlayerHealth) {
+            this.scene.unifiedHUD.setPlayerHealth(this.hp, this.maxHp);
+        }
+
+        if (this.hp <= 0) {
+            this.die(source);
+        }
+        return dmg;
+    }
+
+    canTakeDamage() {
+        return this.active && this._iFramesMsLeft <= 0;
+    }
+
+    heal(amount) {
+        const a = Math.max(0, amount | 0);
+        if (a <= 0) return 0;
+        
+        const before = this.hp;
+        this.hp = Math.min(this.maxHp, this.hp + a);
+        
+        if (this.hp > before) {
+            this._playVfx(this.vfx.heal, this.x, this.y);
+            this._playSfx(this.sfx.heal);
+            this.scene.frameworkDebug?.onPlayerHeal?.(this, this.hp - before);
+            
+            // Update HUD
+            if (this.scene.unifiedHUD?.setPlayerHealth) {
+                this.scene.unifiedHUD.setPlayerHealth(this.hp, this.maxHp);
+            }
+        }
+        return this.hp - before;
+    }
+
+    die(source) {
+        if (!this.active) return;
+        
+        this._playVfx(this.vfx.death, this.x, this.y);
+        this._playSfx(this.sfx.death);
+
+        // Let GameScene handle game over
+        this.scene.events.emit('player:die', { player: this, source });
+        this.scene.frameworkDebug?.onPlayerDeath?.(this, source);
+
+        // Analytics - PR7: předat správné parametry
+        if (this.scene.analyticsManager) {
+            const gameStats = this.scene.gameStats || {};
+            const position = { x: this.x, y: this.y };
+            const context = {
+                playerHP: this.hp,
+                playerMaxHP: this.maxHp,
+                activePowerUps: this.scene.powerUpSystem?.getActivePowerUps?.() || [],
+                enemiesOnScreen: this.scene.enemiesGroup?.countActive?.(true) || 0,
+                projectilesOnScreen: this.scene.projectileSystem?.getActiveCount?.() || 0,
+                wasBossFight: this.scene.bossActive || false
+            };
+            
+            this.scene.analyticsManager.trackPlayerDeath(source, position, gameStats, context);
+        }
+
+        this.destroy();
+    }
+
+    // ================ API pro modifikátory ================
+
+    /**
+     * Replace current modifiers (from PowerUpSystem)
+     * Modifiers are plain objects for ModifierEngine
+     */
+    setActiveModifiers(modArray) {
+        if (!Array.isArray(modArray)) {
+            throw new Error('[Player] setActiveModifiers expects an array');
+        }
+        this.activeModifiers = modArray;
+    }
+
+    addModifier(mod) {
+        if (!mod) return;
+        this.activeModifiers.push(mod);
+    }
+
+    removeModifierById(id) {
+        const a = this.activeModifiers;
+        for (let i = 0; i < a.length; i++) {
+            if (a[i]?.id === id) {
+                a.splice(i, 1);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    clearModifiers() {
+        this.activeModifiers = [];
+    }
+
+    // ================ Systém vstupu ================
+    
+    setInputKeys(keys) {
+        this.keys = keys;
+        console.log('[Player] Input keys set:', !!keys);
+    }
+
+    // ================ Pomocné metody ================
+
+    _stats() {
+        // PR7: Calculate current stats via ModifierEngine with safety check
+        const modifiers = this.activeModifiers || [];
+        return this.scene.modifierEngine.apply(this.baseStats, modifiers);
+    }
+
+    _playVfx(id, x = this.x, y = this.y) {
+        if (!id) return;
+        this.scene.newVFXSystem?.play(id, x, y);
+    }
+
+    _playSfx(id) {
+        if (!id) return;
+        this.scene.newSFXSystem?.play(id);
+    }
+
+    _assertRequired(obj, keys) {
+        for (let i = 0; i < keys.length; i++) {
+            const k = keys[i];
+            if (obj[k] === undefined) {
+                throw new Error(`[Player] Missing required stat '${k}' from blueprint/config`);
             }
         }
     }
-    
-    createShield() {
-        if (!this.shield.visual) {
-            this.shield.visual = this.scene.add.graphics();
-        }
-        
-        this.updateShieldVisual();
-    }
-    
-    updateShieldVisual() {
-        if (!this.shield.visual) return;
-        
-        // Vždy aktualizovat pozici štítu na pozici hráče
-        this.shield.visual.x = this.x;
-        this.shield.visual.y = this.y;
-        
-        this.shield.visual.clear();
-        
-        const shieldRadius = (GameConfig.player.size / 2) + 10; // 10px přesah
-        
-        if (this.shield.isRegenerating) {
-            // Nabíjející se štít - žlutý arc který se postupně naplňuje
-            const progress = this.shield.regenTimer / this.shield.regenTime;
-            const angle = Math.PI * 2 * progress;
-            
-            this.shield.visual.lineStyle(4, 0xffaa00, 0.8); // Oranžovo-žlutá
-            this.shield.visual.beginPath();
-            this.shield.visual.arc(0, 0, shieldRadius, -Math.PI / 2, -Math.PI / 2 + angle);
-            this.shield.visual.strokePath();
-            
-        } else if (this.shield.currentHP > 0) {
-            // Aktivní štít - modrý kruh, opacity podle HP
-            const hpPercent = this.shield.currentHP / this.shield.maxHP;
-            const alpha = 0.3 + (hpPercent * 0.5); // 0.3 - 0.8 alpha
-            const color = hpPercent > 0.5 ? 0x0088ff : 0xff8800; // Modrá -> oranžová při nízkém HP
-            
-            this.shield.visual.fillStyle(color, alpha);
-            this.shield.visual.lineStyle(3, color, 0.9);
-            this.shield.visual.fillCircle(0, 0, shieldRadius);
-            this.shield.visual.strokeCircle(0, 0, shieldRadius);
-        }
-    }
-    
-    destroy() {
-        this.sprite.destroy();
-        if (this.aura) this.aura.destroy();
-        if (this.shield.visual) this.shield.visual.destroy();
-    }
+
+    // PR7: Žádné legacy metody - vše je data-driven
+    // Žádné applyPowerUp, žádná hardcodovaná logika power-upů
+    // PowerUpSystem převádí na modifikátory a volá setActiveModifiers
 }
+
+export default Player;

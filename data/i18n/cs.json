@@ -1,0 +1,292 @@
+{
+  "boss": {
+    "chemorezistence": {
+      "desc": "Boss odolný vůči chemoterapii",
+      "name": "Chemorezistence"
+    },
+    "genova_mutace": {
+      "desc": "Boss způsobující genetické změny",
+      "name": "Génová mutace"
+    },
+    "karcinogenni_kral": {
+      "desc": "Mocný vládce rakovinových buněk",
+      "name": "Karcinogenní král"
+    },
+    "metastaza": {
+      "desc": "Nebezpečný boss schopný šířit rakovinu",
+      "name": "Metastáza"
+    },
+    "onkogen": {
+      "desc": "Mutagenní boss měnící DNA",
+      "name": "Onkogenní mutace"
+    },
+    "onkogen_prime": {
+      "desc": "Vylepšená verze onkogenu s pokročilými mutačními schopnostmi",
+      "name": "Onkogen Prime"
+    },
+    "radiation": {
+      "desc": "Boss způsobující radiační poškození",
+      "name": "Radiační syndrom"
+    },
+    "radiation_core": {
+      "desc": "Koncentrovaný zdroj radiace způsobující masivní poškození",
+      "name": "Radiační jádro"
+    }
+  },
+  "drop": {
+    "adrenal_surge": {
+      "desc": "Poskytuje dočasné zvýšení všech schopností",
+      "name": "Adrenalínový nával"
+    },
+    "energy_cell": {
+      "desc": "Obnovuje energii pro speciální schopnosti",
+      "name": "Energetická buňka"
+    },
+    "heal_orb": {
+      "desc": "Obnovuje větší množství zdraví",
+      "name": "Regenerační orb"
+    },
+    "health": {
+      "desc": "Obnovuje zdraví hráče",
+      "name": "Lék"
+    },
+    "health_small": {
+      "desc": "Obnovuje malé množství zdraví",
+      "name": "Malá regenerace"
+    },
+    "metotrexat": {
+      "desc": "Speciální lék eliminující všechny nepřátele",
+      "name": "Metotrexát"
+    },
+    "protein_cache": {
+      "desc": "Koncentrovaný protein poskytující velké množství XP",
+      "name": "Proteinová zásoba"
+    },
+    "research_point": {
+      "desc": "Bod výzkumu pro odemčení nových schopností",
+      "name": "Výzkumný bod"
+    },
+    "xp": {
+      "desc": "Zvyšuje zkušenosti hráče",
+      "name": "Zkušenostní bod"
+    },
+    "xp_large": {
+      "desc": "Velké množství zkušeností",
+      "name": "Velké XP"
+    },
+    "xp_medium": {
+      "desc": "Střední množství zkušeností",
+      "name": "Střední XP"
+    },
+    "xp_orb": {
+      "desc": "Základní zkušenostní orb",
+      "name": "XP orb"
+    },
+    "xp_small": {
+      "desc": "Základní jednotka zkušenosti pro rozvoj",
+      "name": "Malé XP"
+    }
+  },
+  "enemy": {
+    "aberrant_cell": {
+      "desc": "Elitní buňka s narušenou strukturou a vysokou odolností",
+      "name": "Aberantní buňka"
+    },
+    "acidic_blob": {
+      "desc": "Korozivní masa způsobující chemické poškození",
+      "name": "Kyselý útvar"
+    },
+    "basic_cell": {
+      "desc": "Nejjednodušší typ rakovinové buňky",
+      "name": "Základní buňka"
+    },
+    "brown_shooter": {
+      "desc": "Střílí projektily na vzdálené cíle",
+      "name": "Nekrotická tkáň"
+    },
+    "green_heavy": {
+      "desc": "Pomalá ale odolná rakovinová buňka",
+      "name": "Těžká buňka"
+    },
+    "metastasis_runner": {
+      "desc": "Rychlá buňka šířící rakovinu na velké vzdálenosti",
+      "name": "Metastázní běžec"
+    },
+    "micro_shooter": {
+      "desc": "Malá buňka útočící přesnými projektily na dálku",
+      "name": "Mikro střelec"
+    },
+    "micro_shooter_enhanced": {
+      "desc": "Vylepšený mikro střelec s duálním projektilním útokem",
+      "name": "Mikro střelec vylepšený"
+    },
+    "necrotic_cell": {
+      "desc": "Odumírající buňka s toxickým dotykem",
+      "name": "Nekrotická buňka"
+    },
+    "orange_tumor": {
+      "desc": "Rychlá a agresivní rakovinová buňka",
+      "name": "Nádorová buňka"
+    },
+    "purple_support": {
+      "desc": "Podporuje okolní buňky svými schopnostmi",
+      "name": "Onkogen"
+    },
+    "shielding_helper": {
+      "desc": "Podpůrná buňka poskytující štíty okolním nepřátelům",
+      "name": "Ochranný pomocník"
+    },
+    "viral_swarm": {
+      "desc": "Rychlý virový organismus útočící ve skupinách",
+      "name": "Virový roj"
+    },
+    "viral_swarm_alpha": {
+      "desc": "Vylepšená verze virového roje s vyšší rychlostí",
+      "name": "Virový roj Alfa"
+    }
+  },
+  "player": {
+    "default": {
+      "desc": "Hlavní postava bojující proti rakovinovým buňkám",
+      "name": "Mard"
+    }
+  },
+  "powerup": {
+    "attack_speed": {
+      "desc": "Snižuje interval mezi útoky",
+      "name": "Rychlost střelby"
+    },
+    "aura": {
+      "desc": "Kontinuální poškození v okolí",
+      "name": "Toxické pole"
+    },
+    "chemo_reservoir": {
+      "desc": "Zásobník léčivých chemikálií pro trvalé účinky",
+      "name": "Chemoterapeutický rezervoár"
+    },
+    "damage_boost": {
+      "desc": "Zvyšuje poškození všech útoků",
+      "name": "Zvýšené poškození"
+    },
+    "explosive_bullets": {
+      "desc": "Projektily explodují při zásahu",
+      "name": "Protonové dělo"
+    },
+    "flamethrower": {
+      "desc": "Laserové paprsky na nejbližší nepřátele",
+      "name": "Radioterapie"
+    },
+    "lightning_chain": {
+      "desc": "Řetězové blesky mezi nepřáteli",
+      "name": "Imunoterapie"
+    },
+    "max_hp": {
+      "desc": "Zvyšuje maximální počet životů",
+      "name": "Zvýšená vitalita"
+    },
+    "metabolic_haste": {
+      "desc": "Zrychluje metabolické procesy pro vyšší rychlost",
+      "name": "Metabolický spěch"
+    },
+    "piercing_arrows": {
+      "desc": "Projektily pronikají skrz nepřátele",
+      "name": "Cisplatina"
+    },
+    "projectile_count": {
+      "desc": "Střílí více projektilů najednou",
+      "name": "Více projektilů"
+    },
+    "projectile_range": {
+      "desc": "Zvyšuje dosah všech útoků",
+      "name": "Zvýšený dosah"
+    },
+    "shield": {
+      "desc": "Absorbuje příchozí poškození",
+      "name": "Imunitní systém"
+    },
+    "speed_boots": {
+      "desc": "Zvyšuje rychlost pohybu",
+      "name": "Metabolický urychlovač"
+    },
+    "xp_magnet": {
+      "desc": "Automaticky sbírá XP z větší vzdálenosti",
+      "name": "XP Magnet"
+    }
+  },
+  "projectile": {
+    "basic": {
+      "desc": "Standardní projektil",
+      "name": "Základní projektil"
+    },
+    "cytotoxin": {
+      "desc": "Jedovatý projektil poškozující buněčnou strukturu",
+      "name": "Cytotoxin"
+    },
+    "homing": {
+      "desc": "Projektil který sleduje cíl",
+      "name": "Naváděný projektil"
+    }
+  },
+  "sr": {
+    "boss": {
+      "chemorezistence": "Chemoresistentní boss odolný vůči léčbě s více fázemi útoku",
+      "genova_mutace": "Geneticky mutující boss měnící DNA struktuře během boje",
+      "karcinogenni_kral": "Mocný karcinogenní král vládnoucí rakovinovým buňkám",
+      "onkogen": "Onkogenní mutace způsobující změny v genetickém kódu",
+      "radiation": "Radiační syndrome způsobující kontinuální poškození zářením"
+    },
+    "powerup": {
+      "damage_boost": "Zvýšení poškození všech útoků pro efektivnější boj",
+      "explosive_bullets": "Protonové dělo - střely explodují při zásahu způsobujíce poškození v oblasti",
+      "flamethrower": "Radioterapeutické paprsky cílené na nejbližší nepřátele",
+      "piercing_arrows": "Cisplatinové projektily pronikající skrz více nepřátel",
+      "shield": "Imunitní systémový štít absorbující příchozí poškození"
+    },
+    "projectile": {
+      "basic": "Základní projektil pro standardní útočné manévry"
+    }
+  },
+  "ui": {
+    "armor": "Armor",
+    "common": {
+      "damage": "Poškození",
+      "health": "Zdraví",
+      "level": "Level",
+      "range": "Dosah",
+      "speed": "Rychlost"
+    },
+    "crit": "Krit",
+    "damage": "Poškození",
+    "dps": "DPS",
+    "health": "Zdraví",
+    "interval": "Interval",
+    "maxLevel": "Max Level",
+    "mult": "Násobič",
+    "range": "Dosah",
+    "speed": "Rychlost",
+    "value": "Hodnota",
+    "xp": "XP"
+  },
+  "unique": {
+    "chromoblast": {
+      "desc": "Časově manipulativní entita s leukemickými výbuchy",
+      "name": "Chromoblast"
+    },
+    "mutagen_splicer": {
+      "desc": "Adaptivní nepřítel měnící své schopnosti během boje",
+      "name": "Mutagenní štěpič"
+    },
+    "necrocyte_sentinel": {
+      "desc": "Nekrotický strážce s aurou rozkladu a vyvolávačské schopnosti",
+      "name": "Nekrocyt strážce"
+    },
+    "phage_overlord": {
+      "desc": "Dominantní entita šířící virové infekce projektily",
+      "name": "Fágový overlord"
+    },
+    "radiomorph_titan": {
+      "desc": "Obří radiační mutant s fázovým posouváním",
+      "name": "Radiomorfní titan"
+    }
+  }
+}

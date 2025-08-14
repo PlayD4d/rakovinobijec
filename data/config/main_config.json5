@@ -1,0 +1,215 @@
+{
+  // Hlavní konfigurační soubor - PR7 kompatibilní
+  // ConfigResolver načte tento soubor pomocí initialize()
+  
+  // Herní konfigurace
+  game: {
+    version: "0.3.0",
+    title: "Rakovinobijec",
+    defaultLevel: 1,
+    maxLevel: 20,
+    baseResolution: {
+      width: 1280,
+      height: 720
+    }
+  },
+  
+  // Vrstvy pro správné řazení objektů
+  layers: {
+    background: 0,
+    groundEffects: 5,
+    items: 10,
+    enemies: 20,
+    player: 30,
+    projectiles: 40,
+    ui: 50,
+    overlays: 60
+  },
+  
+  // Debug nastavení
+  debug: {
+    enabled: false,
+    showFPS: false,
+    showCollisions: false,
+    showSpawnInfo: false,
+    spawnLogging: false,
+    performanceTracking: false,
+    lootTables: false,
+    vfxDebug: false,
+    sfxDebug: false
+  },
+  
+  // Výkonnostní nastavení
+  performance: {
+    maxEnemies: 100,
+    maxProjectiles: 200,
+    maxParticles: 500,
+    maxDrops: 50,
+    cullDistance: 1500,
+    updateRate: 60
+  },
+  
+  // PR7: Progression system configuration
+  progression: {
+    xp: {
+      baseRequirement: 10,
+      scalingMultiplier: 1.25,
+      maxLevel: 20
+    }
+  },
+  
+  // Herní mechaniky
+  mechanics: {
+    // XP a levelování (legacy, používej progression.xp)
+    xp: {
+      baseRequired: 10,
+      growthFactor: 1.5,
+      maxLevel: 20
+    },
+    
+    // Zdraví hráče
+    health: {
+      base: 100,
+      perLevel: 10,
+      regenRate: 0,
+      regenDelay: 5000
+    },
+    
+    // Damage scaling
+    damage: {
+      baseMultiplier: 1.0,
+      perLevel: 0.1,
+      critChance: 0.05,
+      critMultiplier: 2.0
+    },
+    
+    // Movement
+    movement: {
+      baseSpeed: 160,
+      sprintMultiplier: 1.5,
+      dashCooldown: 2000,
+      dashDistance: 100
+    }
+  },
+  
+  // UI konfigurace
+  ui: {
+    // HP bar
+    hpBar: {
+      width: 80,
+      height: 8,
+      offsetY: -40,
+      colors: {
+        background: 0x000000,
+        border: 0x444444,
+        fill: 0x00ff00,
+        low: 0xff0000,
+        medium: 0xffff00
+      }
+    },
+    
+    // XP bar  
+    xpBar: {
+      width: 60,
+      height: 6,
+      offsetY: -50,
+      colors: {
+        background: 0x000000,
+        border: 0x444444,
+        fill: 0x00ffff
+      }
+    },
+    
+    // Damage numbers
+    damageNumbers: {
+      fontSize: 18,
+      duration: 1000,
+      riseSpeed: 50,
+      fadeStart: 0.7,
+      colors: {
+        normal: '#ffffff',
+        crit: '#ff0000',
+        heal: '#00ff00',
+        xp: '#00ffff'
+      }
+    }
+  },
+  
+  // Audio nastavení
+  audio: {
+    masterVolume: 1.0,
+    musicVolume: 0.5,
+    sfxVolume: 0.7,
+    uiVolume: 0.8,
+    
+    // Jednotlivé tracky
+    tracks: {
+      levelMusic1: {
+        volume: 1.0,
+        loop: true
+      },
+      levelMusic2: {
+        volume: 0.8,
+        loop: true
+      },
+      levelMusic3: {
+        volume: 1.1,
+        loop: true
+      }
+    }
+  },
+  
+  // Spawning
+  spawning: {
+    defaultScenario: "level1",
+    spawnMargin: 50,
+    spawnVariance: 32,
+    worldMargin: 24
+  },
+  
+  // Loot system
+  loot: {
+    dropLifetime: 30000,
+    magnetRange: 100,
+    autoPickupDelay: 500,
+    maxDropsPerKill: 5
+  },
+  
+  // Enemy configuration
+  enemy: {
+    rendering: {
+      eliteTint: 0xffdd00,  // Golden yellow for elite enemies
+      buffTint: 0x00ff00    // Green for buffed enemies
+    },
+    support: {
+      buffRadius: 100,
+      buffMultiplier: 1.2,
+      buffInterval: 1000
+    },
+    shooting: {
+      interval: 2000,
+      damage: 10,
+      speed: 200,
+      inaccuracy: 0.1
+    },
+    projectile: {
+      normal: {
+        color: 0xff0000
+      },
+      homing: {
+        color: 0xff00ff
+      }
+    }
+  },
+  
+  // Analytics
+  analytics: {
+    enabled: true,
+    endpoint: "https://gonsippgsrbutwanzpyo.supabase.co",
+    batchSize: 10,
+    flushInterval: 30000,
+    performanceSnapshotInterval: 60000,
+    lowFpsDebounce: 10000,
+    maxRetries: 3
+  }
+}

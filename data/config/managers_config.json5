@@ -1,0 +1,149 @@
+// Konfigurace pro všechny managery - PR7 kompatibilní
+// Všechny hodnoty, které byly hardcodované v kódu managerů
+{
+  // AudioManager konfigurace
+  audio: {
+    // Hlavní hlasitosti (výchozí hodnoty)
+    masterVolume: 1.0,      // Hlavní hlasitost
+    musicEnabled: true,     // Hudba zapnuta/vypnuta
+    musicVolume: 0.35,      // Hlasitost hudby (35%)
+    soundsEnabled: true,    // Zvuky zapnuté/vypnuté
+    sfxVolume: 0.7,         // Hlasitost zvukových efektů (70%)
+    
+    // Individuální hlasitosti pro různé tracky
+    tracks: {
+      levelMusic1: {
+        volume: 1.0  // Normální hlasitost
+      },
+      levelMusic2: {
+        volume: 0.8  // Trochu tišší
+      },
+      levelMusic3: {
+        volume: 1.1  // Trochu hlasitější
+      }
+    },
+    
+    // Speciální zvuky
+    playerDeath: {
+      volumeMultiplier: 0.5  // Tišší zvuk smrti
+    }
+  },
+  
+  // AnalyticsManager konfigurace
+  analytics: {
+    // Časování
+    flushInterval: 30000,  // 30 sekund - batch upload
+    performanceSnapshotInterval: 60000,  // 60 sekund
+    lowFpsDebounce: 10000,  // Minimálně 10s mezi low FPS eventy
+    
+    // Limity databáze
+    limits: {
+      playerName: 12,  // Max délka jména hráče
+      enemyType: 50,   // Max délka enemy type
+      eventType: 30    // Max délka event type
+    },
+    
+    // Performance thresholds
+    performance: {
+      lowFpsThreshold: 30,     // Pod 30 FPS = problém
+      criticalFpsThreshold: 15, // Pod 15 FPS = kritický problém
+      targetFps: 60,           // Cílové FPS
+      maxLatency: 100          // Max latence v ms
+    },
+    
+    // Výchozí hodnoty
+    defaults: {
+      playerMaxHP: 100,
+      fps: 60
+    }
+  },
+  
+  // MobileControlsManager konfigurace
+  mobile: {
+    joystick: {
+      // Funkční parametry (výchozí hodnoty)
+      enabled: true,       // Joystick zapnut/vypnut
+      position: 'left',    // Výchozí pozice ('left' nebo 'right')
+      sensitivity: 0.5,    // Citlivost joysticku
+      maxRadius: 70,       // Maximální vzdálenost knoflíku od středu
+      deadzone: 0.15,      // Mrtvá zóna (15% z maxRadius)
+      
+      // Vizuální parametry
+      baseDepth: 1000,   // Z-depth základny
+      knobDepth: 1001,   // Z-depth knoflíku
+      baseColor: 0x000000,  // Barva základny
+      baseAlpha: 0.25,   // Průhlednost základny
+      knobSize: 24,      // Velikost knoflíku
+      knobColor: 0xffffff,  // Barva knoflíku
+      knobAlpha: 0.8,    // Průhlednost knoflíku
+      borderAlpha: 0.4,  // Průhlednost okrajů
+      
+      // Pozicování
+      margin: 90         // Vzdálenost od okraje obrazovky
+    }
+  },
+  
+  // GlobalHighScoreManager konfigurace
+  highscore: {
+    // Cache
+    cacheTimeout: 60000,  // 1 minuta cache pro skóre
+    
+    // Limity
+    maxEntries: 10,       // Max počet záznamů v tabulce
+    nameMaxLength: 12,    // Max délka jména
+    nameTruncateLength: 8, // Zkrácení jména pro lokální storage
+    
+    // Databázové limity
+    scoreMax: 999999999,  // Max skóre
+    levelMax: 999,        // Max level
+    enemiesMax: 99999,    // Max počet zabitých nepřátel
+    playTimeMax: 86400,   // Max čas hry (24 hodin)
+    bossesMax: 99,        // Max počet poražených bossů
+    
+    // Storage
+    localStorageKey: 'rakovinobijec_highscores',
+    
+    // Query parametry
+    queryLimit: 10,       // Počet záznamů pro načtení
+    updateRange: {        // Rozsah pro update pozice
+      start: 9,
+      end: 9
+    }
+  },
+  
+  // AudioLoader konfigurace
+  audioManifest: {
+    // Cesty k souborům by měly být také data-driven
+    // Ale pro zachování kompatibility je necháváme v AudioLoader.js
+    preloadTimeout: 5000  // Timeout pro načítání zvuků
+  },
+  
+  // Grafické nastavení
+  graphics: {
+    quality: 'high',        // Výchozí kvalita ('low', 'medium', 'high')
+    particleQuality: 'high', // Kvalita částic
+    shadowsEnabled: true,    // Stíny zapnuté/vypnuté
+  },
+  
+  // UI nastavení
+  ui: {
+    scale: 'medium',        // Výchozí škálování UI ('small', 'medium', 'large')
+    showTips: true,         // Zobrazovat tipy
+    showDamageNumbers: true // Zobrazovat čísla poškození
+  },
+  
+  // Gameplay nastavení
+  gameplay: {
+    autoPause: true,        // Automatická pauza při přepnutí okna
+    vibration: true,        // Vibrace na mobilu
+    difficulty: 'normal',   // Výchozí obtížnost ('easy', 'normal', 'hard')
+    autoSave: true,         // Automatické ukládání
+  },
+  
+  // Debug nastavení
+  debug: {
+    showFPS: false,         // Zobrazit FPS counter
+    showDebugInfo: false,   // Zobrazit debug informace
+    logLevel: 'warn'        // Úroveň logování ('debug', 'info', 'warn', 'error')
+  }
+}
