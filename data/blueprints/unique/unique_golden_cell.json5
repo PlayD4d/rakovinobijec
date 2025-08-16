@@ -1,7 +1,12 @@
 {
   // Blueprint: unique.golden_cell
   "id": "unique.golden_cell",
-  "type": "unique",
+  "type": "enemy",
+  "meta": {
+    "category": "unique",
+    "tier": "legendary",
+    "spawnWeight": 2
+  },
   "stats": {
     "hp": 250,
     "damage": 18,

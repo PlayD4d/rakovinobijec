@@ -9,6 +9,12 @@
     pierce: 0,
     lifetime: 1.11,
   },
+  graphics: {
+    shape: 'triangle',
+    tint: 65535,
+    size: 8,
+    scale: 1,
+  },
   mechanics: {
     onHit: 'none',
     pierceDecay: 0,
@@ -27,7 +33,7 @@
     expire: 'vfx.projectile.fade',
   },
   sfx: {
-    spawn: 'sfx.weapon.fire.bio',
+    spawn: 'sound/shoot.mp3',
     hit: 'sfx.weapon.hit.bio',
     expire: 'sfx.projectile.fade',
   },

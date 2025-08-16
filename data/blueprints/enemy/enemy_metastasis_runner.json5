@@ -55,8 +55,12 @@
       dashEnabled: true
     }
   },
-  // PR7 Compliant: lootTable reference
-  lootTable: 'lootTable.level2.common',
+  // NEW: Direct drop system - simple and clear like WoW/Diablo
+  drops: [
+    { itemId: 'item.xp_medium', chance: 0.75 },     // 75% chance for medium XP
+    { itemId: 'item.health_small', chance: 0.1 },   // 10% chance for health
+    { itemId: 'item.xp_large', chance: 0.02 }       // 2% chance for large XP
+  ],
   display: {
     key: 'enemy.metastasis_runner.name',
     descKey: 'enemy.metastasis_runner.desc',

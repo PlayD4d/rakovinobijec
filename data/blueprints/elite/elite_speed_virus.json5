@@ -1,71 +1,172 @@
 {
-  // Blueprint: elite.speed_virus
-  "id": "elite.speed_virus",
-  "type": "elite",
-  "stats": {
-    "hp": 90,
-    "damage": 8,
-    "speed": 85,
-    "size": 18,
-    "armor": 2,
-    "xp": 18
+  // Elite blueprint: elite.speed_virus
+  id: 'elite.speed_virus',
+  type: 'elite',
+  baseEnemyId: 'enemy.viral_swarm',  // Base enemy to enhance
+  
+  // Elite stat multipliers (applied to base enemy stats)
+  multipliers: {
+    hp: 3.5,          // 3.5x health (25 -> 90)
+    damage: 1.6,      // 1.6x damage (5 -> 8)
+    speed: 1.7,       // 1.7x speed (50 -> 85) - much faster
+    size: 1.2,        // 20% larger (15 -> 18)
+    armor: 2,         // +2 armor (0 -> 2)
+    xp: 3.0,          // 3x XP (6 -> 18)
   },
-  "visuals": {
-    "textureKey": "elite.speed_virus",
-    "tint": 0xE91E63,
-    "size": { "w": 18, "h": 18 }
+  
+  // Elite specific stats (override base if needed)
+  stats: {
+    hp: 90,
+    damage: 8,
+    speed: 85,
+    size: 18,
+    armor: 2,
+    xp: 18,
   },
-  "mechanics": {
-    "movementType": "hyper_agile",
-    "contactDamage": 8,
-    "aggroRange": 250,
-    "wanderRadius": 80,
-    "dashSpeed": 180,
-    "dashCooldown": 2000,
-    "dashDistance": 120,
-    "evasionChance": 0.3,
-    "dropChance": 1.0,
-    "healthDropChance": 0.2,
-    "eliteModifiers": {
-      "speedBoost": 1.5,
-      "hitAndRun": true,
-      "afterimageCount": 3
+  
+  // Elite mechanics enhancements
+  mechanics: {
+    movementType: 'hyper_agile',
+    contactDamage: 8,
+    aggroRange: 250,
+    wanderRadius: 80,
+    dropChance: 1.0,
+    healthDropChance: 0.2,
+    
+    // Elite-specific mechanics
+    dash: {
+      enabled: true,
+      speed: 180,            // Dash speed
+      distance: 120,         // Dash distance
+      cooldown: 2000,        // 2 second cooldown
+      damageOnImpact: 12,    // Damage if dashing through player
+      invulnerable: true,    // Invulnerable during dash
+    },
+    
+    evasion: {
+      chance: 0.3,           // 30% chance to dodge attacks
+      visualEffect: true,    // Show dodge effect
+      counterAttack: true,   // Counter after dodge
+    },
+    
+    afterimage: {
+      enabled: true,
+      count: 3,              // Number of afterimages
+      duration: 1000,        // How long they last
+      confuse: true,         // Can confuse targeting
+    },
+    
+    speedBoost: {
+      onLowHealth: true,     // Boost when below 30% HP
+      threshold: 0.3,
+      multiplier: 1.5,       // 50% speed increase
+    },
+    
+    hitAndRun: true,         // Attack and retreat pattern
+  },
+  
+  // Elite visual configuration
+  graphics: {
+    sprite: 'elite_speed_virus',
+    tint: 0xE91E63,          // Pink/magenta tint
+    scale: 1.2,              // Slightly larger
+    glowEffect: true,        // Elite glow
+    trailEffect: true,       // Speed trail
+    animation: {
+      idle: 'elite_speed_idle',
+      move: 'elite_speed_move',
+      attack: 'elite_speed_attack',
+      dash: 'elite_speed_dash'
+    },
+    eliteIndicator: {
+      type: 'wings',         // Wing icon for speed
+      color: 0xE91E63,       // Pink color
+      scale: 0.8,
     }
   },
-  "vfx": {
-    "spawn": "vfx.elite.spawn.speed",
-    "hit": "vfx.hit.spark.fast",
-    "death": "vfx.elite.death.speed_burst",
-    "dash": "vfx.elite.dash.trail",
-    "afterimage": "vfx.elite.afterimage.virus",
-    "aura": "vfx.elite.aura.speed"
+  
+  // Elite AI behavior
+  ai: {
+    behavior: 'elite_speedster',
+    params: {
+      aggroRange: 250,
+      movePattern: 'hit_and_run',
+      targetPriority: 'weakest',    // Targets low HP enemies
+      
+      // Elite AI features
+      flanking: true,               // Tries to attack from sides/behind
+      groupCoordination: true,       // Coordinates with other speed viruses
+      retreatThreshold: 0.3,         // Retreats at 30% HP
+      retreatSpeed: 150,             // Fast retreat
+      
+      dashTactics: {
+        predictive: true,           // Predicts player movement
+        throughAttack: true,         // Dashes through player
+        escapeUse: true,             // Uses dash to escape
+      },
+      
+      callForHelp: false,           // Too fast to need help
+    }
   },
-  "sfx": {
-    "spawn": "sfx.elite.spawn.fast",
-    "hit": "sfx.elite.hit.quick",
-    "death": "sfx.elite.death.speed",
-    "dash": "sfx.elite.dash.whoosh"
+  
+  // Elite loot table
+  lootTable: 'lootTable.elite.tier2',
+  
+  // Elite VFX
+  vfx: {
+    spawn: 'vfx.elite.spawn.speed',
+    hit: 'vfx.hit.spark.fast',
+    death: 'vfx.elite.death.speed_burst',
+    dash: 'vfx.elite.dash.trail',
+    afterimage: 'vfx.elite.afterimage.virus',
+    aura: 'vfx.elite.aura.speed',
+    indicator: 'vfx.elite.indicator.wings',
+    dodge: 'vfx.elite.dodge.blur',
   },
-  "display": {
-    "key": "elite.speed_virus.name",
-    "descKey": "elite.speed_virus.desc",
-    "devNameFallback": "Elitní rychlý virus",
-    "devDescFallback": "Extrémně rychlý elitní virus s dash schopnostmi",
-    "templates": {
-      "short": "{{stats.hp}} HP • rychlost {{stats.speed}} • dash",
-      "desc": "Elitní rychlý virus s {{stats.hp}} HP. Pohybuje se rychlostí {{stats.speed}} a může dashovat {{mechanics.dashDistance}} jednotek každé {{mechanics.dashCooldown|ms}}."
+  
+  // Elite SFX
+  sfx: {
+    spawn: 'sfx.elite.spawn.fast',
+    hit: 'sfx.elite.hit.quick',
+    death: 'sfx.elite.death.speed',
+    dash: 'sfx.elite.dash.whoosh',
+    dodge: 'sfx.elite.dodge.miss',
+  },
+  
+  // Display configuration
+  display: {
+    key: 'elite.speed_virus.name',
+    descKey: 'elite.speed_virus.desc',
+    templates: {
+      short: 'Elite Speedster • {{stats.hp}} HP • rychlost {{stats.speed}} • dash',
+      desc: 'Elitní rychlý virus s {{stats.hp}} HP. Pohybuje se rychlostí {{stats.speed}} a může dashovat {{mechanics.dash.distance}} jednotek každé {{mechanics.dash.cooldown|ms}}. Má {{mechanics.evasion.chance|%}} šanci vyhnout se útokům.',
     },
-    "color": "#E91E63",
-    "rarity": "elite",
-    "icon": "elite.speed_virus",
-    "category": "elite",
-    "sortOrder": 520,
-    "tags": [
-      "elite",
-      "speed",
-      "agile",
-      "dash",
-      "virus"
-    ]
+    namePrefix: 'Elitní',
+    nameSuffix: 'Rychlík',
+    color: '#E91E63',
+    rarity: 'elite',
+    icon: 'elite.speed_virus',
+    category: 'elite',
+    sortOrder: 520,
+    tags: [
+      'elite',
+      'speed',
+      'agile',
+      'dash',
+      'virus',
+      'evasion',
+      'hit-and-run',
+    ],
+    devNameFallback: 'Elitní rychlý virus',
+    devDescFallback: 'Extrémně rychlý elitní virus s dash a evasion schopnostmi',
+  },
+  
+  // Elite spawn configuration
+  spawnConditions: {
+    minLevel: 2,           // Appears from level 2
+    minGameTime: 30000,    // After 30 seconds
+    maxCount: 3,           // Max 3 at once (they're fast but fragile)
+    cooldown: 12000,       // 12 second cooldown between spawns
+    weight: 0.12,          // 12% spawn chance when eligible
   }
 }

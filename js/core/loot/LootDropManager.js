@@ -96,22 +96,29 @@ export default class LootDropManager {
   getDropsForEnemy(enemy, context = {}) {
     if (!this.enabled) return [];
     
-    // Určení typu nepřítele a příslušných tabulek
+    // NEW: Direct drop system - get drops from enemy blueprint
+    const blueprint = this.getEnemyBlueprint(enemy);
+    if (!blueprint || !blueprint.drops) {
+      // No drops defined - return empty array
+      // Don't try legacy system as it causes warnings
+      return [];
+    }
+    
+    // Process direct drops with simple percentage chances
+    const drops = this.processDirectDrops(blueprint.drops, context);
+    
+    // Update statistics
     const enemyType = this.determineEnemyType(enemy);
-    const tableId = this.getTableIdForEnemy(enemyType, context.level || this.globalState.level);
-    
-    if (!tableId) return [];
-    
-    // Sestavení kontextu
-    const fullContext = this.buildContext(enemy, context, enemyType);
-    
-    // Roll tabulkou
-    const drops = this.roll(tableId, fullContext);
-    
-    // Update statistik
     this.updateStats(enemyType, drops);
     
     return drops;
+  }
+  
+  // Legacy method - deprecated, returns empty array
+  getDropsForEnemyLegacy(enemy, context = {}) {
+    // Legacy loot tables are no longer supported
+    // All drops should be defined directly in blueprints
+    return [];
   }
   
   getDropsForBoss(boss, context = {}) {
@@ -273,6 +280,58 @@ export default class LootDropManager {
     this.telemetry.hitsByEntry.set(hitKey, (this.telemetry.hitsByEntry.get(hitKey) || 0) + 1);
     
     return drop;
+  }
+  
+  // === NEW DIRECT DROP METHODS ===
+  
+  getEnemyBlueprint(enemy) {
+    // Get blueprint from enemy entity
+    if (enemy.blueprint) return enemy.blueprint;
+    
+    // Try to get from BlueprintLoader
+    const blueprintId = enemy.blueprintId || enemy.id;
+    if (blueprintId && window.BlueprintLoader) {
+      return window.BlueprintLoader.get(blueprintId);
+    }
+    
+    return null;
+  }
+  
+  processDirectDrops(dropDefinitions, context) {
+    const drops = [];
+    
+    for (const dropDef of dropDefinitions) {
+      // Simple percentage chance system
+      const roll = Math.random();
+      if (roll <= dropDef.chance) {
+        // Create drop object
+        const drop = {
+          itemId: dropDef.itemId,
+          quantity: dropDef.quantity || 1,
+          context: { ...context },
+          timestamp: Date.now()
+        };
+        
+        // Apply any modifiers (luck, difficulty, etc.)
+        if (context.playerLuck) {
+          // Luck increases drop chance for rare items
+          const itemBlueprint = window.BlueprintLoader?.get(dropDef.itemId);
+          if (itemBlueprint?.rarity === 'rare' || itemBlueprint?.rarity === 'epic') {
+            // Re-roll with luck bonus
+            const luckRoll = Math.random();
+            if (luckRoll <= dropDef.chance * context.playerLuck) {
+              drops.push(drop);
+            }
+          } else {
+            drops.push(drop);
+          }
+        } else {
+          drops.push(drop);
+        }
+      }
+    }
+    
+    return drops;
   }
   
   // === HELPER METHODS ===

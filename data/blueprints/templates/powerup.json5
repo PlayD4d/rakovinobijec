@@ -1,0 +1,328 @@
+{
+  id: 'powerup.template_powerup',
+  type: 'powerup',
+  meta: {
+    displayName: 'Template PowerUp',
+    description: 'Increases player damage by 25%',
+    icon: 'icon_damage',
+    rarity: 'uncommon',
+    tier: 1,
+    category: 'offensive',
+    tags: [
+      'damage',
+      'dps',
+      'attack',
+    ],
+    uiOrder: 100,
+    uiColor: 16739179,
+  },
+  visuals: {
+    pickupSprite: 'powerup.damage_boost',
+    pickupScale: 1.5,
+    pickupTint: 16711680,
+    pickupGlow: true,
+    pickupFloat: true,
+    playerEffects: {
+      tint: 16737894,
+      aura: 'vfx.aura.damage',
+      trail: 'vfx.trail.fire',
+      weaponGlow: true,
+    },
+    statusIcon: {
+      texture: 'ui.icon.damage_up',
+      position: 'top_right',
+      showStacks: true,
+    },
+  },
+  stats: {
+    modifiers: {
+      damage: {
+        type: 'multiply',
+        value: 1.25,
+      },
+      attackSpeed: {
+        type: 'add',
+        value: 0.2,
+      },
+      critChance: {
+        type: 'add',
+        value: 0.1,
+      },
+      critDamage: {
+        type: 'multiply',
+        value: 1.5,
+      },
+    },
+    conditionalModifiers: [
+      {
+        condition: 'health_below_50',
+        modifiers: {
+          damage: {
+            type: 'multiply',
+            value: 1.5,
+          },
+        },
+      },
+      {
+        condition: 'no_damage_5s',
+        modifiers: {
+          moveSpeed: {
+            type: 'add',
+            value: 30,
+          },
+        },
+      },
+    ],
+    stackable: true,
+    maxStacks: 5,
+    stackModifiers: {
+      damage: {
+        type: 'add',
+        value: 0.1,
+      },
+      diminishingReturns: true,
+      diminishingFactor: 0.8,
+    },
+  },
+  mechanics: {
+    passive: {
+      lifeSteal: 0.1,
+      piercing: 1,
+      multishot: 2,
+      ricochet: true,
+      explosive: false,
+    },
+    activeAbility: {
+      enabled: false,
+      cooldown: 30000,
+      duration: 5000,
+      key: 'Q',
+      effect: {
+        type: 'burst',
+        damage: 200,
+        radius: 150,
+        vfx: 'vfx.explosion.player',
+        sfx: 'sfx.ability.burst',
+      },
+      description: 'Unleash a powerful explosion',
+    },
+    onHit: {
+      chance: 0.15,
+      effect: 'burn',
+      duration: 3000,
+      damage: 10,
+      tickRate: 500,
+      vfx: 'vfx.status.burn',
+      sfx: 'sfx.status.ignite',
+    },
+    onKill: {
+      healAmount: 5,
+      healPercent: 0.02,
+      manaRestore: 10,
+      cdReduction: 1000,
+      vfx: 'vfx.heal.small',
+      sfx: 'sound/heal.mp3',
+    },
+    triggers: [
+      {
+        event: 'dash',
+        effect: {
+          damage: 50,
+          radius: 100,
+          vfx: 'vfx.dash.explosion',
+          sfx: 'sfx.dash.boom',
+        },
+      },
+      {
+        event: 'critical_hit',
+        effect: {
+          aoeRadius: 75,
+          aoeDamage: 0.5,
+          vfx: 'vfx.crit.splash',
+        },
+      },
+    ],
+  },
+  levels: [
+    {
+      level: 1,
+      requirements: {
+        xp: 0,
+        currency: 0,
+      },
+      stats: {
+        damage: 1.25,
+        attackSpeed: 0.2,
+      },
+    },
+    {
+      level: 2,
+      requirements: {
+        xp: 100,
+        currency: 50,
+        items: [
+          'material.enhancement_core',
+        ],
+      },
+      stats: {
+        damage: 1.35,
+        attackSpeed: 0.3,
+        critChance: 0.05,
+      },
+    },
+    {
+      level: 3,
+      requirements: {
+        xp: 250,
+        currency: 150,
+        items: [
+          'material.enhancement_core',
+          'material.rare_essence',
+        ],
+      },
+      stats: {
+        damage: 1.5,
+        attackSpeed: 0.4,
+        critChance: 0.1,
+        critDamage: 1.5,
+      },
+      unlockedMechanics: {
+        lifeSteal: 0.1,
+        multishot: 1,
+      },
+    },
+    {
+      level: 4,
+      requirements: {
+        xp: 500,
+        currency: 300,
+        items: [
+          'material.legendary_core',
+        ],
+      },
+      stats: {
+        damage: 1.75,
+        attackSpeed: 0.5,
+        critChance: 0.15,
+        critDamage: 2,
+      },
+      unlockedMechanics: {
+        lifeSteal: 0.15,
+        multishot: 2,
+        piercing: 1,
+      },
+    },
+    {
+      level: 5,
+      requirements: {
+        xp: 1000,
+        currency: 500,
+        items: [
+          'material.mythic_essence',
+        ],
+      },
+      stats: {
+        damage: 2,
+        attackSpeed: 0.6,
+        critChance: 0.2,
+        critDamage: 2.5,
+      },
+      unlockedMechanics: {
+        lifeSteal: 0.2,
+        multishot: 3,
+        piercing: 2,
+        ricochet: true,
+      },
+      specialBonus: {
+        activeAbility: true,
+        description: 'Unlocks devastating burst ability',
+      },
+    },
+  ],
+  synergies: [
+    {
+      powerupId: 'powerup.attack_speed',
+      bonus: {
+        damage: {
+          type: 'add',
+          value: 0.1,
+        },
+      },
+      description: 'Rapid Fire: Extra damage with Attack Speed powerup',
+    },
+    {
+      powerupId: 'powerup.critical_strike',
+      bonus: {
+        critDamage: {
+          type: 'multiply',
+          value: 1.25,
+        },
+      },
+      description: 'Critical Mass: Enhanced critical damage',
+    },
+    {
+      powerupId: 'powerup.tank_mode',
+      penalty: {
+        attackSpeed: {
+          type: 'multiply',
+          value: 0.8,
+        },
+      },
+      description: 'Heavy Arms: Reduced speed with Tank Mode',
+    },
+  ],
+  vfx: {
+    pickup: 'vfx.powerup.pickup.epic',
+    activate: 'vfx.powerup.activate',
+    ambient: 'vfx.powerup.aura.damage',
+    levelUp: 'vfx.powerup.levelup',
+    maxLevel: 'vfx.powerup.maxlevel.legendary',
+    onHit: 'vfx.hit.flame',
+    onCrit: 'vfx.hit.critical.explosion',
+    onKill: 'vfx.kill.soul_harvest',
+    buff: 'vfx.buff.damage_up',
+    proc: 'vfx.proc.damage_burst',
+  },
+  sfx: {
+    pickup: 'sfx.powerup.pickup.rare',
+    activate: 'sfx.powerup.activate.damage',
+    levelUp: 'sfx.powerup.levelup',
+    maxLevel: 'sfx.powerup.maxlevel.epic',
+    onHit: {
+      id: 'sfx.hit.enhanced',
+      volume: 0.6,
+      detuneRange: [
+        -50,
+        50,
+      ],
+    },
+    onCrit: 'sfx.hit.critical.boom',
+    onKill: 'sfx.kill.powerup',
+    abilityReady: 'sfx.ability.ready',
+    abilityUse: 'sfx.ability.damage_burst',
+    ambientLoop: {
+      id: 'sfx.powerup.loop.damage',
+      volume: 0.3,
+      loop: true,
+    },
+  },
+  drop: {
+    dropChance: 0.05,
+    dropChanceScaling: {
+      byEnemyType: {
+        'enemy.elite': 0.15,
+        'enemy.boss': 0.3,
+        'enemy.miniboss': 0.2,
+      },
+      byPlayerLevel: 0.01,
+    },
+    dropLifetime: 30000,
+    magnetRange: 100,
+    priority: 2,
+    conditions: {
+      minWave: 5,
+      minPlayerLevel: 3,
+      maxPlayerPowerups: 10,
+    },
+  },
+}

@@ -1,117 +1,148 @@
 {
-  // Blueprint: boss.radiation
-  "id": "boss.radiation",
-  "type": "boss",
-  "stats": {
-    "hp": 608,
-    "maxHp": 608,
-    "speed": 0.5,
-    "damage": 60,
-    "xp": 500,
-    "size": 70,
-    "armor": 20
+  id: 'boss.radiation',
+  type: 'boss',
+  stats: {
+    hp: 608,
+    maxHp: 608,
+    speed: 0.5,
+    damage: 60,
+    xp: 500,
+    size: 70,
+    armor: 20,
   },
-  "mechanics": {
-    "phases": [
-      {
-        "id": "phase1",
-        "threshold": 0.66,
-        "fsmState": "phase1",
-        "abilities": [
-          "place_zone"
-        ],
-        "movementSpeed": 1
-      },
-      {
-        "id": "phase2",
-        "threshold": 0.33,
-        "fsmState": "phase2",
-        "abilities": [
-          "place_zone",
-          "shoot_circle"
-        ],
-        "movementSpeed": 1
-      },
-      {
-        "id": "enrage",
-        "threshold": 0,
-        "fsmState": "enrage",
-        "abilities": [
-          "place_zone",
-          "tracking_burst"
-        ],
-        "movementSpeed": 1.1
-      }
-    ],
-    "abilities": {
-      "place_zone": {
-        "cooldown": 1200,
-        "zoneCount": 1,
-        "zoneDuration": 8000,
-        "zoneDamage": 15,
-        "zoneRadius": 60,
-        "description": "Umístí radiační zónu na pozici hráče"
-      },
-      "shoot_circle": {
-        "cooldown": 1800,
-        "projectileCount": 8,
-        "spreadAngle": 360,
-        "projectileRef": "proj.boss.circle"
-      },
-      "tracking_burst": {
-        "cooldown": 2000,
-        "projectileCount": 5,
-        "burstDelay": 250,
-        "projectileRef": "proj.boss.tracking"
-      }
+  visuals: {
+    textureKey: 'boss.radiation',
+    tint: 9159498,
+    size: {
+      w: 70,
+      h: 70,
     },
-    "movementType": "boss_slow",
-    "aggroRange": 400,
-    "contactDamage": 60,
-    "immuneToKnockback": true,
-    "canBeStunned": false,
-    "specialMechanic": "radiation_zones"
   },
-  "vfx": {
-    "spawn": "vfx.boss.spawn",
-    "hit": "vfx.boss.hit.heavy",
-    "death": "vfx.death.burst.boss",
-    "phaseChange": "vfx.boss.phase.change",
-    "place_zone": "vfx.radiation.zone.create",
-    "shoot_circle": "vfx.boss.muzzle.circle",
-    "tracking_burst": "vfx.boss.muzzle.tracking",
-    "zone_damage": "vfx.radiation.damage"
-  },
-  "sfx": {
-    "spawn": "sfx.boss.enter",
-    "hit": "sfx.boss.hit",
-    "death": "sfx.boss.death",
-    "phaseChange": "sfx.boss.phase.change",
-    "place_zone": "sfx.radiation.zone.create",
-    "shoot_circle": "sfx.boss.shoot.circle",
-    "tracking_burst": "sfx.boss.shoot.tracking",
-    "zone_ambient": "sfx.radiation.ambient"
-  },
-  "display": {
-    "key": "boss.radiation.name",
-    "descKey": "boss.radiation.desc",
-    "devNameFallback": "Radiace",
-    "devDescFallback": "Radioaktivní boss",
-    "icon": "boss_radiation",
-    "color": "#00FF00",
-    "rarity": "boss",
-    "category": "boss",
-    "sortOrder": 650,
-    "tags": [
-      "boss",
-      "radiation",
-      "zones",
-      "heavy"
+  mechanics: {
+    phases: [
+      {
+        id: 'phase1',
+        threshold: 0.66,
+        fsmState: 'phase1',
+        abilities: [
+          'place_zone',
+        ],
+        movementSpeed: 1,
+      },
+      {
+        id: 'phase2',
+        threshold: 0.33,
+        fsmState: 'phase2',
+        abilities: [
+          'place_zone',
+          'shoot_circle',
+        ],
+        movementSpeed: 1,
+      },
+      {
+        id: 'enrage',
+        threshold: 0,
+        fsmState: 'enrage',
+        abilities: [
+          'place_zone',
+          'tracking_burst',
+        ],
+        movementSpeed: 1.1,
+      },
     ],
-    "templates": {
-      "short": "{{stats.hp}} HP radiační boss, umísťuje zóny ({{mechanics.abilities.place_zone.zoneDamage}} dmg)",
-      "long": "Radiační syndrom s {{stats.hp}} HP způsobující radiační poškození. Umísťuje nebezpečné radiační zóny ({{mechanics.abilities.place_zone.zoneDamage}} dmg každých {{mechanics.abilities.place_zone.zoneDuration}}ms) a má {{mechanics.phases.length}} bojových fází."
+    abilities: {
+      place_zone: {
+        cooldown: 1200,
+        zoneCount: 1,
+        zoneDuration: 8000,
+        zoneDamage: 15,
+        zoneRadius: 60,
+        description: 'Umístí radiační zónu na pozici hráče',
+      },
+      shoot_circle: {
+        cooldown: 1800,
+        projectileCount: 8,
+        spreadAngle: 360,
+        projectileRef: 'proj.boss.circle',
+      },
+      tracking_burst: {
+        cooldown: 2000,
+        projectileCount: 5,
+        burstDelay: 250,
+        projectileRef: 'proj.boss.tracking',
+      },
     },
-    "srKey": "sr.boss.radiation"
-  }
+    movementType: 'boss_slow',
+    aggroRange: 400,
+    contactDamage: 60,
+    immuneToKnockback: true,
+    canBeStunned: false,
+    specialMechanic: 'radiation_zones',
+  },
+  vfx: {
+    spawn: 'vfx.boss.spawn',
+    hit: 'vfx.boss.hit.heavy',
+    death: 'vfx.death.burst.boss',
+    phaseChange: 'vfx.boss.phase.change',
+    place_zone: 'vfx.radiation.zone.create',
+    shoot_circle: 'vfx.boss.muzzle.circle',
+    tracking_burst: 'vfx.boss.muzzle.tracking',
+    zone_damage: 'vfx.radiation.damage',
+  },
+  sfx: {
+    spawn: 'sound/boss_enter.mp3',
+    hit: 'sound/boss_hit.mp3',
+    death: 'sound/boss_death.mp3',
+    phaseChange: 'sfx.boss.phase.change',
+    place_zone: 'sfx.radiation.zone.create',
+    shoot_circle: 'sfx.boss.shoot.circle',
+    tracking_burst: 'sfx.boss.shoot.tracking',
+    zone_ambient: 'sfx.radiation.ambient',
+  },
+  drops: [
+    {
+      itemId: 'item.xp_large',
+      chance: 1,
+      quantity: 2,
+    },
+    {
+      itemId: 'item.heal_orb',
+      chance: 0.7,
+    },
+    {
+      itemId: 'item.energy_cell',
+      chance: 0.3,
+      quantity: 2,
+    },
+    {
+      itemId: 'item.protein_cache',
+      chance: 0.2,
+    },
+    {
+      itemId: 'item.metotrexat',
+      chance: 0.03,
+    },
+  ],
+  display: {
+    key: 'boss.radiation.name',
+    descKey: 'boss.radiation.desc',
+    devNameFallback: 'Radiace',
+    devDescFallback: 'Radioaktivní boss',
+    icon: 'boss_radiation',
+    color: '#00FF00',
+    rarity: 'boss',
+    category: 'boss',
+    sortOrder: 650,
+    tags: [
+      'boss',
+      'radiation',
+      'zones',
+      'heavy',
+    ],
+    templates: {
+      short: '{{stats.hp}} HP radiační boss, umísťuje zóny ({{mechanics.abilities.place_zone.zoneDamage}} dmg)',
+      long: 'Radiační syndrom s {{stats.hp}} HP způsobující radiační poškození. Umísťuje nebezpečné radiační zóny ({{mechanics.abilities.place_zone.zoneDamage}} dmg každých {{mechanics.abilities.place_zone.zoneDuration}}ms) a má {{mechanics.phases.length}} bojových fází.',
+    },
+    srKey: 'sr.boss.radiation',
+  },
 }

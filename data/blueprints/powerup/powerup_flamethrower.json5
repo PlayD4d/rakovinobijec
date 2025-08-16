@@ -6,55 +6,58 @@
     "maxLevel": 5
   },
   "mechanics": {
-    "modifiersPerLevel": [
-      {
-        "path": "abilities.radiotherapy.intervalMs",
-        "type": "mul",
-        "value": -0.2,
-        "description": "Reduces radiotherapy interval"
-      }
-    ],
+    "modifiersPerLevel": [],
     "stackable": true,
     "persistent": true,
     "applyOnPickup": true,
     "effectType": "flamethrower"
   },
   "ability": {
-    "type": "radiotherapy",
-    "baseIntervalMs": 1000,
-    "minIntervalMs": 300
+    "type": "flamethrower",
+    "rangePerLevel": [80, 100, 120, 140, 160],
+    "damagePerLevel": [3, 4, 5, 7, 10],
+    "coneAnglePerLevel": [0.4, 0.5, 0.6, 0.7, 0.8],  // Width of flame cone in radians
+    "tickRate": 0.1  // Damage tick rate
   },
   "vfx": {
-    "pickup": "vfx.powerup.pickup.flame",
+    "pickup": "vfx.powerup.pickup",
     "levelUp": "vfx.powerup.levelup",
-    "impact": "vfx.hit.spark"
+    "impact": "vfx.projectile.impact"
   },
   "sfx": {
     "pickup": "sfx.powerup.pickup",
     "apply": "sfx.powerup.apply",
     "levelUp": "sfx.powerup.levelup",
-    "fire": "sfx.weapon.lightning.fire",
-    "impact": "sfx.projectile.hit"
+    "loop": "sfx.flamethrower.loop",  // Loop sound while active
+    "ignite": "sfx.powerup.apply"
   },
   "display": {
     "key": "powerup.flamethrower.name",
     "descKey": "powerup.flamethrower.desc",
-    "devNameFallback": "🔥 Radioterapie",
-    "devDescFallback": "Vytváří ohnivé paprsky kolem hráče",
+    "devNameFallback": "🔥 Plamenomet",
+    "devDescFallback": "Kónický proud ohně před hráčem",
+    "levelDescriptions": [
+      "Základní plamenomet (dosah 80px)",
+      "Větší dosah plamenů (100px)",
+      "Silnější plameny (120px dosah)",
+      "Široký proud ohně (140px)",
+      "Maximální síla plamenometu (160px)"
+    ],
     "icon": "powerup_flamethrower",
     "color": "#FF5722",
     "rarity": "rare",
     "category": "special",
-    "sortOrder": 250,
+    "sortOrder": 240,
     "tags": [
       "powerup",
       "weapon",
       "special",
-      "ability"
+      "ability",
+      "cone"
     ],
     "templates": {
-      "short": "Ohnivé paprsky (interval {{ability.baseIntervalMs}}ms)",
-      "long": "Vytváří ohnivé paprsky kolem hráče. Interval klesá s úrovní z {{ability.baseIntervalMs}}ms na min {{ability.minIntervalMs}}ms. Max level {{stats.maxLevel}}."
+      "short": "Plamenomet (dosah {{ability.rangePerLevel[level]}}px)",
+      "long": "Vytváří kónický proud ohně před hráčem. Dosah roste z 80px na 160px. Poškození roste s úrovní."
     },
     "srKey": "sr.powerup.flamethrower"
   }

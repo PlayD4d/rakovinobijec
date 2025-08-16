@@ -20,7 +20,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         
         // Základní reference
         this.scene = scene;
-        this.type = type;
+        this.blueprintId = type; // Store the blueprint ID (like 'enemy.necrotic_cell')
+        this.type = config.type || 'enemy'; // Entity type
         this.config = config;
         
         // ConfigResolver přes dependency injection
@@ -35,14 +36,25 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.maxHp = config.hp; // Maximální životy
         this.speed = config.speed; // Rychlost pohybu
         this.damage = config.damage; // Poškození
-        this.xp = config.xp; // XP za zabití
+        // PR7: Extract XP from various possible locations
+        this.xp = config.xp || config.stats?.xp || 3; // XP za zabití (default 3)
+        this.stats = config.stats || {}; // Store full stats for reference
         this.size = config.size; // Velikost
-        this.isElite = config.isElite || false; // Je elite verze?
+        this.armor = config.armor || 0; // Armor/damage reduction (0-10)
+        
+        // PR7: Detekce elite/unique z meta pole blueprintu
+        this.isElite = config.isElite || (config.meta && config.meta.category === 'elite');
+        this.isUnique = config.isUnique || (config.meta && config.meta.category === 'unique');
+        
+        // Store meta for special mechanics
+        this.meta = config.meta || {};
         
         // Nastavení textury a viditelnosti s plnou neprůhledností
         this.setTexture(textureKey);
         this.setOrigin(0.5, 0.5);
-        this.setDepth(CR.get('layers.enemies'));
+        // PR7: Use scene depth constants if available, fallback to config
+        const enemyDepth = scene.DEPTH_LAYERS?.ENEMIES || CR.get('layers.enemies', { defaultValue: 1000 });
+        this.setDepth(enemyDepth);
         this.setVisible(true).setActive(true);
         this.setAlpha(1.0); // Zajištění plné viditelnosti
         this.setDisplaySize(this.size, this.size);
@@ -54,10 +66,24 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
             this.clearTint(); // Zajištění žádné výchozí barvy
         }
         
-        // Vizuální modifikace pro elite verzi
+        // Vizuální modifikace pro elite/unique verze (applied first)
         if (this.isElite) {
-            const eliteTint = CR.get('enemy.rendering.eliteTint');
+            const eliteTint = CR.get('enemy.rendering.eliteTint', { defaultValue: 0xffdd00 });
             this.setTint(eliteTint);
+            // Elite aura effect
+            this.createEliteAura();
+        } else if (this.isUnique) {
+            // Unique entities use their blueprint tint
+            if (config.visuals && config.visuals.tint) {
+                this.setTint(config.visuals.tint);
+            }
+            // Unique special effects
+            this.createUniqueEffects();
+        }
+        
+        // PR7: Apply armor visual indicator if enemy has armor (applied on top)
+        if (this.armor > 0) {
+            this.applyArmorVisual();
         }
         
         // Nastavení fyziky
@@ -111,6 +137,271 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         // Spawn VFX/SFX (temporarily disabled)
         // this.playVFX('spawn');
         // this.playSFX('spawn');
+        
+        // Initialize special mechanics
+        this.initializeSpecialMechanics();
+    }
+    
+    // ========= SPECIAL MECHANICS FOR ELITE/UNIQUE =========
+    
+    initializeSpecialMechanics() {
+        if (this.isElite && this.config.mechanics) {
+            // Elite shield regeneration
+            if (this.config.mechanics.shieldPoints) {
+                this.shieldHP = this.config.mechanics.shieldPoints;
+                this.maxShieldHP = this.config.mechanics.shieldPoints;
+                this.shieldRegen = this.config.mechanics.shieldRegen || 0;
+                this.shieldRegenDelay = this.config.mechanics.shieldRegenDelay || 3000;
+                this.lastDamageTime = 0;
+            }
+            
+            // Elite modifiers
+            if (this.config.mechanics.eliteModifiers) {
+                this.damageReduction = this.config.mechanics.eliteModifiers.damageReduction || 0;
+                this.knockbackResistance = this.config.mechanics.eliteModifiers.knockbackResistance || 0;
+            }
+        }
+        
+        if (this.isUnique && this.config.mechanics) {
+            // Unique abilities
+            if (this.config.mechanics.goldAura) {
+                this.hasGoldAura = true;
+                this.goldAuraRadius = this.config.mechanics.goldAuraRadius || 150;
+                this.goldAuraBonus = this.config.mechanics.goldAuraBonus || 2.0;
+            }
+            
+            // Unique special abilities
+            if (this.config.mechanics.uniqueAbilities) {
+                this.uniqueAbilities = this.config.mechanics.uniqueAbilities;
+                this.abilityTimers = {};
+                
+                // Initialize timers for each ability
+                for (const [name, ability] of Object.entries(this.uniqueAbilities)) {
+                    this.abilityTimers[name] = 0;
+                }
+            }
+        }
+    }
+    
+    /**
+     * Apply visual indicator for armor
+     * PR7: Uses ArmorShieldEffect for visual shield around enemy
+     */
+    applyArmorVisual() {
+        if (!this.armor || this.armor <= 0) return;
+        
+        // Create armor shield effect if available
+        if (this.scene.armorShieldEffect) {
+            this.scene.armorShieldEffect.createArmorShield(this);
+            this._hasArmorShield = true;
+        } else {
+            // Fallback to tint-based approach if ArmorShieldEffect not available
+            this.applyArmorTint();
+        }
+    }
+    
+    /**
+     * Fallback tint-based armor visual
+     * @private
+     */
+    applyArmorTint() {
+        if (!this.armor || this.armor <= 0) return;
+        
+        // Calculate metallic tint based on armor value
+        const armorLevel = Math.min(this.armor, 10); // Cap at 10
+        const tintStrength = armorLevel / 20; // 0 to 0.5
+        
+        // Get current tint or white
+        const currentTint = this.tint || 0xFFFFFF;
+        
+        // Mix with metallic gray based on armor strength
+        const metallicTint = 0x909090; // Gray/metallic color
+        
+        // Extract RGB components
+        const r1 = (currentTint >> 16) & 0xFF;
+        const g1 = (currentTint >> 8) & 0xFF;
+        const b1 = currentTint & 0xFF;
+        
+        const r2 = (metallicTint >> 16) & 0xFF;
+        const g2 = (metallicTint >> 8) & 0xFF;
+        const b2 = metallicTint & 0xFF;
+        
+        // Mix colors
+        const r = Math.round(r1 * (1 - tintStrength) + r2 * tintStrength);
+        const g = Math.round(g1 * (1 - tintStrength) + g2 * tintStrength);
+        const b = Math.round(b1 * (1 - tintStrength) + b2 * tintStrength);
+        
+        const armorTint = (r << 16) | (g << 8) | b;
+        this.setTint(armorTint);
+        
+        // Store for later restoration if needed
+        this._originalTint = currentTint;
+        this._hasArmorTint = true;
+    }
+    
+    createEliteAura() {
+        if (!this.scene || !this.scene.add) return;
+        
+        // Create aura graphics
+        this.auraGraphics = this.scene.add.graphics();
+        this.auraGraphics.setDepth(this.depth - 1);
+        
+        // Play elite spawn VFX if available
+        if (this._vfx && this._vfx.aura && this.scene.newVFXSystem) {
+            this.scene.newVFXSystem.play(this._vfx.aura, this.x, this.y);
+        }
+    }
+    
+    createUniqueEffects() {
+        if (!this.scene || !this.scene.add) return;
+        
+        // Create unique visual effects based on type
+        if (this.hasGoldAura) {
+            this.goldAuraGraphics = this.scene.add.graphics();
+            this.goldAuraGraphics.setDepth(this.depth - 1);
+        }
+        
+        // Play unique spawn VFX if available
+        if (this._vfx && this._vfx.spawn && this.scene.newVFXSystem) {
+            this.scene.newVFXSystem.play(this._vfx.spawn, this.x, this.y);
+        }
+    }
+    
+    updateEliteShield(delta) {
+        if (!this.shieldHP || this.shieldHP >= this.maxShieldHP) return;
+        
+        const timeSinceDamage = Date.now() - this.lastDamageTime;
+        if (timeSinceDamage > this.shieldRegenDelay) {
+            this.shieldHP = Math.min(this.maxShieldHP, this.shieldHP + this.shieldRegen * (delta / 1000));
+            
+            // Update shield visual
+            if (this.auraGraphics) {
+                this.auraGraphics.clear();
+                this.auraGraphics.lineStyle(2, 0x00ffff, 0.3 + (this.shieldHP / this.maxShieldHP) * 0.4);
+                this.auraGraphics.strokeCircle(this.x, this.y, this.size * 0.7);
+            }
+        }
+    }
+    
+    updateUniqueAbilities(time, delta) {
+        if (!this.uniqueAbilities) return;
+        
+        for (const [name, ability] of Object.entries(this.uniqueAbilities)) {
+            this.abilityTimers[name] += delta;
+            
+            if (this.abilityTimers[name] >= ability.interval) {
+                this.abilityTimers[name] = 0;
+                this.executeUniqueAbility(name, ability);
+            }
+        }
+        
+        // Update gold aura visual
+        if (this.hasGoldAura && this.goldAuraGraphics) {
+            this.goldAuraGraphics.clear();
+            const pulse = Math.sin(time * 0.003) * 0.2 + 0.8;
+            this.goldAuraGraphics.lineStyle(3, 0xffd700, pulse * 0.5);
+            this.goldAuraGraphics.fillStyle(0xffd700, pulse * 0.1);
+            this.goldAuraGraphics.fillCircle(this.x, this.y, this.goldAuraRadius);
+            this.goldAuraGraphics.strokeCircle(this.x, this.y, this.goldAuraRadius);
+        }
+    }
+    
+    executeUniqueAbility(name, ability) {
+        const player = this.scene.player;
+        if (!player || !player.active) return;
+        
+        switch (name) {
+            case 'goldenPulse':
+                // Golden pulse damage in radius
+                const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+                if (dist <= ability.radius) {
+                    player.takeDamage(ability.damage, this);
+                    
+                    // Knockback effect
+                    if (ability.knockback && player.body) {
+                        const angle = Phaser.Math.Angle.Between(this.x, this.y, player.x, player.y);
+                        const knockX = Math.cos(angle) * ability.knockback;
+                        const knockY = Math.sin(angle) * ability.knockback;
+                        player.body.setVelocity(knockX, knockY);
+                    }
+                    
+                    // VFX
+                    if (this._vfx && this._vfx.pulse && this.scene.newVFXSystem) {
+                        this.scene.newVFXSystem.play(this._vfx.pulse, this.x, this.y);
+                    }
+                }
+                break;
+                
+            case 'summonGoldenMinions':
+                // Summon golden buffed minions
+                if (this.scene.spawnDirector && ability.minionType) {
+                    for (let i = 0; i < ability.count; i++) {
+                        const angle = (Math.PI * 2 / ability.count) * i;
+                        const spawnX = this.x + Math.cos(angle) * 50;
+                        const spawnY = this.y + Math.sin(angle) * 50;
+                        
+                        const minion = this.scene.spawnDirector.spawnEnemy(ability.minionType, {
+                            x: spawnX,
+                            y: spawnY,
+                            goldenBuff: ability.goldenBuff
+                        });
+                        
+                        if (minion && ability.goldenBuff) {
+                            minion.setTint(0xffd700);
+                            minion.damage *= 1.5;
+                            minion.speed *= 1.2;
+                        }
+                    }
+                }
+                break;
+                
+            case 'rainbowBeam':
+                // Rainbow beam with piercing damage
+                const beamDist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+                if (beamDist <= ability.range) {
+                    player.takeDamage(ability.damage, this);
+                    
+                    // VFX for rainbow beam
+                    if (this._vfx && this._vfx.beam && this.scene.newVFXSystem) {
+                        this.scene.newVFXSystem.play(this._vfx.beam, this.x, this.y);
+                    }
+                }
+                break;
+                
+            case 'prismaticBurst':
+                // Fire projectiles in rainbow spiral pattern
+                if (this.scene.projectileSystem) {
+                    const projectileCount = ability.projectileCount || 7;
+                    for (let i = 0; i < projectileCount; i++) {
+                        const angle = (Math.PI * 2 / projectileCount) * i;
+                        const velocity = {
+                            x: Math.cos(angle) * 200,
+                            y: Math.sin(angle) * 200
+                        };
+                        
+                        // Create projectile with rainbow tint
+                        this.scene.projectileSystem.createEnemyProjectile({
+                            x: this.x,
+                            y: this.y,
+                            velocity: velocity,
+                            damage: ability.damage,
+                            color: this.getRainbowColor(i, projectileCount),
+                            owner: this
+                        });
+                    }
+                    
+                    // VFX for burst
+                    if (this._vfx && this._vfx.burst && this.scene.newVFXSystem) {
+                        this.scene.newVFXSystem.play(this._vfx.burst, this.x, this.y);
+                    }
+                }
+                break;
+        }
+    }
+    
+    getRainbowColor(index, total) {
+        const colors = [0xFF0000, 0xFF7F00, 0xFFFF00, 0x00FF00, 0x0000FF, 0x4B0082, 0x9400D3];
+        return colors[index % colors.length];
     }
     
     update(time, delta) {
@@ -124,6 +415,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         if (!player || !player.active) {
             this.body.setVelocity(0, 0);
             return;
+        }
+        
+        // Update special mechanics for elite/unique entities
+        if (this.isElite) {
+            this.updateEliteShield(delta);
+        }
+        if (this.isUnique) {
+            this.updateUniqueAbilities(time, delta);
         }
         
         // PR7 Compliant: Use AI behavior from blueprint
@@ -234,36 +533,6 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.playSFX('shoot');
     }
     
-    takeDamage(amount) {
-        if (!this.active) return;
-        
-        // Clamp HP to prevent negative values
-        this.hp = Math.max(0, this.hp - amount);
-        
-        // Visual feedback through VFX system
-        this.playVFX('hit');
-        this.playSFX('hit');
-        
-        // Flash effect (no tweens, just tint)
-        this.setTintFill(0xffffff);
-        this.scene.time.delayedCall(100, () => {
-            if (this.active) {
-                this.clearTint();
-                if (this.isElite) {
-                    const CR = this.scene.configResolver;
-                    const eliteTint = CR.get('enemy.rendering.eliteTint');
-                    this.setTint(eliteTint);
-                }
-            }
-        });
-        
-        // HOTFIX V4: Only call scene's handleEnemyDeath when HP <= 0
-        if (this.hp <= 0) {
-            if (this.scene.handleEnemyDeath) {
-                this.scene.handleEnemyDeath(this);
-            }
-        }
-    }
     
     /**
      * PR7 Compliant: Execute AI behavior based on blueprint configuration
@@ -417,40 +686,45 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         }
     }
     
-    die() {
-        // HOTFIX V4: die() method deprecated - death handled by GameScene.handleEnemyDeath
-        // This method kept for compatibility but should not be called directly
-        if (!this.active) return;
-        
-        // Death VFX/SFX - safe calls
-        try {
-            this.playVFX('death');
-            this.playSFX('death');
-        } catch (error) {
-            console.debug('[Enemy] VFX/SFX failed, continuing:', error.message);
-        }
-        
-        // DO NOT call handleEnemyDeath here to avoid double-processing
-        // Just clean up the sprite
-        this.destroy();
-    }
     
     // PR7: VFX/SFX helper methods
     playVFX(effectType) {
-        // Temporarily disabled - blueprint IDs don't match registry
-        return;
-        /*
         if (!this.scene.newVFXSystem) return;
         
+        // Try to get VFX ID from blueprint VFX mapping
         const vfxId = this._vfx?.[effectType];
         if (vfxId) {
             this.scene.newVFXSystem.play(vfxId, this.x, this.y);
         } else {
-            // Use default VFX based on type
-            const defaultVfx = `enemy.${effectType}`;
-            this.scene.newVFXSystem.play(defaultVfx, this.x, this.y);
+            // Fallback: try common VFX patterns
+            const fallbackIds = [
+                `vfx.${this.type}.${effectType}`, // e.g., vfx.enemy.hit
+                `vfx.${effectType}.default`,      // e.g., vfx.hit.default
+                `vfx.${effectType}`               // e.g., vfx.hit
+            ];
+            
+            let played = false;
+            for (const fallbackId of fallbackIds) {
+                try {
+                    this.scene.newVFXSystem.play(fallbackId, this.x, this.y);
+                    played = true;
+                    break;
+                } catch (error) {
+                    // Continue to next fallback
+                    continue;
+                }
+            }
+            
+            // Final fallback - simple hit spark for any effect
+            if (!played && effectType !== 'none') {
+                try {
+                    this.scene.newVFXSystem.playHitSpark(this.x, this.y, 'default');
+                } catch (error) {
+                    // Silent fail - don't break gameplay for missing VFX
+                    console.debug(`[Enemy] VFX fallback failed for ${effectType}:`, error.message);
+                }
+            }
         }
-        */
     }
     
     playSFX(soundType) {
@@ -470,9 +744,133 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         */
     }
     
-    // PR7: No manual cleanup of graphics needed
+    // ========= DAMAGE & DEATH HANDLING =========
+    
+    /**
+     * Handle taking damage with elite/unique mechanics
+     */
+    takeDamage(amount, source) {
+        // PR7: Apply armor damage reduction from blueprint
+        if (this.armor > 0) {
+            // Armor reduces damage by flat amount (min 1 damage always goes through)
+            amount = Math.max(1, amount - this.armor);
+        }
+        
+        // Elite damage reduction (percentage based)
+        if (this.isElite && this.damageReduction) {
+            amount = amount * (1 - this.damageReduction);
+        }
+        
+        // Elite shield absorption
+        if (this.shieldHP && this.shieldHP > 0) {
+            const shieldDamage = Math.min(this.shieldHP, amount);
+            this.shieldHP -= shieldDamage;
+            amount -= shieldDamage;
+            this.lastDamageTime = Date.now();
+            
+            // Shield break VFX
+            if (this.shieldHP <= 0 && this._vfx && this._vfx.shield && this.scene.newVFXSystem) {
+                this.scene.newVFXSystem.play(this._vfx.shield, this.x, this.y);
+            }
+        }
+        
+        // Apply remaining damage to HP
+        if (amount > 0) {
+            this.hp -= amount;
+            
+            // Hit VFX
+            this.playVFX('hit');
+            this.playSFX('hit');
+            
+            // Flash effect
+            this.flashEffect();
+        }
+        
+        // Check death
+        if (this.hp <= 0) {
+            this.die(source);
+        }
+    }
+    
+    /**
+     * Handle death with special rewards for elite/unique
+     */
+    die(killer) {
+        // Death VFX/SFX
+        this.playVFX('death');
+        this.playSFX('death');
+        
+        // Special rewards for unique entities
+        if (this.isUnique && this.hasGoldAura) {
+            // Double XP reward
+            this.xp *= this.goldAuraBonus;
+        }
+        
+        // Guaranteed drops for unique entities
+        if (this.isUnique && this.config.mechanics && this.config.mechanics.guaranteedDrops) {
+            // These will be handled by loot system
+            this.guaranteedDrops = this.config.mechanics.guaranteedDrops;
+        }
+        
+        // Clean up graphics
+        if (this.auraGraphics) {
+            this.auraGraphics.destroy();
+            this.auraGraphics = null;
+        }
+        if (this.goldAuraGraphics) {
+            this.goldAuraGraphics.destroy();
+            this.goldAuraGraphics = null;
+        }
+        
+        // Don't set active/visible to false here - let GameScene handle it
+        // Otherwise GameScene's death check (hp <= 0 && active) will fail
+        
+        // Emit death event for GameScene to handle
+        if (this.scene.events) {
+            this.scene.events.emit('enemyDeath', this, killer);
+        }
+    }
+    
+    /**
+     * Flash effect when hit
+     */
+    flashEffect() {
+        if (this.flashTween) return;
+        
+        this.setTint(0xffffff);
+        this.flashTween = this.scene.tweens.add({
+            targets: this,
+            tint: this.isElite ? 0xffdd00 : (this.isUnique && this.config.visuals ? this.config.visuals.tint : 0xffffff),
+            duration: 100,
+            yoyo: true,
+            onComplete: () => {
+                this.flashTween = null;
+                if (this.isElite) {
+                    this.setTint(0xffdd00);
+                } else if (this.isUnique && this.config.visuals && this.config.visuals.tint) {
+                    this.setTint(this.config.visuals.tint);
+                } else {
+                    this.clearTint();
+                }
+            }
+        });
+    }
+    
+    // PR7: Cleanup
     destroy() {
-        // Only need to clean up Phaser objects
+        // Clean up graphics
+        if (this.auraGraphics) {
+            this.auraGraphics.destroy();
+        }
+        if (this.goldAuraGraphics) {
+            this.goldAuraGraphics.destroy();
+        }
+        
+        // Clean up tweens
+        if (this.flashTween) {
+            this.flashTween.remove();
+        }
+        
         super.destroy();
     }
 }

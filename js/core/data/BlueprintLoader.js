@@ -42,7 +42,7 @@ export class BlueprintLoader {
                 },
                 spawnTables: [],
                 systemConfigs: [],
-                categories: ['enemy', 'boss', 'unique', 'powerup', 'drop', 'projectile', 'lootTable', 'spawnTable', 'system'],
+                categories: ['enemy', 'boss', 'unique', 'powerup', 'drop', 'projectile', 'lootTable', 'spawnTable', 'system', 'item'],
                 loadConfig: {
                     parallel: true,
                     maxConcurrent: 10,
@@ -62,7 +62,7 @@ export class BlueprintLoader {
                 spawnTables: CR.get('blueprintLoader.spawnTables', { defaultValue: [] }),
                 systemConfigs: CR.get('blueprintLoader.systemConfigs', { defaultValue: [] }),
                 categories: CR.get('blueprintLoader.categories', { 
-                    defaultValue: ['enemy', 'boss', 'unique', 'powerup', 'drop', 'projectile', 'lootTable', 'spawnTable', 'system']
+                    defaultValue: ['enemy', 'boss', 'unique', 'powerup', 'drop', 'projectile', 'lootTable', 'spawnTable', 'system', 'item']
                 }),
                 categoryMapping: CR.get('blueprintLoader.categoryMapping', { defaultValue: {} }),
                 loadConfig: CR.get('blueprintLoader.loadConfig', {
@@ -111,6 +111,9 @@ export class BlueprintLoader {
             
             // 4. Load system configs
             await this.loadSystemConfigs();
+            
+            // 5. Load items from subdirectories (new simplified loot system)
+            await this.loadItemBlueprints();
             
             this.loaded = true;
             console.log(`[BlueprintLoader] ✅ Loaded ${this.blueprints.size} blueprints total`);
@@ -275,6 +278,67 @@ export class BlueprintLoader {
     }
     
     /**
+     * Load item blueprints from subdirectories
+     * New simplified loot system - PR7 compliant
+     */
+    async loadItemBlueprints() {
+        const itemSubdirs = ['xp', 'health', 'special', 'powerup', 'currency'];
+        const loadPromises = [];
+        
+        for (const subdir of itemSubdirs) {
+            // Try to load all JSON5 files from each subdirectory
+            const itemFiles = [
+                // XP items
+                { subdir: 'xp', files: ['item_xp_small.json5', 'item_xp_medium.json5', 'item_xp_large.json5'] },
+                // Health items
+                { subdir: 'health', files: ['item_health_small.json5', 'item_heal_orb.json5', 'item_protein_cache.json5'] },
+                // Special items
+                { subdir: 'special', files: ['item_energy_cell.json5', 'item_metotrexat.json5', 'item_research_point.json5'] },
+            ];
+        }
+        
+        // Load known item files
+        const itemFiles = [
+            // XP items
+            'items/xp/item_xp_small.json5',
+            'items/xp/item_xp_medium.json5',
+            'items/xp/item_xp_large.json5',
+            // Health items
+            'items/health/item_health_small.json5',
+            'items/health/item_heal_orb.json5',
+            'items/health/item_protein_cache.json5',
+            // Special items
+            'items/special/item_energy_cell.json5',
+            'items/special/item_metotrexat.json5',
+            'items/special/item_research_point.json5',
+        ];
+        
+        for (const filePath of itemFiles) {
+            try {
+                const fullPath = `${this.config.paths.blueprintsRoot}/${filePath}`;
+                const response = await fetch(fullPath);
+                
+                if (!response.ok) {
+                    console.warn(`[BlueprintLoader] Item file not found: ${filePath}`);
+                    continue;
+                }
+                
+                const text = await response.text();
+                const item = typeof JSON5 !== 'undefined' ? JSON5.parse(text) : JSON.parse(text);
+                
+                if (item.id) {
+                    this.blueprints.set(item.id, item);
+                    this.categories.item = this.categories.item || new Map();
+                    this.categories.item.set(item.id, item);
+                    console.log(`[BlueprintLoader] Loaded item: ${item.id}`);
+                }
+            } catch (error) {
+                console.warn(`[BlueprintLoader] Failed to load item ${filePath}:`, error);
+            }
+        }
+    }
+    
+    /**
      * Get category from blueprint ID
      * PR7 kompatibilní - používá mapování z konfigurace
      */
@@ -357,6 +421,43 @@ export class BlueprintLoader {
     getLootTable(tableId) {
         return this.categories.lootTable.get(tableId) || 
                this.blueprints.get(tableId);
+    }
+    
+    /**
+     * Get all blueprints as an object
+     * Used by dev tools and soft refresh
+     */
+    getAllBlueprints() {
+        const all = {};
+        this.blueprints.forEach((data, id) => {
+            all[id] = data;
+        });
+        return all;
+    }
+    
+    /**
+     * Get single blueprint by ID
+     * Alias for get() method for consistency
+     */
+    getBlueprint(id) {
+        return this.get(id);
+    }
+    
+    /**
+     * Update or add a blueprint
+     * Used by soft refresh system
+     */
+    updateBlueprint(id, data) {
+        // Store in main map
+        this.blueprints.set(id, data);
+        
+        // Also update in category if applicable
+        const category = this.getCategoryFromId(id);
+        if (category && this.categories[category]) {
+            this.categories[category].set(id, data);
+        }
+        
+        console.log(`[BlueprintLoader] Updated blueprint: ${id}`);
     }
     
     /**

@@ -6,6 +6,61 @@ export function installDevConsole(scene) {
   try {
     if (typeof window === 'undefined') return;
     if (!window.DEV) window.DEV = {};
+    
+    // ===== DEBUG TOGGLES =====
+    // Global debug flags
+    if (!window.DEBUG_FLAGS) {
+      window.DEBUG_FLAGS = {
+        sfx: false,
+        vfx: false,
+        spawn: false,
+        projectiles: false,
+        ai: false,
+        damage: false,
+        loot: false,
+        xp: false
+      };
+    }
+    
+    /**
+     * Toggle debug logging for specific subsystems
+     * Example: DEV.toggleDebug('sfx') or DEV.toggleDebug('all')
+     */
+    window.DEV.toggleDebug = (system = null) => {
+      if (!system) {
+        console.log('📊 Debug flags:', window.DEBUG_FLAGS);
+        console.log('Usage: DEV.toggleDebug("sfx|vfx|spawn|projectiles|ai|damage|loot|xp|all")');
+        return;
+      }
+      
+      if (system === 'all') {
+        const newState = !Object.values(window.DEBUG_FLAGS).some(v => v);
+        Object.keys(window.DEBUG_FLAGS).forEach(key => {
+          window.DEBUG_FLAGS[key] = newState;
+        });
+        console.log(`🔧 All debug flags: ${newState ? 'ON' : 'OFF'}`);
+        return;
+      }
+      
+      if (system in window.DEBUG_FLAGS) {
+        window.DEBUG_FLAGS[system] = !window.DEBUG_FLAGS[system];
+        console.log(`🔧 Debug ${system}: ${window.DEBUG_FLAGS[system] ? 'ON' : 'OFF'}`);
+      } else {
+        console.warn(`Unknown debug system: ${system}`);
+        console.log('Available: sfx, vfx, spawn, projectiles, ai, damage, loot, xp, all');
+      }
+    };
+    
+    /**
+     * Mute all debug logs
+     */
+    window.DEV.muteDebug = () => {
+      Object.keys(window.DEBUG_FLAGS).forEach(key => {
+        window.DEBUG_FLAGS[key] = false;
+      });
+      console.log('🔇 All debug logs muted');
+    };
+    
     window.DEV.spawnBoss = (arg) => {
       try {
         const bosses = GameConfig?.bosses || [];
@@ -188,20 +243,19 @@ export function installDevConsole(scene) {
     };
     
     // Enable explosive bullets for testing
-    window.DEV.enableExplosive = (level = 3) => {
+    window.DEV.enableExplosive = (radius = 50, damage = 25) => {
       if (scene.player) {
-        scene.player.hasExplosiveBullets = true;
-        scene.player.explosiveBulletsLevel = level;
-        console.log(`[DEV] Explosive bullets enabled, level: ${level}`);
+        scene.player.baseStats.explosionRadius = radius;
+        scene.player.baseStats.explosionDamage = damage;
+        console.log(`[DEV] Explosive bullets enabled, radius: ${radius}, damage: ${damage}`);
       }
     };
     
     // Enable piercing bullets for testing
-    window.DEV.enablePiercing = (level = 3) => {
+    window.DEV.enablePiercing = (pierceCount = 3) => {
       if (scene.player) {
-        scene.player.hasPiercingArrows = true;
-        scene.player.piercingArrowsLevel = level;
-        console.log(`[DEV] Piercing arrows enabled, level: ${level}`);
+        scene.player.baseStats.projectilePiercing = pierceCount;
+        console.log(`[DEV] Piercing arrows enabled, pierce count: ${pierceCount}`);
       }
     };
     
@@ -289,7 +343,431 @@ export function installDevConsole(scene) {
       }
     };
 
+    // ===== NEW SPAWN COMMANDS FOR ANY ENTITY =====
+    
+    /**
+     * Spawn any enemy by blueprint ID
+     * Example: DEV.spawnEnemy('enemy.necrotic_cell')
+     */
+    window.DEV.spawnEnemy = (blueprintId, x, y) => {
+      try {
+        if (!blueprintId) {
+          console.log('Usage: DEV.spawnEnemy(blueprintId, [x], [y])');
+          console.log('Example: DEV.spawnEnemy("enemy.necrotic_cell")');
+          return;
+        }
+        
+        // Add prefix if missing
+        if (!blueprintId.includes('.')) {
+          blueprintId = `enemy.${blueprintId}`;
+        }
+        
+        // Get position (center if not specified)
+        const posX = x || scene.cameras.main.width / 2;
+        const posY = y || scene.cameras.main.height / 2;
+        
+        // Use createEnemyFromBlueprint if available
+        if (scene.createEnemyFromBlueprint) {
+          const enemy = scene.createEnemyFromBlueprint(blueprintId, { x: posX, y: posY });
+          console.log(`✅ Spawned enemy: ${blueprintId} at (${posX}, ${posY})`);
+          return enemy;
+        } else {
+          console.warn('createEnemyFromBlueprint not available');
+        }
+      } catch (e) {
+        console.error('[DEV] spawnEnemy failed:', e);
+      }
+    };
+    
+    /**
+     * Spawn any boss by blueprint ID
+     * Example: DEV.spawnBoss('boss.karcinogenni_kral')
+     */
+    window.DEV.spawnBoss = (blueprintId, x, y) => {
+      try {
+        // If numeric, use old index-based method
+        if (typeof blueprintId === 'number') {
+          const bosses = GameConfig?.bosses || [];
+          const index = blueprintId;
+          if (index >= 0 && index < bosses.length) {
+            console.log('[DEV] Spawning boss at index:', index);
+            scene.enemyManager?.spawnBoss(index);
+            return;
+          }
+        }
+        
+        // Blueprint ID based spawn
+        if (!blueprintId) {
+          console.log('Usage: DEV.spawnBoss(blueprintId, [x], [y])');
+          console.log('Example: DEV.spawnBoss("boss.karcinogenni_kral")');
+          return;
+        }
+        
+        // Add prefix if missing
+        if (typeof blueprintId === 'string' && !blueprintId.includes('.')) {
+          blueprintId = `boss.${blueprintId}`;
+        }
+        
+        // Get position (center if not specified)
+        const posX = x || scene.cameras.main.width / 2;
+        const posY = y || scene.cameras.main.height / 2 - 100;
+        
+        // Use createEnemyFromBlueprint for bosses too
+        if (scene.createEnemyFromBlueprint) {
+          const boss = scene.createEnemyFromBlueprint(blueprintId, { 
+            x: posX, 
+            y: posY,
+            boss: true 
+          });
+          console.log(`✅ Spawned boss: ${blueprintId} at (${posX}, ${posY})`);
+          return boss;
+        } else {
+          console.warn('createEnemyFromBlueprint not available');
+        }
+      } catch (e) {
+        console.error('[DEV] spawnBoss failed:', e);
+      }
+    };
+    
+    /**
+     * Spawn powerup/drop
+     * Example: DEV.spawnDrop('powerup.damage_boost')
+     */
+    window.DEV.spawnDrop = (blueprintId, x, y) => {
+      try {
+        if (!blueprintId) {
+          console.log('Usage: DEV.spawnDrop(blueprintId, [x], [y])');
+          console.log('Example: DEV.spawnDrop("powerup.damage_boost")');
+          console.log('Example: DEV.spawnDrop("drop.xp_small")');
+          return;
+        }
+        
+        // Get position (center if not specified)
+        const posX = x || scene.cameras.main.width / 2;
+        const posY = y || scene.cameras.main.height / 2;
+        
+        // Use lootManager if available
+        if (scene.lootManager && scene.lootManager.spawnDrop) {
+          scene.lootManager.spawnDrop(blueprintId, posX, posY);
+          console.log(`✅ Spawned drop: ${blueprintId} at (${posX}, ${posY})`);
+        } else {
+          console.warn('LootManager not available');
+        }
+      } catch (e) {
+        console.error('[DEV] spawnDrop failed:', e);
+      }
+    };
+    
+    /**
+     * Spawn multiple enemies in a wave
+     * Example: DEV.spawnWave(5) or DEV.spawnWave(5, 'enemy.necrotic_cell')
+     */
+    window.DEV.spawnWave = (count = 5, blueprintId = 'enemy.necrotic_cell') => {
+      try {
+        const centerX = scene.cameras.main.width / 2;
+        const centerY = scene.cameras.main.height / 2;
+        
+        for (let i = 0; i < count; i++) {
+          const angle = (i / count) * Math.PI * 2;
+          const radius = 100;
+          const x = centerX + Math.cos(angle) * radius;
+          const y = centerY + Math.sin(angle) * radius;
+          
+          window.DEV.spawnEnemy(blueprintId, x, y);
+        }
+        
+        console.log(`✅ Spawned wave of ${count} ${blueprintId}`);
+      } catch (e) {
+        console.error('[DEV] spawnWave failed:', e);
+      }
+    };
+    
+    /**
+     * Give player XP
+     * Example: DEV.giveXP(1000)
+     */
+    window.DEV.giveXP = (amount) => {
+      try {
+        if (scene.gainXP) {
+          scene.gainXP(amount);
+          console.log(`✅ Added ${amount} XP`);
+        }
+      } catch (e) {
+        console.error('[DEV] giveXP failed:', e);
+      }
+    };
+    
+    /**
+     * Set player health
+     * Example: DEV.setHealth(100)
+     */
+    window.DEV.setHealth = (hp) => {
+      try {
+        if (scene.player) {
+          scene.player.hp = hp;
+          if (scene.unifiedHUD) {
+            scene.unifiedHUD.updatePlayerHealth(hp, scene.player.maxHp);
+          }
+          console.log(`✅ Player health set to ${hp}`);
+        }
+      } catch (e) {
+        console.error('[DEV] setHealth failed:', e);
+      }
+    };
+    
+    /**
+     * Set player max health
+     * Example: DEV.setMaxHealth(200)
+     */
+    window.DEV.setMaxHealth = (maxHp) => {
+      try {
+        if (scene.player) {
+          scene.player.maxHp = maxHp;
+          scene.player.hp = Math.min(scene.player.hp, maxHp);
+          if (scene.unifiedHUD) {
+            scene.unifiedHUD.updatePlayerHealth(scene.player.hp, maxHp);
+          }
+          console.log(`✅ Player max health set to ${maxHp}`);
+        }
+      } catch (e) {
+        console.error('[DEV] setMaxHealth failed:', e);
+      }
+    };
+    
+    /**
+     * Toggle god mode
+     * Example: DEV.godMode()
+     */
+    window.DEV.godMode = () => {
+      try {
+        if (scene.player) {
+          scene.player.invincible = !scene.player.invincible;
+          console.log(`✅ God mode: ${scene.player.invincible ? 'ON' : 'OFF'}`);
+        }
+      } catch (e) {
+        console.error('[DEV] godMode failed:', e);
+      }
+    };
+    
+    /**
+     * Kill all enemies
+     * Example: DEV.killAll()
+     */
+    window.DEV.killAll = () => {
+      try {
+        if (scene.enemies) {
+          const count = scene.enemies.children.entries.length;
+          scene.enemies.children.entries.forEach(enemy => {
+            if (enemy && enemy.kill) {
+              enemy.kill();
+            }
+          });
+          console.log(`✅ Killed ${count} enemies`);
+        }
+      } catch (e) {
+        console.error('[DEV] killAll failed:', e);
+      }
+    };
+    
+    /**
+     * Clear all enemies (without death effects)
+     * Example: DEV.clearEnemies()
+     */
+    window.DEV.clearEnemies = () => {
+      try {
+        if (scene.enemies) {
+          scene.enemies.clear(true, true);
+          console.log(`✅ Cleared all enemies`);
+        }
+      } catch (e) {
+        console.error('[DEV] clearEnemies failed:', e);
+      }
+    };
+    
+    /**
+     * Clear all projectiles
+     * Example: DEV.clearProjectiles()
+     */
+    window.DEV.clearProjectiles = () => {
+      try {
+        if (scene.projectileSystem) {
+          scene.projectileSystem.clearAll();
+          console.log(`✅ Cleared all projectiles`);
+        }
+      } catch (e) {
+        console.error('[DEV] clearProjectiles failed:', e);
+      }
+    };
+    
+    /**
+     * PR7: Validate XP progression for a spawn table
+     * Example: DEV.validateXP('spawnTable.level1')
+     */
+    window.DEV.validateXP = (spawnTableId) => {
+      try {
+        console.log(`\n📊 XP Validation for ${spawnTableId}`);
+        console.log('='.repeat(60));
+        
+        // Get spawn table
+        const table = scene.blueprintLoader?.getSpawnTable(spawnTableId);
+        if (!table) {
+          console.error(`❌ Spawn table not found: ${spawnTableId}`);
+          return;
+        }
+        
+        const xpPlan = table.meta?.extensions?.xpPlan;
+        if (!xpPlan) {
+          console.warn('⚠️ No xpPlan found in spawn table meta.extensions');
+          return;
+        }
+        
+        // Get progression config
+        const CR = window.ConfigResolver;
+        const progressionXp = CR.get('progression.xp');
+        if (!progressionXp) {
+          console.error('❌ No progression.xp config found');
+          return;
+        }
+        
+        // Helper to get enemy XP
+        const getEnemyXp = (enemyId) => {
+          if (xpPlan.enemyXpOverrides?.[enemyId]) {
+            return xpPlan.enemyXpOverrides[enemyId];
+          }
+          const blueprint = scene.blueprintLoader?.get(enemyId);
+          if (blueprint?.stats?.xp) {
+            return blueprint.stats.xp;
+          }
+          if (progressionXp.enemyXp?.[enemyId]) {
+            return progressionXp.enemyXp[enemyId];
+          }
+          if (enemyId.startsWith('elite.')) return 20;
+          if (enemyId.startsWith('unique.')) return 35;
+          return 3;
+        };
+        
+        // Simulate XP per minute
+        const results = [];
+        const targets = xpPlan.targetXpPerMinute;
+        const pity = xpPlan.pity;
+        
+        console.log(`\n📋 Target budget: ${xpPlan.budgetTotal} XP total`);
+        console.log(`🎯 Boss: ${xpPlan.boss.id} (${xpPlan.boss.xp} XP, cap ${xpPlan.boss.capLevelsGranted} levels)`);
+        if (pity?.enabled) {
+          console.log(`🛡️ Pity: Min ${pity.minXpPerMinute} XP/min for first ${pity.untilMinute} minutes`);
+        }
+        
+        console.log('\n' + '─'.repeat(60));
+        console.log('| Min | Target | Actual | Delta | % Diff | Status |');
+        console.log('|-----|--------|--------|-------|--------|--------|');
+        
+        let totalXp = 0;
+        
+        // Process each minute
+        for (let minute = 0; minute < targets.length; minute++) {
+          const startMs = minute * 60000;
+          const endMs = (minute + 1) * 60000;
+          
+          // Get target with pity
+          let target = targets[minute] || targets[targets.length - 1];
+          if (pity?.enabled && minute < (pity.untilMinute || 4)) {
+            target = Math.max(target, pity.minXpPerMinute || 60);
+          }
+          
+          // Calculate actual XP from waves
+          let actualXp = 0;
+          table.enemyWaves?.forEach(wave => {
+            if (wave.startAt < endMs && wave.endAt > startMs) {
+              const enemyXp = getEnemyXp(wave.enemyId);
+              const avgCount = (wave.countRange[0] + wave.countRange[1]) / 2;
+              const spawnsPerMinute = 60000 / wave.interval;
+              const waveXp = enemyXp * avgCount * spawnsPerMinute * (wave.weight / 100);
+              actualXp += waveXp;
+            }
+          });
+          
+          // Add elite/unique contributions (estimated)
+          table.eliteWindows?.forEach(elite => {
+            if (elite.startAt < endMs && elite.endAt > startMs) {
+              const eliteXp = getEnemyXp(elite.enemyId);
+              const avgCount = (elite.countRange[0] + elite.countRange[1]) / 2;
+              const spawnsPerMinute = 60000 / (elite.cooldown || 15000);
+              const eliteContrib = eliteXp * avgCount * spawnsPerMinute * (elite.weight / 100);
+              actualXp += eliteContrib * 0.3; // Elite spawn probability adjustment
+            }
+          });
+          
+          totalXp += actualXp;
+          
+          const delta = actualXp - target;
+          const percentDiff = ((actualXp - target) / target * 100).toFixed(1);
+          const status = Math.abs(delta) <= target * 0.1 ? '✅' : 
+                         Math.abs(delta) <= target * 0.2 ? '⚠️' : '❌';
+          
+          console.log(`| ${minute.toString().padEnd(3)} | ${target.toString().padEnd(6)} | ${Math.round(actualXp).toString().padEnd(6)} | ${delta.toFixed(0).padEnd(5)} | ${percentDiff.padStart(6)}% | ${status.padEnd(6)} |`);
+          
+          results.push({
+            minute,
+            target,
+            actual: actualXp,
+            delta,
+            percentDiff: parseFloat(percentDiff),
+            status
+          });
+        }
+        
+        console.log('─'.repeat(60));
+        
+        // Summary
+        const avgDiff = results.reduce((sum, r) => sum + Math.abs(r.percentDiff), 0) / results.length;
+        const withinTolerance = results.filter(r => Math.abs(r.percentDiff) <= 10).length;
+        const warnings = results.filter(r => Math.abs(r.percentDiff) > 10 && Math.abs(r.percentDiff) <= 20).length;
+        const errors = results.filter(r => Math.abs(r.percentDiff) > 20).length;
+        
+        console.log('\n📈 Summary:');
+        console.log(`  Total XP accumulated: ${Math.round(totalXp)}`);
+        console.log(`  Budget target: ${xpPlan.budgetTotal}`);
+        console.log(`  Average deviation: ${avgDiff.toFixed(1)}%`);
+        console.log(`  ✅ Within tolerance (±10%): ${withinTolerance}/${results.length}`);
+        console.log(`  ⚠️ Warnings (±10-20%): ${warnings}/${results.length}`);
+        console.log(`  ❌ Errors (>±20%): ${errors}/${results.length}`);
+        
+        if (avgDiff <= 10) {
+          console.log('\n✅ XP progression is well-tuned!');
+        } else if (avgDiff <= 20) {
+          console.log('\n⚠️ XP progression needs minor adjustments');
+        } else {
+          console.log('\n❌ XP progression needs significant retuning');
+        }
+        
+        // Boss XP validation
+        if (xpPlan.boss) {
+          const bossXp = xpPlan.boss.xp;
+          const capLevels = xpPlan.boss.capLevelsGranted || 1.5;
+          const baseReq = progressionXp.baseRequirement || 10;
+          const scaling = progressionXp.scalingMultiplier || 1.5;
+          const maxAllowed = baseReq * Math.pow(scaling, capLevels);
+          const clamped = Math.min(bossXp, maxAllowed);
+          
+          console.log('\n🐉 Boss XP Validation:');
+          console.log(`  Boss: ${xpPlan.boss.id}`);
+          console.log(`  Configured XP: ${bossXp}`);
+          console.log(`  Max allowed (${capLevels} levels): ${Math.round(maxAllowed)}`);
+          console.log(`  Final XP: ${Math.round(clamped)} ${clamped < bossXp ? '(clamped)' : '✅'}`);
+        }
+        
+        console.log('\n' + '='.repeat(60));
+        
+      } catch (e) {
+        console.error('[DEV] validateXP failed:', e);
+      }
+    };
+    
     console.log('✅ DEV console installed. Try: DEV.listBosses(), DEV.spawnBoss(5), DEV.togglePerf(), DEV.setGodMode(true)');
+    console.log('✅ Spawn commands: DEV.spawnEnemy("enemy.necrotic_cell"), DEV.spawnBoss("boss.karcinogenni_kral")');
+    console.log('✅ XP validation: DEV.validateXP("spawnTable.level1")');
+    console.log('✅ Wave spawn: DEV.spawnWave(10), DEV.spawnDrop("powerup.damage_boost")');
+    console.log('✅ Player: DEV.giveXP(1000), DEV.setHealth(100), DEV.godMode(), DEV.killAll()');
     console.log('✅ Enemy bullet tests: DEV.testEnemyBullet(), DEV.testHomingBullet()');
     console.log('✅ Homing blueprints: DEV.testHomingBlueprints() - tests all 4 types');
     console.log('✅ Collision monitoring: DEV.startCollisionMonitoring(), DEV.stopCollisionMonitoring()');

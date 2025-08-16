@@ -3,12 +3,12 @@
   "id": "enemy.necrotic_cell",
   "type": "enemy",
   "stats": {
-    "hp": 35,
-    "damage": 8,
+    "hp": 20,
+    "damage": 5,
     "speed": 35,
     "size": 18,
     "armor": 2,
-    "xp": 6
+    "xp": 5
   },
   "mechanics": {
     "movementType": "slow_tank",
@@ -20,23 +20,32 @@
     "healthDropChance": 0.15
   },
   "vfx": {
-    "spawn": "vfx.enemy.spawn.necrotic",
+    "spawn": {
+      "type": "energy",
+      "texture": "spark",
+      "quantity": 8,
+      "lifespan": 400,
+      "speed": { "min": 50, "max": 120 },
+      "scale": { "start": 0.3, "end": 0 },
+      "tint": 0x8d8e65
+    },
     "hit": "vfx.hit.spark.necrotic",
     "death": "vfx.enemy.death.necrotic.burst",
-    "aura": "vfx.enemy.aura.necrotic",
+    "aura": "vfx.enemy.aura.necrotic", 
     "decay": "vfx.effect.decay"
   },
   "sfx": {
-    "spawn": "sfx.enemy.spawn.heavy",
-    "hit": "sfx.enemy.hit.necrotic",
-    "death": "sfx.enemy.death.heavy",
-    "decay": "sfx.effect.decay"
+    "spawn": "sound/npc_spawn.mp3",
+    "hit": "sound/npc_hit.mp3",
+    "death": "sound/npc_death.mp3",
+    "decay": "sound/decay.mp3"
   },
   // PR7 Compliant: graphics field for visual configuration
   "graphics": {
     "sprite": "enemy_necrotic_cell",
     "tint": 0x8d8e65,
     "scale": 1.0,
+    "shape": "diamond",  // Uses diamond shape for placeholder texture
     "animation": {
       "idle": "necrotic_idle",
       "move": "necrotic_move"
@@ -52,8 +61,12 @@
       "targetPriority": "nearest"
     }
   },
-  // PR7 Compliant: lootTable reference
-  "lootTable": "lootTable.level1.common",
+  // NEW: Direct drop system - simple and clear like WoW/Diablo
+  "drops": [
+    { "itemId": "item.xp_small", "chance": 0.8 },      // 80% chance for XP
+    { "itemId": "item.health_small", "chance": 0.15 }, // 15% chance for health
+    { "itemId": "item.xp_medium", "chance": 0.05 }     // 5% chance for bonus XP
+  ],
   "display": {
     "key": "enemy.necrotic_cell.name",
     "descKey": "enemy.necrotic_cell.desc",

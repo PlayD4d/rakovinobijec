@@ -678,6 +678,20 @@ export class VFXRegistry {
       }
     });
 
+    this.register('vfx.boss.hit.medium', {
+      type: 'particles',
+      texture: 'metal_spark',
+      description: 'Střední zásah bosse',
+      config: {
+        scale: { start: 0.4, end: 0.08 },
+        speed: { min: 100, max: 250 },
+        lifespan: 350,
+        quantity: 12,
+        blendMode: 'ADD',
+        tint: 0xFFAA00
+      }
+    });
+
     this.register('vfx.boss.phase.change', {
       type: 'particles',
       texture: 'energy_particle',
@@ -731,6 +745,553 @@ export class VFXRegistry {
         quantity: 12,
         blendMode: 'ADD',
         tint: 0xFFDD00
+      }
+    });
+
+    // === BOSS SPECIFIC VFX EFEKTY ===
+    
+    // Boss spawn efekty
+    this.register('vfx.boss.spawn.radiation', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Radiační boss spawn',
+      config: {
+        scale: { start: 0.0, end: 1.2, ease: 'Power3' },
+        speed: { min: 120, max: 280 },
+        lifespan: 1200,
+        quantity: 50,
+        blendMode: 'ADD',
+        tint: 0x4CAF50,
+        gravityY: -20
+      }
+    });
+
+    this.register('vfx.boss.spawn.onkogen', {
+      type: 'particles',
+      texture: 'energy_particle', 
+      description: 'Onkogen boss spawn',
+      config: {
+        scale: { start: 0.0, end: 1.0, ease: 'Power3' },
+        speed: { min: 100, max: 250 },
+        lifespan: 1000,
+        quantity: 40,
+        blendMode: 'ADD',
+        tint: 0xFF5722
+      }
+    });
+
+    // Boss phase efekty
+    this.register('vfx.boss.phase.radiation.low', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Radiační boss fáze 1',
+      config: {
+        scale: { start: 0.8, end: 0.0 },
+        speed: { min: 60, max: 150 },
+        lifespan: 600,
+        quantity: 20,
+        blendMode: 'ADD',
+        tint: 0x81C784
+      }
+    });
+
+    this.register('vfx.boss.phase.radiation.medium', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Radiační boss fáze 2',
+      config: {
+        scale: { start: 1.0, end: 0.0 },
+        speed: { min: 80, max: 180 },
+        lifespan: 700,
+        quantity: 25,
+        blendMode: 'ADD',
+        tint: 0x4CAF50
+      }
+    });
+
+    this.register('vfx.boss.phase.radiation.high', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Radiační boss fáze 3',
+      config: {
+        scale: { start: 1.2, end: 0.0 },
+        speed: { min: 100, max: 220 },
+        lifespan: 800,
+        quantity: 35,
+        blendMode: 'ADD',
+        tint: 0x2E7D32
+      }
+    });
+
+    // Boss ability efekty
+    this.register('vfx.boss.radiation.pulse', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Radiační puls útok',
+      config: {
+        scale: { start: 1.5, end: 0.0 },
+        speed: { min: 150, max: 300 },
+        lifespan: 500,
+        quantity: 30,
+        blendMode: 'ADD',
+        tint: 0x4CAF50,
+        angle: { min: 0, max: 360 }
+      }
+    });
+
+    this.register('vfx.boss.spawn.minions', {
+      type: 'particles',
+      texture: 'spawn_particle',
+      description: 'Boss spawn minions efekt',
+      config: {
+        scale: { start: 0.0, end: 0.6, ease: 'Power2' },
+        speed: { min: 80, max: 160 },
+        lifespan: 600,
+        quantity: 15,
+        alpha: { start: 0.0, end: 1.0, ease: 'Power2' },
+        tint: 0x8844AA
+      }
+    });
+
+    this.register('vfx.boss.radiation.beam', {
+      type: 'particles',
+      texture: 'muzzle_particle',
+      description: 'Radiační paprsek útok',
+      config: {
+        scale: { start: 0.8, end: 0.0 },
+        speed: { min: 50, max: 120 },
+        lifespan: 300,
+        quantity: 12,
+        blendMode: 'ADD',
+        tint: 0x4CAF50
+      }
+    });
+
+    this.register('vfx.boss.radiation.storm', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Radiační bouře útok',
+      config: {
+        scale: { start: 1.0, end: 0.0 },
+        speed: { min: 100, max: 250 },
+        lifespan: 800,
+        quantity: 40,
+        blendMode: 'ADD',
+        tint: 0x4CAF50,
+        gravityY: -30
+      }
+    });
+
+    this.register('vfx.boss.radiation.overload', {
+      type: 'particles',
+      texture: 'explosion_particle',
+      description: 'Core overload exploze',
+      config: {
+        scale: { start: 2.0, end: 0.0 },
+        speed: { min: 200, max: 400 },
+        lifespan: 800,
+        quantity: 60,
+        blendMode: 'ADD',
+        tint: 0x4CAF50
+      }
+    });
+
+    this.register('vfx.boss.circle.burst', {
+      type: 'particles',
+      texture: 'muzzle_particle',
+      description: 'Boss kruhový burst',
+      config: {
+        scale: { start: 1.0, end: 0.0 },
+        speed: { min: 120, max: 250 },
+        lifespan: 400,
+        quantity: 20,
+        blendMode: 'ADD',
+        tint: 0xFF5722,
+        angle: { min: 0, max: 360 }
+      }
+    });
+
+    this.register('vfx.boss.dash.onkogen', {
+      type: 'particles',
+      texture: 'trail_particle',
+      description: 'Onkogen dash útok',
+      config: {
+        scale: { start: 0.8, end: 0.0 },
+        speed: { min: 80, max: 150 },
+        lifespan: 300,
+        quantity: 15,
+        blendMode: 'ADD',
+        tint: 0xFF5722,
+        follow: true
+      }
+    });
+
+    this.register('vfx.boss.laser.sweep', {
+      type: 'particles',
+      texture: 'muzzle_particle',
+      description: 'Boss laser sweep',
+      config: {
+        scale: { start: 1.2, end: 0.0 },
+        speed: { min: 100, max: 200 },
+        lifespan: 600,
+        quantity: 25,
+        blendMode: 'ADD',
+        tint: 0xFF3300
+      }
+    });
+
+    this.register('vfx.boss.enrage.aura', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Boss enrage aura',
+      config: {
+        scale: { start: 1.5, end: 0.0 },
+        speed: { min: 50, max: 120 },
+        lifespan: 1000,
+        quantity: 30,
+        blendMode: 'ADD',
+        tint: 0xFF0000,
+        gravityY: -40
+      }
+    });
+
+    // Boss death efekty
+    this.register('vfx.boss.death.radiation.explosion', {
+      type: 'particles',
+      texture: 'explosion_particle',
+      description: 'Radiační boss smrt',
+      config: {
+        scale: { start: 2.5, end: 0.0 },
+        speed: { min: 200, max: 500 },
+        lifespan: 1200,
+        quantity: 80,
+        blendMode: 'ADD',
+        tint: 0x4CAF50
+      }
+    });
+
+    this.register('vfx.boss.death.explosion', {
+      type: 'particles',
+      texture: 'explosion_particle',
+      description: 'Boss explozní smrt',
+      config: {
+        scale: { start: 2.0, end: 0.0 },
+        speed: { min: 150, max: 400 },
+        lifespan: 1000,
+        quantity: 60,
+        blendMode: 'ADD',
+        tint: 0xFF4400
+      }
+    });
+
+    // Boss victory efekt
+    this.register('vfx.boss.victory', {
+      type: 'particles',
+      texture: 'xp_particle',
+      description: 'Boss poražen victory efekt',
+      config: {
+        scale: { start: 1.0, end: 0.0 },
+        speed: { min: 100, max: 300 },
+        lifespan: 1500,
+        quantity: 50,
+        blendMode: 'ADD',
+        tint: 0xFFD700,
+        gravityY: -100
+      }
+    });
+    
+    // === CHYBĚJÍCÍ BOSS VFX EFEKTY ===
+    
+    // Beam warning efekt
+    this.register('vfx.boss.beam.warning', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Varování před beam útokem',
+      config: {
+        scale: { start: 0.2, end: 0.8 },
+        speed: { min: 20, max: 50 },
+        lifespan: 1500,
+        quantity: 8,
+        blendMode: 'ADD',
+        tint: 0xFF9800,
+        alpha: { start: 0.8, end: 0.2 }
+      }
+    });
+    
+    // Rapid beam efekt
+    this.register('vfx.boss.beam.rapid', {
+      type: 'particles',
+      texture: 'muzzle_particle',
+      description: 'Rychlé paprsky',
+      config: {
+        scale: { start: 1.0, end: 0.0 },
+        speed: { min: 300, max: 500 },
+        lifespan: 200,
+        quantity: 15,
+        blendMode: 'ADD',
+        tint: 0x4CAF50,
+        angle: { min: -15, max: 15 }
+      }
+    });
+    
+    // Core overload charge efekt
+    this.register('vfx.boss.overload.charge', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Nabíjení core overload',
+      config: {
+        scale: { start: 0.1, end: 1.5 },
+        speed: { min: 50, max: 150 },
+        lifespan: 2000,
+        quantity: 40,
+        blendMode: 'ADD',
+        tint: 0xFF0000,
+        gravityY: -50,
+        alpha: { start: 0.2, end: 1.0 }
+      }
+    });
+    
+    // Core overload explosion efekt
+    this.register('vfx.boss.overload.explosion', {
+      type: 'particles',
+      texture: 'explosion_particle',
+      description: 'Exploze core overload',
+      config: {
+        scale: { start: 3.0, end: 0.0 },
+        speed: { min: 300, max: 600 },
+        lifespan: 1000,
+        quantity: 80,
+        blendMode: 'ADD',
+        tint: 0x4CAF50,
+        angle: { min: 0, max: 360 }
+      }
+    });
+    
+    // Radiation aura efekt
+    this.register('vfx.boss.radiation.aura', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Radiační aura kolem bosse',
+      config: {
+        scale: { start: 0.5, end: 0.0 },
+        speed: { min: 30, max: 80 },
+        lifespan: 1500,
+        quantity: 20,
+        blendMode: 'ADD',
+        tint: 0x4CAF50,
+        gravityY: -20,
+        alpha: { start: 0.6, end: 0.0 },
+        follow: true
+      }
+    });
+
+    // Boss phase efekty pro onkogen
+    this.register('vfx.boss.phase.moderate', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Boss střední fáze',
+      config: {
+        scale: { start: 0.8, end: 0.0 },
+        speed: { min: 70, max: 160 },
+        lifespan: 600,
+        quantity: 20,
+        blendMode: 'ADD',
+        tint: 0xFFA500
+      }
+    });
+
+    this.register('vfx.boss.phase.aggressive', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Boss agresivní fáze',
+      config: {
+        scale: { start: 1.0, end: 0.0 },
+        speed: { min: 90, max: 200 },
+        lifespan: 700,
+        quantity: 30,
+        blendMode: 'ADD',
+        tint: 0xFF5722
+      }
+    });
+
+    this.register('vfx.boss.phase.extreme', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Boss extrémní fáze',
+      config: {
+        scale: { start: 1.3, end: 0.0 },
+        speed: { min: 120, max: 250 },
+        lifespan: 800,
+        quantity: 40,
+        blendMode: 'ADD',
+        tint: 0xFF0000
+      }
+    });
+
+    // === ELITE ENEMY EFEKTY ===
+    this.register('vfx.elite.spawn.tank', {
+      type: 'particles',
+      texture: 'energy_particle',
+      description: 'Elite tank spawn efekt',
+      config: {
+        scale: { start: 0.0, end: 0.6, ease: 'Power2' },
+        speed: { min: 60, max: 150 },
+        lifespan: 600,
+        quantity: 20,
+        alpha: { start: 0.0, end: 0.9, ease: 'Power2' },
+        tint: 0x9E9E9E,
+        blendMode: 'ADD'
+      }
+    });
+    
+    this.register('vfx.elite.aura.tank', {
+      type: 'particles',
+      texture: 'shield_particle',
+      description: 'Elite tank aura',
+      config: {
+        scale: { start: 0.3, end: 0.1 },
+        speed: { min: 20, max: 50 },
+        lifespan: 800,
+        quantity: 3,
+        alpha: { start: 0.6, end: 0.0 },
+        tint: 0x00FFFF,
+        blendMode: 'ADD',
+        frequency: 100
+      }
+    });
+    
+    this.register('vfx.elite.death.tank_explosion', {
+      type: 'particles',
+      texture: 'metal_chunk',
+      description: 'Elite tank death explosion',
+      config: {
+        scale: { start: 0.8, end: 0.2 },
+        speed: { min: 150, max: 300 },
+        lifespan: 800,
+        quantity: 25,
+        gravityY: 200,
+        tint: 0x9E9E9E
+      }
+    });
+    
+    this.register('vfx.hit.spark.heavy', {
+      type: 'particles',
+      texture: 'spark',
+      description: 'Heavy hit spark for elite enemies',
+      config: {
+        scale: { start: 0.5, end: 0.1 },
+        speed: { min: 80, max: 200 },
+        lifespan: 300,
+        quantity: 12,
+        blendMode: 'ADD',
+        tint: 0xFFDD00
+      }
+    });
+    
+    // === UNIQUE ENEMY EFEKTY ===
+    this.register('vfx.unique.spawn.golden', {
+      type: 'particles',
+      texture: 'gold_particle',
+      description: 'Golden unique spawn',
+      config: {
+        scale: { start: 0.0, end: 0.8, ease: 'Power3' },
+        speed: { min: 80, max: 200 },
+        lifespan: 1000,
+        quantity: 30,
+        alpha: { start: 0.0, end: 1.0, ease: 'Power2' },
+        tint: 0xFFD700,
+        blendMode: 'ADD'
+      }
+    });
+    
+    this.register('vfx.unique.aura.golden', {
+      type: 'particles',
+      texture: 'sparkle',
+      description: 'Golden aura for unique enemies',
+      config: {
+        scale: { start: 0.4, end: 0.0 },
+        speed: { min: 30, max: 80 },
+        lifespan: 1000,
+        quantity: 5,
+        alpha: { start: 0.8, end: 0.0 },
+        tint: 0xFFD700,
+        blendMode: 'ADD',
+        frequency: 80
+      }
+    });
+    
+    this.register('vfx.unique.death.golden_explosion', {
+      type: 'particles',
+      texture: 'gold_particle',
+      description: 'Golden unique death',
+      config: {
+        scale: { start: 1.0, end: 0.0 },
+        speed: { min: 200, max: 400 },
+        lifespan: 1000,
+        quantity: 40,
+        tint: 0xFFD700,
+        blendMode: 'ADD'
+      }
+    });
+    
+    this.register('vfx.unique.golden.pulse', {
+      type: 'particles',
+      texture: 'energy_wave',
+      description: 'Golden pulse wave',
+      config: {
+        scale: { start: 0.5, end: 2.0 },
+        speed: 0,
+        lifespan: 500,
+        quantity: 1,
+        alpha: { start: 0.8, end: 0.0 },
+        tint: 0xFFD700,
+        blendMode: 'ADD'
+      }
+    });
+    
+    this.register('vfx.hit.spark.golden', {
+      type: 'particles',
+      texture: 'gold_spark',
+      description: 'Golden hit effect',
+      config: {
+        scale: { start: 0.6, end: 0.1 },
+        speed: { min: 100, max: 250 },
+        lifespan: 400,
+        quantity: 15,
+        blendMode: 'ADD',
+        tint: 0xFFD700
+      }
+    });
+    
+    // Shield effects for elite entities
+    this.register('vfx.elite.shield.active', {
+      type: 'particles',
+      texture: 'shield_particle',
+      description: 'Active shield effect',
+      config: {
+        scale: { start: 0.4, end: 0.1 },
+        speed: { min: 10, max: 30 },
+        lifespan: 600,
+        quantity: 2,
+        alpha: { start: 0.5, end: 0.0 },
+        tint: 0x00FFFF,
+        blendMode: 'ADD',
+        frequency: 150
+      }
+    });
+    
+    this.register('vfx.elite.shield.impact', {
+      type: 'particles',
+      texture: 'shield_impact',
+      description: 'Shield impact effect',
+      config: {
+        scale: { start: 0.3, end: 0.8 },
+        speed: 0,
+        lifespan: 200,
+        quantity: 1,
+        alpha: { start: 0.9, end: 0.0 },
+        tint: 0x00FFFF,
+        blendMode: 'ADD'
       }
     });
 

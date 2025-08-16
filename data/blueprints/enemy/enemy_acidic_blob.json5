@@ -3,10 +3,10 @@
   type: 'enemy',
   stats: {
     hp: 28,
-    damage: 6,
-    speed: 85,
-    size: 14,
-    armor: 1,
+    damage: 5,
+    speed: 70,
+    size: 20,
+    armor: 0,
     xp: 2,
   },
   mechanics: {
@@ -45,8 +45,12 @@
       targetPriority: 'nearest'
     }
   },
-  // PR7 Compliant: lootTable reference
-  lootTable: 'lootTable.level1.common',
+  // NEW: Direct drop system - simple and clear like WoW/Diablo
+  drops: [
+    { itemId: 'item.xp_small', chance: 0.9 },      // 90% chance for XP
+    { itemId: 'item.health_small', chance: 0.08 }, // 8% chance for health
+    { itemId: 'item.xp_medium', chance: 0.03 }     // 3% chance for bonus XP
+  ],
   sfx: {
     spawn: 'sfx.enemy.spawn.bubble',
     hit: 'sfx.enemy.hit.acid',

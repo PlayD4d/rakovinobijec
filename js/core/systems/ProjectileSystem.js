@@ -8,6 +8,7 @@
 
 import { PlayerProjectile } from '../projectiles/PlayerProjectile.js';
 import { EnemyProjectile } from '../projectiles/EnemyProjectile.js';
+import { ShapeRenderer } from '../utils/ShapeRenderer.js';
 // PR7: GameConfig removed - use ConfigResolver only
 // import { GameConfig } from '../../config.js';
 
@@ -18,27 +19,36 @@ export class ProjectileSystem {
     // Vygenerovat texturu projektilu jednou při inicializaci (rychlejší než add.circle())
     this._generateBulletTexture();
     
+    // PR7: Get pool sizes from ConfigResolver
+    const ConfigResolver = this.scene.configResolver || window.ConfigResolver;
+    const playerPoolSize = ConfigResolver ? ConfigResolver.get('projectiles.player.poolSize', { defaultValue: 256 }) : 256;
+    const enemyPoolSize = ConfigResolver ? ConfigResolver.get('projectiles.enemy.poolSize', { defaultValue: 256 }) : 256;
+    
     // Skupina hráčských projektilů s vestavěným poolingem
     this.playerBullets = scene.physics.add.group({
       classType: PlayerProjectile,
-      maxSize: 256,
+      maxSize: playerPoolSize,
       runChildUpdate: true // Automatické volání preUpdate() pro každý projektil
     });
     
     // Skupina nepřátelských projektilů s vestavěným poolingem
     this.enemyBullets = scene.physics.add.group({
       classType: EnemyProjectile,
-      maxSize: 256, // Same pool size as player
+      maxSize: enemyPoolSize,
       runChildUpdate: true // Automatické volání preUpdate() pro každý projektil
     });
     
     // PR7: Use ConfigResolver for all configuration values
-    const ConfigResolver = this.scene.configResolver || window.ConfigResolver;
+    // ConfigResolver already retrieved above
     this.config = {
-      speed: ConfigResolver.get('player.projectileSpeed', { defaultValue: 150 }),
-      range: ConfigResolver.get('player.projectileRange', { defaultValue: 600 }),
-      damage: ConfigResolver.get('player.projectileDamage', { defaultValue: 10 }),
-      muzzleOffset: ConfigResolver.get('player.muzzleOffset', { defaultValue: 24 })
+      speed: ConfigResolver ? ConfigResolver.get('player.projectileSpeed', { defaultValue: 300 }) : 300,
+      range: ConfigResolver ? ConfigResolver.get('player.projectileRange', { defaultValue: 600 }) : 600,
+      damage: ConfigResolver ? ConfigResolver.get('player.projectileDamage', { defaultValue: 10 }) : 10,
+      muzzleOffset: ConfigResolver ? ConfigResolver.get('player.muzzleOffset', { defaultValue: 24 }) : 24,
+      // Enemy projectile defaults
+      enemySpeed: ConfigResolver ? ConfigResolver.get('enemy.projectileSpeed', { defaultValue: 150 }) : 150,
+      enemyRange: ConfigResolver ? ConfigResolver.get('enemy.projectileRange', { defaultValue: 400 }) : 400,
+      enemyDamage: ConfigResolver ? ConfigResolver.get('enemy.projectileDamage', { defaultValue: 5 }) : 5
     };
     
     // Registrace čištění při opuštění hranic světa (prevence memory leaks)
@@ -55,14 +65,99 @@ export class ProjectileSystem {
    * Rychlejší než vytváření grafiky za běhu
    */
   _generateBulletTexture() {
-    if (this.scene.textures.exists('bullet8')) return;
+    // Generate default bullet texture for fallback
+    if (!this.scene.textures.exists('bullet8')) {
+      const graphics = this._createGraphics();
+      graphics.fillStyle(0xffffff, 1);
+      graphics.fillCircle(4, 4, 4);
+      graphics.generateTexture('bullet8', 8, 8);
+      
+      // PR7: Properly clean up graphics object
+      if (this.scene.graphicsFactory) {
+        this.scene.graphicsFactory.release(graphics);
+      } else {
+        graphics.destroy();
+      }
+    }
     
-    // PR7: Use factory pattern for graphics creation
-    const graphics = this._createGraphics();
-    graphics.fillStyle(0xffffff, 1);
-    graphics.fillCircle(4, 4, 4);
-    graphics.generateTexture('bullet8', 8, 8);
-    graphics.destroy();
+    // Generate textures from blueprints if available
+    this._generateProjectileTexturesFromBlueprints();
+  }
+  
+  /**
+   * Generate projectile textures from blueprints using ShapeRenderer
+   */
+  _generateProjectileTexturesFromBlueprints() {
+    if (!this.scene.blueprintLoader) return;
+    
+    // PR7: Dynamically get ALL projectile blueprints from loader
+    const allBlueprints = this.scene.blueprintLoader.getAll ? 
+      this.scene.blueprintLoader.getAll() : 
+      this.scene.blueprintLoader.blueprints || {};
+    
+    // Filter for projectile blueprints
+    const projectileBlueprints = [];
+    for (const [id, blueprint] of Object.entries(allBlueprints)) {
+      if (blueprint && blueprint.type === 'projectile') {
+        projectileBlueprints.push({ id, blueprint });
+      }
+    }
+    
+    // Generate textures for all projectile blueprints
+    projectileBlueprints.forEach(({ id, blueprint }) => {
+      
+      // Get graphics config from blueprint
+      const graphics = blueprint.graphics || {};
+      const shape = graphics.shape || 'circle';
+      const tint = graphics.tint || 0xFFFFFF;
+      const size = graphics.size || 8;
+      
+      // Generate texture name
+      const textureName = `projectile_${id.replace('projectile.', '')}`;
+      
+      if (this.scene.textures.exists(textureName)) return;
+      
+      // Create graphics for this projectile
+      const gfx = this._createGraphics();
+      
+      // Draw shape using ShapeRenderer
+      ShapeRenderer.drawShape(gfx, shape, size/2, size/2, size/2 - 1, {
+        fillColor: tint,
+        fillAlpha: 1.0,
+        strokeColor: shape === 'star' ? 0xFFFFFF : null,
+        strokeWidth: shape === 'star' ? 1 : 0,
+        strokeAlpha: 0.8
+      });
+      
+      // Generate texture
+      gfx.generateTexture(textureName, size, size);
+      
+      // PR7: Properly clean up graphics object
+      if (this.scene.graphicsFactory) {
+        this.scene.graphicsFactory.release(gfx);
+      } else {
+        gfx.destroy();
+      }
+      
+      console.log(`[ProjectileSystem] Generated texture '${textureName}' with shape '${shape}'`);
+    });
+  }
+  
+  /**
+   * Get projectile texture name from blueprint ID
+   */
+  _getProjectileTexture(projectileId) {
+    if (!projectileId) return 'bullet8';
+    
+    // Try to get texture from generated projectile textures
+    const textureName = `projectile_${projectileId.replace('projectile.', '')}`;
+    
+    if (this.scene.textures.exists(textureName)) {
+      return textureName;
+    }
+    
+    // Fallback to default
+    return 'bullet8';
   }
   
   /**
@@ -108,7 +203,7 @@ export class ProjectileSystem {
    * @param {number} tint - Barevný odstín (výchozí bílá)
    * @returns {boolean} - True pokud byl projektil vystřelen, false pokud je pool plný
    */
-  firePlayer(x, y, dirX, dirY, speedMultiplier = 1.0, rangeMultiplier = 1.0, damageMultiplier = 1.0, tint = 0xffffff) {
+  firePlayer(x, y, dirX, dirY, speedMultiplier = 1.0, rangeMultiplier = 1.0, damageMultiplier = 1.0, tint = 0xffffff, projectileId = 'projectile.cytotoxin') {
     const bullet = this.playerBullets.get();
     if (!bullet) {
       // Pool vyčerpán - elegantní degradace, bez spamu
@@ -117,6 +212,25 @@ export class ProjectileSystem {
       }
       return false;
     }
+    
+    // Get texture for this projectile
+    const textureName = this._getProjectileTexture(projectileId);
+    bullet.setTexture(textureName);
+    
+    // Play player shoot sound from blueprint - PR7 compliant
+    if (this.scene.newSFXSystem) {
+      const player = this.scene.player;
+      const shootSFX = player?.blueprint?.sfx?.shoot;
+      if (shootSFX) {
+        this.scene.newSFXSystem.play(shootSFX);
+      } else {
+        console.warn('[ProjectileSystem] Missing shoot sound in player blueprint');
+      }
+    }
+    
+    // Set projectile depth
+    const projectileDepth = this.scene.DEPTH_LAYERS?.PROJECTILES || 3000;
+    bullet.setDepth(projectileDepth); // Player projectiles at base projectile depth
     
     // Výpočet finálních statistik s násobiči z power-upů
     const speed = this.config.speed * speedMultiplier;
@@ -148,7 +262,11 @@ export class ProjectileSystem {
    * @param {number} tint - Barevný odstín (výchozí červená)
    * @returns {boolean} - True pokud byl projektil vystřelen, false pokud je pool plný
    */
-  fireEnemy(x, y, dirX, dirY, speed = 150, range = 400, damage = 5, tracking = false, sourceType = null, tint = 0xff0000) {
+  fireEnemy(x, y, dirX, dirY, speed = null, range = null, damage = null, tracking = false, sourceType = null, tint = 0xff0000, projectileId = 'projectile.cytotoxin_enhanced') {
+    // PR7: Use values from config if not provided
+    speed = speed || this.config.enemySpeed;
+    range = range || this.config.enemyRange;
+    damage = damage || this.config.enemyDamage;
     const bullet = this.enemyBullets.get();
     if (!bullet) {
       // Pool vyčerpán - elegantní degradace, bez spamu
@@ -157,6 +275,14 @@ export class ProjectileSystem {
       }
       return false;
     }
+    
+    // Get texture for enemy projectile  
+    const textureName = this._getProjectileTexture(projectileId);
+    bullet.setTexture(textureName);
+    
+    // Set projectile depth
+    const projectileDepth = this.scene.DEPTH_LAYERS?.PROJECTILES || 3000;
+    bullet.setDepth(projectileDepth + 1); // Enemy projectiles slightly above
     
     // Vystřelení pomocí zero-GC API
     bullet.fire(x, y, dirX, dirY, speed, range, damage, tracking, sourceType, tint);
@@ -174,19 +300,40 @@ export class ProjectileSystem {
       const opts = xOrOptions;
       const dirX = Math.cos(opts.angleRad || 0);
       const dirY = Math.sin(opts.angleRad || 0);
-      return this.firePlayer(opts.x, opts.y, dirX, dirY, 1.0, 1.0, (opts.damage || 10) / this.config.damage, 0xffffff);
+      // Get projectile ID from options or use default
+      const projectileId = opts.projectileBlueprintId || 'projectile.player_basic';
+      return this.firePlayer(opts.x, opts.y, dirX, dirY, 1.0, 1.0, (opts.damage || 10) / this.config.damage, 0xffffff, projectileId);
     }
     
     // Starší styl: oddělené parametry
-    return this.firePlayer(xOrOptions, y, velocity.x, velocity.y, 1.0, 1.0, damage / this.config.damage, color);
+    return this.firePlayer(xOrOptions, y, velocity.x, velocity.y, 1.0, 1.0, damage / this.config.damage, color, 'projectile.player_basic');
   }
   
   /**
    * Kompatibilní metoda pro nepřátelské projektily
    * Zachována pro zpětnou kompatibilitu
    */
-  createEnemyProjectile(x, y, velocity, damage, color = 0xff0000, tracking = false, sourceType = null) {
-    return this.fireEnemy(x, y, velocity.x, velocity.y, 150, 400, damage, tracking, sourceType, color);
+  createEnemyProjectile(xOrOptions, y, velocity, damage, color = 0xff0000, tracking = false, sourceType = null) {
+    // Nový PR7 styl: jediný options objekt
+    if (typeof xOrOptions === 'object' && xOrOptions.x !== undefined) {
+      const opts = xOrOptions;
+      const vel = opts.velocity || { x: 0, y: 0 };
+      // PR7: Get projectileId from options if available
+      const projectileId = opts.projectileId || opts.projectileBlueprintId || 'projectile.cytotoxin_enhanced';
+      return this.fireEnemy(
+        opts.x, opts.y, vel.x, vel.y, 
+        opts.speed || null,  // Let fireEnemy use defaults from config
+        opts.range || null, 
+        opts.damage || null, 
+        opts.homing || false, 
+        opts.owner?.type || null, 
+        opts.color || 0xff0000,
+        projectileId
+      );
+    }
+    
+    // Starší styl: oddělené parametry - use null to let fireEnemy apply defaults
+    return this.fireEnemy(xOrOptions, y, velocity.x, velocity.y, null, null, damage, tracking, sourceType, color);
   }
   
   /**
@@ -254,6 +401,13 @@ export class ProjectileSystem {
     
     // Pozn: NEPOUŽÍVÁME clear() který ničí instance
     // Pooly zůstávají připravené k okamžitému použití
+  }
+  
+  /**
+   * Alias pro clearAll pro konzistenci s GameScene
+   */
+  clearAllProjectiles() {
+    this.clearAll();
   }
   
   /**
@@ -346,7 +500,14 @@ export class ProjectileSystem {
       this.scene.newVFXSystem.play('vfx.explosion.small', x, y);
     }
     if (this.scene.newSFXSystem) {
-      this.scene.newSFXSystem.play('sfx.explosion.small');
+      // Get explosion sound from projectile blueprint if available
+      const projectileBlueprint = this.blueprintLoader?.getBlueprint(projectileId);
+      const explosionSFX = projectileBlueprint?.sfx?.explosion;
+      if (explosionSFX) {
+        this.scene.newSFXSystem.play(explosionSFX);
+      } else {
+        console.warn('[ProjectileSystem] Missing explosion sound in projectile blueprint:', projectileId);
+      }
     }
     
     // Záložní řešení pro starší systémy
@@ -389,10 +550,15 @@ export class ProjectileSystem {
    * @private
    */
   _createGraphics() {
-    // PR7: Centralized graphics creation - could be extended with pooling
-    if (!this.scene || !this.scene.add) {
-      throw new Error('[ProjectileSystem] Scene not available for graphics creation');
+    // PR7: Use GraphicsFactory for all graphics creation
+    if (!this.scene || !this.scene.graphicsFactory) {
+      // Fallback only if GraphicsFactory is not available (should not happen in production)
+      console.warn('[ProjectileSystem] GraphicsFactory not available, using fallback');
+      if (!this.scene.add) {
+        throw new Error('[ProjectileSystem] Scene not available for graphics creation');
+      }
+      return this.scene.add.graphics();
     }
-    return this.scene.add.graphics();
+    return this.scene.graphicsFactory.create();
   }
 }

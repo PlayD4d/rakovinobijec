@@ -1,7 +1,7 @@
 /**
  * PowerUp Selection Modal - unified UI systém
- * Nahrazuje původní PowerUpManager UI logiku
- * Postavený na BaseUIComponent + RexUI + UITheme
+ * Modal pro výběr power-upů při level up
+ * Postavený na BaseUIComponent + UITheme
  */
 import { BaseUIComponent } from './BaseUIComponent.js';
 import { UI_THEME, UIThemeUtils } from './UITheme.js';
@@ -22,7 +22,19 @@ export class PowerUpSelectionModal extends BaseUIComponent {
         this.selectedPowerUp = null;
         this._interactiveBackgrounds = []; // Track interactive elements for cleanup
         
-        this.createModal();
+        // Don't create modal in constructor - let show() handle it
+        // This ensures we always have a valid scene reference when creating
+        this.modalContainer = null;
+        this.modalSizer = null;
+        this.overlay = null;
+        
+        // Debug scene state at construction
+        console.debug('[PowerUpSelectionModal] Constructed with scene state:', {
+            sceneKey: scene?.scene?.key || 'unknown',
+            isActive: scene?.scene?.isActive?.() || false,
+            hasSceneManager: !!(scene?.scene),
+            timestamp: Date.now()
+        });
     }
     
     getComponentDepth() {
@@ -33,14 +45,30 @@ export class PowerUpSelectionModal extends BaseUIComponent {
      * Vytvoří celý modal s kartami power-upů
      */
     createModal() {
-        // Modal overlay - create it but don't make it interactive
-        const overlay = this.createModalOverlay(0.9);
-        // Don't call setInteractive on overlay - it should not block clicks
-        overlay.setScrollFactor(0); // Pin to UI, not camera
+        // Robustní validace scény (nevyžaduj scene.scale)
+        const scene = this.scene;
+        const game  = scene?.sys?.game;
+        if (!scene || !scene.sys || !game) {
+            console.error('[PowerUpSelectionModal] Cannot create modal - invalid scene reference');
+            return;
+        }
+        
+        // Overlay - přidat do kontejneru na index 0 (BaseUIComponent to zvládne)
+        this.overlay = this.createModalOverlay(0.9);
+        this.overlay.setScrollFactor(0); // Pin to UI, not camera
         
         // Modal container
         const modalSize = RESPONSIVE.getModalSize(this.isMobileDevice);
         this.modalContainer = this.createModalContainer(modalSize);
+        
+        // If container creation failed, don't continue
+        if (!this.modalContainer) {
+            console.error('[PowerUpSelectionModal] Failed to create modal container');
+            return;
+        }
+        
+        // Přidat modal container jako dítě BaseUIComponent kontejneru
+        this.add(this.modalContainer);
         
         // Header s titulkem
         this.createHeader();
@@ -61,7 +89,17 @@ export class PowerUpSelectionModal extends BaseUIComponent {
      * Vytvoří hlavní container modalu
      */
     createModalContainer(size) {
-        const { width, height } = this.scene.scale.gameSize;
+        // Robustní zdroje rozměrů
+        const scene = this.scene;
+        const game  = scene?.sys?.game;
+        if (!scene || !scene.sys || !game) {
+            console.error('[PowerUpSelectionModal] Invalid scene reference');
+            return null;
+        }
+        const scale = scene.scale || game.scale;
+        const gameSize = scale?.gameSize;
+        const width  = gameSize?.width  ?? game.config.width;
+        const height = gameSize?.height ?? game.config.height;
         
         // Vytvoření RexUI sizer pro layout - pozice uprostřed scény
         const container = this.scene.rexUI.add.sizer({
@@ -85,9 +123,8 @@ export class PowerUpSelectionModal extends BaseUIComponent {
         
         container.addBackground(background);
         
-        // PR7: Don't add RexUI container to Phaser container - they manage their own rendering
-        // Just set proper depth for visibility
-        container.setDepth(UI_THEME.depth.modal + 1); // Higher depth to be above overlay
+        // NEPOUŽÍVAT setDepth uvnitř kontejneru - BaseUIComponent má globální depth
+        // NEPŘIDÁVAT do scene.uiLayer - bude přidán do BaseUIComponent kontejneru
         
         // Initially hide until show() is called
         container.setVisible(false);
@@ -436,106 +473,196 @@ export class PowerUpSelectionModal extends BaseUIComponent {
         const powerUpIndex = this.powerUps.findIndex(p => p.id === powerUp.id);
         const selectedCard = this.cardComponents[powerUpIndex];
         
+        // Proveď "flash" a až PO DOKONČENÍ tweenu zavolej callback (tween běží i když je scene.time pauznuté)
+        const runAfterFlash = () => {
+            try {
+                if (this.onSelectionCallback) {
+                    this.onSelectionCallback(powerUp);
+                }
+            } finally {
+                this.hideModal();
+            }
+        };
+        
         if (selectedCard) {
             this.scene.tweens.add({
                 targets: selectedCard,
                 alpha: 0.3,
                 duration: 100,
                 yoyo: true,
-                repeat: 2
+                repeat: 2,
+                onComplete: runAfterFlash
             });
+        } else {
+            // Bez tweenu pokračuj hned
+            runAfterFlash();
         }
-        
-        // Zavolat callback po krátké animaci
-        this.scene.time.delayedCall(400, () => {
-            if (this.onSelectionCallback) {
-                this.onSelectionCallback(powerUp);
-            }
-            
-            // Skrýt modal
-            this.hideModal();
-        });
     }
     
     /**
-     * Override show to properly display RexUI modal
+     * Update power-ups before showing
+     */
+    updatePowerUps(newPowerUps) {
+        console.log('[PowerUpSelectionModal] updatePowerUps called with', newPowerUps?.length, 'powerups');
+        this.powerUps = newPowerUps || [];
+        this.selectedPowerUp = null; // Reset selection
+        
+        // Clear existing cards
+        if (this.cardComponents) {
+            this.cardComponents.forEach(card => {
+                try {
+                    if (card && !card._destroyed) {
+                        card.destroy();
+                    }
+                } catch (e) {
+                    // Ignore errors
+                }
+            });
+            this.cardComponents = [];
+        }
+        
+        // Clear interactive backgrounds
+        if (this._interactiveBackgrounds) {
+            this._interactiveBackgrounds.forEach(bg => {
+                try {
+                    bg.removeAllListeners();
+                    bg.disableInteractive();
+                } catch(e) {
+                    // Ignore
+                }
+            });
+            this._interactiveBackgrounds = [];
+        }
+        
+        // Only destroy and recreate if modal was already visible
+        // Otherwise, let show() handle creation
+        if (this.modalContainer && this.modalContainer.visible) {
+            // Hide existing modal
+            this.modalContainer.setVisible(false);
+            if (this.overlay) {
+                this.overlay.setVisible(false);
+            }
+            
+            // Destroy existing modal to force recreation
+            try {
+                if (this.modalContainer && !this.modalContainer._destroyed) {
+                    this.modalContainer.destroy();
+                }
+            } catch (e) {
+                // Ignore
+            }
+            this.modalContainer = null;
+            this.modalSizer = null;
+            
+            try {
+                if (this.overlay && !this.overlay._destroyed) {
+                    this.overlay.destroy();
+                }
+            } catch (e) {
+                // Ignore
+            }
+            this.overlay = null;
+        }
+    }
+    
+    /**
+     * Jednoduchá show() metoda - používá super.show() a odstraňuje delayedCall retry logiku
      */
     show(animated = true, duration = 300) {
         console.log('[PowerUpSelectionModal] show() called, powerUps:', this.powerUps.length);
         
-        // Set base component visible
-        this.setVisible(true);
-        this.isVisible = true;
-        
-        // Show and animate the RexUI modal container
-        if (this.modalContainer) {
-            console.log('[PowerUpSelectionModal] Showing modal container');
-            this.modalContainer.setVisible(true);
-            
-            if (animated) {
-                this.modalContainer.setAlpha(0);
-                this.modalContainer.setScale(0.9);
-                
-                this.scene.tweens.add({
-                    targets: this.modalContainer,
-                    alpha: 1,
-                    scaleX: 1,
-                    scaleY: 1,
-                    duration: duration,
-                    ease: 'Back.easeOut',
-                    onComplete: () => {
-                        this.modalContainer.setAlpha(1);
-                        this.modalContainer.setScale(1);
-                        console.log('[PowerUpSelectionModal] Show animation complete');
-                        this.onShowComplete();
-                    }
-                });
-            } else {
-                this.modalContainer.setAlpha(1);
-                this.modalContainer.setScale(1);
-            }
-        } else {
-            console.error('[PowerUpSelectionModal] No modal container!');
+        // ✅ Toleruj RUNNING i PAUSED, nevolej ScenePlugin.isActive() bez klíče
+        const status = this.scene?.sys?.settings?.status;
+        const usable = !!this.scene?.sys && (status === Phaser.Scenes.RUNNING || status === Phaser.Scenes.PAUSED);
+        if (!usable) {
+            console.warn('[PowerUpSelectionModal] Scene not RUNNING/PAUSED, proceeding best-effort (no tween)');
+            animated = false;
         }
         
-        return Promise.resolve();
+        // Vytvořit modal pokud neexistuje
+        if (!this.modalContainer || this.modalContainer._destroyed) {
+            console.log('[PowerUpSelectionModal] Creating modal container');
+            this.createModal();
+            
+            if (!this.modalContainer) {
+                console.error('[PowerUpSelectionModal] Failed to create modal container');
+                return Promise.resolve();
+            }
+        }
+        
+        // Použít BaseUIComponent.show() pro pause-safe animace
+        return super.show(animated, duration).then(() => {
+            // Po dokončení BaseUIComponent show(), zobrazit modal obsah
+            if (this.modalContainer && !this.modalContainer._destroyed) {
+                this.modalContainer.setVisible(true);
+                
+                // Force layout
+                if (this.modalSizer && !this.modalSizer._destroyed) {
+                    this.modalSizer.layout();
+                }
+                
+                console.log('[PowerUpSelectionModal] Modal content shown');
+            }
+        });
     }
     
     /**
-     * Override hide to properly handle RexUI components
+     * Jednoduchá hideModal() metoda - používá super.hide()
      */
     hideModal() {
-        // Immediately hide RexUI modal container with animation
+        // Skrýt modal obsah nejprve
         if (this.modalContainer) {
             this.modalContainer.setVisible(false);
-            this.modalContainer = null;
         }
         
-        // Hide all card components
-        this.cardComponents.forEach(card => {
-            if (card) card.setVisible(false);
-        });
+        // Reset selected power-up for next showing
+        this.selectedPowerUp = null;
         
-        // Hide and destroy the base component
-        this.setVisible(false);
-        this.destroy();
+        // Použít BaseUIComponent.hide() pro pause-safe animace
+        return super.hide();
     }
     
     /**
      * Override destroy to properly clean up RexUI components
      */
     destroy() {
-        // Destroy RexUI components first
-        if (this.modalContainer && !this.modalContainer._destroyed) {
-            this.modalContainer.destroy();
+        // Skip if already destroyed
+        if (this.isDestroyed) return;
+        
+        try {
+            // Remove from UI layer first
+            if (this.scene?.uiLayer) {
+                if (this.modalContainer && this.scene.uiLayer.list?.includes(this.modalContainer)) {
+                    this.scene.uiLayer.remove(this.modalContainer);
+                }
+                if (this.overlay && this.scene.uiLayer.list?.includes(this.overlay)) {
+                    this.scene.uiLayer.remove(this.overlay);
+                }
+            }
+            
+            // Destroy RexUI modal container
+            if (this.modalContainer && !this.modalContainer._destroyed) {
+                this.modalContainer.destroy(true);
+            }
             this.modalContainer = null;
+            this.modalSizer = null;
+            
+            // Destroy overlay
+            if (this.overlay && !this.overlay._destroyed) {
+                this.overlay.destroy();
+            }
+            this.overlay = null;
+            
+            // Clear card references
+            this.cardComponents = [];
+        } catch (e) {
+            console.debug('[PowerUpSelectionModal] Destroy error (safe to ignore):', e.message);
+        } finally {
+            // Always call parent destroy if not already destroyed
+            if (!this.isDestroyed) {
+                super.destroy();
+            }
         }
-        
-        // Clear card references
-        this.cardComponents = [];
-        
-        // Call parent destroy
-        super.destroy();
     }
     
     // === UTILITY FUNKCE ===
@@ -576,6 +703,15 @@ export class PowerUpSelectionModal extends BaseUIComponent {
         switch (powerUp.id) {
             case 'flamethrower':
                 return `${powerUp.level + 1} laserový paprsek\nCílí na nejbližší nepřátele`;
+            case 'radiotherapy':
+                const beams = [1, 2, 3, 3, 3][powerUp.level] || 1;
+                const range = [80, 80, 80, 100, 120][powerUp.level] || 80;
+                const damage = [5, 5, 5, 8, 12][powerUp.level] || 5;
+                if (powerUp.level < 3) {
+                    return `${beams} rotující paprsek${beams > 1 ? 'y' : ''}\nDosah: ${range}px, Poškození: ${damage}/tick`;
+                } else {
+                    return `3 rotující paprsky\nDosah: ${range}px, Poškození: ${damage}/tick`;
+                }
             case 'explosiveBullets':
                 return `Exploze ${30 + (powerUp.level + 1) * 10}px poloměr\nSpustí se při prvním zásahu projektilu`;
             case 'xpMagnet':
@@ -636,6 +772,14 @@ export class PowerUpSelectionModal extends BaseUIComponent {
                     return `${powerUp.level + 1} projektilů celkem`;
                 case 'flamethrower':
                     return `${powerUp.level} lasery aktivní`;
+                case 'radiotherapy':
+                    const currentBeams = [0, 1, 2, 3, 3, 3][powerUp.level] || 0;
+                    const currentRange = [0, 80, 80, 80, 100, 120][powerUp.level] || 0;
+                    const currentDamage = [0, 5, 5, 5, 8, 12][powerUp.level] || 0;
+                    if (currentBeams > 0) {
+                        return `${currentBeams} paprsek${currentBeams > 1 ? 'y' : ''}, ${currentRange}px dosah`;
+                    }
+                    return `Neaktivní`;
                 case 'explosive_bullets':
                     const explosionRadius = 30 + powerUp.level * 10;
                     return `${explosionRadius}px exploze`;

@@ -17,148 +17,14 @@ export class ConfigResolver {
   // Externí konfigurace načtené ze souborů
   static _externalConfigs = {};
   
-  // Centrální registry fallbacků - jediné místo s "magic numbers"
+  // Minimální kritické fallbacky - pouze pro případ chybějící konfigurace
+  // PR7: Všechny hodnoty jsou nyní v main_config.json5
   static _fallbacks = {
-    // Player projectile defaults - PR7: map to actual GameConfig paths
-    'player.projectile.baseDamage': 10,      // maps to player.projectileDamage
-    'player.projectile.baseSpeed': 150,      // maps to player.projectileSpeed
-    'player.projectile.baseRange': 600,      // maps to player.projectileRange
-    'player.projectile.baseInterval': 1000,  // maps to player.projectileInterval
-    'player.projectile.muzzleOffset': 24,    // maps to player.muzzleOffset
-    
-    // Feature flags - PR7: výchozí hodnoty
-    'features.lootTablesEnabled': true,
-    'features.telemetryLogger': false,
-    'features.debugOverlay': false,
-    
-    // Player stats
-    'player.baseHp': 100,
-    'player.baseSpeed': 4,
-    'player.size': 30,
-    'player.baseProjectiles': 1,
-    'player.invincibilityTime': 1000,
-    
-    // Shield defaults
-    'player.shield.baseHP': 50,
-    'player.shield.hpPerLevel': 25,
-    'player.shield.baseRegenTime': 10000,
-    'player.shield.regenTimePerLevel': -1000,
-    'player.shield.minRegenTime': 6000,
-    
-    // Ability intervals
-    'abilities.radiotherapy.baseInterval': 1000,
-    'abilities.radiotherapy.intervalPerLevel': -100,
-    'abilities.radiotherapy.minInterval': 300,
-    'abilities.lightning.baseInterval': 2000,
-    'abilities.lightning.intervalPerLevel': -200,
-    'abilities.lightning.minInterval': 800,
-    
-    // Weapon effects
-    'weapons.explosive.baseRadius': 30,
-    'weapons.explosive.radiusPerLevel': 10,
-    'weapons.explosive.damageMultiplier': 0.8,
-    'weapons.piercing.damageReduction': 0.9,
-    
-    // Aura
-    'abilities.aura.tickRate': 0.05,
-    'abilities.aura.baseRadius': 50,
-    'abilities.aura.radiusGrowth': 1.15,
-    
-    // Boss scaling
-    'scaling.boss.hpMultiplier': 1.2,
-    'scaling.boss.damageMultiplier': 1.1,
-    'scaling.boss.xpMultiplier': 1.3,
-    
-    // Elite scaling
-    'scaling.elite.baseChance': 0.05,
-    'scaling.elite.chancePerLevel': 0.01,
-    'scaling.elite.statMultiplier': 1.4,
-    
-    // XP scaling
-    'scaling.xp.perLevel': 0.2,
-    'scaling.xp.baseRequirement': 100,
-    
-    // Loot
-    'loot.xp.tier1.value': 1,
-    'loot.xp.tier2.value': 5,
-    'loot.xp.tier3.value': 10,
-    'loot.xp.tier4.value': 50,
-    'loot.health.value': 20,
-    'loot.health.baseChance': 0.1,
-    'loot.health.chanceReduction': 0.9,
-    
-    // PR5: LootSystem extended constants
-    'loot.health.levelStepSize': 5,
-    'loot.health.minChance': 0.01,
-    'loot.xp.maxSpread': 40,
-    'loot.xp.spreadPerOrb': 8,
-    'loot.xp.tiers': [
-      { value: 50, color: 0xffff00, size: 1.4 },
-      { value: 25, color: 0xff8800, size: 1.2 },
-      { value: 10, color: 0x00ff88, size: 1.0 },
-      { value: 5,  color: 0x00ffff, size: 0.8 },
-      { value: 1,  color: 0x4444ff, size: 0.7 }
-    ],
-    
-    // Performance limits
-    'limits.maxEmitters': 24,
-    'limits.maxProjectiles': 100,
-    'limits.maxEnemies': 50,
-    'limits.maxTrails': 10,
-    
-    // PR5: EnemyManager spawning constants
-    'spawn.intervalReductionRate': 0.005,
-    'spawn.defeatedBossRespawnChance': 0.0001,
-    'spawn.baseMaxEnemies': 20,
-    'spawn.enemiesPerLevel': 2,
-    'scaling.enemy.difficultyPerLevel': 0.1,
-    
-    // Player rendering constants
-    'player.rendering.borderWidth': 2,
-    'player.rendering.borderAlpha': 0.8,
-    'player.rendering.alphaFrequency': 0.02,
-    'player.rendering.speedMultiplier': 100,
-    
-    // VFX constants
-    'vfx.lightning.lineWidth': 4,
-    'vfx.lightning.coreWidth': 2,
-    'vfx.lightning.duration': 200,
-    'vfx.radiotherapy.lineWidth': 3,
-    'vfx.radiotherapy.lineAlpha': 0.8,
-    
-    // Boss VFX constants
-    'boss.rendering.outlineWidth': 3,
-    'boss.rendering.outlineAlpha': 0.8,
-    'boss.vfx.corruption.lineWidth': 6,
-    'boss.vfx.corruption.lineAlpha': 0.8,
-    'boss.vfx.shield.lineWidth': 5,
-    'boss.vfx.shield.lineAlpha': 0.8,
-    
-    // Enemy rendering constants
-    'enemy.rendering.borderWidth': 2,
-    'enemy.rendering.borderAlpha': 0.5,
-    'enemy.rendering.eliteBorderWidth': 3,
-    'enemy.rendering.eliteBorderAlpha': 1.0,
-    
-    // Enemy projectile constants
-    'enemy.projectile.inaccuracyRange': 0.6,
-    'enemy.projectile.baseSpeed': 100,
-    'enemy.projectile.defaultColor': 0xff0000,
-    
-    // Enemy support/buff constants
-    'enemy.support.buffInterval': 1000,
-    'enemy.support.buffDuration': 1500,
-    'enemy.support.minBuffRange': 0.6,
-    'enemy.support.buffColor': 0x8800ff,
-    'enemy.support.buffAlpha': 0.1,
-    'enemy.support.buffVfxDuration': 500,
-    
-    // Enemy shooting constants
-    'enemy.shooting.defaultInterval': 2000,
-    
-    // Enemy stats constraints
-    'enemy.stats.minSpeed': 0.1,
-    'enemy.stats.minDamage': 1
+    // Kritické hodnoty pro případ, že main_config.json5 není dostupný
+    'game.version': '0.3.0',
+    'game.title': 'Rakovinobijec',
+    'debug.enabled': false,
+    'features.lootTablesEnabled': true
   };
 
   // Telemetrie pro sledování chybějících hodnot
@@ -189,7 +55,7 @@ export class ConfigResolver {
       }
     }
 
-    // 2. Externí konfigurace (audio_manifest, managers_config, atd.)
+    // 2. Externí konfigurace (managers_config, features, atd.)
     // PR7: Zkusit najít v main_config jako první
     if (source !== 'blueprint') {
       // Nejprve zkusit main config
@@ -386,7 +252,7 @@ export class ConfigResolver {
     const configFiles = [
       { key: 'main', path: 'data/config/main_config.json5' },
       { key: 'blueprintLoader', path: 'data/config/blueprint_loader.json5' },
-      { key: 'audioManifest', path: 'data/config/audio_manifest.json5' },
+      // audioManifest removed - using direct blueprint loading
       { key: 'managers', path: 'data/config/managers_config.json5' },
       { key: 'features', path: 'data/config/features.json5' }
     ];

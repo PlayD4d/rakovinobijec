@@ -282,7 +282,7 @@
       "cooldown": 40000
     },
     {
-      "enemyId": "enemy.micro_shooter_enhanced",
+      "enemyId": "elite.micro_shooter",
       "weight": 50,
       "countRange": [
         1,
@@ -315,7 +315,7 @@
       "cooldown": 999999
     },
     {
-      "enemyId": "enemy.micro_shooter_enhanced",
+      "enemyId": "elite.micro_shooter",
       "weight": 30,
       "countRange": [
         1,
@@ -461,6 +461,18 @@
       "groups",
       "support",
       "combinations"
-    ]
+    ],
+    "extensions": {
+      "xpPlan": {
+        "budgetTotal": 2400,
+        "targetXpPerMinute": [140, 155, 170, 185, 200, 215, 230, 245],
+        "boss": { "id": "boss.radiation_core", "xp": 300, "capLevelsGranted": 1.5 },
+        "enemyXpOverrides": {
+          "enemy.acidic_blob": 5,
+          "enemy.metastasis_runner": 4,
+          "enemy.fungal_parasite": 5
+        }
+      }
+    }
   }
 }

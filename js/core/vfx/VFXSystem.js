@@ -11,6 +11,9 @@ export class VfxSystem {
     this.activeTrails = new Map(); // sprite -> trail emitter
     this.blueprints = new Map(); // effectId -> config
     
+    // Position following system for VFX that should track targets
+    this.followingEffects = new Map(); // effect -> {target, emitter, duration, startTime}
+    
     // Phase 6: Performance caps and safety
     this.maxEmitters = 24; // Safe cap pro concurrent emitters
     this.maxTrails = 10;   // Max trail efektů současně
@@ -20,6 +23,20 @@ export class VfxSystem {
     
     this.initialized = false;
     this.isShuttingDown = false;
+    
+    // Missing asset tracking for dev mode
+    this.missingAssets = new Set();
+    this._initMissingAssetTracking();
+  }
+  
+  /**
+   * Initialize missing asset tracking for dev mode
+   * @private
+   */
+  _initMissingAssetTracking() {
+    if (typeof window !== 'undefined') {
+      window.__missingAssets = window.__missingAssets || { sfx: new Set(), vfx: new Set() };
+    }
   }
   
   /**
@@ -40,6 +57,37 @@ export class VfxSystem {
     
     this.initialized = true;
     console.log('[VfxSystem] Initialized with pooled particle emitters');
+  }
+  
+  /**
+   * Update method to handle following effects - call this from scene.update()
+   * @param {number} time - Current time
+   * @param {number} delta - Time delta
+   */
+  update(time, delta) {
+    if (!this.initialized || this.isShuttingDown) return;
+    
+    // Update position following effects
+    for (const [effectId, effectData] of this.followingEffects.entries()) {
+      const { target, emitter, duration, startTime } = effectData;
+      
+      // Check if effect should expire
+      if (duration && (time - startTime) > duration) {
+        this._stopFollowingEffect(effectId);
+        continue;
+      }
+      
+      // Check if target is still valid
+      if (!target || !target.active || target.hp <= 0) {
+        this._stopFollowingEffect(effectId);
+        continue;
+      }
+      
+      // Update emitter position to follow target
+      if (emitter && emitter.active) {
+        emitter.setPosition(target.x, target.y);
+      }
+    }
   }
   
   /**
@@ -598,50 +646,205 @@ export class VfxSystem {
    * @param {string} vfxId - ID from VFX registry
    * @param {number} x - X position
    * @param {number} y - Y position
-   * @param {object} overrides - Optional parameter overrides
+   * @param {object} overrides - Optional parameter overrides (can include followTarget)
    */
-  play(vfxId, x, y, overrides = {}) {
+  play(vfxIdOrConfig, x, y, overrides = {}) {
     // Check if system is shutting down
     if (!this.scene || this.isShuttingDown) return;
     
-    // Import VFX registry to get effect config
-    import('./VFXRegistry.js').then(({ vfxRegistry }) => {
-      const config = vfxRegistry.get(vfxId);
-      if (!config) {
-        // HOTFIX V3: Silent fail instead of console spam
-        // console.warn(`[VFXSystem] Effect '${vfxId}' not found in registry`);
-        return;
-      }
-
-      // Route to appropriate method based on VFX type/category
-      const effectId = vfxId.split('.').slice(-1)[0]; // Get last part (spark, explosion, etc.)
+    // PHASE 2: Smart detection - Registry ID vs Direct VFX Config
+    const isDirectConfig = this._isDirectVFXConfig(vfxIdOrConfig);
+    
+    if (isDirectConfig) {
+      return this._playDirectVFXConfig(vfxIdOrConfig, x, y, overrides);
+    } else {
+      return this._playFromRegistry(vfxIdOrConfig, x, y, overrides);
+    }
+  }
+  
+  /**
+   * Detect if input is direct VFX config or registry ID
+   * @private
+   */
+  _isDirectVFXConfig(input) {
+    // If it's an object, it's likely a direct config
+    if (typeof input === 'object' && input !== null) {
+      return true;
+    }
+    
+    // If it's a string starting with 'vfx.', it's a registry ID
+    if (typeof input === 'string' && input.startsWith('vfx.')) {
+      return false;
+    }
+    
+    return false; // Default to registry lookup
+  }
+  
+  /**
+   * Play VFX from direct config object
+   * @private
+   */
+  _playDirectVFXConfig(config, x, y, overrides = {}) {
+    if (!config || typeof config !== 'object') {
+      console.warn('[VFXSystem] Invalid direct VFX config:', config);
+      return;
+    }
+    
+    // Merge config with overrides
+    const finalConfig = { ...config, ...overrides };
+    
+    // Route based on config type or fallback to effect detection
+    const effectType = finalConfig.type || this._detectEffectType(finalConfig);
+    
+    switch (effectType) {
+      case 'hit':
+      case 'spark':
+        this.playHitSpark(x, y, finalConfig);
+        break;
+      case 'explosion':
+        this.playExplosion(x, y, finalConfig);
+        break;
+      case 'energy':
+      case 'pickup':
+        this.playEnergyBurst(x, y, finalConfig);
+        break;
+      case 'blood':
+        this.playBloodSplatter(x, y, 0, finalConfig);
+        break;
+      case 'smoke':
+        this.playSmoke(x, y, finalConfig);
+        break;
+      default:
+        // Generic particle effect
+        this.playHitSpark(x, y, finalConfig);
+        break;
+    }
+  }
+  
+  /**
+   * Play VFX from registry (legacy support)
+   * @private
+   */
+  _playFromRegistry(vfxId, x, y, overrides = {}) {
+    // Try to play effect immediately with fallback handling
+    try {
+      // Check if this is a boss phase effect that should follow the target
+      const shouldFollow = vfxId.includes('phase') && overrides.followTarget;
       
+      if (shouldFollow) {
+        return this._playFollowingEffect(vfxId, x, y, overrides);
+      }
+      
+      // Route to appropriate method based on VFX type/category
       switch (true) {
         case vfxId.includes('hit'):
-          this.playHitSpark(x, y, vfxId);
-          break;
+          return this.playHitSpark(x, y, vfxId);
         case vfxId.includes('explosion'):
-          this.playExplosion(x, y, vfxId);
-          break;
+          return this.playExplosion(x, y, vfxId);
         case vfxId.includes('pickup') || vfxId.includes('energy'):
-          this.playEnergyBurst(x, y, vfxId);
-          break;
+          return this.playEnergyBurst(x, y, vfxId);
         case vfxId.includes('blood'):
-          this.playBloodSplatter(x, y, 0, vfxId);
-          break;
+          return this.playBloodSplatter(x, y, 0, vfxId);
         case vfxId.includes('smoke'):
-          this.playSmoke(x, y, vfxId);
-          break;
+          return this.playSmoke(x, y, vfxId);
+        case vfxId.includes('phase'):
+          // Boss phase effects - create burst effect at position
+          return this.playExplosion(x, y, 'boss_phase');
         default:
           // Generic spark effect as fallback
-          this.playHitSpark(x, y, vfxId);
-          break;
+          return this.playHitSpark(x, y, 'default');
       }
-    }).catch(e => {
-      console.warn(`[VFXSystem] Failed to load VFX registry for '${vfxId}':`, e);
-      // Fallback to basic spark
-      this.playHitSpark(x, y, 'default');
-    });
+    } catch (e) {
+      console.debug(`[VFXSystem] Failed to play VFX '${vfxId}':`, e.message);
+      // Final fallback - simple spark at position
+      try {
+        return this.playHitSpark(x, y, 'default');
+      } catch (fallbackError) {
+        // Silent fail - don't break gameplay
+        console.debug(`[VFXSystem] VFX fallback also failed:`, fallbackError.message);
+      }
+    }
+  }
+  
+  /**
+   * Auto-detect effect type from config
+   * @private
+   */
+  _detectEffectType(config) {
+    // Try to guess from config properties
+    if (config.lifespan && config.lifespan < 200) return 'hit';
+    if (config.quantity && config.quantity > 15) return 'explosion';
+    if (config.texture === 'energy' || config.color === 'blue') return 'energy';
+    if (config.texture === 'blood' || config.color === 'red') return 'blood';
+    if (config.alpha && config.alpha < 0.7) return 'smoke';
+    
+    return 'spark'; // Default fallback
+  }
+  
+  /**
+   * Play a following effect that tracks a target
+   * @private
+   */
+  _playFollowingEffect(vfxId, x, y, overrides = {}) {
+    const { followTarget, duration = 5000 } = overrides;
+    
+    if (!followTarget) {
+      // No target to follow, play normal effect
+      return this.playExplosion(x, y, vfxId);
+    }
+    
+    try {
+      // Create a continuous emitter that follows the target
+      const emitter = this._createParticleEmitter(x, y, 'vfx_star', {
+        speed: { min: 50, max: 100 },
+        scale: { start: 1.5, end: 0 },
+        blendMode: Phaser.BlendModes.ADD,
+        lifespan: 500,
+        frequency: 100,
+        quantity: 2,
+        tint: 0x4CAF50, // Green for radiation
+        emitting: true
+      });
+      
+      // Store following effect data
+      const effectId = `${vfxId}_${Date.now()}`;
+      this.followingEffects.set(effectId, {
+        target: followTarget,
+        emitter: emitter,
+        duration: duration,
+        startTime: this.scene.time.now
+      });
+      
+      console.log(`[VFXSystem] Started following effect ${vfxId} on target`);
+      return emitter;
+    } catch (error) {
+      console.warn(`[VFXSystem] Failed to create following effect:`, error);
+      // Fallback to normal effect
+      return this.playExplosion(x, y, 'boss_phase');
+    }
+  }
+  
+  /**
+   * Stop a following effect
+   * @private
+   */
+  _stopFollowingEffect(effectId) {
+    const effectData = this.followingEffects.get(effectId);
+    if (!effectData) return;
+    
+    const { emitter } = effectData;
+    if (emitter && emitter.active) {
+      emitter.stop();
+      // Clean up after particles finish
+      this.scene.time.delayedCall(1000, () => {
+        if (emitter.manager) {
+          emitter.manager.destroy();
+        }
+      });
+    }
+    
+    this.followingEffects.delete(effectId);
+    console.log(`[VFXSystem] Stopped following effect ${effectId}`);
   }
 
   /**
@@ -825,6 +1028,12 @@ export class VfxSystem {
   shutdown() {
     this.isShuttingDown = true;
     
+    // Stop all following effects
+    for (const effectId of this.followingEffects.keys()) {
+      this._stopFollowingEffect(effectId);
+    }
+    this.followingEffects.clear();
+    
     // Detach všechny trails
     for (const projectile of this.activeTrails.keys()) {
       this.detachTrail(projectile);
@@ -858,16 +1067,116 @@ export class VfxSystem {
   }
   
   // ==========================================
+  // Soft Fallback Methods
+  // ==========================================
+  
+  /**
+   * Track missing VFX asset and update dev mode tracking
+   * @private
+   */
+  _trackMissingAsset(vfxId, textureKey = null) {
+    const assetInfo = textureKey ? `${vfxId} (${textureKey})` : vfxId;
+    
+    // Add to local tracking
+    this.missingAssets.add(assetInfo);
+    
+    // Add to global tracking for dev overlay
+    if (typeof window !== 'undefined' && window.__missingAssets) {
+      window.__missingAssets.vfx.add(assetInfo);
+    }
+    
+    // Log warning in dev mode
+    const isDevMode = window.DEV_MODE === true || (this.scene.game && this.scene.game.config.physics.arcade?.debug);
+    if (isDevMode) {
+      console.warn(`[VFXSystem] Missing asset: ${assetInfo}`);
+    }
+  }
+  
+  /**
+   * Play a soft fallback effect when asset is missing
+   * @private
+   */
+  _playFallback(x, y, vfxId, reason) {
+    // Only play fallback in dev mode
+    const isDevMode = window.DEV_MODE === true || (this.scene.game && this.scene.game.config.physics.arcade?.debug);
+    if (!isDevMode) {
+      return;
+    }
+    
+    try {
+      // Create a simple puff effect using available textures
+      const fallbackTexture = this.scene.textures.exists('vfx_dot') ? 'vfx_dot' : 
+                             this.scene.textures.exists('white_circle') ? 'white_circle' : null;
+      
+      if (fallbackTexture) {
+        const puff = this._createParticleEmitter(x, y, fallbackTexture, {
+          speed: { min: 20, max: 60 },
+          scale: { start: 0.3, end: 0 },
+          lifespan: 200,
+          quantity: 3,
+          tint: reason === 'missing_registry' ? 0xFF0000 : 0xFFFF00,
+          emitting: false
+        });
+        
+        puff.explode(3);
+        
+        // Clean up after effect
+        this.scene.time.delayedCall(300, () => {
+          if (puff && puff.manager) {
+            puff.manager.destroy();
+          }
+        });
+      }
+    } catch (error) {
+      // Silent fail - we don't want fallback to crash the game
+      console.error('[VFXSystem] Fallback failed:', error);
+    }
+  }
+  
+  /**
+   * Wrapper for VFX play methods with fallback support
+   * @private
+   */
+  _playWithFallback(methodName, x, y, vfxId, originalMethod, ...args) {
+    try {
+      // Check if VFX exists in registry
+      if (vfxId && !this.blueprints.has(vfxId)) {
+        this._trackMissingAsset(vfxId);
+        this._playFallback(x, y, vfxId, 'missing_registry');
+      }
+      
+      // Try to execute original method
+      return originalMethod.call(this, x, y, ...args);
+    } catch (error) {
+      // Track error and play fallback
+      this._trackMissingAsset(vfxId || methodName, error.message);
+      this._playFallback(x, y, vfxId || methodName, 'execution_error');
+      
+      const isDevMode = window.DEV_MODE === true || (this.scene.game && this.scene.game.config.physics.arcade?.debug);
+      if (isDevMode) {
+        console.error(`[VFXSystem] Error in ${methodName}:`, error);
+      }
+    }
+  }
+  
+  // ==========================================
   // PR7 Factory Methods - Replace Direct Calls
   // ==========================================
   
   /**
    * Factory method for creating graphics objects
+   * PR7 compliant - uses GraphicsFactory
    * @returns {Phaser.GameObjects.Graphics}
    * @private
    */
   _createGraphics() {
-    // PR7: Centralized graphics creation - could be extended with pooling
+    // PR7: Use GraphicsFactory if available
+    if (this.scene.graphicsFactory) {
+      return this.scene.graphicsFactory.create();
+    }
+    
+    // Fallback warning
+    console.warn('[VFXSystem] GraphicsFactory not available, falling back to direct creation');
     if (!this.scene || !this.scene.add) {
       throw new Error('[VFXSystem] Scene not available for graphics creation');
     }

@@ -1,8 +1,12 @@
 {
   // Blueprint: unique.mutagen_splicer
   "id": "unique.mutagen_splicer",
-  "type": "unique",
-  "baseType": "enemy.viral_swarm",
+  "type": "enemy",
+  "meta": {
+    "category": "unique",
+    "tier": "legendary",
+    "spawnWeight": 2
+  },  "baseType": "enemy.viral_swarm",
   "stats": {
     "hp": 70,
     "damage": 20,
@@ -10,6 +14,11 @@
     "size": 20,
     "armor": 1,
     "xp": 35
+  },
+  "visuals": {
+    "textureKey": "unique.mutagen_splicer",
+    "tint": 0x673AB7,
+    "size": { "w": 20, "h": 20 }
   },
   "mechanics": {
     "movementType": "adaptive_hunter",

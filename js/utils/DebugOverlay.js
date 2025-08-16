@@ -13,6 +13,9 @@ export class DebugOverlay {
     } catch (e) {}
     this.visible = defaultVisible;
     
+    // Missing assets panel visibility (F6 toggle)
+    this.showMissingAssets = false;
+    
     // Umístění: vlevo dole nad počítadlo zničených buněk a mimo HP/XP bary
     const cam = scene.cameras?.main;
     const margin = 8;
@@ -20,13 +23,35 @@ export class DebugOverlay {
     const y = (cam ? cam.height : 0) - 140; // posun výše, aby nekolidovalo s počítadlem buněk
     this.text = scene.add.text(x, y, '', {
       fontFamily: 'monospace',
-      fontSize: '12px',
-      color: '#00ff88'
+      fontSize: '11px',
+      color: '#00ff88',
+      backgroundColor: 'rgba(0,0,0,0.8)',
+      padding: { x: 6, y: 4 }
     }).setScrollFactor(0);
-    this.text.setDepth(10000);
+    // Add to UI layer if it exists
+    if (scene.uiLayer) {
+      scene.uiLayer.add(this.text);
+    }
     this.text.setVisible(this.visible); // Respect initial visibility
     this._margin = margin;
     this._acc = 0;
+    
+    // Missing assets panel (top-right corner)
+    this.missingAssetsText = scene.add.text(cam.width - margin, margin, '', {
+      fontFamily: 'monospace',
+      fontSize: '11px',
+      color: '#ff6666',
+      backgroundColor: 'rgba(0,0,0,0.8)',
+      padding: { x: 6, y: 4 }
+    }).setScrollFactor(0).setOrigin(1, 0);
+    // Add to UI layer if it exists
+    if (scene.uiLayer) {
+      scene.uiLayer.add(this.missingAssetsText);
+    }
+    this.missingAssetsText.setVisible(false);
+    
+    // Setup F6 key for missing assets toggle
+    this._setupKeyBindings();
     
     // Flash message support pro hot reload notifikace
     this._flashMessages = [];
@@ -35,31 +60,141 @@ export class DebugOverlay {
       fontSize: '11px',
       color: '#ffaa00'
     }).setScrollFactor(0);
-    this._flashText.setDepth(10001);
+    // Add to UI layer if it exists
+    if (scene.uiLayer) {
+      scene.uiLayer.add(this._flashText);
+    }
     this._flashText.setVisible(this.visible); // Respect initial visibility
 
-    // Reakce na resize – držet overlay doleva dolů
+    // Reakce na resize – držet overlay doleva dolů a missing assets vpravo nahoře
     try {
       scene.scale.on('resize', (gameSize) => {
         const h = gameSize?.height || scene.cameras.main.height;
+        const w = gameSize?.width || scene.cameras.main.width;
         this.text.setPosition(this._margin, h - 140);
         this._flashText.setPosition(this._margin, h - 170);
+        this.missingAssetsText.setPosition(w - this._margin, this._margin);
       });
     } catch (_) {}
   }
 
   destroy() {
-    if (this.text) this.text.destroy();
-    if (this._flashText) this._flashText.destroy();
+    // Clean up text objects
+    if (this.text) {
+      this.text.destroy();
+      this.text = null;
+    }
+    if (this._flashText) {
+      this._flashText.destroy();
+      this._flashText = null;
+    }
+    if (this.missingAssetsText) {
+      this.missingAssetsText.destroy();
+      this.missingAssetsText = null;
+    }
+    
+    // Properly clean up keyboard listeners
+    if (this.f3Key) {
+      this.f3Key.off('down'); // Remove all 'down' event listeners
+      this.f3Key.destroy();
+      this.f3Key = null;
+    }
+    if (this.f6Key) {
+      this.f6Key.off('down'); // Remove all 'down' event listeners
+      this.f6Key.destroy();
+      this.f6Key = null;
+    }
+    
+    // Clean up resize listener if exists
+    if (this.scene?.scale) {
+      this.scene.scale.off('resize');
+    }
+  }
+  
+  _setupKeyBindings() {
+    // F3 for main debug overlay toggle
+    this.f3Key = this.scene.input.keyboard.addKey('F3');
+    this.f3Key.on('down', () => {
+      this.toggle();
+    });
+    
+    // F6 for missing assets panel toggle
+    this.f6Key = this.scene.input.keyboard.addKey('F6');
+    this.f6Key.on('down', () => {
+      this.showMissingAssets = !this.showMissingAssets;
+      this.missingAssetsText.setVisible(this.showMissingAssets);
+      if (this.showMissingAssets) {
+        this._updateMissingAssetsPanel();
+      }
+    });
+  }
+  
+  _updateMissingAssetsPanel() {
+    if (!window.__missingAssets) {
+      this.missingAssetsText.setText('No missing assets tracked');
+      return;
+    }
+    
+    const sfxMissing = Array.from(window.__missingAssets.sfx || []);
+    const vfxMissing = Array.from(window.__missingAssets.vfx || []);
+    
+    const lines = ['🔍 MISSING ASSETS (F6 to toggle)'];
+    lines.push('─────────────────────────');
+    
+    if (sfxMissing.length > 0) {
+      lines.push(`🔊 SFX (${sfxMissing.length}):`);
+      sfxMissing.slice(0, 10).forEach(id => {
+        lines.push(`  ${id}`);
+      });
+      if (sfxMissing.length > 10) {
+        lines.push(`  ... +${sfxMissing.length - 10} more`);
+      }
+    }
+    
+    if (vfxMissing.length > 0) {
+      if (sfxMissing.length > 0) lines.push('');
+      lines.push(`✨ VFX (${vfxMissing.length}):`);
+      vfxMissing.slice(0, 10).forEach(id => {
+        lines.push(`  ${id}`);
+      });
+      if (vfxMissing.length > 10) {
+        lines.push(`  ... +${vfxMissing.length - 10} more`);
+      }
+    }
+    
+    if (sfxMissing.length === 0 && vfxMissing.length === 0) {
+      lines.push('✅ All assets found!');
+    } else {
+      lines.push('─────────────────────────');
+      lines.push('Console: DEV.dumpMissing()');
+      lines.push('Copy: DEV.copyMissing("all")');
+    }
+    
+    this.missingAssetsText.setText(lines.join('\n'));
   }
 
   update(time, delta) {
-    // Skip update if not visible
-    if (!this.visible) return;
+    // Skip main overlay update if not visible
+    if (this.visible) {
+      this._acc += delta;
+      if (this._acc >= 500) { // aktualizace 2× za sekundu
+        this._acc = 0;
+        this._updateMainOverlay(time, delta);
+      }
+    }
     
-    this._acc += delta;
-    if (this._acc < 500) return; // aktualizace 2× za sekundu
-    this._acc = 0;
+    // Update missing assets panel if visible
+    if (this.showMissingAssets) {
+      this._updateMissingAssetsPanel();
+    }
+    
+    // Always update flash messages if visible
+    if (this.visible) {
+      this._updateFlashMessages(time);
+    }
+  }
+  
+  _updateMainOverlay(time, delta) {
     const s = this.scene;
     const fps = Math.round(s.game.loop.actualFps || (1000 / (delta || 16.7)));
     
@@ -69,42 +204,65 @@ export class DebugOverlay {
     const projP = s.projectileSystem?.playerBullets?.children?.entries?.length ?? 0;
     const projE = s.projectileSystem?.enemyBullets?.children?.entries?.length ?? 0;
     const kills = s.gameStats?.enemiesKilled ?? 0;
+    const stage = s.stage || 1;
+    const wave = s.spawnDirector?.currentWave || 0;
     
     // Performance profiling - system execution times
     const perfData = this._getSystemPerformance();
     
-    const core = [];
-    if (s.coreProjectileSystem) core.push('Proj');
-    if (s.coreLootSystem) core.push('Loot');
-    if (s.coreAISystem) core.push('AI');
-    if (s.coreBossSystem) core.push('Boss');
+    // System status
+    const systems = {
+      VFX: s.vfxSystem ? '✅' : '❌',
+      SFX: s.sfxSystem ? '✅' : '❌',
+      Spawn: s.spawnDirector ? '✅' : '❌',
+      Loot: s.lootManager ? '✅' : '❌'
+    };
     
-    const flags = [];
-    try { if (window.localStorage.getItem('coreECS') === 'true') flags.push('coreECS'); } catch (_) {}
-    try { if (window.localStorage.getItem('debugOverlay') === 'true') flags.push('debug'); } catch (_) {}
-    try { if (window.localStorage.getItem('perfProfiler') === 'true') flags.push('perf'); } catch (_) {}
-
-    const lines = [
-      `FPS: ${fps}`,
-      `Enemies alive: ${enemies} | Kills: ${kills}`,
-      `Projectiles P/E: ${projP}/${projE}`,
-      `Core systems: ${core.join(', ') || '-'}`
-    ];
-    
-    // Přidat performance data pokud je enabled
-    if (flags.includes('perf') && perfData.enabled) {
-      lines.push(`--- Performance (ms/frame) ---`);
-      Object.entries(perfData.times).forEach(([system, time]) => {
-        lines.push(`${system}: ${time}ms`);
-      });
-      lines.push(`Total: ${perfData.total}ms`);
+    // Get memory usage if available
+    let memoryInfo = '';
+    if (window.performance && window.performance.memory) {
+      const used = Math.round(window.performance.memory.usedJSHeapSize / 1048576);
+      const limit = Math.round(window.performance.memory.jsHeapSizeLimit / 1048576);
+      memoryInfo = `Memory: ${used}MB / ${limit}MB`;
     }
     
-    lines.push(`Flags: ${flags.join(', ') || '-'}`);
-    this.text.setText(lines.join('\n'));
+    const lines = [
+      `🎮 DEBUG OVERLAY (F3 to toggle)`,
+      `─────────────────────────`,
+      `FPS: ${fps} | Stage: ${stage} | Wave: ${wave}`,
+      `Enemies: ${enemies} | Kills: ${kills}`,
+      `Projectiles: P${projP}/E${projE}`,
+      `Systems: ${Object.entries(systems).map(([k,v]) => `${k}${v}`).join(' ')}`,
+    ];
     
-    // Aktualizovat flash messages
-    this._updateFlashMessages(time);
+    if (memoryInfo) {
+      lines.push(memoryInfo);
+    }
+    
+    // Add missing assets summary if any
+    if (window.__missingAssets) {
+      const sfxCount = window.__missingAssets.sfx?.size || 0;
+      const vfxCount = window.__missingAssets.vfx?.size || 0;
+      if (sfxCount > 0 || vfxCount > 0) {
+        lines.push(`─────────────────────────`);
+        lines.push(`⚠️ Missing: SFX(${sfxCount}) VFX(${vfxCount})`);
+        lines.push(`Press F6 for details`);
+      }
+    }
+    
+    // Add performance data if profiler is enabled
+    if (perfData.enabled && perfData.total > 0) {
+      lines.push(`─────────────────────────`);
+      lines.push(`⏱️ Performance (ms):`);
+      Object.entries(perfData.times).forEach(([system, time]) => {
+        if (time > 0) {
+          lines.push(`  ${system}: ${time}`);
+        }
+      });
+      lines.push(`  Total: ${perfData.total}`);
+    }
+    
+    this.text.setText(lines.join('\n'));
   }
   
   _getSystemPerformance() {

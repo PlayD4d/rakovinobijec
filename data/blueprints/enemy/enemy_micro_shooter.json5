@@ -22,18 +22,16 @@
     healthDropChance: 0.07,
   },
   projectileRef: 'projectile.cytotoxin_small',
-  // PR7 Compliant: graphics field for visual configuration
   graphics: {
     sprite: 'enemy_micro_shooter',
-    tint: 0xFF5722,
+    tint: 16733986,
     scale: 0.9,
     animation: {
       idle: 'shooter_idle',
       move: 'shooter_move',
-      attack: 'shooter_attack'
-    }
+      attack: 'shooter_attack',
+    },
   },
-  // PR7 Compliant: ai field for behavior configuration
   ai: {
     behavior: 'shoot',
     params: {
@@ -42,11 +40,23 @@
       movePattern: 'kite_player',
       targetPriority: 'nearest',
       projectileType: 'projectile.cytotoxin_small',
-      shootInterval: 2400
-    }
+      shootInterval: 2400,
+    },
   },
-  // PR7 Compliant: lootTable reference
-  lootTable: 'lootTable.level1.common',
+  drops: [
+    {
+      itemId: 'item.xp_small',
+      chance: 0.85,
+    },
+    {
+      itemId: 'item.health_small',
+      chance: 0.07,
+    },
+    {
+      itemId: 'item.xp_medium',
+      chance: 0.04,
+    },
+  ],
   vfx: {
     spawn: 'vfx.enemy.spawn.shooter',
     hit: 'vfx.hit.spark.small',
@@ -55,9 +65,9 @@
   },
   sfx: {
     spawn: 'sfx.enemy.spawn.chirp',
-    hit: 'sfx.enemy.hit.soft',
+    hit: 'sound/hit_soft.mp3',
     death: 'sfx.enemy.death.pop',
-    shoot: 'sfx.weapon.fire.bio',
+    shoot: 'sound/shoot.mp3',
   },
   display: {
     key: 'enemy.micro_shooter.name',

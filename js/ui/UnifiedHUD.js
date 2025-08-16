@@ -1,6 +1,6 @@
 /**
  * UnifiedHUD - hlavní HUD komponenta postavená na unified UI systému
- * Nahrazuje RexHUD a UIManager
+ * Centrální HUD pro zobrazení herních statistik
  */
 import { BaseUIComponent } from './BaseUIComponent.js';
 import { UI_THEME, UIThemeUtils } from './UITheme.js';
@@ -32,8 +32,7 @@ export class UnifiedHUD extends BaseUIComponent {
         this.bossBar = null;
         this.bossHealthText = null;
         
-        // Game Over
-        this.gameOverContainer = null;
+        // Game Over removed - now handled by LiteUI in GameUIScene
         
         // Bar dimensions
         this.BAR_WIDTH = this.isMobileDevice ? 200 : 240;
@@ -69,9 +68,6 @@ export class UnifiedHUD extends BaseUIComponent {
         
         // Boss HUD (hidden by default)
         this.createBossHUD();
-        
-        // Set proper depth
-        this.setDepth(this.getComponentDepth());
     }
     
     /**
@@ -301,7 +297,6 @@ export class UnifiedHUD extends BaseUIComponent {
         }
     }
     
-    // Alias for compatibility with Player.js
     setPlayerHealth(current, max) {
         this.updateHP(current, max);
     }
@@ -315,7 +310,6 @@ export class UnifiedHUD extends BaseUIComponent {
         this.xpText.setText(`${Math.floor(current)}/${max}`);
     }
     
-    // Alias for compatibility
     setPlayerXP(current, max) {
         this.updateXP(current, max);
     }
@@ -380,206 +374,9 @@ export class UnifiedHUD extends BaseUIComponent {
         });
     }
     
-    /**
-     * Show Game Over screen - kompletně RexUI řešení
-     */
-    showGameOver(stats) {
-        if (this.gameOverContainer) return;
-        
-        const { width, height } = this.scene.scale.gameSize;
-        
-        // Create modal overlay
-        const overlay = this.scene.add.graphics();
-        overlay.fillStyle(UI_THEME.colors.background.overlay, 0.8);
-        overlay.fillRect(0, 0, width, height);
-        
-        // Modal size
-        const modalSize = RESPONSIVE.getModalSize(this.isMobileDevice, width, height);
-        
-        // Game Over RexUI sizer
-        this.gameOverContainer = this.scene.rexUI.add.sizer({
-            x: width / 2,
-            y: height / 2,
-            width: modalSize.width,
-            height: modalSize.height,
-            orientation: 'vertical',
-            space: { item: UI_THEME.spacing.l }
-        });
-        
-        // Background
-        const background = this.scene.rexUI.add.roundRectangle(
-            0, 0, modalSize.width, modalSize.height,
-            UI_THEME.borderRadius.large,
-            UI_THEME.colors.background.modal
-        ).setStrokeStyle(
-            UI_THEME.borderWidth.thick,
-            UI_THEME.colors.secondary
-        );
-        
-        this.gameOverContainer.addBackground(background);
-        
-        // Title
-        const titleText = this.scene.add.text(0, 0, 'GAME OVER',
-            UIThemeUtils.createFontConfig('title', 'danger', { 
-                stroke: true,
-                strokeThickness: 4,
-                isMobile: this.isMobileDevice 
-            })
-        ).setOrigin(0.5);
-        
-        this.gameOverContainer.add(titleText, {
-            proportion: 0,
-            align: 'center',
-            padding: { top: UI_THEME.spacing.xl }
-        });
-        
-        // Stats
-        const statsText = this.scene.add.text(0, 0, this.formatGameOverStats(stats),
-            UIThemeUtils.createFontConfig('normal', 'primary', { 
-                stroke: true,
-                isMobile: this.isMobileDevice 
-            })
-        );
-        statsText.setOrigin(0.5);
-        statsText.setAlign('center');
-        
-        this.gameOverContainer.add(statsText, {
-            proportion: 1,
-            align: 'center',
-            padding: { top: UI_THEME.spacing.m, bottom: UI_THEME.spacing.m }
-        });
-        
-        // Buttons container
-        const buttonsContainer = this.scene.rexUI.add.sizer({
-            orientation: 'vertical',
-            space: { item: UI_THEME.spacing.m }
-        });
-        
-        // Restart button
-        const restartButton = this.createGameOverButton(
-            'HRÁT ZNOVU (R)',
-            () => this.scene.restartGame()
-        );
-        
-        // Menu button
-        const menuButton = this.createGameOverButton(
-            'UKONČIT (ESC)',
-            () => this.scene.returnToMenu()
-        );
-        
-        buttonsContainer.add(restartButton, { proportion: 0, align: 'center' });
-        buttonsContainer.add(menuButton, { proportion: 0, align: 'center' });
-        buttonsContainer.layout();
-        
-        this.gameOverContainer.add(buttonsContainer, {
-            proportion: 0,
-            align: 'center',
-            padding: { bottom: UI_THEME.spacing.m }
-        });
-        
-        // Keyboard controls info
-        const controlsText = this.scene.add.text(0, 0,
-            'R - Hrát znovu | ESC - Ukončit',
-            UIThemeUtils.createFontConfig('small', 'secondary', { 
-                isMobile: this.isMobileDevice 
-            })
-        ).setOrigin(0.5);
-        
-        this.gameOverContainer.add(controlsText, {
-            proportion: 0,
-            align: 'center',
-            padding: { bottom: UI_THEME.spacing.xl }
-        });
-        
-        // Layout the modal
-        this.gameOverContainer.layout();
-        
-        // Add to scene
-        this.add([overlay, this.gameOverContainer]);
-        
-        // Set depth
-        overlay.setDepth(UI_THEME.depth.modal);
-        this.gameOverContainer.setDepth(UI_THEME.depth.modal + 1);
-        
-        // Fade in animation
-        this.gameOverContainer.alpha = 0;
-        this.scene.tweens.add({
-            targets: this.gameOverContainer,
-            alpha: 1,
-            duration: 500
-        });
-    }
+    // Game Over modal removed - now handled by LiteUI GameOverUI in GameUIScene
     
-    
-    /**
-     * Vytvoří tlačítko pro Game Over modal
-     */
-    createGameOverButton(text, onClickCallback) {
-        const buttonWidth = this.isMobileDevice ? 200 : 220;
-        const buttonHeight = this.isMobileDevice ? 40 : 45;
-        
-        // Button container
-        const button = this.scene.rexUI.add.sizer({
-            width: buttonWidth,
-            height: buttonHeight,
-            orientation: 'horizontal'
-        });
-        
-        // Background
-        const background = this.scene.rexUI.add.roundRectangle(
-            0, 0, buttonWidth, buttonHeight,
-            UI_THEME.borderRadius.normal,
-            UI_THEME.colors.background.card
-        ).setStrokeStyle(
-            UI_THEME.borderWidth.normal,
-            UI_THEME.colors.borders.default
-        );
-        
-        button.addBackground(background);
-        
-        // Text
-        const buttonText = this.scene.add.text(0, 0, text,
-            UIThemeUtils.createFontConfig('normal', 'primary', { 
-                stroke: true,
-                isMobile: this.isMobileDevice 
-            })
-        ).setOrigin(0.5);
-        
-        button.add(buttonText, { proportion: 1, align: 'center' });
-        
-        // Interactivity
-        button.setInteractive()
-            .on('pointerover', () => {
-                background.setFillStyle(UI_THEME.colors.background.panel);
-                background.setStrokeStyle(UI_THEME.borderWidth.thick, UI_THEME.colors.borders.active);
-            })
-            .on('pointerout', () => {
-                background.setFillStyle(UI_THEME.colors.background.card);
-                background.setStrokeStyle(UI_THEME.borderWidth.normal, UI_THEME.colors.borders.default);
-            })
-            .on('pointerdown', onClickCallback);
-        
-        return button;
-    }
-    
-    /**
-     * Format game over stats
-     */
-    formatGameOverStats(stats) {
-        const minutes = Math.floor(stats.time / 60);
-        const seconds = Math.floor(stats.time % 60);
-        
-        return `
-Dosažený level: ${stats.level}
-Celkové skóre: ${stats.score}
-
-Zničeno buněk: ${stats.enemiesKilled}
-Z toho bossů: ${stats.bossesDefeated || 0}
-
-Čas přežití: ${minutes}:${seconds.toString().padStart(2, '0')}
-Power-upy: ${stats.powerUpsCollected}
-        `.trim();
-    }
+    // Game Over button and stats formatting removed - now in LiteUI GameOverUI
     
     /**
      * Update method called from GameScene
@@ -635,21 +432,14 @@ Power-upy: ${stats.powerUpsCollected}
             this.bossContainer.y = bossBarY;
         }
         
-        // Update game over position
-        if (this.gameOverContainer) {
-            this.gameOverContainer.x = gameSize.width / 2;
-            this.gameOverContainer.y = gameSize.height / 2;
-        }
+        // Game Over modal removed - handled by LiteUI
     }
     
     /**
      * Cleanup
      */
     onCleanup() {
-        if (this.gameOverContainer) {
-            this.gameOverContainer.destroy();
-            this.gameOverContainer = null;
-        }
+        // Game Over cleanup removed - handled by LiteUI
     }
 }
 

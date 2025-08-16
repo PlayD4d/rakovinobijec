@@ -63,8 +63,13 @@
       buffAllies: true
     }
   },
-  // PR7 Compliant: lootTable reference
-  lootTable: 'lootTable.level2.elite',
+  // NEW: Direct drop system - mini-elite drops
+  drops: [
+    { itemId: 'item.xp_medium', chance: 0.9 },      // 90% chance for medium XP
+    { itemId: 'item.xp_large', chance: 0.12 },      // 12% chance for large XP  
+    { itemId: 'item.heal_orb', chance: 0.12 },      // 12% chance for heal orb
+    { itemId: 'item.energy_cell', chance: 0.02 }    // 2% chance for energy cell
+  ],
   vfx: {
     spawn: 'vfx.enemy.spawn.elite.swarm',
     hit: 'vfx.hit.spark.elite',

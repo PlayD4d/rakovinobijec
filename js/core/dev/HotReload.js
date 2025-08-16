@@ -5,8 +5,9 @@
  * Sleduje změny v souborech a automaticky reload blueprinty.
  */
 
-import { EnemyRegistry } from '../registry/EnemyRegistry.js';
-import { DropRegistry } from '../registry/DropRegistry.js';
+// Removed legacy registry imports - using BlueprintLoader directly
+// import { EnemyRegistry } from '../registry/EnemyRegistry.js';
+// import { DropRegistry } from '../registry/DropRegistry.js';
 
 export class HotReload {
     constructor(scene) {
@@ -207,22 +208,14 @@ export class HotReload {
                 return;
             }
             
-            // Re-registrovat blueprint podle typu
-            switch (fileInfo.type) {
-                case 'enemy':
-                case 'boss':
-                    EnemyRegistry.register(blueprint);
-                    break;
-                case 'drop':
-                    DropRegistry.register(blueprint);
-                    break;
-                case 'powerup':
-                    // PowerUpRegistry.register(blueprint);
-                    console.log(`[HotReload] PowerUp reload not yet implemented`);
-                    break;
-                default:
-                    console.warn(`[HotReload] Unknown blueprint type: ${fileInfo.type}`);
-                    return;
+            // Re-registrovat blueprint podle typu přes BlueprintLoader
+            if (this.scene.blueprintLoader) {
+                // Použít centralizovaný BlueprintLoader
+                this.scene.blueprintLoader.updateBlueprint(blueprint.id || blueprint.name, blueprint);
+                console.log(`[HotReload] ✅ Updated ${fileInfo.type} blueprint via BlueprintLoader: ${blueprint.id || blueprint.name}`);
+            } else {
+                console.warn(`[HotReload] BlueprintLoader not available - cannot reload ${fileInfo.type}`);
+                return;
             }
             
             console.log(`[HotReload] ✅ Reloaded ${fileInfo.type} blueprint: ${blueprint.name}`);

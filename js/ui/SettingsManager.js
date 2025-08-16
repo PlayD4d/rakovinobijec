@@ -250,15 +250,23 @@ export class SettingsManager {
      * Voláno po změně nastavení v UI
      */
     applyToManagers(scene) {
-        // AudioManager
-        if (scene.audioManager) {
-            scene.audioManager.applyUserSettings({
-                masterVolume: this.get('audio.masterVolume', 1.0),
-                musicEnabled: this.get('audio.musicEnabled', true),
-                musicVolume: this.get('audio.musicVolume', 0.35),
-                soundsEnabled: this.get('audio.soundsEnabled', true),
-                soundsVolume: this.get('audio.soundsVolume', 0.7)
-            });
+        // SFXSystem - modern audio system
+        if (scene.sfxSystem) {
+            // Apply all volume categories properly
+            scene.sfxSystem.setVolume('master', this.get('audio.masterVolume', 1.0));
+            scene.sfxSystem.setVolume('music', this.get('audio.musicVolume', 0.35));
+            scene.sfxSystem.setVolume('sfx', this.get('audio.soundsVolume', 0.7));
+            
+            // Enable/disable sounds
+            const soundsEnabled = this.get('audio.soundsEnabled', true);
+            const musicEnabled = this.get('audio.musicEnabled', true);
+            
+            if (!soundsEnabled) {
+                scene.sfxSystem.setVolume('sfx', 0);
+            }
+            if (!musicEnabled) {
+                scene.sfxSystem.setVolume('music', 0);
+            }
         }
         
         // MobileControlsManager

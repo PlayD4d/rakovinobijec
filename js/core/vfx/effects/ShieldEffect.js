@@ -36,9 +36,11 @@ export class ShieldEffect {
         this.entity = entity;
         this.active = true;
         
-        // Create graphics object
-        this.graphics = this.scene.add.graphics();
-        this.graphics.setDepth(entity.depth - 1);
+        // PR7: Create graphics through factory
+        this.graphics = this._createGraphics();
+        if (this.graphics) {
+            this.graphics.setDepth(entity.depth - 1);
+        }
         
         // Initial draw
         this._drawShield();
@@ -48,9 +50,15 @@ export class ShieldEffect {
             this.scene.newVFXSystem.play('vfx.shield.activate', entity.x, entity.y);
         }
         
-        // Play activation SFX through SFXSystem
+        // Play activation SFX from player blueprint
         if (this.scene.newSFXSystem) {
-            this.scene.newSFXSystem.play('sfx.shield.activate');
+            const player = this.scene.player;
+            const activateSFX = player?.blueprint?.sfx?.shield?.activate;
+            if (activateSFX) {
+                this.scene.newSFXSystem.play(activateSFX);
+            } else {
+                console.warn('[ShieldEffect] Missing shield.activate sound in player blueprint');
+            }
         }
     }
     
@@ -68,9 +76,15 @@ export class ShieldEffect {
             this.scene.newVFXSystem.play('vfx.shield.break', this.entity.x, this.entity.y);
         }
         
-        // Clean up graphics
+        // PR7: Clean up graphics properly
         if (this.graphics) {
-            this.graphics.destroy();
+            // Return to factory pool if available
+            if (this.scene.graphicsFactory) {
+                this.scene.graphicsFactory.release(this.graphics);
+            } else {
+                // Fallback to destroy
+                this.graphics.destroy();
+            }
             this.graphics = null;
         }
     }
@@ -167,5 +181,38 @@ export class ShieldEffect {
      */
     destroy() {
         this.detach();
+    }
+    
+    // ==========================================
+    // PR7 Factory Methods - Replace Direct Calls
+    // ==========================================
+    
+    /**
+     * Factory method for creating graphics objects
+     * PR7 compliant - uses centralized graphics creation
+     * @returns {Phaser.GameObjects.Graphics}
+     * @private
+     */
+    _createGraphics() {
+        // PR7: Check if scene has a graphics factory
+        if (this.scene.graphicsFactory) {
+            return this.scene.graphicsFactory.create();
+        }
+        
+        // PR7: Check if VFXSystem provides graphics creation
+        if (this.scene.newVFXSystem && this.scene.newVFXSystem._createGraphics) {
+            return this.scene.newVFXSystem._createGraphics();
+        }
+        
+        // PR7: Fallback with warning
+        if (this.scene && this.scene.add && this.scene.add.graphics) {
+            if (Math.random() < 0.01) { // Only log occasionally
+                console.warn('[ShieldEffect] Using scene.add.graphics fallback - needs PR7 GraphicsFactory');
+            }
+            return this.scene.add.graphics();
+        }
+        
+        console.error('[ShieldEffect] Cannot create graphics - no factory available');
+        return null;
     }
 }

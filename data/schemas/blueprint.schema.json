@@ -12,8 +12,8 @@
     },
     "type": {
       "type": "string",
-      "enum": ["boss", "enemy", "miniboss", "unique", "powerup", "drop", "projectile"],
-      "description": "Entity type matching folder structure"
+      "enum": ["boss", "enemy", "elite", "miniboss", "unique", "powerup", "drop", "projectile", "item"],
+      "description": "Entity type matching folder structure (PR7: added elite and item)"
     },
     "baseType": {
       "type": "string",
@@ -117,7 +117,8 @@
       "patternProperties": {
         "^[a-z_]+$": {
           "type": "string",
-          "pattern": "^vfx\\."
+          "pattern": "^vfx\\.",
+          "description": "VFX reference using vfx. prefix"
         }
       },
       "additionalProperties": true
@@ -127,7 +128,8 @@
       "patternProperties": {
         "^[a-z_]+$": {
           "type": "string",
-          "pattern": "^sfx\\."
+          "pattern": "(^sfx\\.|\\.(mp3|ogg|wav|m4a)$|^sound/|^music/)",
+          "description": "PR7: Direct audio file path or legacy sfx. reference"
         }
       },
       "additionalProperties": true

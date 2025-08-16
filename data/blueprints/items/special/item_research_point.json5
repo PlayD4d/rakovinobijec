@@ -1,0 +1,43 @@
+{
+  id: 'item.research_point',
+  type: 'item',
+  
+  // Basic info
+  name: 'Research Point',
+  description: 'Unlocks upgrades and abilities',
+  category: 'special',
+  rarity: 'rare',
+  
+  // Visual
+  icon: '🔬',
+  color: 0x00CED1,
+  graphics: {
+    shape: 'triangle',
+    scale: 1.0
+  },
+  
+  // Effects
+  effect: {
+    type: 'research',
+    value: 1
+  },
+  
+  // Pickup properties
+  pickup: {
+    magnetRange: 80,
+    pickupRadius: 35,
+    autoPickup: true,
+    lifetime: 45000,
+    bobbing: true
+  },
+  
+  // VFX/SFX
+  vfx: {
+    spawn: 'vfx.drop.spawn.rare',
+    pickup: 'vfx.player.research.gain'
+  },
+  sfx: {
+    spawn: 'sfx.drop.spawn.rare',
+    pickup: 'sfx.research'
+  }
+}

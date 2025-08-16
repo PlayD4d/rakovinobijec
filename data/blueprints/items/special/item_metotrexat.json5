@@ -1,0 +1,48 @@
+{
+  id: 'item.metotrexat',
+  type: 'item',
+  
+  // Basic info
+  name: 'Metotrexat',
+  description: 'Instantly eliminates all enemies on screen',
+  category: 'special',
+  rarity: 'legendary',
+  
+  // Visual
+  icon: '💊',
+  color: 0xFF00FF,
+  graphics: {
+    shape: 'star',
+    scale: 1.2,
+    glow: true,
+    pulseAnimation: true
+  },
+  
+  // Effects
+  effect: {
+    type: 'instant_kill_all',
+    screenFlash: true,
+    shockwave: true
+  },
+  
+  // Pickup properties
+  pickup: {
+    magnetRange: 100,
+    pickupRadius: 40,
+    autoPickup: true,
+    lifetime: 60000,  // 1 minute - rare item
+    bobbing: true,
+    glowEffect: true
+  },
+  
+  // VFX/SFX
+  vfx: {
+    spawn: 'vfx.drop.spawn.legendary',
+    pickup: 'vfx.screen.flash.white',
+    effect: 'vfx.shockwave.massive'
+  },
+  sfx: {
+    spawn: 'sfx.drop.spawn.rare',
+    pickup: 'sfx.metotrexat'
+  }
+}

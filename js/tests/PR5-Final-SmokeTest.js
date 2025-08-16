@@ -8,7 +8,7 @@
 import { ConfigResolver } from '../core/utils/ConfigResolver.js';
 import { ModifierEngine } from '../core/utils/ModifierEngine.js';
 import { SettingsManager } from '../core/settings/SettingsManager.js';
-import { BlueprintValidator } from '../core/utils/BlueprintValidator.js';
+import { BlueprintValidator } from '../core/validation/BlueprintValidator.js';
 
 /**
  * PR5 Final Smoke Test - comprehensive framework validation
@@ -32,10 +32,10 @@ export function runFinalSmokeTest() {
     // Test 1: ConfigResolver comprehensive test
     console.log('📋 Testing ConfigResolver...');
     const testPaths = [
-      'player.projectile.baseDamage',
+      'playerConfig.projectile.baseDamage',  // Updated path
       'abilities.aura.baseRadius', 
-      'boss.rendering.outlineWidth',
-      'loot.health.levelStepSize',
+      'vfx.shield.radius',  // Updated to use vfx section
+      'loot.dropLifetime',  // Updated to use loot section
       'spawn.intervalReductionRate'
     ];
     

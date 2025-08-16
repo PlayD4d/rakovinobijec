@@ -153,7 +153,11 @@
       "name": "Proton Cannon"
     },
     "flamethrower": {
-      "desc": "Laser beams targeting closest enemies",
+      "desc": "Cone of fire in front of player",
+      "name": "Flamethrower"
+    },
+    "radiotherapy": {
+      "desc": "Rotating radiation beams around player",
       "name": "Radiotherapy"
     },
     "lightning_chain": {
@@ -218,7 +222,8 @@
     "powerup": {
       "damage_boost": "Damage boost enhancing all attacks for more effective combat",
       "explosive_bullets": "Proton Cannon - bullets explode on impact dealing area damage",
-      "flamethrower": "Radiotherapy beams targeting closest enemies",
+      "flamethrower": "Cone of fire damaging enemies in front of player",
+      "radiotherapy": "Rotating radiation beams around player",
       "piercing_arrows": "Cisplatin projectiles piercing through multiple enemies",
       "shield": "Immune system shield absorbing incoming damage"
     },

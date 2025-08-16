@@ -625,6 +625,7 @@ export default class LootSystemBootstrap {
     // Registrace všech loot tabulek
     for (const [id, table] of this.loadedBlueprints.lootTables) {
       this.lootDropManager.registerTable(table);
+      console.log(`  Registered table: ${id}`);
     }
     
     // Registrace level tabulek
@@ -643,7 +644,7 @@ export default class LootSystemBootstrap {
       'lootTable.level3.elite'
     ]);
     
-    console.log('[LootSystemBootstrap] Loot tables zaregistrovány');
+    console.log(`[LootSystemBootstrap] Loot tables zaregistrovány: ${this.loadedBlueprints.lootTables.size} tables`);
   }
   
   async connectIntegrations() {

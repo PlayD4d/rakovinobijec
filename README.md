@@ -1,137 +1,94 @@
 # 🎮 Rakovinobijec
 
-**Hra pro Mardu - bojovníka proti rakovině**
+**Věnováno Mardovi - bojovníkovi s rakovinou a všem, kdo bojují s jakoukoliv nemocí.** 💪
 
-Arcade-style top-down shooter hra vytvořená v Phaser.js, kde hráč v roli rytíře Mardy bojuje proti škodlivým buňkám a nádorům.
+## 🌟 Hrát online
 
-**Verze:** 0.1.4 | **PR7 Architektura** - 100% data-driven design
+**➡️ [Hrát Rakovinobijec online](https://playd4d.github.io/rakovinobijec/)**
 
-## 🎯 O hře
+## 📖 O hře
 
-Rakovinobijec je motivační hra vytvořená speciálně pro podporu v boji proti rakovině. Hráč ovládá rytíře Mardu, který se pomocí různých "léčebných" zbraní a upgradů snaží porazit škodlivé buňky reprezentující rakovinu.
+Rakovinobijec je arkádová 2D top-down střílečka, kde hráč v roli bílé krvinky bojuje proti rakovinným buňkám a dalším patogenům. Hra symbolicky zobrazuje boj imunitního systému s nemocí.
 
-### 🎆 Herní mechaniky
+### Herní principy
 
-- **Top-down shooter** s automatickou střelbou
-- **Progresivní obtížnost** s 6 unikátními bossy
-- **13 power-upů** inspirovaných skutečnou léčbou rakoviny
-- **5 typů nepřátel** s unikátními schopnostmi
-- **XP systém** s level-up mechanikou
-- **🌐 Globální high score** - soutěž s hráči po celém světě
-- **📊 Analytics systém** - pokročilý sběr herních dat pro optimalizaci
-- **📱 Mobilní podpora** - virtuální joystick a responzivní UI
-- **💥 Speciální efekty** - Metotrexat mass-kill, explozivní projektily
+- **Survival gameplay** - Přežijte co nejdéle proti vlnám nepřátel
+- **Progresivní obtížnost** - Nepřátelé postupně sílí
+- **Power-up systém** - Sbírejte vylepšení a posilujte své schopnosti  
+- **Boss souboje** - Čelte mocným mutovaným buňkám
+- **XP a levelování** - Získávejte zkušenosti a odemykejte nové schopnosti
+- **Globální žebříček** - Soutěžte s hráči z celého světa
 
-## 🎮 Ovládání
+### Ovládání
 
-### Desktop
-- **WASD** nebo **šipky** - pohyb
-- **ESC** - pauza/menu
-- **R** - restart (po game over)
-- **Myš** - navigace v menu
+- **WASD / Šipky** - Pohyb
+- **Myš** - Míření a střelba (automatická)
+- **ESC** - Pauza
+- **Mobilní zařízení** - Virtuální joystick
 
-### Mobil/Tablet
-- **Virtuální joystick** - pohyb (levá/pravá strana)
-- **Touch** - navigace v menu
-- **Fullscreen** - podporováno
+## 🚀 Rychlý start
 
-## 🔧 Technické informace
-
-### Použité technologie
-- **Phaser.js 3.70.0** - herní framework
-- **ES6 Modules** - modulární architektura
-- **PR7 Architektura** - 100% data-driven design
-- **Supabase** - cloud databáze pro high scores a analytics
-- **LocalStorage** - backup high score (offline režim)
-- **PostgreSQL** - analytics databáze s RLS security
-- **CSS3** - responzivní design
-- **Web Audio API** - zvukové efekty
-
-### Core systémy (PR7)
-- **BlueprintRegistry** - centrální registr všech entit
-- **ConfigResolver** - jednotné řešení konfigurace
-- **SpawnDirector** - řízení vln nepřátel
-- **ProjectileSystemV2** - Zero-GC projektily s poolingem
-- **ModifierEngine** - aplikace buffů a debuffů
-- **PowerUpSystem** - správa vylepšení hráče
-
-### Požadavky
-- Moderní webový prohlížeč s ES6 podporou
-- Aktivní JavaScript
-- Doporučeno: Chrome, Firefox, Safari, Edge
-
-## 🚀 Instalace a spuštění
-
-### Online verze
-Hra bude brzy dostupná online.
-
-### Lokální spuštění
-
-#### Pomocí Node.js (doporučeno)
-1. Naklonuj repozitář:
 ```bash
-git clone https://github.com/yourusername/rakovinobijec.git
-cd rakovinobijec
-```
+# Naklonovat repozitář
+git clone https://github.com/playd4d/rakovinobijec.git
 
-2. Nainstaluj závislosti:
-```bash
+# Nainstalovat závislosti
 npm install
+
+# Spustit vývojový server
+npm run dev
+
+# Otevřít v prohlížeči
+http://localhost:8000
 ```
 
-3. Spusť lokální server:
+## 🛠️ Pro vývojáře
+
+### Dokumentace
+
+- [Developer Guide](docs/DEVELOPER_GUIDE.md) - Kompletní průvodce vývojem
+- [Dev Guidelines](DEV_GUIDELINES.md) - PR7 pravidla a best practices
+- [Changelog](CHANGELOG.md) - Historie verzí
+
+### Hlavní příkazy
+
 ```bash
-npm start
+npm run dev              # Vývojový server s hot-reload
+npm run audit:data       # Kontrola validity blueprintů
+npm run rebuild:index    # Přestavba registry indexu
+npm run smoke:test       # Spuštění smoke testů
+npm run verify:all       # Kompletní verifikace
 ```
 
-4. Otevři prohlížeč na: `http://localhost:8080`
+### Technologie
 
-#### Pomocí Python (alternativa)
-```bash
-python -m http.server 8000
-```
-Otevři prohlížeč na: `http://localhost:8000`
+- **Engine**: Phaser 3
+- **Architektura**: PR7 (100% data-driven)
+- **Blueprinty**: JSON5 formát
+- **Audio**: Web Audio API
+- **Analytics**: Supabase
+## 📊 Aktuální verze
 
-## 🛠️ Development
+**v0.4.1** (2025-08-16)
+- Centralizace konfigurace do main_config.json5
+- Oprava chybějících power-upů (XP Magnet)
+- Aktualizace validátorů pro PR7 kompatibilitu
+- Vylepšení editoru blueprintů
 
-### Struktura projektu
-```
-rakovinobijec/
-├── index.html          # Hlavní HTML soubor
-├── css/               # Styly
-├── js/                # Herní logika
-│   ├── main.js        # Entry point
-│   ├── config.js      # GameConfig
-│   ├── core/          # PR7 systémy
-│   ├── entities/      # Player, Enemy, Boss
-│   ├── managers/      # Správci (Audio, Analytics, atd.)
-│   └── scenes/        # Phaser scény
-├── data/              # Blueprinty a konfigurace
-│   ├── blueprints/    # JSON5 definice entit
-│   └── config/        # Herní nastavení
-├── sprites/           # Grafika
-└── sound/            # Zvuky
-```
+[Kompletní historie verzí](CHANGELOG.md)
 
-### PR7 Guidelines
-Hra používá 100% data-driven architekturu:
-- Všechny entity jsou definovány v `/data/blueprints/`
-- Žádné hardcodované hodnoty v kódu
-- ConfigResolver pro všechny konstanty
-- Jednotné API přes core systémy
+## 🤝 Přispívání
 
-## 📝 Poznámky
+Příspěvky jsou vítány! Prosím přečtěte si [Dev Guidelines](DEV_GUIDELINES.md) před vytvořením pull requestu.
 
-- Hra je vytvořena s láskou pro Mardu
-- Všechny názvy power-upů jsou inspirovány skutečnými léky
-- Analytics pomáhají vylepšovat herní balance
+## 📝 Licence
 
-## 🤝 Credits
+MIT
 
-- **Vývojář:** Miroslav
-- **Pro:** Marda - skutečný bojovník
-- **Framework:** Phaser.js komunita
+## 💝 Poděkování
+
+Speciální poděkování všem, kdo bojují s nemocí a nevzdávají se. Tato hra je symbolickou podporou vašeho boje.
 
 ---
 
-*Mardo, jsi nejsilnější! 💪*
+*"V každém z nás je bojovník. Někdy jen potřebujeme připomenout, jak silní dokážeme být."*

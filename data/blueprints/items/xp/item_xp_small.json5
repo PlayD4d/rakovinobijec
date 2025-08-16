@@ -1,0 +1,43 @@
+{
+  id: 'item.xp_small',
+  type: 'item',
+  
+  // Basic info
+  name: 'Small XP Orb',
+  description: 'Grants 1 experience point',
+  category: 'xp',
+  rarity: 'common',
+  
+  // Visual
+  icon: '⭐',
+  color: 0x00E8FC,
+  graphics: {
+    shape: 'hexagon',
+    scale: 0.8
+  },
+  
+  // Effects
+  effect: {
+    type: 'xp',
+    value: 1
+  },
+  
+  // Pickup properties
+  pickup: {
+    magnetRange: 60,
+    pickupRadius: 25,
+    autoPickup: true,
+    lifetime: 20000,  // 20 seconds before despawn
+    bobbing: true
+  },
+  
+  // VFX/SFX
+  vfx: {
+    spawn: 'vfx.drop.spawn.xp.small',
+    pickup: 'vfx.player.xp.gain.small'
+  },
+  sfx: {
+    spawn: 'sound/pickup.mp3',
+    pickup: 'sound/pickup.mp3'
+  }
+}

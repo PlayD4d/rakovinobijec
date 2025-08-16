@@ -24,6 +24,11 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
         this.isInteractive = false;
         this.isDestroyed = false;
         
+        // Memory leak prevention - track interactive elements
+        this.interactiveElements = new WeakSet();
+        this.activeListeners = new Map(); // Track active event listeners
+        this.activeTweens = new Set(); // Track active tweens
+        
         // Responsive detection
         this.isMobileDevice = isMobile();
         this.screenType = RESPONSIVE.getScreenType();
@@ -31,14 +36,18 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
         // Theme aplikace
         this.applyTheme();
         
-        // Přidat do scény
-        scene.add.existing(this);
+        // Přidat se podle situace buď do scene.uiLayer, nebo do scene
+        if (scene.uiLayer && typeof scene.uiLayer.add === 'function') {
+            scene.uiLayer.add(this);
+            // UI layer already manages depth properly
+        } else {
+            scene.add.existing(this);
+            // Only set depth when not in UI layer
+            this.setDepth(this.getComponentDepth());
+        }
         
         // Setup event listeners
         this.setupEventListeners();
-        
-        // Depth podle typu komponenty
-        this.setDepth(this.getComponentDepth());
     }
     
     /**
@@ -104,60 +113,66 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
     }
     
     /**
-     * Zobrazí komponentu s optional animací
+     * Zobrazí komponentu s optional animací - pause-safe
      */
-    show(animated = true, duration = 300) {
+    show(animated = true, duration = 250) {
         if (this.isDestroyed) return Promise.resolve();
-        
         this.setVisible(true);
         this.isVisible = true;
-        
-        if (!animated) {
+
+        const canTween = !!this.scene?.tweens && this.scene?.time?.paused !== true;
+        if (!animated || !canTween) {
             this.alpha = 1;
+            this.onShowComplete();
             return Promise.resolve();
         }
-        
-        return new Promise(resolve => {
-            this.alpha = 0;
-            this.scene.tweens.add({
+
+        this.alpha = 0;
+        return new Promise((resolve) => {
+            const tween = this.scene.tweens.add({
                 targets: this,
                 alpha: 1,
-                duration: duration,
+                duration,
                 ease: 'Power2',
                 onComplete: () => {
+                    this.activeTweens.delete(tween);
                     this.onShowComplete();
                     resolve();
                 }
             });
+            this.activeTweens.add(tween);
         });
     }
-    
+
     /**
-     * Skryje komponentu s optional animací
+     * Skryje komponentu s optional animací - pause-safe
      */
-    hide(animated = true, duration = 300) {
+    hide(animated = true, duration = 200) {
         if (this.isDestroyed) return Promise.resolve();
-        
         this.isVisible = false;
-        
-        if (!animated) {
-            this.setVisible(false);
+
+        const canTween = !!this.scene?.tweens && this.scene?.time?.paused !== true;
+        if (!animated || !canTween) {
             this.alpha = 0;
+            this.setVisible(false);
+            this.onHideComplete();
             return Promise.resolve();
         }
-        
-        return new Promise(resolve => {
-            this.scene.tweens.add({
+
+        return new Promise((resolve) => {
+            const tween = this.scene.tweens.add({
                 targets: this,
                 alpha: 0,
-                duration: duration,
+                duration,
                 ease: 'Power2',
                 onComplete: () => {
+                    this.activeTweens.delete(tween);
                     this.setVisible(false);
                     this.onHideComplete();
                     resolve();
                 }
             });
+            this.activeTweens.add(tween);
         });
     }
     
@@ -264,16 +279,29 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
         // Touch/click handling
         if (callback) {
             button.setInteractive();
+            this.interactiveElements.add(button);
+            
+            // Track the listeners
+            const pointerdownListener = { element: button, event: 'pointerdown', callback };
             button.on('pointerdown', callback);
+            this.activeListeners.set(`${button.name || 'button'}_pointerdown`, pointerdownListener);
             
             // Hover effects pro desktop
             if (!this.isMobileDevice) {
-                button.on('pointerover', () => {
+                const overCallback = () => {
                     button.getElement('background').setFillStyle(UI_THEME.colors.borders.active);
-                });
-                button.on('pointerout', () => {
+                };
+                const outCallback = () => {
                     button.getElement('background').setFillStyle(defaultConfig.backgroundColor);
-                });
+                };
+                
+                button.on('pointerover', overCallback);
+                button.on('pointerout', outCallback);
+                
+                this.activeListeners.set(`${button.name || 'button'}_pointerover`, 
+                    { element: button, event: 'pointerover', callback: overCallback });
+                this.activeListeners.set(`${button.name || 'button'}_pointerout`, 
+                    { element: button, event: 'pointerout', callback: outCallback });
             }
         }
         
@@ -283,15 +311,21 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
     
     /**
      * Aplikuje standardní modal overlay styling
+     * Kritické: overlay je vždy přidán do kontejneru na index 0
      */
-    createModalOverlay(alpha = 0.8) {
+    createModalOverlay(alpha = 0.8, makeInteractive = false) {
         const { width, height } = this.scene.scale.gameSize;
         
         const overlay = this.scene.add.graphics();
         overlay.fillStyle(UI_THEME.colors.background.overlay, alpha);
         overlay.fillRect(0, 0, width, height);
         
-        // Umístit na začátek container (pozadí)
+        // Only make interactive if explicitly requested (for blocking background clicks)
+        if (makeInteractive) {
+            overlay.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
+        }
+        
+        // Kritické: overlay je dítě kontejneru na index 0
         this.addAt(overlay, 0);
         
         return overlay;
@@ -355,10 +389,41 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
             this.scene.scale.off('resize', this.handleResize, this);
         }
         
-        // Zastavit všechny tweens pro tuto komponentu
-        if (this.scene.tweens) {
-            this.scene.tweens.killTweensOf(this);
+        // Cleanup scene event listeners
+        if (this.scene.events) {
+            this.scene.events.off('shutdown', this.cleanup, this);
+            this.scene.events.off('destroy', this.cleanup, this);
         }
+        
+        // Zastavit a vyčistit všechny tweens
+        if (this.scene.tweens) {
+            // Kill tweens targeting this component
+            this.scene.tweens.killTweensOf(this);
+            
+            // Clean tracked tweens
+            this.activeTweens.forEach(tween => {
+                if (tween && tween.remove) {
+                    tween.remove();
+                }
+            });
+            this.activeTweens.clear();
+        }
+        
+        // Clean up tracked event listeners
+        this.activeListeners.forEach((listener, key) => {
+            if (listener && listener.element && listener.event) {
+                listener.element.off(listener.event, listener.callback);
+            }
+        });
+        this.activeListeners.clear();
+        
+        // Clean interactive elements (WeakSet will auto-cleanup when elements are destroyed)
+        // But we'll still destroy any children that are interactive
+        this.list?.forEach(child => {
+            if (child && child.input) {
+                child.removeInteractive();
+            }
+        });
         
         // Custom cleanup
         this.onCleanup();

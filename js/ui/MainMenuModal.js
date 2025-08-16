@@ -1,6 +1,6 @@
 /**
  * MainMenuModal - unified main menu komponenta
- * Nahrazuje původní MainMenu scene UI logiku
+ * Hlavní menu UI komponenta
  */
 import { BaseUIComponent } from './BaseUIComponent.js';
 import { UI_THEME, UIThemeUtils } from './UITheme.js';
@@ -8,9 +8,13 @@ import { RESPONSIVE } from './UiConstants.js';
 
 export class MainMenuModal extends BaseUIComponent {
     constructor(scene, onActionCallback = null) {
+        // Validate scene before using it
+        const width = scene?.scale?.width || 800;
+        const height = scene?.scale?.height || 600;
+        
         super(scene, 0, 0, {
-            width: scene.scale.width,
-            height: scene.scale.height,
+            width: width,
+            height: height,
             theme: 'menu',
             responsive: true
         });
@@ -55,6 +59,12 @@ export class MainMenuModal extends BaseUIComponent {
      * Vytvoří pozadí menu
      */
     createBackground() {
+        // Validate scene before using it
+        if (!this.scene || !this.scene.scale) {
+            console.error('[MainMenuModal] Cannot create background - invalid scene reference');
+            return;
+        }
+        
         const { width, height } = this.scene.scale.gameSize;
         
         // Gradient background
@@ -93,6 +103,12 @@ export class MainMenuModal extends BaseUIComponent {
      * Vytvoří header s titulkem
      */
     createHeader() {
+        // Validate scene before using it
+        if (!this.scene || !this.scene.scale) {
+            console.error('[MainMenuModal] Cannot create header - invalid scene reference');
+            return;
+        }
+        
         const { width } = this.scene.scale.gameSize;
         
         // Main title
@@ -139,6 +155,12 @@ export class MainMenuModal extends BaseUIComponent {
      * Vytvoří menu tlačítka
      */
     createMenuButtons() {
+        // Validate scene before using it
+        if (!this.scene || !this.scene.scale) {
+            console.error('[MainMenuModal] Cannot create buttons - invalid scene reference');
+            return;
+        }
+        
         const { width, height } = this.scene.scale.gameSize;
         const startY = height * 0.35;
         const buttonSpacing = this.isMobileDevice ? 60 : 70;
@@ -224,6 +246,12 @@ export class MainMenuModal extends BaseUIComponent {
      * Vytvoří footer s verzí, ovládáním a copyrightem
      */
     createFooter() {
+        // Validate scene before using it
+        if (!this.scene || !this.scene.scale) {
+            console.error('[MainMenuModal] Cannot create footer - invalid scene reference');
+            return;
+        }
+        
         const { width, height } = this.scene.scale.gameSize;
         const footerY = height - 20; // Všechno na stejné horizontální úrovni
         

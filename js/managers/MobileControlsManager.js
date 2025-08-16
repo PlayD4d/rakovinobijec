@@ -79,17 +79,38 @@ export class MobileControlsManager {
     const baseDepth = CR?.get('mobile.joystick.baseDepth', { defaultValue: 1000 }) || 1000;
     const knobDepth = CR?.get('mobile.joystick.knobDepth', { defaultValue: 1001 }) || 1001;
     
-    // Vytvoření grafických objektů
-    this.base = s.add.graphics();
-    this.knob = s.add.graphics();
+    // PR7 compliant: Use GraphicsFactory if available
+    if (s.graphicsFactory) {
+      this.base = s.graphicsFactory.create();
+      this.knob = s.graphicsFactory.create();
+    } else {
+      // Fallback for scenes without GraphicsFactory
+      this.base = s.add.graphics();
+      this.knob = s.add.graphics();
+    }
+    
     this.base.setScrollFactor(0).setDepth(baseDepth);
     this.knob.setScrollFactor(0).setDepth(knobDepth);
+    
+    // Add to UI layer if available
+    if (s.uiLayer && typeof s.uiLayer.add === 'function') {
+      s.uiLayer.add(this.base);
+      s.uiLayer.add(this.knob);
+    }
+    
     this._draw();
   }
 
   _destroyVisuals() {
-    if (this.base) this.base.destroy();
-    if (this.knob) this.knob.destroy();
+    // PR7 compliant: Release to GraphicsFactory if available
+    if (this.scene.graphicsFactory) {
+      if (this.base) this.scene.graphicsFactory.release(this.base);
+      if (this.knob) this.scene.graphicsFactory.release(this.knob);
+    } else {
+      // Fallback destroy
+      if (this.base) this.base.destroy();
+      if (this.knob) this.knob.destroy();
+    }
     this.base = null;
     this.knob = null;
   }

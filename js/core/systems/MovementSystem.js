@@ -13,7 +13,7 @@ export class MovementSystem {
     if (!s.coreInputSystem) return;
 
     const v = s.coreInputSystem.getMoveVector();
-    const baseSpeed = (player.speed + player.speedBonus) * 100;
+    const baseSpeed = ((player.moveSpeed || 100) + (player.speedBonus || 0)) * 100;
     player.sprite.body.setVelocity(v.x * baseSpeed, v.y * baseSpeed);
   }
 }

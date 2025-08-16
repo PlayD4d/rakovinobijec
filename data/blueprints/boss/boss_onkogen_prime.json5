@@ -8,12 +8,17 @@
     "speed": 45,
     "size": 35,
     "armor": 8,
-    "xp": 150
+    "xp": 250
+  },
+  "visuals": {
+    "textureKey": "boss.onkogen_prime",
+    "tint": 0xE91E63,
+    "size": { "w": 35, "h": 35 }
   },
   "mechanics": {
     "phases": [
       {
-        "atHp": 0.66,
+        "thresholdPct": 0.66,
         "abilities": [
           "shoot_fans",
           "summon_minions"
@@ -22,7 +27,7 @@
         "aggressionLevel": "moderate"
       },
       {
-        "atHp": 0.33,
+        "thresholdPct": 0.33,
         "abilities": [
           "circle_burst",
           "dash_attack",
@@ -32,7 +37,7 @@
         "aggressionLevel": "high"
       },
       {
-        "atHp": 0,
+        "thresholdPct": 0,
         "abilities": [
           "laser_sweep",
           "rapid_spawns",
@@ -77,18 +82,16 @@
         "thickness": 8
       },
       "summon_minions": {
-        "enemyType": "enemy.viral_swarm",
+        "enemyTypes": ["enemy.viral_swarm"],
         "count": 4,
-        "interval": 8000,
-        "spawnRadius": 120,
-        "maxMinions": 8
+        "spreadRadius": 120,
+        "interval": 8000
       },
       "rapid_spawns": {
-        "enemyType": "enemy.necrotic_cell",
+        "enemyTypes": ["enemy.necrotic_cell"],
         "count": 3,
-        "interval": 3500,
-        "spawnRadius": 150,
-        "maxMinions": 6
+        "spreadRadius": 150,
+        "interval": 3500
       },
       "enrage_mode": {
         "trigger": "low_hp",
@@ -109,9 +112,13 @@
     "phase2": "vfx.boss.phase.aggressive",
     "phase3": "vfx.boss.phase.extreme",
     "death": "vfx.boss.death.explosion",
-    "dash": "vfx.boss.dash.onkogen",
-    "laser": "vfx.boss.laser.sweep",
-    "enrage": "vfx.boss.enrage.aura"
+    "shoot_fans": "vfx.boss.muzzle.fan",
+    "summon_minions": "vfx.boss.spawn.minions",
+    "circle_burst": "vfx.boss.circle.burst",
+    "dash_attack": "vfx.boss.dash.onkogen",
+    "laser_sweep": "vfx.boss.laser.sweep",
+    "rapid_spawns": "vfx.boss.spawn.minions",
+    "enrage_mode": "vfx.boss.enrage.aura"
   },
   "sfx": {
     "spawn": "sfx.boss.spawn.major",
@@ -119,10 +126,22 @@
     "phase2": "sfx.boss.phase.change",
     "phase3": "sfx.boss.phase.final",
     "death": "sfx.boss.death.explosion",
-    "dash": "sfx.boss.dash.impact",
-    "laser": "sfx.boss.laser.charge",
-    "enrage": "sfx.boss.enrage.roar"
+    "shoot_fans": "sfx.boss.shoot.fan",
+    "summon_minions": "sfx.boss.spawn.minions",
+    "circle_burst": "sfx.boss.shoot.circle",
+    "dash_attack": "sfx.boss.dash.impact",
+    "laser_sweep": "sfx.boss.laser.charge",
+    "rapid_spawns": "sfx.boss.spawn.minions",
+    "enrage_mode": "sfx.boss.enrage.roar"
   },
+  // NEW: Direct drop system - enhanced boss drops better loot
+  "drops": [
+    { "itemId": "item.xp_large", "chance": 1.0, "quantity": 4 },    // Always drops 4x large XP
+    { "itemId": "item.protein_cache", "chance": 0.6 },              // 60% chance for full heal
+    { "itemId": "item.energy_cell", "chance": 0.4, "quantity": 3 }, // 40% chance for 3x energy
+    { "itemId": "item.research_point", "chance": 0.25 },            // 25% chance for research
+    { "itemId": "item.metotrexat", "chance": 0.08 }                 // 8% chance for metotrexat
+  ],
   "display": {
     "key": "boss.onkogen_prime.name",
     "descKey": "boss.onkogen_prime.desc",

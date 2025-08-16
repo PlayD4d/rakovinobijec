@@ -1,69 +1,159 @@
 {
-  // Blueprint: elite.tank_cell
-  "id": "elite.tank_cell",
-  "type": "elite",
-  "stats": {
-    "hp": 180,
-    "damage": 12,
-    "speed": 25,
-    "size": 24,
-    "armor": 5,
-    "xp": 20
+  // Elite blueprint: elite.tank_cell
+  id: 'elite.tank_cell',
+  type: 'elite',
+  baseEnemyId: 'enemy.necrotic_cell',  // Base enemy to enhance
+  
+  // Elite stat multipliers (applied to base enemy stats)
+  multipliers: {
+    hp: 5.0,          // 5x health (35 -> 175)
+    damage: 1.5,      // 1.5x damage (8 -> 12)
+    speed: 0.7,       // 70% speed (35 -> 25) - slower but tankier
+    size: 1.3,        // 30% larger (18 -> 24)
+    armor: 5,         // +5 armor (2 -> 7)
+    xp: 3.3,          // 3.3x XP (6 -> 20)
   },
-  "visuals": {
-    "textureKey": "elite.tank_cell",
-    "tint": 0x9E9E9E,
-    "size": { "w": 24, "h": 24 }
+  
+  // Elite specific stats (override base if needed)
+  stats: {
+    hp: 180,
+    damage: 12,
+    speed: 25,
+    size: 24,
+    armor: 7,
+    xp: 20,
   },
-  "mechanics": {
-    "movementType": "heavy_tank",
-    "contactDamage": 12,
-    "aggroRange": 150,
-    "wanderRadius": 30,
-    "shieldPoints": 50,
-    "shieldRegen": 2,
-    "shieldRegenDelay": 3000,
-    "stunResistance": 0.8,
-    "dropChance": 1.0,
-    "healthDropChance": 0.25,
-    "eliteModifiers": {
-      "damageReduction": 0.2,
-      "knockbackResistance": 0.9
+  
+  // Elite mechanics enhancements
+  mechanics: {
+    movementType: 'heavy_tank',
+    contactDamage: 12,
+    aggroRange: 150,
+    wanderRadius: 30,
+    dropChance: 1.0,
+    healthDropChance: 0.25,
+    
+    // Elite-specific mechanics
+    shield: {
+      enabled: true,
+      points: 50,
+      regen: 2,              // 2 HP/s
+      regenDelay: 3000,      // 3 second delay after damage
+      visualEffect: true,
+    },
+    
+    damageReduction: 0.2,    // 20% damage reduction
+    knockbackResistance: 0.9, // 90% knockback resistance
+    stunResistance: 0.8,      // 80% stun resistance
+    
+    // Taunt ability - forces nearby enemies to attack this instead
+    tauntAura: {
+      enabled: true,
+      radius: 100,
+      duration: 5000,
+      cooldown: 10000,
+    },
+    
+    onDeathSpawn: {
+      enabled: false,        // Could spawn minions on death
+    },
+  },
+  
+  // Elite visual configuration
+  graphics: {
+    sprite: 'elite_tank_cell',
+    tint: 0x9E9E9E,          // Gray metallic tint
+    scale: 1.3,              // Larger than normal
+    glowEffect: true,        // Elite glow
+    animation: {
+      idle: 'elite_tank_idle',
+      move: 'elite_tank_move',
+      attack: 'elite_tank_attack',
+      shield: 'elite_tank_shield'
+    },
+    eliteIndicator: {
+      type: 'shield',        // Shield icon above enemy
+      color: 0x9E9E9E,       // Gray color
+      scale: 1.0,
     }
   },
-  "vfx": {
-    "spawn": "vfx.elite.spawn.tank",
-    "hit": "vfx.hit.spark.heavy",
-    "death": "vfx.elite.death.tank_explosion",
-    "shield": "vfx.elite.shield.active",
-    "aura": "vfx.elite.aura.tank"
+  
+  // Elite AI behavior
+  ai: {
+    behavior: 'elite_tank',
+    params: {
+      aggroRange: 150,
+      movePattern: 'advance_slowly',
+      targetPriority: 'nearest',
+      
+      // Elite AI features
+      bodyBlock: true,          // Blocks projectiles for allies
+      rallyCry: true,           // Boosts nearby enemies
+      rallyRadius: 120,
+      rallyBoost: 0.15,         // 15% damage boost to allies
+      
+      retreatThreshold: 0,      // Never retreats
+      callForHelp: true,        // Alerts nearby enemies
+    }
   },
-  "sfx": {
-    "spawn": "sfx.elite.spawn.heavy",
-    "hit": "sfx.elite.hit.armored",
-    "death": "sfx.elite.death.heavy",
-    "shield": "sfx.elite.shield.impact"
+  
+  // Elite loot table
+  lootTable: 'lootTable.elite.tier2',
+  
+  // Elite VFX
+  vfx: {
+    spawn: 'vfx.elite.spawn.tank',
+    hit: 'vfx.hit.spark.heavy',
+    death: 'vfx.elite.death.tank_explosion',
+    shield: 'vfx.elite.shield.active',
+    aura: 'vfx.elite.aura.tank',
+    indicator: 'vfx.elite.indicator.shield',
+    shieldBreak: 'vfx.elite.shield.break',
   },
-  "display": {
-    "key": "elite.tank_cell.name",
-    "descKey": "elite.tank_cell.desc",
-    "devNameFallback": "Elitní tanková buňka",
-    "devDescFallback": "Těžce pancéřovaná elitní buňka s regenerujícím štítem",
-    "templates": {
-      "short": "{{stats.hp}} HP • {{stats.armor}} pancíř • štít {{mechanics.shieldPoints}} HP",
-      "desc": "Elitní tanková buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Má štít s {{mechanics.shieldPoints}} HP který se regeneruje {{mechanics.shieldRegen}} HP/s."
+  
+  // Elite SFX
+  sfx: {
+    spawn: 'sfx.elite.spawn.heavy',
+    hit: 'sfx.elite.hit.armored',
+    death: 'sfx.elite.death.heavy',
+    shield: 'sfx.elite.shield.impact',
+    shieldBreak: 'sfx.elite.shield.break',
+    taunt: 'sfx.elite.tank.taunt',
+  },
+  
+  // Display configuration
+  display: {
+    key: 'elite.tank_cell.name',
+    descKey: 'elite.tank_cell.desc',
+    templates: {
+      short: 'Elite Tank • {{stats.hp}} HP • {{stats.armor}} armor • štít {{mechanics.shield.points}} HP',
+      desc: 'Elitní tanková buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Má regenerující štít s {{mechanics.shield.points}} HP který se obnovuje {{mechanics.shield.regen}} HP/s po {{mechanics.shield.regenDelay|ms}} bez poškození.',
     },
-    "color": "#9E9E9E",
-    "rarity": "elite",
-    "icon": "elite.tank_cell",
-    "category": "elite",
-    "sortOrder": 510,
-    "tags": [
-      "elite",
-      "tank",
-      "armored",
-      "shield",
-      "heavy"
-    ]
+    namePrefix: 'Elitní',
+    nameSuffix: 'Tank',
+    color: '#9E9E9E',
+    rarity: 'elite',
+    icon: 'elite.tank_cell',
+    category: 'elite',
+    sortOrder: 510,
+    tags: [
+      'elite',
+      'tank',
+      'armored',
+      'shield',
+      'heavy',
+      'taunt',
+    ],
+    devNameFallback: 'Elitní tanková buňka',
+    devDescFallback: 'Těžce pancéřovaná elitní buňka s regenerujícím štítem a taunt schopností',
+  },
+  
+  // Elite spawn configuration
+  spawnConditions: {
+    minLevel: 2,           // Appears from level 2
+    minGameTime: 45000,    // After 45 seconds
+    maxCount: 1,           // Only 1 at once (it's very tanky)
+    cooldown: 20000,       // 20 second cooldown between spawns
+    weight: 0.08,          // 8% spawn chance when eligible
   }
 }

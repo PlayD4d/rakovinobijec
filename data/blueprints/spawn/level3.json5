@@ -303,6 +303,18 @@
       "swarms",
       "support-heavy",
       "multi-boss"
-    ]
+    ],
+    extensions: {
+      xpPlan: {
+        budgetTotal: 2600,
+        targetXpPerMinute: [260, 230, 220, 210, 200, 195, 190, 185],
+        boss: { id: "boss.karcinogenni_kral", xp: 350, capLevelsGranted: 1.5 },
+        enemyXpOverrides: {
+          "enemy.viral_swarm_alpha": 5,
+          "enemy.shielding_helper": 4,
+          "elite.micro_shooter": 3
+        }
+      }
+    }
   }
 }

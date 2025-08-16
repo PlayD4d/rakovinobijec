@@ -30,6 +30,23 @@ export class SFXSystem {
     
     this.initialized = false;
     this.debug = false; // HOTFIX V3: Keep debug OFF to prevent sound warnings
+    
+    // Missing asset tracking for dev mode
+    this.missingAssets = new Set();
+    this._initMissingAssetTracking();
+    
+    // Track looping sounds for management
+    this.loopingSounds = new Map(); // id -> sound instance
+  }
+  
+  /**
+   * Initialize missing asset tracking for dev mode
+   * @private
+   */
+  _initMissingAssetTracking() {
+    if (typeof window !== 'undefined') {
+      window.__missingAssets = window.__missingAssets || { sfx: new Set(), vfx: new Set() };
+    }
   }
 
   /**
@@ -91,31 +108,145 @@ export class SFXSystem {
   }
 
   /**
-   * Zahraje zvuk podle ID z registru
-   * @param {string} sfxId - ID zvuku v registru
+   * Zahraje zvuk podle ID z registru NEBO přímé file path
+   * @param {string} sfxIdOrPath - ID zvuku v registru NEBO přímá cesta k souboru (např. 'sound/laser.mp3')
    * @param {object} overrides - volitelné přepisy parametrů
    * @returns {Phaser.Sound.BaseSound|null}
    */
-  play(sfxId, overrides = {}) {
+  play(sfxIdOrPath, overrides = {}) {
+    // DEBUG: Log all sound plays
+    if (window.DEBUG_FLAGS?.sfx) {
+      console.log(`[SFX DEBUG] Playing sound: '${sfxIdOrPath}'`);
+    }
+    
     // Phase 6: Safety checks first
-    if (!this._canPlaySound(sfxId)) {
+    if (!this._canPlaySound(sfxIdOrPath)) {
       return null;
     }
 
+    // PHASE 2: Smart detection - Registry ID vs Direct File Path
+    const isDirectPath = this._isDirectFilePath(sfxIdOrPath);
+    
+    if (isDirectPath) {
+      return this._playDirectFilePath(sfxIdOrPath, overrides);
+    } else {
+      return this._playFromRegistry(sfxIdOrPath, overrides);
+    }
+  }
+
+  /**
+   * Detekuje zda je vstup přímá cesta k souboru nebo registry ID
+   * @param {string} input 
+   * @returns {boolean}
+   * @private
+   */
+  _isDirectFilePath(input) {
+    // Direct file path detection patterns:
+    // - obsahuje '/' (path separator) 
+    // - končí audio extension (.mp3, .ogg, .wav)
+    // - nezačíná 'sfx.' (registry prefix)
+    
+    if (input.startsWith('sfx.')) {
+      return false; // Registry ID
+    }
+    
+    if (input.includes('/') || /\.(mp3|ogg|wav|m4a)$/i.test(input)) {
+      return true; // Direct file path
+    }
+    
+    return false; // Default to registry lookup
+  }
+
+  /**
+   * Přehraje zvuk z přímé file path
+   * @param {string} filePath - např. 'sound/laser.mp3' 
+   * @param {object} overrides
+   * @returns {Phaser.Sound.BaseSound|null}
+   * @private
+   */
+  _playDirectFilePath(filePath, overrides = {}) {
+    // Normalize file path
+    const normalizedPath = filePath.replace(/^\/+/, ''); // Remove leading slashes
+    
+    // Extract audio key from file path for Phaser cache lookup
+    const audioKey = this._extractAudioKeyFromPath(normalizedPath);
+    
+    // DEBUG: Log direct file path play
+    if (window.DEBUG_FLAGS?.sfx) {
+      console.log(`[SFX DEBUG] Direct file path: '${filePath}' → audioKey: '${audioKey}'`);
+    }
+
+    // Check if audio key exists in Phaser cache
+    if (!this.scene.cache.audio.exists(audioKey)) {
+      // Track missing asset in dev mode
+      this._trackMissingAsset(filePath, audioKey);
+      
+      // Play soft fallback beep
+      return this._playFallback(filePath, 'missing_direct_audio');
+    }
+
+    // Create config for direct file path (use sensible defaults)
+    const finalConfig = {
+      volume: this._getEffectiveVolume(
+        overrides.category || 'sfx', 
+        overrides.volume ?? 0.7 // Default volume for direct files
+      ),
+      loop: overrides.loop ?? false,
+      rate: overrides.rate ?? 1.0,
+      detune: overrides.detune ?? 0,
+      delay: overrides.delay ?? 0,
+      seek: overrides.seek ?? 0,
+      mute: overrides.mute ?? false
+    };
+
+    try {
+      // PR7: Use factory method instead of direct scene.sound call
+      const sound = this._createSound(audioKey, finalConfig);
+      sound.play();
+
+      // Tracking pro cleanup (use provided category or default)
+      this._trackSound(sound, overrides.category || 'sfx');
+
+      if (this.debug || window.DEBUG_FLAGS?.sfx) {
+        console.log(`[SFXSystem] Playing direct '${filePath}' (${audioKey}), vol: ${finalConfig.volume.toFixed(2)}`);
+      }
+
+      return sound;
+    } catch (error) {
+      console.error(`[SFXSystem] Error playing direct file '${filePath}':`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Přehraje zvuk z registry (legacy způsob)
+   * @param {string} sfxId - ID zvuku v registru
+   * @param {object} overrides
+   * @returns {Phaser.Sound.BaseSound|null}
+   * @private
+   */
+  _playFromRegistry(sfxId, overrides = {}) {
     const config = this.registry.get(sfxId);
     if (!config) {
-      if (this.debug) {
-        console.warn(`[SFXSystem] Sound '${sfxId}' not found in registry`);
-      }
-      return null;
+      // Track missing asset in dev mode
+      this._trackMissingAsset(sfxId);
+      
+      // Play soft fallback beep
+      return this._playFallback(sfxId, 'missing_registry');
     }
 
     // Kontrola zda existuje audio klíč v Phaser cache
     if (!this.scene.cache.audio.exists(config.key)) {
-      if (this.debug) {
-        console.warn(`[SFXSystem] Audio key '${config.key}' not loaded`);
-      }
-      return null;
+      // Track missing audio file
+      this._trackMissingAsset(sfxId, config.key);
+      
+      // Play soft fallback beep
+      return this._playFallback(sfxId, 'missing_audio');
+    }
+    
+    // DEBUG: Log resolved audio key
+    if (window.DEBUG_FLAGS?.sfx) {
+      console.log(`[SFX DEBUG] Resolved '${sfxId}' to audio key: '${config.key}'`);
     }
 
     // Merge config s overrides
@@ -140,7 +271,7 @@ export class SFXSystem {
       // Tracking pro cleanup
       this._trackSound(sound, config.category);
 
-      if (this.debug) {
+      if (this.debug || window.DEBUG_FLAGS?.sfx) {
         console.log(`[SFXSystem] Playing '${sfxId}' (${config.key}), vol: ${finalConfig.volume.toFixed(2)}`);
       }
 
@@ -149,6 +280,24 @@ export class SFXSystem {
       console.error(`[SFXSystem] Error playing sound '${sfxId}':`, error);
       return null;
     }
+  }
+
+  /**
+   * Extrahuje audio klíč z file path pro Phaser cache lookup
+   * @param {string} filePath - např. 'sound/laser.mp3'
+   * @returns {string} - např. 'laser'
+   * @private
+   */
+  _extractAudioKeyFromPath(filePath) {
+    // Examples:
+    // 'sound/laser.mp3' → 'laser'
+    // 'audio/explosion_small.ogg' → 'explosion_small'
+    // 'sfx/ui/button_click.wav' → 'button_click'
+    
+    const fileName = filePath.split('/').pop(); // Get filename
+    const audioKey = fileName.replace(/\.(mp3|ogg|wav|m4a)$/i, ''); // Remove extension
+    
+    return audioKey;
   }
 
   /**
@@ -186,61 +335,74 @@ export class SFXSystem {
   }
 
   /**
-   * Začne přehrávat loop podle ID
+   * Play a looping sound
+   * @param {string} sfxId - Sound ID from registry
+   * @param {object} overrides - Optional parameter overrides
+   * @returns {string|null} - Loop ID for stopping later
+   */
+  playLoop(sfxId, overrides = {}) {
+    // Check if we already have this loop playing
+    if (this.loopingSounds.has(sfxId)) {
+      if (this.debug) {
+        console.log(`[SFXSystem] Loop already playing: ${sfxId}`);
+      }
+      return sfxId;
+    }
+    
+    // Check loop limit
+    if (this.loopingSounds.size >= this.maxLoops) {
+      if (this.debug) {
+        console.warn(`[SFXSystem] Max loops reached (${this.maxLoops})`);
+      }
+      return null;
+    }
+    
+    // Play with loop forced to true
+    const sound = this.play(sfxId, { ...overrides, loop: true });
+    if (sound) {
+      this.loopingSounds.set(sfxId, sound);
+      return sfxId;
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Stop a looping sound
+   * @param {string} loopId - The loop ID returned from playLoop
+   */
+  stopLoop(loopId) {
+    const sound = this.loopingSounds.get(loopId);
+    if (sound) {
+      try {
+        if (sound.isPlaying) {
+          sound.stop();
+        }
+        sound.destroy();
+      } catch (e) {
+        // Ignore errors from already destroyed sounds
+      }
+      this.loopingSounds.delete(loopId);
+    }
+  }
+  
+  /**
+   * Stop all looping sounds
+   */
+  stopAllLoops() {
+    this.loopingSounds.forEach((sound, id) => {
+      this.stopLoop(id);
+    });
+  }
+  
+  /**
+   * Legacy startLoop method for compatibility
    * @param {string} sfxId
    * @param {object} overrides 
    * @returns {string|null} - loopId pro stop
    */
   startLoop(sfxId, overrides = {}) {
-    const config = this.registry.get(sfxId);
-    if (!config) return null;
-
-    // Generuj unikátní loop ID
-    const loopId = `${sfxId}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-    
-    if (this.activeLoops.has(loopId)) {
-      this.stopLoop(loopId);
-    }
-
-    const sound = this.play(sfxId, { ...overrides, loop: true });
-    if (sound) {
-      this.activeLoops.set(loopId, sound);
-      
-      if (this.debug) {
-        console.log(`[SFXSystem] Started loop '${loopId}' (${sfxId})`);
-      }
-    }
-
-    return loopId;
-  }
-
-  /**
-   * Zastaví loop podle ID
-   */
-  stopLoop(loopId) {
-    const sound = this.activeLoops.get(loopId);
-    if (sound) {
-      sound.stop();
-      this.activeLoops.delete(loopId);
-      
-      if (this.debug) {
-        console.log(`[SFXSystem] Stopped loop '${loopId}'`);
-      }
-    }
-  }
-
-  /**
-   * Zastaví všechny looky
-   */
-  stopAllLoops() {
-    for (const [loopId, sound] of this.activeLoops) {
-      sound.stop();
-    }
-    this.activeLoops.clear();
-    
-    if (this.debug) {
-      console.log(`[SFXSystem] Stopped all loops`);
-    }
+    return this.playLoop(sfxId, overrides);
   }
 
   /**
@@ -586,6 +748,103 @@ export class SFXSystem {
     this.playingChannels.clear();
     this.initialized = false;
     console.log('[SFXSystem] Destroyed');
+  }
+  
+  // ==========================================
+  // Soft Fallback Methods
+  // ==========================================
+  
+  /**
+   * Track missing asset and update dev mode tracking
+   * @private
+   */
+  _trackMissingAsset(sfxId, audioKey = null) {
+    const assetInfo = audioKey ? `${sfxId} (${audioKey})` : sfxId;
+    
+    // Check if we've already warned about this asset recently
+    const now = Date.now();
+    if (!this._lastMissingAssetWarnings) {
+      this._lastMissingAssetWarnings = new Map();
+    }
+    
+    const lastWarning = this._lastMissingAssetWarnings.get(assetInfo);
+    const warningCooldown = 5000; // Only warn once every 5 seconds per asset
+    
+    // Add to local tracking
+    this.missingAssets.add(assetInfo);
+    
+    // Add to global tracking for dev overlay
+    if (typeof window !== 'undefined' && window.__missingAssets) {
+      window.__missingAssets.sfx.add(assetInfo);
+    }
+    
+    // Log warning in dev mode (with rate limiting)
+    if (this.debug || window.DEV_MODE === true || (this.scene.game && this.scene.game.config.physics.arcade?.debug)) {
+      if (!lastWarning || (now - lastWarning) > warningCooldown) {
+        console.warn(`[SFXSystem] Missing asset: ${assetInfo}`);
+        this._lastMissingAssetWarnings.set(assetInfo, now);
+      }
+    }
+  }
+  
+  /**
+   * Play a soft fallback sound when asset is missing
+   * @private
+   */
+  _playFallback(sfxId, reason) {
+    // Only play fallback in dev mode
+    if (!this.debug && !window.DEV_MODE && !(this.scene.game && this.scene.game.config.physics.arcade?.debug)) {
+      return null;
+    }
+    
+    try {
+      // Try to play a simple beep if available
+      if (this.scene.cache.audio.exists('beep') || this.scene.cache.audio.exists('placeholder_beep')) {
+        const beepKey = this.scene.cache.audio.exists('beep') ? 'beep' : 'placeholder_beep';
+        const sound = this._createSound(beepKey, {
+          volume: 0.2,
+          detune: reason === 'missing_registry' ? -200 : 
+                  reason === 'missing_direct_audio' ? 100 : 0
+        });
+        sound.play();
+        return sound;
+      }
+      
+      // If no beep available, create a simple tone using Web Audio API
+      if (this.scene.sound.context) {
+        this._playWebAudioBeep(reason);
+      }
+    } catch (error) {
+      // Silent fail - we don't want fallback to crash the game
+      if (this.debug) {
+        console.error('[SFXSystem] Fallback failed:', error);
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Play a simple beep using Web Audio API
+   * @private
+   */
+  _playWebAudioBeep(reason) {
+    const context = this.scene.sound.context;
+    const oscillator = context.createOscillator();
+    const gainNode = context.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+    
+    oscillator.frequency.value = reason === 'missing_registry' ? 300 : 
+                                  reason === 'missing_direct_audio' ? 500 : 400;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.1, context.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.1);
+    
+    oscillator.start(context.currentTime);
+    oscillator.stop(context.currentTime + 0.1);
   }
   
   // ==========================================

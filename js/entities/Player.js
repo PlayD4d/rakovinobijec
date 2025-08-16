@@ -57,19 +57,28 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             projectileRef: CR.get('mechanics.projectile.ref', { blueprint }),
             projectileCount: CR.get('mechanics.projectile.count', { blueprint }),
             spreadDeg: CR.get('mechanics.projectile.spreadDeg', { blueprint }),
-            projDamage: CR.get('mechanics.projectile.stats.damage', { blueprint }),
-            projSpeed: CR.get('mechanics.projectile.stats.speed', { blueprint }),
-            projRange: CR.get('mechanics.projectile.stats.range', { blueprint }),
+            projectileDamage: CR.get('mechanics.projectile.stats.damage', { blueprint }),
+            projectileSpeed: CR.get('mechanics.projectile.stats.speed', { blueprint }),
+            projectileRange: CR.get('mechanics.projectile.stats.range', { blueprint }),
             critChance: CR.get('mechanics.attack.critChance', { blueprint }),
             critMult: CR.get('mechanics.attack.critMultiplier', { blueprint }),
-            iFramesMs: CR.get('mechanics.iFrames.ms', { blueprint })
+            iFramesMs: CR.get('mechanics.iFrames.ms', { blueprint }),
+            xpMagnetRadius: 100,  // Base XP collection radius (100 pixels)
+            // New properties for powerups
+            dodgeChance: 0,
+            explosionRadius: 0,
+            explosionDamage: 0,
+            projectilePiercing: 0,
+            chemoCloudFrequency: 1,
+            shieldImmunityDuration: 3000,
+            shieldRegenTimeMs: 10000
         };
 
         // Validace všech povinných klíčů - žádné tiché výchozí hodnoty!
         this._assertRequired(this.baseStats, [
             'hp', 'moveSpeed', 'attackIntervalMs',
             'projectileRef', 'projectileCount', 'spreadDeg',
-            'projDamage', 'projSpeed', 'projRange',
+            'projectileDamage', 'projectileSpeed', 'projectileRange',
             'critChance', 'critMult', 'iFramesMs'
         ]);
 
@@ -80,10 +89,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this._iFramesMsLeft = 0; // Zbývající čas nezranitelnosti
         this.activeModifiers = []; // Aktivní modifikátory z PowerUpSystem
         
+        // Shield system
+        this.shieldActive = false;
+        this.shieldHits = 0;
+        this.shieldLevel = 0;
+        this.shieldRegenTimer = 0; // Timer for shield regeneration
+        this.shieldRegenTimeMs = 10000; // Base regen time (10s)
+        this.shieldBroken = false; // Track if shield was broken
+        
         // Shooting system
         this.fireTimer = 0;
-        // PR7: Get move speed from ConfigResolver, no hardcoded fallback
-        this.moveSpeed = this.baseStats.moveSpeed || CR.get('player.movement.defaultSpeed', { blueprint, defaultValue: 135 });
+        // PR7: Use move speed from baseStats - already validated
+        this.moveSpeed = this.baseStats.moveSpeed;
 
         // Input system - will be set via setInputKeys()
         this.keys = null;
@@ -115,6 +132,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
         
+        // Debug: Check if player is unexpectedly inactive
+        if (!this.active && this.hp > 0) {
+            console.error(`[Player DEBUG] Player inactive but HP > 0! hp=${this.hp}, active=${this.active}`);
+            console.trace('[Player DEBUG] Stack trace for inactive player:');
+        }
+        
         // Skip all updates if game is paused
         if (this.scene.isPaused) {
             this.body.setVelocity(0, 0); // Stop movement
@@ -128,6 +151,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.fireTimer += delta;
         if (this._cooldownMs > 0) this._cooldownMs -= delta;
         if (this._iFramesMsLeft > 0) this._iFramesMsLeft -= delta;
+        
+        // Shield regeneration
+        this._updateShieldRegeneration(delta);
 
         // Auto-shooting
         this._updateShooting(delta);
@@ -160,8 +186,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     _updateShooting(dt) {
         const stats = this._stats();
-        // PR7: Get fire interval from ConfigResolver, no hardcoded fallback
-        const fireIntervalMs = stats.attackIntervalMs || this.scene.configResolver?.get('player.attack.defaultInterval', { defaultValue: 1000 }) || 1000;
+        // PR7: Use attack interval from stats - already validated
+        const fireIntervalMs = stats.attackIntervalMs;
         
         // Check cooldown timer
         if (this.fireTimer < fireIntervalMs) return;
@@ -180,7 +206,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     _shootAt(target, stats) {
         // HOTFIX V4: Calculate exact angle to target
         const baseAngle = Math.atan2(target.y - this.y, target.x - this.x);
-        const projectileCount = Math.max(1, stats.projectileCount);
+        const projectileCount = Math.max(1, Math.round(stats.projectileCount));
         
         // Only apply spread if multiple projectiles
         if (projectileCount > 1) {
@@ -196,9 +222,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
                     x: this.x,
                     y: this.y,
                     projectileBlueprintId: stats.projectileRef,
-                    damage: this._rollCrit(stats.projDamage, stats),
-                    speed: stats.projSpeed,
-                    range: stats.projRange,
+                    damage: this._rollCrit(stats.projectileDamage, stats),
+                    speed: stats.projectileSpeed,
+                    range: stats.projectileRange,
                     angleRad: finalAngle,
                     owner: this
                 });
@@ -209,9 +235,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
                 x: this.x,
                 y: this.y,
                 projectileBlueprintId: stats.projectileRef,
-                damage: this._rollCrit(stats.projDamage, stats),
-                speed: stats.projSpeed,
-                range: stats.projRange,
+                damage: this._rollCrit(stats.projectileDamage, stats),
+                speed: stats.projectileSpeed,
+                range: stats.projectileRange,
                 angleRad: baseAngle,
                 owner: this
             });
@@ -232,6 +258,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         const cx = this.x, cy = this.y;
 
         const list = g.getChildren?.() || [];
+        
         for (let i = 0; i < list.length; i++) {
             const e = list[i];
             if (!e?.active) continue;
@@ -274,47 +301,93 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // ================ Boj ================
 
     takeDamage(amount, source) {
-        if (!this.active) return 0;
-        if (this._iFramesMsLeft > 0) return 0;
+        
+        // Check if player object is still valid
+        if (!this.scene) {
+            console.error(`[Player DEBUG] takeDamage called but player has no scene!`);
+            return 0;
+        }
+        
+        if (!this.active) {
+            console.warn(`[Player DEBUG] takeDamage called on inactive player! amount=${amount}, source=${source?.constructor?.name || source}`);
+            return 0;
+        }
+        
+        // IMPORTANT: Don't take damage during pause (e.g., during level-up power-up selection)
+        if (this.scene.isPaused || this.scene.scene.isPaused()) {
+            console.log(`[Player] Ignoring damage during pause - amount: ${amount}`);
+            return 0;
+        }
+        
+        if (this._iFramesMsLeft > 0) {
+            return 0;
+        }
 
         // Check if shield is active
         if (this.shieldActive && this.shieldHits > 0) {
-            // Shield blocks damage
-            this.shieldHits--;
-            
-            // Play shield block VFX through VFXSystem
-            this._playVfx('vfx.shield.block', this.x, this.y);
-            
-            // Deactivate shield if no more hits
-            if (this.shieldHits <= 0) {
-                this.shieldActive = false;
-                this.hasShield = false;
-                // Play shield break VFX
-                this._playVfx('vfx.shield.break', this.x, this.y);
-                // Detach shield visual effect
-                if (this.scene.powerUpVFXManager) {
-                    this.scene.powerUpVFXManager.detachEffect(this, 'shield');
+            try {
+                // Shield blocks damage
+                this.shieldHits--;
+                
+                // Play shield block VFX through VFXSystem
+                this._playVfx('vfx.shield.block', this.x, this.y);
+                
+                // Deactivate shield if no more hits
+                if (this.shieldHits <= 0) {
+                    this.shieldActive = false;
+                    this.shieldBroken = true;
+                    
+                    // Play shield break VFX
+                    this._playVfx('vfx.shield.break', this.x, this.y);
+                    
+                    // CRITICAL FIX: Save active state before detaching effect
+                    const wasActive = this.active;
+                    
+                    // Detach shield visual effect
+                    if (this.scene.powerUpVFXManager) {
+                        this.scene.powerUpVFXManager.detachEffect(this, 'shield');
+                        
+                        // CRITICAL FIX: Restore active state if it was changed
+                        if (wasActive && !this.active) {
+                            console.error(`[Player DEBUG] PowerUpVFXManager incorrectly deactivated player! Restoring active state.`);
+                            this.active = true;
+                            this.visible = true;
+                            if (this.body) this.body.enable = true;
+                        }
+                    }
+                    
+                    // Start regeneration timer
+                    this.shieldRegenTimer = 0;
+                    console.log(`[Player] Shield broken! Will regenerate in ${this.shieldRegenTimeMs}ms`);
                 }
+                
+                // PR7: Get shield duration - ensure proper fallback through baseStats
+                this._iFramesMsLeft = this.baseStats.iFramesMs;
+                
+                // Play shield block sound through SFX system
+                this._playSfx('sfx.shield.block');
+                
+                return 0; // No damage taken
+            } catch (error) {
+                console.error(`[Player DEBUG] Error in shield handling:`, error);
+                console.error(`[Player DEBUG] Player state: active=${this.active}, scene=${!!this.scene}`);
+                // Don't crash, just let damage through
             }
-            
-            // PR7: Get shield duration from ConfigResolver
-            const CR = this.scene.configResolver || window.ConfigResolver;
-            this._iFramesMsLeft = this.shieldDuration || CR?.get('player.shield.defaultDuration', { defaultValue: 3000 }) || 3000;
-            
-            // Play shield block sound through SFX system
-            this._playSfx('sfx.shield.block');
-            
-            return 0; // No damage taken
         }
 
         const dmg = Math.max(0, amount | 0);
-        if (dmg <= 0) return 0;
+        if (dmg <= 0) {
+            return 0;
+        }
 
-        this.hp -= dmg;
+        const oldHp = this.hp;
+        this.hp = Math.max(0, this.hp - dmg); // Prevent negative HP
+        
         this._iFramesMsLeft = this._stats().iFramesMs;
 
         this._playVfx(this.vfx.hit, this.x, this.y);
         this._playSfx(this.sfx.hit);
+        
         this.scene.frameworkDebug?.onPlayerHit?.(this, dmg, source);
 
         // Update HUD
@@ -353,11 +426,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     die(source) {
-        if (!this.active) return;
+        if (!this.active) {
+            return;
+        }
+        
+        // IMPORTANT: Don't die during pause (e.g., during level-up power-up selection)
+        if (this.scene.isPaused || this.scene.scene.isPaused()) {
+            console.warn(`[Player] Attempted to die during pause - ignoring! Source: ${source?.constructor?.name || source}`);
+            // Heal player to 1 HP to prevent death during pause
+            this.hp = 1;
+            return;
+        }
         
         this._playVfx(this.vfx.death, this.x, this.y);
         this._playSfx(this.sfx.death);
-
         // Let GameScene handle game over
         this.scene.events.emit('player:die', { player: this, source });
         this.scene.frameworkDebug?.onPlayerDeath?.(this, source);
@@ -378,7 +460,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             this.scene.analyticsManager.trackPlayerDeath(source, position, gameStats, context);
         }
 
-        this.destroy();
+        // Don't destroy player immediately - let GameScene handle it after showing game over
+        this.active = false;
+        this.visible = false;
+        this.body.enable = false; // Disable physics body to prevent further collisions
     }
 
     // ================ API pro modifikátory ================
@@ -413,6 +498,66 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     clearModifiers() {
         this.activeModifiers = [];
     }
+    
+    /**
+     * Get current XP magnet radius with all modifiers applied
+     * @returns {number} The effective XP collection radius
+     */
+    getXPMagnetRadius() {
+        // Start with base radius
+        let radius = this.baseStats.xpMagnetRadius || 100;
+        
+        // Apply modifiers using ModifierEngine
+        if (this.scene.modifierEngine) {
+            radius = this.scene.modifierEngine.apply(radius, 'xpMagnetRadius', this.activeModifiers);
+        }
+        
+        return radius;
+    }
+
+    getExplosionRadius() {
+        let radius = this.baseStats.explosionRadius || 0;
+        
+        // Apply modifiers using ModifierEngine
+        if (this.scene.modifierEngine) {
+            radius = this.scene.modifierEngine.apply(radius, 'explosionRadius', this.activeModifiers);
+        }
+        
+        return radius;
+    }
+    
+    getExplosionDamage() {
+        let damage = this.baseStats.explosionDamage || 0;
+        
+        // Apply modifiers using ModifierEngine
+        if (this.scene.modifierEngine) {
+            damage = this.scene.modifierEngine.apply(damage, 'explosionDamage', this.activeModifiers);
+        }
+        
+        return damage;
+    }
+    
+    getDodgeChance() {
+        let chance = this.baseStats.dodgeChance || 0;
+        
+        // Apply modifiers using ModifierEngine
+        if (this.scene.modifierEngine) {
+            chance = this.scene.modifierEngine.apply(chance, 'dodgeChance', this.activeModifiers);
+        }
+        
+        return chance;
+    }
+    
+    getProjectilePiercing() {
+        let piercing = this.baseStats.projectilePiercing || 0;
+        
+        // Apply modifiers using ModifierEngine
+        if (this.scene.modifierEngine) {
+            piercing = this.scene.modifierEngine.apply(piercing, 'projectilePiercing', this.activeModifiers);
+        }
+        
+        return Math.floor(piercing); // Piercing should be integer
+    }
 
     // ================ Systém vstupu ================
     
@@ -426,17 +571,39 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     _stats() {
         // PR7: Calculate current stats via ModifierEngine with safety check
         const modifiers = this.activeModifiers || [];
-        return this.scene.modifierEngine.apply(this.baseStats, modifiers);
+        // CRITICAL FIX: Save active state before calling external systems
+        const wasActive = this.active;
+        const result = this.scene.modifierEngine.apply(this.baseStats, modifiers);
+        // Restore active state if it was changed
+        if (wasActive && !this.active) {
+            console.error(`[Player DEBUG] ModifierEngine incorrectly deactivated player! Restoring.`);
+            this.active = true;
+        }
+        return result;
     }
 
     _playVfx(id, x = this.x, y = this.y) {
         if (!id) return;
+        // CRITICAL FIX: Save active state before calling external systems
+        const wasActive = this.active;
         this.scene.newVFXSystem?.play(id, x, y);
+        // Restore active state if it was changed
+        if (wasActive && !this.active) {
+            console.error(`[Player DEBUG] VFXSystem incorrectly deactivated player! Restoring.`);
+            this.active = true;
+        }
     }
 
     _playSfx(id) {
         if (!id) return;
+        // CRITICAL FIX: Save active state before calling external systems
+        const wasActive = this.active;
         this.scene.newSFXSystem?.play(id);
+        // Restore active state if it was changed
+        if (wasActive && !this.active) {
+            console.error(`[Player DEBUG] SFXSystem incorrectly deactivated player! Restoring.`);
+            this.active = true;
+        }
     }
 
     _assertRequired(obj, keys) {
@@ -448,6 +615,84 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
+    // ================ Shield system ================
+    
+    /**
+     * Update shield regeneration timer
+     */
+    _updateShieldRegeneration(delta) {
+        // Only regenerate if shield is broken and player has shield level
+        if (!this.shieldBroken || this.shieldLevel <= 0) return;
+        
+        // Update regeneration timer
+        this.shieldRegenTimer += delta;
+        
+        // Check if shield should regenerate
+        if (this.shieldRegenTimer >= this.shieldRegenTimeMs) {
+            this._regenerateShield();
+        }
+    }
+    
+    /**
+     * Regenerate the shield after cooldown
+     */
+    _regenerateShield() {
+        console.log(`[Player] Shield regenerated! Level: ${this.shieldLevel}`);
+        
+        // Reset shield
+        this.shieldActive = true;
+        this.shieldHits = this.shieldLevel; // Shield hits = shield level
+        this.shieldBroken = false;
+        this.shieldRegenTimer = 0;
+        
+        // Play regeneration effects
+        this._playVfx('vfx.shield.activate', this.x, this.y);
+        this._playSfx('sfx.shield.activate');
+        
+        // Attach shield visual effect
+        if (this.scene.powerUpVFXManager) {
+            this.scene.powerUpVFXManager.attachEffect(this, 'shield', {
+                type: 'shield',
+                level: this.shieldLevel
+            });
+        }
+    }
+    
+    /**
+     * Apply shield powerup - called by PowerUpSystem
+     * @param {number} level - Shield level (1-10)
+     */
+    applyShieldPowerUp(level) {
+        this.shieldLevel = Math.min(10, Math.max(1, level));
+        
+        // Calculate regeneration time: 10s - (0.5s * (level - 1))
+        // Level 1: 10s, Level 10: 5.5s
+        this.shieldRegenTimeMs = Math.max(5000, 10000 - (500 * (this.shieldLevel - 1)));
+        
+        // If this is first shield or shield is broken, activate immediately
+        if (!this.shieldActive || this.shieldBroken) {
+            this._regenerateShield();
+        } else {
+            // Update existing shield
+            this.shieldHits = Math.max(this.shieldHits, this.shieldLevel);
+            console.log(`[Player] Shield upgraded to level ${this.shieldLevel}, regen time: ${this.shieldRegenTimeMs}ms`);
+        }
+    }
+    
+    /**
+     * Get shield status for UI
+     */
+    getShieldStatus() {
+        return {
+            active: this.shieldActive,
+            hits: this.shieldHits,
+            level: this.shieldLevel,
+            broken: this.shieldBroken,
+            regenProgress: this.shieldBroken ? (this.shieldRegenTimer / this.shieldRegenTimeMs) : 0,
+            regenTimeMs: this.shieldRegenTimeMs
+        };
+    }
+    
     // PR7: Žádné legacy metody - vše je data-driven
     // Žádné applyPowerUp, žádná hardcodovaná logika power-upů
     // PowerUpSystem převádí na modifikátory a volá setActiveModifiers

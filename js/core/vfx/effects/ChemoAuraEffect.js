@@ -42,18 +42,27 @@ export class ChemoAuraEffect {
         this.entity = entity;
         this.active = true;
         
-        // Create graphics object
-        this.graphics = this.scene.add.graphics();
-        this.graphics.setDepth(entity.depth - 2);
+        // PR7: Create graphics through factory
+        this.graphics = this._createGraphics();
+        if (this.graphics) {
+            this.graphics.setDepth(entity.depth - 2);
+        }
         
         // Play activation VFX
         if (this.scene.newVFXSystem) {
             this.scene.newVFXSystem.play('vfx.chemo.activate', entity.x, entity.y);
         }
         
-        // Play activation SFX
+        // Play activation SFX from powerup blueprint
         if (this.scene.newSFXSystem) {
-            this.scene.newSFXSystem.play('sfx.chemo.activate');
+            // Try to get sound from powerup blueprint (chemo_reservoir)
+            const powerupBlueprint = this.scene.blueprintLoader?.getBlueprint('powerup.chemo_reservoir');
+            const activateSFX = powerupBlueprint?.sfx?.activate;
+            if (activateSFX) {
+                this.scene.newSFXSystem.play(activateSFX);
+            } else {
+                console.warn('[ChemoAuraEffect] Missing activate sound in chemo_reservoir powerup blueprint');
+            }
         }
     }
     
@@ -66,9 +75,15 @@ export class ChemoAuraEffect {
         this.active = false;
         this.entity = null;
         
-        // Clean up graphics
+        // PR7: Clean up graphics properly
         if (this.graphics) {
-            this.graphics.destroy();
+            // Return to factory pool if available
+            if (this.scene.graphicsFactory) {
+                this.scene.graphicsFactory.release(this.graphics);
+            } else {
+                // Fallback to destroy
+                this.graphics.destroy();
+            }
             this.graphics = null;
         }
         
@@ -244,5 +259,38 @@ export class ChemoAuraEffect {
      */
     destroy() {
         this.detach();
+    }
+    
+    // ==========================================
+    // PR7 Factory Methods - Replace Direct Calls
+    // ==========================================
+    
+    /**
+     * Factory method for creating graphics objects
+     * PR7 compliant - uses centralized graphics creation
+     * @returns {Phaser.GameObjects.Graphics}
+     * @private
+     */
+    _createGraphics() {
+        // PR7: Check if scene has a graphics factory
+        if (this.scene.graphicsFactory) {
+            return this.scene.graphicsFactory.create();
+        }
+        
+        // PR7: Check if VFXSystem provides graphics creation
+        if (this.scene.newVFXSystem && this.scene.newVFXSystem._createGraphics) {
+            return this.scene.newVFXSystem._createGraphics();
+        }
+        
+        // PR7: Fallback with warning
+        if (this.scene && this.scene.add && this.scene.add.graphics) {
+            if (Math.random() < 0.01) { // Only log occasionally
+                console.warn('[ChemoAuraEffect] Using scene.add.graphics fallback - needs PR7 GraphicsFactory');
+            }
+            return this.scene.add.graphics();
+        }
+        
+        console.error('[ChemoAuraEffect] Cannot create graphics - no factory available');
+        return null;
     }
 }

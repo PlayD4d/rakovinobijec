@@ -4,6 +4,13 @@
     type: "spawnTable",
     level: 1,
     
+    // Music configuration for this level
+    music: {
+        ambient: "music/level_1.mp3",      // Background music
+        combat: "music/level_1.mp3",       // Combat music (can be different)
+        boss: "music/boss.mp3"             // Boss fight music
+    },
+    
     // Enemy waves - basic progression
     enemyWaves: [
         {
@@ -111,6 +118,19 @@
         description: "Začátečnická obtížnost pro nové hráče",
         estimatedDuration: 120000,
         recommendedLevel: 1,
-        tags: ["beginner", "tutorial", "basic"]
+        tags: ["beginner", "tutorial", "basic"],
+        extensions: {
+            xpPlan: {
+                budgetTotal: 1200,
+                targetXpPerMinute: [85, 95, 110, 125],
+                pity: { enabled: true, minXpPerMinute: 60, untilMinute: 4 },
+                boss: { id: "boss.radiation_core", xp: 300, capLevelsGranted: 1.5 },
+                enemyXpOverrides: { 
+                    "enemy.micro_shooter": 2,
+                    "enemy.viral_swarm": 3,
+                    "enemy.necrotic_cell": 6
+                }
+            }
+        }
     }
 }

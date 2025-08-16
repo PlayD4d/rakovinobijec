@@ -65,6 +65,11 @@ export class SpawnDirector {
         this.currentTable = table;
         this.scenarioId = scenarioId;
         
+        // PR7: Apply XP retuning if xpPlan exists
+        if (table.meta?.extensions?.xpPlan) {
+            this.applyXpRetuning(table);
+        }
+        
         // PR7: Validate boss triggers exist
         if (!table.bossTriggers) {
             console.error(`[SpawnDirector] Missing bossTriggers in spawn table: ${scenarioId}`);
@@ -94,6 +99,20 @@ export class SpawnDirector {
         
         this.running = true;
         this.gameTime = 0;
+        
+        // PR7: Reset wave timers when starting new level
+        if (this.currentTable.enemyWaves) {
+            this.currentTable.enemyWaves.forEach(wave => {
+                wave._lastSpawn = 0;
+            });
+        }
+        
+        // Reset boss triggers
+        if (this.currentTable.bossTriggers) {
+            this.currentTable.bossTriggers.forEach(trigger => {
+                trigger._triggered = false;
+            });
+        }
         this.lastSpawnTime = 0;
         
         // Reset cooldowns
@@ -140,6 +159,11 @@ export class SpawnDirector {
             return;
         }
         
+        // Skip normal spawns if paused (e.g., during boss fight)
+        if (this.pauseNormalSpawns) {
+            return;
+        }
+        
         // Process enemy waves
         this.processEnemyWaves(delta);
         
@@ -158,6 +182,18 @@ export class SpawnDirector {
         
         const now = this.gameTime;
         
+        // PR7: Check maximum enemy limit to prevent performance issues
+        const currentEnemyCount = this.scene.enemiesGroup ? this.scene.enemiesGroup.countActive() : 0;
+        const maxEnemies = this.config?.get('spawn.maxEnemies', { defaultValue: 50 }) || 50;
+        
+        if (currentEnemyCount >= maxEnemies) {
+            // Skip spawning if too many enemies
+            if (Math.random() < 0.01) { // Log occasionally
+                console.warn(`[SpawnDirector] Max enemy limit reached (${currentEnemyCount}/${maxEnemies}), skipping spawn`);
+            }
+            return;
+        }
+        
         // Find active waves for current time - PR7 compliant format only
         const activeWaves = this.currentTable.enemyWaves.filter(wave => {
             const startTime = wave.startAt || 0;
@@ -174,7 +210,19 @@ export class SpawnDirector {
                 // Use weighted random selection or simple spawn
                 const weight = wave.weight || 100; // Default 100% chance
                 if (Math.random() * 100 < weight) {
-                    const count = wave.countRange ? this.randomInRange(wave.countRange) : 1;
+                    let count = wave.countRange ? this.randomInRange(wave.countRange) : 1;
+                    
+                    // PR7: Limit spawn count if close to max enemies
+                    const currentCount = this.scene.enemiesGroup ? this.scene.enemiesGroup.countActive() : 0;
+                    const maxEnemies = this.config?.get('spawn.maxEnemies', { defaultValue: 50 }) || 50;
+                    const remainingSlots = maxEnemies - currentCount;
+                    
+                    if (remainingSlots <= 0) {
+                        return; // No room for more enemies
+                    }
+                    
+                    count = Math.min(count, remainingSlots, 5); // Max 5 per spawn to prevent lag spikes
+                    
                     for (let i = 0; i < count; i++) {
                         this.spawnEnemy(wave.enemyId, { wave: true });
                     }
@@ -192,6 +240,14 @@ export class SpawnDirector {
         if (!this.currentTable.eliteWindows) return;
         
         const now = this.gameTime;
+        
+        // PR7: Check if we can spawn more enemies
+        const currentEnemyCount = this.scene.enemiesGroup ? this.scene.enemiesGroup.countActive() : 0;
+        const maxEnemies = this.config?.get('spawn.maxEnemies', { defaultValue: 50 }) || 50;
+        
+        if (currentEnemyCount >= maxEnemies - 5) { // Leave room for regular spawns
+            return; // Skip elite spawns if near limit
+        }
         
         for (const elite of this.currentTable.eliteWindows) {
             // Check if in window - PR7 compliant format only
@@ -428,6 +484,64 @@ export class SpawnDirector {
     }
     
     /**
+     * Spawn an enemy at a specific position (used by bosses for minion spawning)
+     * @param {string} enemyId - Blueprint ID of the enemy to spawn
+     * @param {number} x - X coordinate to spawn at
+     * @param {number} y - Y coordinate to spawn at
+     * @param {Object} params - Additional spawn parameters
+     */
+    spawnAtPosition(enemyId, x, y, params = {}) {
+        if (!this.blueprints) return;
+        
+        const blueprint = this.blueprints.get(enemyId);
+        if (!blueprint) {
+            console.warn(`[SpawnDirector] Blueprint not found: ${enemyId}`);
+            return;
+        }
+        
+        // Apply NG+ scaling
+        const scaled = this.applyNGPlusScaling(blueprint, this.ngPlusLevel);
+        
+        // Create enemy entity at specific position
+        try {
+            if (this.scene.createEnemyFromBlueprint) {
+                const enemy = this.scene.createEnemyFromBlueprint(enemyId, {
+                    x: x,
+                    y: y,
+                    blueprint: scaled,
+                    ...params
+                });
+                
+                // Ensure proper depth for spawned enemies
+                if (enemy && enemy.setDepth) {
+                    const enemyDepth = this.config?.get?.('layers.enemies', { defaultValue: 20 }) || 20;
+                    enemy.setDepth(enemyDepth);
+                }
+                
+                // Track spawn
+                this.stats.totalSpawned++;
+                this.stats.spawnedTypes.add(enemyId);
+                const count = this.stats.spawnedByType.get(enemyId) || 0;
+                this.stats.spawnedByType.set(enemyId, count + 1);
+                
+                return enemy;
+            }
+        } catch (error) {
+            console.error(`[SpawnDirector] Failed to spawn ${enemyId} at position:`, error);
+        }
+    }
+    
+    /**
+     * Spawn an enemy immediately at a specific position (alias for spawnAtPosition for backward compatibility)
+     * @param {string} enemyId - Blueprint ID of the enemy to spawn
+     * @param {number} x - X coordinate to spawn at
+     * @param {number} y - Y coordinate to spawn at
+     */
+    spawnImmediate(enemyId, x, y) {
+        return this.spawnAtPosition(enemyId, x, y);
+    }
+    
+    /**
      * Apply NG+ scaling to blueprint
      */
     applyNGPlusScaling(blueprint, ngLevel) {
@@ -468,6 +582,8 @@ export class SpawnDirector {
     getSpawnPosition() {
         const camera = this.scene.cameras.main;
         const margin = 50;
+        const player = this.scene.player;
+        const MIN_PLAYER_DISTANCE = 100; // Minimum distance from player
         
         // Get world bounds for clamping
         const worldBounds = this.scene.physics?.world?.bounds;
@@ -476,42 +592,60 @@ export class SpawnDirector {
         const maxX = worldBounds ? (worldBounds.x + worldBounds.width) : this.scene.scale.width;
         const maxY = worldBounds ? (worldBounds.y + worldBounds.height) : this.scene.scale.height;
         
-        // Spawn outside camera view but within world bounds
-        const side = Math.floor(Math.random() * 4);
         let x, y;
+        let attempts = 0;
+        const maxAttempts = 10;
         
-        switch (side) {
-            case 0: // Top
-                x = camera.scrollX + Math.random() * camera.width;
-                y = camera.scrollY - margin;
-                break;
-            case 1: // Right
-                x = camera.scrollX + camera.width + margin;
-                y = camera.scrollY + Math.random() * camera.height;
-                break;
-            case 2: // Bottom
-                x = camera.scrollX + Math.random() * camera.width;
-                y = camera.scrollY + camera.height + margin;
-                break;
-            case 3: // Left
-                x = camera.scrollX - margin;
-                y = camera.scrollY + Math.random() * camera.height;
-                break;
-        }
-        
-        // HOTFIX V4: Add position variance to avoid repetitive corner spawns
-        const variance = 32;
-        x += Phaser.Math.Between(-variance, variance);
-        y += Phaser.Math.Between(-variance, variance);
-        
-        // Clamp position to world bounds with margin
-        const worldMargin = 24;
-        x = Math.max(minX + worldMargin, Math.min(maxX - worldMargin, x));
-        y = Math.max(minY + worldMargin, Math.min(maxY - worldMargin, y));
+        // Try to find a valid spawn position away from player
+        do {
+            // Spawn outside camera view but within world bounds
+            const side = Math.floor(Math.random() * 4);
+            
+            switch (side) {
+                case 0: // Top
+                    x = camera.scrollX + Math.random() * camera.width;
+                    y = camera.scrollY - margin;
+                    break;
+                case 1: // Right
+                    x = camera.scrollX + camera.width + margin;
+                    y = camera.scrollY + Math.random() * camera.height;
+                    break;
+                case 2: // Bottom
+                    x = camera.scrollX + Math.random() * camera.width;
+                    y = camera.scrollY + camera.height + margin;
+                    break;
+                case 3: // Left
+                    x = camera.scrollX - margin;
+                    y = camera.scrollY + Math.random() * camera.height;
+                    break;
+            }
+            
+            // HOTFIX V4: Add position variance to avoid repetitive corner spawns
+            const variance = 32;
+            x += Phaser.Math.Between(-variance, variance);
+            y += Phaser.Math.Between(-variance, variance);
+            
+            // Clamp position to world bounds with margin
+            const worldMargin = 24;
+            x = Math.max(minX + worldMargin, Math.min(maxX - worldMargin, x));
+            y = Math.max(minY + worldMargin, Math.min(maxY - worldMargin, y));
+            
+            attempts++;
+            
+            // Check distance from player
+            if (player && player.active) {
+                const distToPlayer = Phaser.Math.Distance.Between(x, y, player.x, player.y);
+                if (distToPlayer >= MIN_PLAYER_DISTANCE) {
+                    break; // Found valid position
+                }
+            } else {
+                break; // No player, any position is valid
+            }
+        } while (attempts < maxAttempts);
         
         // Only log in debug mode
         if (this.config?.get?.('debug.spawnLogging', { defaultValue: false })) {
-            console.log(`[SpawnDirector] Spawn position: (${Math.floor(x)}, ${Math.floor(y)}) side=${side}`);
+            console.log(`[SpawnDirector] Spawn position: (${Math.floor(x)}, ${Math.floor(y)}) attempts=${attempts}`);
         }
         
         return { x, y };
@@ -543,5 +677,161 @@ export class SpawnDirector {
                 uniqueTypes: this.stats.spawnedTypes.size
             }
         };
+    }
+    
+    /**
+     * PR7: Apply XP retuning based on xpPlan
+     * This adjusts spawn weights to match target XP/minute
+     */
+    applyXpRetuning(table) {
+        const xpPlan = table.meta?.extensions?.xpPlan;
+        if (!xpPlan) return;
+        
+        const CR = this.config || window.ConfigResolver;
+        const progressionXp = CR.get('progression.xp');
+        if (!progressionXp) {
+            console.warn('[SpawnDirector] No progression.xp config found');
+            return;
+        }
+        
+        console.log('[SpawnDirector] Applying XP retuning based on xpPlan:', xpPlan);
+        
+        // Get enemy XP values (priority: overrides -> blueprint -> global)
+        const getEnemyXp = (enemyId) => {
+            // 1. Check xpPlan overrides
+            if (xpPlan.enemyXpOverrides && xpPlan.enemyXpOverrides[enemyId]) {
+                return xpPlan.enemyXpOverrides[enemyId];
+            }
+            
+            // 2. Check blueprint stats.xp
+            const blueprint = this.blueprints?.get(enemyId);
+            if (blueprint?.stats?.xp) {
+                return blueprint.stats.xp;
+            }
+            
+            // 3. Check global config
+            if (progressionXp.enemyXp && progressionXp.enemyXp[enemyId]) {
+                return progressionXp.enemyXp[enemyId];
+            }
+            
+            // 4. Pattern matching for elite/unique
+            if (enemyId.startsWith('elite.')) {
+                return 20; // Default elite XP
+            }
+            if (enemyId.startsWith('unique.')) {
+                return 35; // Default unique XP
+            }
+            
+            // 5. Fallback
+            return 3;
+        };
+        
+        // Calculate expected XP/minute for each wave
+        table.enemyWaves?.forEach((wave, index) => {
+            const enemyXp = getEnemyXp(wave.enemyId);
+            const avgCount = (wave.countRange[0] + wave.countRange[1]) / 2;
+            const spawnsPerMinute = 60000 / wave.interval;
+            
+            // Base expected XP/min for this wave
+            wave._baseXpPerMinute = enemyXp * avgCount * spawnsPerMinute;
+            wave._originalWeight = wave.weight;
+            
+            console.log(`  Wave ${index} (${wave.enemyId}): ${wave._baseXpPerMinute.toFixed(1)} XP/min base`);
+        });
+        
+        // Adjust weights to match target XP/minute
+        const pity = xpPlan.pity;
+        const targets = xpPlan.targetXpPerMinute;
+        
+        // Process each minute
+        for (let minute = 0; minute < targets.length; minute++) {
+            const startMs = minute * 60000;
+            const endMs = (minute + 1) * 60000;
+            
+            // Get target for this minute (with pity floor)
+            let targetXpPerMin = targets[minute] || targets[targets.length - 1];
+            if (pity?.enabled && minute < (pity.untilMinute || 4)) {
+                targetXpPerMin = Math.max(targetXpPerMin, pity.minXpPerMinute || 60);
+            }
+            
+            // Find waves active in this minute
+            const activeWaves = table.enemyWaves.filter(w => 
+                w.startAt < endMs && w.endAt > startMs
+            );
+            
+            if (activeWaves.length === 0) continue;
+            
+            // Calculate total base XP/min
+            const totalBaseXp = activeWaves.reduce((sum, w) => sum + (w._baseXpPerMinute || 0), 0);
+            
+            if (totalBaseXp === 0) continue;
+            
+            // Calculate adjustment factor
+            const adjustmentFactor = targetXpPerMin / totalBaseXp;
+            
+            console.log(`  Minute ${minute}: Target ${targetXpPerMin} XP/min, Factor ${adjustmentFactor.toFixed(2)}`);
+            
+            // Apply adjustment to weights
+            activeWaves.forEach(wave => {
+                // Adjust weight proportionally
+                const newWeight = Math.max(0.1, Math.min(100, wave._originalWeight * adjustmentFactor));
+                wave.weight = newWeight;
+                
+                // Optionally adjust spawn rate if weight alone isn't enough
+                if (adjustmentFactor > 2.0) {
+                    // Also decrease interval to spawn faster
+                    wave.interval = Math.max(1000, wave.interval / 1.5);
+                } else if (adjustmentFactor < 0.5) {
+                    // Increase interval to spawn slower
+                    wave.interval = Math.min(10000, wave.interval * 1.5);
+                }
+            });
+        }
+        
+        // Handle boss XP clamping
+        if (xpPlan.boss) {
+            const bossXp = xpPlan.boss.xp;
+            const capLevels = xpPlan.boss.capLevelsGranted || 1.5;
+            
+            // Calculate max XP based on level cap
+            const baseReq = progressionXp.baseRequirement || 10;
+            const scaling = progressionXp.scalingMultiplier || 1.5;
+            const maxLevelXp = baseReq * Math.pow(scaling, capLevels);
+            
+            // Clamp boss XP
+            const clampedBossXp = Math.min(bossXp, maxLevelXp);
+            
+            // Update boss triggers with clamped XP
+            table.bossTriggers?.forEach(trigger => {
+                if (trigger.bossId === xpPlan.boss.id) {
+                    trigger._xpReward = clampedBossXp;
+                    console.log(`  Boss ${trigger.bossId}: ${clampedBossXp} XP (clamped from ${bossXp})`);
+                }
+            });
+        }
+        
+        console.log('[SpawnDirector] XP retuning complete');
+    }
+    
+    /**
+     * Get XP reward for a boss (with clamping)
+     */
+    getBossXpReward(bossId) {
+        // Check if boss trigger has clamped XP
+        const trigger = this.currentTable?.bossTriggers?.find(t => t.bossId === bossId);
+        if (trigger?._xpReward) {
+            return trigger._xpReward;
+        }
+        
+        // Fallback to blueprint or config
+        const CR = this.config || window.ConfigResolver;
+        const progressionXp = CR.get('progression.xp');
+        
+        if (progressionXp?.enemyXp?.[bossId]) {
+            return progressionXp.enemyXp[bossId];
+        }
+        
+        // Default boss XP
+        return 300;
     }
 }

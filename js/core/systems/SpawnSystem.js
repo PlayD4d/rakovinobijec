@@ -6,7 +6,8 @@
 // PR7: GameConfig removed - use ConfigResolver only
 // import { GameConfig } from '../../config.js';
 import { Enemy } from '../../entities/Enemy.js';
-import { EnemyRegistry } from '../registry/EnemyRegistry.js';
+// Removed: import { EnemyRegistry } from '../registry/EnemyRegistry.js';
+// Using BlueprintLoader instead for blueprint access
 import { DifficultyScalingSystem } from './DifficultyScalingSystem.js';
 
 export class SpawnSystem {
@@ -95,7 +96,7 @@ export class SpawnSystem {
       if (true) {
         const map = { red: 'basic_cell', orange: 'orange_tumor', green: 'green_heavy', purple: 'purple_support', brown: 'brown_shooter' };
         const bpName = map[type] || type;
-        const bp = EnemyRegistry.get(bpName);
+        const bp = this.scene.blueprintLoader?.get(bpName);
         if (bp?.components) {
           const c = bp.components;
           const size = c.Transform?.size ?? config.size;

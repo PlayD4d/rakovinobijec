@@ -103,15 +103,16 @@ export const UI_THEME = {
     },
     
     // Z-index hodnoty (převzato z UiConstants.js)
+    // Updated for proper UI layering above gameplay
     depth: {
         background: 0,
         game: 1000,
         hud: 10003,
-        overlay: 10000,
         panel: 10001,
         content: 10002,
-        modal: 10004,
-        tooltip: 10005
+        overlay: 250000,    // High depth for modal overlay (below modal)
+        modal: 250100,      // Very high depth for modals (above everything)
+        tooltip: 200010     // Above modals
     }
 };
 

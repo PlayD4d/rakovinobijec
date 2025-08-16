@@ -8,9 +8,13 @@ import { RESPONSIVE } from './UiConstants.js';
 
 export class HighScoresModal extends BaseUIComponent {
     constructor(scene, scores = [], onCloseCallback = null) {
+        // Validate scene before using it
+        const width = scene?.scale?.width || 800;
+        const height = scene?.scale?.height || 600;
+        
         super(scene, 0, 0, {
-            width: scene.scale.width,
-            height: scene.scale.height,
+            width: width,
+            height: height,
             theme: 'modal',
             responsive: true
         });
@@ -19,7 +23,7 @@ export class HighScoresModal extends BaseUIComponent {
         this.onCloseCallback = onCloseCallback;
         this.modalContainer = null;
         
-        this.createModal();
+        // Don't create modal in constructor - let show() handle it
         this.setDepth(UI_THEME.depth.modal);
     }
     
@@ -37,7 +41,7 @@ export class HighScoresModal extends BaseUIComponent {
         // Modal container
         const modalSize = RESPONSIVE.getModalSize(this.isMobileDevice);
         modalSize.width = Math.min(modalSize.width, this.isMobileDevice ? 380 : 500);
-        modalSize.height = Math.min(modalSize.height, this.scene.scale.height * 0.85);
+        modalSize.height = Math.min(modalSize.height, (this.scene?.scale?.height || 600) * 0.85);
         
         this.modalContainer = this.createModalContainer(modalSize);
         
@@ -60,6 +64,12 @@ export class HighScoresModal extends BaseUIComponent {
      * Vytvoří hlavní container modalu - podle PowerUpModal pattern
      */
     createModalContainer(size) {
+        // Validate scene before using it
+        if (!this.scene || !this.scene.scale) {
+            console.error('[HighScoresModal] Cannot create modal - invalid scene reference');
+            return null;
+        }
+        
         const { width, height } = this.scene.scale.gameSize;
         
         // Vytvoření RexUI sizer pro layout - pozice uprostřed scény
@@ -340,6 +350,32 @@ export class HighScoresModal extends BaseUIComponent {
         if (this.modalContainer) {
             this.modalContainer.x = gameSize.width / 2;
             this.modalContainer.y = gameSize.height / 2;
+        }
+    }
+    
+    /**
+     * Show the modal
+     */
+    show() {
+        // Create modal if it doesn't exist
+        if (!this.modalContainer) {
+            this.createModal();
+        }
+        
+        // Show components
+        this.setVisible(true);
+        if (this.modalContainer) {
+            this.modalContainer.setVisible(true);
+        }
+    }
+    
+    /**
+     * Hide the modal
+     */
+    hide() {
+        this.setVisible(false);
+        if (this.modalContainer) {
+            this.modalContainer.setVisible(false);
         }
     }
     

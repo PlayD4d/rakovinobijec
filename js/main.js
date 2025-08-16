@@ -1,5 +1,7 @@
 import { GameScene } from './scenes/GameScene.js';
+import { GameUIScene } from './scenes/GameUIScene.js';
 import { MainMenu } from './scenes/MainMenu.js';
+import { DevPlayground } from './scenes/DevPlayground.js';
 import { GameConfig, calculateGameSize } from './config.js';
 import { ConfigResolver } from './core/utils/ConfigResolver.js';
 
@@ -52,7 +54,7 @@ async function initializeGame() {
             }
         ]
     },
-        scene: [MainMenu, GameScene]
+    scene: [MainMenu, GameScene, GameUIScene, DevPlayground]
     };
 
     // Debug: Check container before game creation

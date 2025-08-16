@@ -1,8 +1,12 @@
 {
   // Blueprint: unique.radiomorph_titan
   "id": "unique.radiomorph_titan",
-  "type": "unique",
-  "baseType": "enemy.necrotic_cell",
+  "type": "enemy",
+  "meta": {
+    "category": "unique",
+    "tier": "legendary",
+    "spawnWeight": 2
+  },  "baseType": "enemy.necrotic_cell",
   "stats": {
     "hp": 200,
     "damage": 20,
@@ -10,6 +14,11 @@
     "size": 40,
     "armor": 8,
     "xp": 55
+  },
+  "visuals": {
+    "textureKey": "unique.radiomorph_titan",
+    "tint": 0x2E7D32,
+    "size": { "w": 40, "h": 40 }
   },
   "mechanics": {
     "movementType": "titan_guardian",

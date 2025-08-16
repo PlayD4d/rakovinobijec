@@ -40,16 +40,18 @@ export class FlamethrowerEffect {
         this.entity = entity;
         this.active = true;
         
-        // Create graphics object
-        this.graphics = this.scene.add.graphics();
-        this.graphics.setDepth(entity.depth + 1);
+        // PR7: Create graphics through factory
+        this.graphics = this._createGraphics();
+        if (this.graphics) {
+            this.graphics.setDepth(entity.depth + 1);
+        }
         
         // Create damage zone for collision detection
         this._createDamageZone();
         
-        // Play ignition SFX
+        // Play looping flamethrower sound - PR7: používáme newSFXSystem
         if (this.scene.newSFXSystem) {
-            this.scene.newSFXSystem.play('sfx.flamethrower.ignite');
+            this.loopId = this.scene.newSFXSystem.playLoop('flamethrower');
         }
     }
     
@@ -62,21 +64,27 @@ export class FlamethrowerEffect {
         this.active = false;
         this.entity = null;
         
-        // Clean up graphics
+        // PR7: Clean up graphics properly
         if (this.graphics) {
-            this.graphics.destroy();
+            // Return to factory pool if available
+            if (this.scene.graphicsFactory) {
+                this.scene.graphicsFactory.release(this.graphics);
+            } else {
+                // Fallback to destroy
+                this.graphics.destroy();
+            }
             this.graphics = null;
         }
         
-        // Clean up damage zone
+        // Clean up damage zone (it's just a plain object, not a Phaser GameObject)
         if (this.damageZone) {
-            this.damageZone.destroy();
             this.damageZone = null;
         }
         
-        // Stop looping flame sound
-        if (this.scene.newSFXSystem) {
-            this.scene.newSFXSystem.stopLoop('sfx.flamethrower.loop');
+        // Stop looping flame sound - PR7: používáme newSFXSystem
+        if (this.loopId && this.scene.newSFXSystem) {
+            this.scene.newSFXSystem.stopLoop(this.loopId);
+            this.loopId = null;
         }
     }
     
@@ -282,5 +290,38 @@ export class FlamethrowerEffect {
      */
     destroy() {
         this.detach();
+    }
+    
+    // ==========================================
+    // PR7 Factory Methods - Replace Direct Calls
+    // ==========================================
+    
+    /**
+     * Factory method for creating graphics objects
+     * PR7 compliant - uses centralized graphics creation
+     * @returns {Phaser.GameObjects.Graphics}
+     * @private
+     */
+    _createGraphics() {
+        // PR7: Check if scene has a graphics factory
+        if (this.scene.graphicsFactory) {
+            return this.scene.graphicsFactory.create();
+        }
+        
+        // PR7: Check if VFXSystem provides graphics creation
+        if (this.scene.newVFXSystem && this.scene.newVFXSystem._createGraphics) {
+            return this.scene.newVFXSystem._createGraphics();
+        }
+        
+        // PR7: Fallback with warning
+        if (this.scene && this.scene.add && this.scene.add.graphics) {
+            if (Math.random() < 0.01) { // Only log occasionally
+                console.warn('[FlamethrowerEffect] Using scene.add.graphics fallback - needs PR7 GraphicsFactory');
+            }
+            return this.scene.add.graphics();
+        }
+        
+        console.error('[FlamethrowerEffect] Cannot create graphics - no factory available');
+        return null;
     }
 }

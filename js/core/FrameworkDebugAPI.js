@@ -293,6 +293,12 @@ export class FrameworkDebugAPI {
                 info: () => this.scenarioInfo()
             };
             
+            // Add missing assets tracking
+            window.DEV = window.DEV || {};
+            window.DEV.dumpMissing = () => this.dumpMissingAssets();
+            window.DEV.clearMissing = () => this.clearMissingAssets();
+            window.DEV.copyMissing = (type) => this.copyMissingAssets(type);
+            
             // Add convenience methods
             window.__framework.systems = {
                 vfx: this.gameScene.vfxSystem,
@@ -518,5 +524,121 @@ export class FrameworkDebugAPI {
                 systemsOperational: this.areAllSystemsReady()
             }
         };
+    }
+    
+    // ==========================================
+    // Missing Assets Tracking Methods
+    // ==========================================
+    
+    /**
+     * Dump all missing assets to console
+     */
+    dumpMissingAssets() {
+        if (!window.__missingAssets) {
+            console.log('[DEV] No missing assets tracked yet');
+            return;
+        }
+        
+        const sfxMissing = Array.from(window.__missingAssets.sfx || []);
+        const vfxMissing = Array.from(window.__missingAssets.vfx || []);
+        
+        console.group('🔍 Missing Assets Report');
+        console.log(`Timestamp: ${new Date().toISOString()}`);
+        
+        if (sfxMissing.length > 0) {
+            console.group(`🔊 Missing SFX (${sfxMissing.length})`);
+            sfxMissing.forEach(id => console.log(`  - ${id}`));
+            console.groupEnd();
+        } else {
+            console.log('✅ No missing SFX');
+        }
+        
+        if (vfxMissing.length > 0) {
+            console.group(`✨ Missing VFX (${vfxMissing.length})`);
+            vfxMissing.forEach(id => console.log(`  - ${id}`));
+            console.groupEnd();
+        } else {
+            console.log('✅ No missing VFX');
+        }
+        
+        console.log('\n📋 Use DEV.copyMissing("sfx") or DEV.copyMissing("vfx") to copy IDs to clipboard');
+        console.log('🗑️ Use DEV.clearMissing() to reset tracking');
+        console.groupEnd();
+        
+        return {
+            sfx: sfxMissing,
+            vfx: vfxMissing,
+            total: sfxMissing.length + vfxMissing.length
+        };
+    }
+    
+    /**
+     * Clear all missing asset tracking
+     */
+    clearMissingAssets() {
+        if (window.__missingAssets) {
+            window.__missingAssets.sfx.clear();
+            window.__missingAssets.vfx.clear();
+            console.log('[DEV] Missing assets tracking cleared');
+        }
+    }
+    
+    /**
+     * Copy missing assets to clipboard
+     * @param {string} type - 'sfx' or 'vfx' or 'all'
+     */
+    copyMissingAssets(type = 'all') {
+        if (!window.__missingAssets) {
+            console.log('[DEV] No missing assets to copy');
+            return;
+        }
+        
+        let toCopy = '';
+        
+        if (type === 'sfx' || type === 'all') {
+            const sfxMissing = Array.from(window.__missingAssets.sfx || []);
+            if (sfxMissing.length > 0) {
+                toCopy += '// Missing SFX\n';
+                sfxMissing.forEach(id => {
+                    toCopy += `this.register('${id}', {\n`;
+                    toCopy += `  key: 'placeholder_beep',\n`;
+                    toCopy += `  volume: 0.5,\n`;
+                    toCopy += `  description: 'TODO: Add proper sound',\n`;
+                    toCopy += `  category: 'sfx'\n`;
+                    toCopy += `});\n\n`;
+                });
+            }
+        }
+        
+        if (type === 'vfx' || type === 'all') {
+            const vfxMissing = Array.from(window.__missingAssets.vfx || []);
+            if (vfxMissing.length > 0) {
+                toCopy += '// Missing VFX\n';
+                vfxMissing.forEach(id => {
+                    toCopy += `this.register('${id}', {\n`;
+                    toCopy += `  type: 'particles',\n`;
+                    toCopy += `  texture: 'vfx_dot',\n`;
+                    toCopy += `  description: 'TODO: Add proper effect',\n`;
+                    toCopy += `  config: {\n`;
+                    toCopy += `    scale: { start: 0.3, end: 0 },\n`;
+                    toCopy += `    speed: { min: 50, max: 100 },\n`;
+                    toCopy += `    lifespan: 200,\n`;
+                    toCopy += `    quantity: 5\n`;
+                    toCopy += `  }\n`;
+                    toCopy += `});\n\n`;
+                });
+            }
+        }
+        
+        if (toCopy) {
+            navigator.clipboard.writeText(toCopy).then(() => {
+                console.log(`[DEV] Copied ${type} registration code to clipboard`);
+            }).catch(err => {
+                console.error('[DEV] Failed to copy to clipboard:', err);
+                console.log('Registration code:\n', toCopy);
+            });
+        } else {
+            console.log(`[DEV] No missing ${type} assets to copy`);
+        }
     }
 }

@@ -112,6 +112,12 @@ export class SpawnDirectorIntegration {
         // Add to group
         this.bossGroup.add(boss);
         
+        // Switch to boss music using MusicManager
+        if (this.scene.musicManager) {
+            this.scene.musicManager.switchCategory('boss');
+            console.log('[SpawnDirector] Switched to boss music');
+        }
+        
         // Set up collisions
         this.scene.physics.add.overlap(
             boss,

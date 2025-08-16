@@ -12,9 +12,13 @@ import { settingsManager } from './SettingsManager.js';
 
 export class SettingsModal extends BaseUIComponent {
     constructor(scene, onCloseCallback = null) {
+        // Validate scene before using it
+        const width = scene?.scale?.width || 800;
+        const height = scene?.scale?.height || 600;
+        
         super(scene, 0, 0, {
-            width: scene.scale.width,
-            height: scene.scale.height,
+            width: width,
+            height: height,
             theme: 'modal',
             responsive: true
         });
@@ -71,36 +75,72 @@ export class SettingsModal extends BaseUIComponent {
     }
     
     /**
-     * Načte nastavení z localStorage
+     * Načte nastavení přes SettingsManager
      */
     loadSettings() {
-        try {
-            const saved = localStorage.getItem('gameSettings');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                this.settings = { ...this.settings, ...parsed };
-            }
-        } catch (error) {
-            console.warn('Failed to load settings:', error);
-        }
+        // Load settings from SettingsManager singleton
+        const allSettings = settingsManager.getAll();
+        
+        // Map from SettingsManager structure to local format
+        this.settings = {
+            joystickEnabled: settingsManager.get('controls.joystickEnabled'),
+            joystickPosition: settingsManager.get('controls.joystickPosition'),
+            joystickSensitivity: settingsManager.get('controls.joystickSensitivity'),
+            
+            masterVolume: settingsManager.get('audio.masterVolume'),
+            musicEnabled: settingsManager.get('audio.musicEnabled'),
+            musicVolume: settingsManager.get('audio.musicVolume'),
+            soundsEnabled: settingsManager.get('audio.soundsEnabled'),
+            soundsVolume: settingsManager.get('audio.soundsVolume'),
+            
+            fullscreen: settingsManager.get('display.fullscreen'),
+            graphicsQuality: settingsManager.get('display.graphicsQuality'),
+            uiScale: settingsManager.get('display.uiScale'),
+            showFPS: settingsManager.get('display.showFPS'),
+            
+            autoPause: settingsManager.get('gameplay.autoPause'),
+            vibration: settingsManager.get('gameplay.vibration')
+        };
     }
     
     /**
-     * Uloží nastavení do localStorage
+     * Uloží nastavení přes SettingsManager
      */
     saveSettings() {
-        try {
-            localStorage.setItem('gameSettings', JSON.stringify(this.settings));
-            console.log('Settings saved:', this.settings);
-        } catch (error) {
-            console.warn('Failed to save settings:', error);
-        }
+        // Save through SettingsManager
+        settingsManager.set('controls.joystickEnabled', this.settings.joystickEnabled);
+        settingsManager.set('controls.joystickPosition', this.settings.joystickPosition);
+        settingsManager.set('controls.joystickSensitivity', this.settings.joystickSensitivity);
+        
+        settingsManager.set('audio.masterVolume', this.settings.masterVolume);
+        settingsManager.set('audio.musicEnabled', this.settings.musicEnabled);
+        settingsManager.set('audio.musicVolume', this.settings.musicVolume);
+        settingsManager.set('audio.soundsEnabled', this.settings.soundsEnabled);
+        settingsManager.set('audio.soundsVolume', this.settings.soundsVolume);
+        
+        settingsManager.set('display.fullscreen', this.settings.fullscreen);
+        settingsManager.set('display.graphicsQuality', this.settings.graphicsQuality);
+        settingsManager.set('display.uiScale', this.settings.uiScale);
+        settingsManager.set('display.showFPS', this.settings.showFPS);
+        
+        settingsManager.set('gameplay.autoPause', this.settings.autoPause);
+        settingsManager.set('gameplay.vibration', this.settings.vibration);
+        
+        // Save to localStorage through SettingsManager
+        settingsManager.saveToLocalStorage();
+        console.log('Settings saved through SettingsManager');
     }
     
     /**
      * Vytvoří celý modal
      */
     createModal() {
+        // Validate scene before using it
+        if (!this.scene || !this.scene.scale) {
+            console.error('[SettingsModal] Cannot create modal - invalid scene reference');
+            return;
+        }
+        
         const { width, height } = this.scene.scale.gameSize;
         
         // Modal overlay - interaktivní pro blokování kliknutí
@@ -108,8 +148,16 @@ export class SettingsModal extends BaseUIComponent {
         overlay.fillStyle(UI_THEME.colors.background.overlay, 0.9);
         overlay.fillRect(0, 0, width, height);
         overlay.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
-        overlay.setDepth(UI_THEME.depth.modal - 1); // Pod modálem, ale nad všemi ostatními prvky
+        
+        // Use new depth system
+        const overlayDepth = this.scene.DEPTH_LAYERS?.UI_MODAL || 20000;
+        overlay.setDepth(overlayDepth - 1);
         this.add(overlay);
+        
+        // Add overlay to UI layer if it exists
+        if (this.scene.uiLayer) {
+            this.scene.uiLayer.add(overlay);
+        }
         
         // Modal size - větší pro nastavení
         const modalSize = {
@@ -138,6 +186,13 @@ export class SettingsModal extends BaseUIComponent {
         );
         
         this.modalContainer.addBackground(background);
+        
+        // Set proper depth and add to UI layer
+        const modalDepth = this.scene.DEPTH_LAYERS?.UI_MODAL || 20000;
+        this.modalContainer.setDepth(modalDepth);
+        if (this.scene.uiLayer) {
+            this.scene.uiLayer.add(this.modalContainer);
+        }
         
         // Header
         this.createHeader();
@@ -1212,6 +1267,38 @@ export class SettingsModal extends BaseUIComponent {
     }
     
     /**
+     * Zobrazí modal
+     */
+    show() {
+        // Re-create modal if it was destroyed
+        if (!this.modalContainer) {
+            this.createModal();
+        }
+        
+        // Show components
+        this.setVisible(true);
+        
+        if (this.modalContainer) {
+            this.modalContainer.setVisible(true);
+            this.modalContainer.setAlpha(0);
+            
+            // Fade in animation
+            this.scene.tweens.add({
+                targets: this.modalContainer,
+                alpha: 1,
+                duration: 300
+            });
+        }
+        
+        // Show overlay
+        const overlay = this.list ? this.list[0] : null;
+        if (overlay) {
+            overlay.setVisible(true);
+            overlay.setAlpha(1);
+        }
+    }
+    
+    /**
      * Zavře modal
      */
     closeModal() {
@@ -1220,10 +1307,28 @@ export class SettingsModal extends BaseUIComponent {
             alpha: 0,
             duration: 200,
             onComplete: () => {
+                // Hide components instead of destroying
+                if (this.modalContainer) {
+                    this.modalContainer.setVisible(false);
+                    this.modalContainer.setAlpha(1); // Reset alpha for next show
+                }
+                
+                // Hide overlay
+                const overlay = this.list ? this.list[0] : null;
+                if (overlay) {
+                    overlay.setVisible(false);
+                    overlay.setAlpha(1);
+                }
+                
+                // Hide this component
+                this.setVisible(false);
+                
                 if (this.onCloseCallback) {
                     this.onCloseCallback();
                 }
-                this.destroy();
+                
+                // Don't destroy - keep for reuse
+                // this.destroy();
             }
         });
     }

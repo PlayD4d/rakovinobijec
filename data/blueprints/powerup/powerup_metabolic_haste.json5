@@ -7,41 +7,46 @@
   mechanics: {
     modifiersPerLevel: [
       {
-        path: 'projectile.interval',
+        path: 'attackIntervalMs',
         type: 'mul',
         value: -0.12,
+        description: 'Reduces attack interval by 12% per level'
       },
       {
-        path: 'player.speed',
+        path: 'moveSpeed',
         type: 'mul',
         value: 0.08,
+        description: 'Increases movement speed by 8% per level'
       },
       {
-        path: 'player.dodgeChance',
+        path: 'dodgeChance',
         type: 'add',
         value: 0.015,
+        description: 'Adds 1.5% dodge chance per level'
       },
       {
-        path: 'projectile.count',
+        path: 'projectileCount',
         type: 'add',
         value: 0.5,
+        description: 'Adds 0.5 projectiles per level (rounds down)'
       },
     ],
     stackable: true,
     persistent: true,
     applyOnPickup: true,
     attackSpeedCap: 5,
+    effectType: 'metabolic_haste' // PR7: Explicit effect type
   },
   vfx: {
-    pickup: 'vfx.powerup.pickup.speed',
+    pickup: 'vfx.powerup.pickup',
     levelup: 'vfx.powerup.levelup',
-    apply: 'vfx.player.haste.aura',
-    dodge: 'vfx.player.dodge.blur',
+    apply: 'vfx.powerup.apply',
+    dodge: 'vfx.projectile.impact',
   },
   sfx: {
-    pickup: 'sfx.powerup.pickup.energetic',
+    pickup: 'sfx.powerup.pickup',
     levelup: 'sfx.powerup.levelup',
-    apply: 'sfx.player.haste.pulse',
+    apply: 'sfx.powerup.apply',
   },
   display: {
     key: 'powerup.metabolic_haste.name',

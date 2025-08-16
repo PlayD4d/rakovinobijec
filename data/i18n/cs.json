@@ -173,7 +173,11 @@
       "name": "Protonové dělo"
     },
     "flamethrower": {
-      "desc": "Laserové paprsky na nejbližší nepřátele",
+      "desc": "Kónický proud ohně před hráčem",
+      "name": "Plamenomet"
+    },
+    "radiotherapy": {
+      "desc": "Rotující radioaktivní paprsky kolem hráče",
       "name": "Radioterapie"
     },
     "lightning_chain": {
@@ -238,7 +242,8 @@
     "powerup": {
       "damage_boost": "Zvýšení poškození všech útoků pro efektivnější boj",
       "explosive_bullets": "Protonové dělo - střely explodují při zásahu způsobujíce poškození v oblasti",
-      "flamethrower": "Radioterapeutické paprsky cílené na nejbližší nepřátele",
+      "flamethrower": "Kónický proud ohně poškozující nepřátele před hráčem",
+      "radiotherapy": "Rotující radioaktivní paprsky kolem hráče",
       "piercing_arrows": "Cisplatinové projektily pronikající skrz více nepřátel",
       "shield": "Imunitní systémový štít absorbující příchozí poškození"
     },

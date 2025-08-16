@@ -36,6 +36,9 @@ export class BlueprintValidator {
             case 'projectile':
                 this._validateProjectileBlueprint(blueprint, errors);
                 break;
+            case 'item':
+                this._validateItemBlueprint(blueprint, errors);
+                break;
         }
         
         if (errors.length > 0) {
@@ -90,6 +93,25 @@ export class BlueprintValidator {
             }
             if (mechanics.contactDamage && typeof mechanics.contactDamage !== 'number') {
                 errors.push('- mechanics.contactDamage must be number');
+            }
+        }
+        
+        // NEW: Validace drops array (nový systém)
+        if (blueprint.drops) {
+            if (!Array.isArray(blueprint.drops)) {
+                errors.push('- drops must be an array');
+            } else {
+                blueprint.drops.forEach((drop, index) => {
+                    if (!drop.itemId || typeof drop.itemId !== 'string') {
+                        errors.push(`- drops[${index}].itemId must be a string`);
+                    }
+                    if (typeof drop.chance !== 'number' || drop.chance < 0 || drop.chance > 1) {
+                        errors.push(`- drops[${index}].chance must be number between 0 and 1`);
+                    }
+                    if (drop.quantity && (!Number.isInteger(drop.quantity) || drop.quantity < 1)) {
+                        errors.push(`- drops[${index}].quantity must be positive integer`);
+                    }
+                });
             }
         }
     }
@@ -477,6 +499,86 @@ export class BlueprintValidator {
             return [];
         } catch (error) {
             return error.message.split('\n').slice(1); // první řádek je "Blueprint validation failed:"
+        }
+    }
+    
+    /**
+     * NEW: Validate item blueprints (new loot system)
+     */
+    static _validateItemBlueprint(blueprint, errors) {
+        // Required fields
+        if (!blueprint.name || typeof blueprint.name !== 'string') {
+            errors.push('- Item must have a name (string)');
+        }
+        
+        if (!blueprint.category || typeof blueprint.category !== 'string') {
+            errors.push('- Item must have a category (string)');
+        } else if (!['xp', 'health', 'special', 'powerup', 'currency'].includes(blueprint.category)) {
+            errors.push('- Item category must be one of: xp, health, special, powerup, currency');
+        }
+        
+        if (!blueprint.rarity || typeof blueprint.rarity !== 'string') {
+            errors.push('- Item must have a rarity (string)');
+        } else if (!['common', 'uncommon', 'rare', 'epic', 'legendary'].includes(blueprint.rarity)) {
+            errors.push('- Item rarity must be one of: common, uncommon, rare, epic, legendary');
+        }
+        
+        // Effect validation
+        if (!blueprint.effect || typeof blueprint.effect !== 'object') {
+            errors.push('- Item must have an effect object');
+        } else {
+            if (!blueprint.effect.type || typeof blueprint.effect.type !== 'string') {
+                errors.push('- Item effect must have a type (string)');
+            }
+            
+            // Type-specific effect validation
+            switch (blueprint.effect.type) {
+                case 'xp':
+                    if (typeof blueprint.effect.value !== 'number' || blueprint.effect.value <= 0) {
+                        errors.push('- XP effect value must be positive number');
+                    }
+                    break;
+                case 'heal':
+                    if (blueprint.effect.value !== 'full' && 
+                        (typeof blueprint.effect.value !== 'number' || blueprint.effect.value <= 0)) {
+                        errors.push('- Heal effect value must be positive number or "full"');
+                    }
+                    break;
+                case 'instant_kill':
+                case 'energy':
+                case 'research':
+                    // These types don't require value validation
+                    break;
+                default:
+                    errors.push(`- Unknown effect type: ${blueprint.effect.type}`);
+            }
+        }
+        
+        // Pickup properties validation
+        if (blueprint.pickup) {
+            const pickup = blueprint.pickup;
+            if (pickup.magnetRange && (typeof pickup.magnetRange !== 'number' || pickup.magnetRange < 0)) {
+                errors.push('- pickup.magnetRange must be non-negative number');
+            }
+            if (pickup.pickupRadius && (typeof pickup.pickupRadius !== 'number' || pickup.pickupRadius < 0)) {
+                errors.push('- pickup.pickupRadius must be non-negative number');
+            }
+            if (pickup.lifetime && (typeof pickup.lifetime !== 'number' || pickup.lifetime <= 0)) {
+                errors.push('- pickup.lifetime must be positive number');
+            }
+            if (pickup.autoPickup !== undefined && typeof pickup.autoPickup !== 'boolean') {
+                errors.push('- pickup.autoPickup must be boolean');
+            }
+        }
+        
+        // Visual validation (optional)
+        if (blueprint.graphics) {
+            if (blueprint.graphics.shape && typeof blueprint.graphics.shape !== 'string') {
+                errors.push('- graphics.shape must be string');
+            }
+            if (blueprint.graphics.scale && (typeof blueprint.graphics.scale !== 'number' || blueprint.graphics.scale <= 0)) {
+                errors.push('- graphics.scale must be positive number');
+            }
         }
     }
 }

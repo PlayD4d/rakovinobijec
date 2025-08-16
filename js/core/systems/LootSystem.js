@@ -1,11 +1,9 @@
 // LootSystem – pooled správa XP/health/special lootů a magnet efektu
 // Fáze 2: proxy kompatibilní se stávajícím LootManager API
 
-// PR7: GameConfig removed - use ConfigResolver only
-// import { GameConfig } from '../../config.js';
-import { DropRegistry } from '../registry/DropRegistry.js';
+// PR7: 100% data-driven - using ConfigResolver and BlueprintLoader only
 import { DropEffects } from '../drops/effects.js';
-import { EnemyRegistry } from '../registry/EnemyRegistry.js';
+import { ShapeRenderer } from '../utils/ShapeRenderer.js';
 
 export class LootSystem {
   /**
@@ -14,7 +12,10 @@ export class LootSystem {
   constructor(scene) {
     this.scene = scene;
     this.loot = scene.physics.add.group();
-    this.magnetRange = GameConfig.xp.magnetRange;
+    
+    // PR7: Get values from ConfigResolver
+    const cr = scene.configResolver || window.ConfigResolver;
+    this.magnetRange = cr?.get('loot.xp.magnetRange', { defaultValue: 50 }) || 50;
     this.magnetLevel = 0;
     this.suppressSpecialDrops = false;
     
@@ -70,15 +71,121 @@ export class LootSystem {
     }
   }
 
+  // NEW: Process drops from the new loot system
+  processDrops(x, y, drops) {
+    if (!drops || drops.length === 0) return;
+    
+    for (const drop of drops) {
+      const itemBlueprint = this.scene.blueprintLoader?.get(drop.itemId) || window.BlueprintLoader?.get(drop.itemId);
+      if (!itemBlueprint) {
+        console.warn(`[LootSystem] Item blueprint not found: ${drop.itemId}`);
+        continue;
+      }
+      
+      const quantity = drop.quantity || 1;
+      for (let i = 0; i < quantity; i++) {
+        this.createItemDrop(x, y, itemBlueprint);
+      }
+    }
+  }
+  
+  // NEW: Create a drop from an item blueprint
+  createItemDrop(x, y, itemBlueprint) {
+    if (!itemBlueprint) return;
+    
+    // Spread drops around the position
+    const spread = 20;
+    const offsetX = (Math.random() - 0.5) * spread;
+    const offsetY = (Math.random() - 0.5) * spread;
+    const dropX = x + offsetX;
+    const dropY = y + offsetY;
+    
+    // Route to appropriate creation method based on item type
+    switch (itemBlueprint.category) {
+      case 'xp':
+        // Extract XP value from item effect
+        const xpValue = itemBlueprint.effect?.value || 5;
+        this.createXPOrb(dropX, dropY, xpValue);
+        break;
+        
+      case 'health':
+        if (itemBlueprint.effect?.value === 'full') {
+          // Create protein cache (full heal)
+          this.createProteinCache(dropX, dropY);
+        } else {
+          // Create regular health orb
+          this.createHealthOrb(dropX, dropY);
+        }
+        break;
+        
+      case 'special':
+        if (itemBlueprint.id === 'item.metotrexat') {
+          this.createMetotrexat(dropX, dropY);
+        } else if (itemBlueprint.id === 'item.energy_cell') {
+          this.createEnergyCell(dropX, dropY);
+        } else if (itemBlueprint.id === 'item.research_point') {
+          this.createResearchPoint(dropX, dropY);
+        }
+        break;
+        
+      default:
+        console.warn(`[LootSystem] Unknown item category: ${itemBlueprint.category}`);
+    }
+  }
+  
+  // NEW: Create protein cache (full heal)
+  createProteinCache(x, y) {
+    // For now, create a special health orb
+    const sprite = this.createHealthOrb(x, y);
+    if (sprite) {
+      sprite.healAmount = 999; // Full heal
+      sprite.setScale(1.5); // Make it bigger
+      sprite.setTint(0xFF4500); // Orange tint
+    }
+    return sprite;
+  }
+  
+  // NEW: Create energy cell
+  createEnergyCell(x, y) {
+    // Similar to XP orb but with different color and effect
+    const sprite = this.createXPOrb(x, y, 0);
+    if (sprite) {
+      sprite.type = 'energy';
+      sprite.setTint(0xFFD700); // Gold color
+    }
+    return sprite;
+  }
+  
+  // NEW: Create research point
+  createResearchPoint(x, y) {
+    // Similar to XP orb but with different color and effect
+    const sprite = this.createXPOrb(x, y, 0);
+    if (sprite) {
+      sprite.type = 'research';
+      sprite.setTint(0x00CED1); // Dark turquoise
+      sprite.setScale(1.2);
+    }
+    return sprite;
+  }
+  
   dropLoot(x, y, enemy) {
     if (!enemy) return;
+    
+    // NEW: Use LootDropManager to get drops from enemy blueprint
+    if (window.LootDropManager && this.scene.lootDropManager) {
+      const drops = this.scene.lootDropManager.getDropsForEnemy(enemy);
+      this.processDrops(x, y, drops);
+      return;
+    }
+    
+    // LEGACY: Fallback to old system
     let xpValue = enemy.xp || 0;
     // Pokud běží Core a existuje blueprint nepřítele, přečíst LootDrop.xp/healthChance
     try {
       // Načíst loot data z blueprintů
       if (enemy.type) {
         const map = { red: 'basic_cell', orange: 'orange_tumor', green: 'green_heavy', purple: 'purple_support', brown: 'brown_shooter' };
-        const bp = EnemyRegistry.get(map[enemy.type] || enemy.type);
+        const bp = this.scene.blueprintLoader?.get(map[enemy.type] || enemy.type);
         if (bp?.components?.LootDrop) {
           const ld = bp.components.LootDrop;
           xpValue = Number(ld.xp ?? xpValue);
@@ -102,27 +209,16 @@ export class LootSystem {
   }
 
   calculateHealthDropChance() {
-    const baseDropChance = (typeof this._healthChanceOverride === 'number') ? this._healthChanceOverride : GameConfig.health.dropChance;
-    const playerLevel = this.scene.gameStats.level;
+    const cr = this.scene.configResolver || window.ConfigResolver;
+    const baseDropChance = (typeof this._healthChanceOverride === 'number') ? 
+      this._healthChanceOverride : 
+      (cr?.get('loot.health.dropChance', { defaultValue: 0.15 }) || 0.15);
+    const playerLevel = this.scene.gameStats?.level || 1;
     
-    // PR5: Health drop chance scaling with ConfigResolver
-    let levelStepSize, chanceReduction, minChance;
-    if (this.scene.GameConfig?.validation?.features?.useConfigResolver) {
-      const ConfigResolver = window.ConfigResolver || this.scene.configResolver;
-      if (ConfigResolver) {
-        levelStepSize = ConfigResolver.get('loot.health.levelStepSize', { defaultValue: 5 });
-        chanceReduction = ConfigResolver.get('loot.health.chanceReduction', { defaultValue: 0.9 });
-        minChance = ConfigResolver.get('loot.health.minChance', { defaultValue: 0.01 });
-      } else {
-        levelStepSize = 5;
-        chanceReduction = 0.9;
-        minChance = 0.01;
-      }
-    } else {
-      levelStepSize = 5;
-      chanceReduction = 0.9;
-      minChance = 0.01;
-    }
+    // PR7: Health drop chance scaling with ConfigResolver
+    const levelStepSize = cr?.get('loot.health.levelStepSize', { defaultValue: 5 }) || 5;
+    const chanceReduction = cr?.get('loot.health.chanceReduction', { defaultValue: 0.9 }) || 0.9;
+    const minChance = cr?.get('loot.health.minChance', { defaultValue: 0.01 }) || 0.01;
     
     const reductionSteps = Math.floor(playerLevel / levelStepSize);
     let currentChance = baseDropChance;
@@ -131,37 +227,21 @@ export class LootSystem {
   }
 
   createOptimalXPOrbs(x, y, totalXP) {
-    // PR5: XP Tier configuration with ConfigResolver fallback
-    let xpTiers;
-    if (this.scene.GameConfig?.validation?.features?.useConfigResolver) {
-      const ConfigResolver = window.ConfigResolver || this.scene.configResolver;
-      if (ConfigResolver) {
-        xpTiers = ConfigResolver.get('loot.xp.tiers', {
-          defaultValue: [
-            { value: 50, color: 0xffff00, size: 1.4 },
-            { value: 25, color: 0xff8800, size: 1.2 },
-            { value: 10, color: 0x00ff88, size: 1.0 },
-            { value: 5,  color: 0x00ffff, size: 0.8 },
-            { value: 1,  color: 0x4444ff, size: 0.7 }
-          ]
-        });
-      } else {
-        xpTiers = [
-          { value: 50, color: 0xffff00, size: 1.4 },
-          { value: 25, color: 0xff8800, size: 1.2 },
-          { value: 10, color: 0x00ff88, size: 1.0 },
-          { value: 5,  color: 0x00ffff, size: 0.8 },
-          { value: 1,  color: 0x4444ff, size: 0.7 }
-        ];
+    // PR7: Use blueprint-based tier system (1, 5, 10 XP)
+    const xpTiers = [
+      { value: 10, color: 0x00E8FC, size: 1.2, tier: 'large' },
+      { value: 5, color: 0x00E8FC, size: 1.0, tier: 'medium' },
+      { value: 1, color: 0x00E8FC, size: 0.8, tier: 'small' }
+    ];
+    
+    // Try to load colors from blueprints if available
+    if (this.scene.blueprintLoader) {
+      for (const tier of xpTiers) {
+        const blueprint = this.scene.blueprintLoader.get(`drop.xp_${tier.tier}`);
+        if (blueprint?.display?.color) {
+          tier.color = blueprint.display.color;
+        }
       }
-    } else {
-      xpTiers = [
-        { value: 50, color: 0xffff00, size: 1.4 },
-        { value: 25, color: 0xff8800, size: 1.2 },
-        { value: 10, color: 0x00ff88, size: 1.0 },
-        { value: 5,  color: 0x00ffff, size: 0.8 },
-        { value: 1,  color: 0x4444ff, size: 0.7 }
-      ];
     }
     let remainingXP = totalXP;
     const orbs = [];
@@ -172,16 +252,10 @@ export class LootSystem {
       }
     }
     orbs.forEach(() => {
-      // PR5: XP orb spread with ConfigResolver
-      let maxSpread, spreadPerOrb;
-      if (this.scene.GameConfig?.validation?.features?.useConfigResolver) {
-        const ConfigResolver = window.ConfigResolver || this.scene.configResolver;
-        maxSpread = ConfigResolver.get('loot.xp.maxSpread', { defaultValue: 40 });
-        spreadPerOrb = ConfigResolver.get('loot.xp.spreadPerOrb', { defaultValue: 8 });
-      } else {
-        maxSpread = 40;
-        spreadPerOrb = 8;
-      }
+      // PR7: XP orb spread with ConfigResolver
+      const cr = this.scene.configResolver || window.ConfigResolver;
+      const maxSpread = cr?.get('loot.xp.maxSpread', { defaultValue: 40 }) || 40;
+      const spreadPerOrb = cr?.get('loot.xp.spreadPerOrb', { defaultValue: 8 }) || 8;
       
       const offsetX = (Math.random() - 0.5) * Math.min(maxSpread, orbs.length * spreadPerOrb);
       const offsetY = (Math.random() - 0.5) * Math.min(maxSpread, orbs.length * spreadPerOrb);
@@ -193,70 +267,176 @@ export class LootSystem {
   createXPOrb(x, y, value = 1, color = null, sizeMultiplier = 1) {
     const sprite = this.scene.physics.add.sprite(x, y, null);
     const graphics = this.scene.add.graphics();
-    // PR7: Get XP orb size and color from ConfigResolver
+    // PR7: Get XP orb size and color from ConfigResolver or blueprint
     const CR = this.scene.configResolver || window.ConfigResolver;
     const orbSize = CR ? CR.get('drops.xp.orbSize', { defaultValue: 20 }) : 20;
     const baseSize = orbSize * 0.7;
     const hexSize = baseSize * sizeMultiplier;
-    const orbColor = color || (CR ? CR.get('drops.xp.orbColor', { defaultValue: 0x00ff00 }) : 0x00ff00);
-    graphics.fillStyle(orbColor, 1);
-    graphics.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i;
-      const px = hexSize + Math.cos(angle) * hexSize;
-      const py = hexSize + Math.sin(angle) * hexSize;
-      if (i === 0) graphics.moveTo(px, py); else graphics.lineTo(px, py);
+    
+    // Try to get blueprint and extract color/shape
+    let blueprint = null;
+    let orbColor = color;
+    let shape = 'hexagon';  // Default shape for XP orbs
+    
+    if (this.scene.blueprintLoader) {
+      // Determine tier based on value
+      const tier = value >= 10 ? 'large' : value >= 5 ? 'medium' : 'small';
+      blueprint = this.scene.blueprintLoader.get(`item.xp_${tier}`);
+      if (blueprint) {
+        if (blueprint.color) {
+          orbColor = blueprint.color;
+        }
+        // Get shape from blueprint if available
+        if (blueprint.graphics?.shape) {
+          shape = blueprint.graphics.shape;
+        }
+        // Attach blueprint for later use
+        sprite._dropBlueprint = blueprint;
+      }
     }
-    graphics.closePath();
-    graphics.fill();
-    if (value > 1) {
-      graphics.lineStyle(2, 0xffffff, 0.6);
-      graphics.strokePath();
-    }
+    
+    // Fallback to ConfigResolver or default cyan color
+    orbColor = orbColor || (CR ? CR.get('drops.xp.orbColor', { defaultValue: 0x00E8FC }) : 0x00E8FC);
+    
+    // Draw the shape using ShapeRenderer
+    const strokeColor = value > 1 ? 0xffffff : null;
+    const strokeWidth = value > 1 ? 2 : 0;
+    const strokeAlpha = value > 1 ? 0.6 : 0;
+    
+    ShapeRenderer.drawShape(graphics, shape, hexSize, hexSize, hexSize, {
+      fillColor: orbColor,
+      fillAlpha: 1.0,
+      strokeColor: strokeColor,
+      strokeWidth: strokeWidth,
+      strokeAlpha: strokeAlpha
+    });
     const textureName = 'xpHex_' + Date.now() + '_' + Math.random();
     graphics.generateTexture(textureName, hexSize * 2, hexSize * 2);
     sprite.setTexture(textureName);
     graphics.destroy();
     sprite.type = 'xp';
     sprite.value = value;
-    this.scene.tweens.add({ targets: sprite, scaleX: 1.05, scaleY: 1.05, duration: 800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    
+    // Add bobbing animation if specified in blueprint
+    if (blueprint?.pickup?.bobbing !== false) {
+      this.scene.tweens.add({ 
+        targets: sprite, 
+        scaleX: 1.05, 
+        scaleY: 1.05, 
+        duration: 800, 
+        yoyo: true, 
+        repeat: -1, 
+        ease: 'Sine.easeInOut' 
+      });
+    }
+    
+    // Set lifetime if specified in blueprint
+    if (blueprint?.pickup?.lifetime) {
+      this.scene.time.delayedCall(blueprint.pickup.lifetime, () => {
+        if (sprite && sprite.active) {
+          // Fade out and destroy
+          this.scene.tweens.add({
+            targets: sprite,
+            alpha: 0,
+            duration: 500,
+            onComplete: () => sprite.destroy()
+          });
+        }
+      });
+    }
+    
     this.loot.add(sprite);
     return sprite;
   }
 
   createMetotrexat(x, y) {
-    const metoCfg = GameConfig.specialDrops?.metotrexat || {};
+    const cr = this.scene.configResolver || window.ConfigResolver;
     const sprite = this.scene.physics.add.sprite(x, y, null);
     const graphics = this.scene.add.graphics();
-    const baseSize = GameConfig.xp.orbSize * 0.9;
-    const hexSize = baseSize * (metoCfg.orbSizeMultiplier ?? 1.1);
-    const orbColor = metoCfg.orbColor ?? 0xffffaa;
-    graphics.fillStyle(orbColor, 1);
-    graphics.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i;
-      const px = hexSize + Math.cos(angle) * hexSize;
-      const py = hexSize + Math.sin(angle) * hexSize;
-      if (i === 0) graphics.moveTo(px, py); else graphics.lineTo(px, py);
+    
+    // Try to get blueprint for metotrexat
+    let blueprint = null;
+    let shape = 'star';  // Default shape for special drops
+    let color = cr?.get('drops.metotrexat.color', { defaultValue: 0xFF00FF }) || 0xFF00FF;
+    let scale = 1.2;
+    
+    if (this.scene.blueprintLoader) {
+      blueprint = this.scene.blueprintLoader.get('item.metotrexat');
+      if (blueprint) {
+        if (blueprint.graphics?.shape) {
+          shape = blueprint.graphics.shape;
+        }
+        if (blueprint.color) {
+          color = blueprint.color;
+        }
+        if (blueprint.graphics?.scale) {
+          scale = blueprint.graphics.scale;
+        }
+        sprite._dropBlueprint = blueprint;
+      }
     }
-    graphics.closePath();
-    graphics.fill();
-    graphics.lineStyle(2, 0xffffff, 0.9);
-    graphics.strokePath();
+    
+    const baseSize = (cr?.get('drops.xp.orbSize', { defaultValue: 20 }) || 20) * 0.9;
+    const hexSize = baseSize * scale;
+    
+    // Draw metotrexat with shape
+    ShapeRenderer.drawShape(graphics, shape, hexSize, hexSize, hexSize, {
+      fillColor: color,
+      fillAlpha: 1.0,
+      strokeColor: 0xffffff,
+      strokeWidth: 2,
+      strokeAlpha: 0.9
+    });
     const textureName = 'metoHex_' + Date.now() + '_' + Math.random();
     graphics.generateTexture(textureName, hexSize * 2, hexSize * 2);
     sprite.setTexture(textureName);
     graphics.destroy();
     sprite.type = 'metotrexat';
-    this.scene.tweens.add({ targets: sprite, scaleX: 1.15, scaleY: 1.15, alpha: 0.6, duration: 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    try {
-      sprite.setTint(orbColor);
-      const blink = this.scene.time.addEvent({ delay: 180, loop: true, callback: () => {
-        const current = sprite.tintTopLeft;
-        sprite.setTint(current === 0xffffff ? orbColor : 0xffffff);
-      }});
-      sprite.on('destroy', () => blink?.remove(false));
-    } catch (_) {}
+    
+    // Add animations based on blueprint
+    if (blueprint?.graphics?.pulseAnimation !== false) {
+      this.scene.tweens.add({ 
+        targets: sprite, 
+        scaleX: 1.15, 
+        scaleY: 1.15, 
+        alpha: 0.6, 
+        duration: 300, 
+        yoyo: true, 
+        repeat: -1, 
+        ease: 'Sine.easeInOut' 
+      });
+    }
+    
+    // Add glow effect
+    if (blueprint?.graphics?.glow) {
+      try {
+        sprite.setTint(color);
+        const blink = this.scene.time.addEvent({ 
+          delay: 180, 
+          loop: true, 
+          callback: () => {
+            const current = sprite.tintTopLeft;
+            sprite.setTint(current === 0xffffff ? color : 0xffffff);
+          }
+        });
+        sprite.on('destroy', () => blink?.remove(false));
+      } catch (_) {}
+    }
+    
+    // Set lifetime if specified in blueprint (longer for rare items)
+    if (blueprint?.pickup?.lifetime) {
+      this.scene.time.delayedCall(blueprint.pickup.lifetime, () => {
+        if (sprite && sprite.active) {
+          this.scene.tweens.add({
+            targets: sprite,
+            alpha: 0,
+            duration: 500,
+            onComplete: () => sprite.destroy()
+          });
+        }
+      });
+    }
+    
     this.loot.add(sprite);
     return sprite;
   }
@@ -269,7 +449,9 @@ export class LootSystem {
   }
 
   _pickSpecialDrop() {
-    const list = DropRegistry.list();
+    // Use BlueprintLoader to get drop blueprints
+    const allDrops = this.scene.blueprintLoader?.getAll('drop') || [];
+    const list = Array.from(allDrops.values());
     if (!list || list.length === 0) return null;
     // Filtr dle pravidel (level apod.)
     const lvl = this.scene.gameStats?.level || 1;
@@ -297,22 +479,77 @@ export class LootSystem {
     return s;
   }
 
-  createHealthOrb(x, y) {
+  createHealthOrb(x, y, healAmount = null) {
+    const cr = this.scene.configResolver || window.ConfigResolver;
     const sprite = this.scene.physics.add.sprite(x, y, null);
     const graphics = this.scene.add.graphics();
-    const size = GameConfig.health.orbSize;
-    graphics.fillStyle(GameConfig.health.orbColor, 1);
-    graphics.fillCircle(size, size, size);
+    const size = cr?.get('drops.health.orbSize', { defaultValue: 20 }) || 20;
+    
+    // Try to get blueprint for health drops
+    let blueprint = null;
+    let shape = 'circle';  // Default shape for health orbs
+    let color = cr?.get('drops.health.color', { defaultValue: 0xFF0000 }) || 0xFF0000;
+    
+    if (this.scene.blueprintLoader) {
+      blueprint = this.scene.blueprintLoader.get('item.health_small') || 
+                 this.scene.blueprintLoader.get('item.health_large');
+      if (blueprint) {
+        if (blueprint.graphics?.shape) {
+          shape = blueprint.graphics.shape;
+        }
+        if (blueprint.color) {
+          color = blueprint.color;
+        }
+        sprite._dropBlueprint = blueprint;
+      }
+    }
+    
+    // Draw health orb with shape
+    ShapeRenderer.drawShape(graphics, shape, size, size, size, {
+      fillColor: color,
+      fillAlpha: 1.0
+    });
+    
+    // Add health cross on top
     graphics.fillStyle(0xffffff, 1);
     graphics.fillRect(size - size * 0.6, size - 2, size * 1.2, 4);
     graphics.fillRect(size - 2, size - size * 0.6, 4, size * 1.2);
+    
     const textureName = 'healthOrb_' + Date.now() + '_' + Math.random();
     graphics.generateTexture(textureName, size * 2, size * 2);
     sprite.setTexture(textureName);
     graphics.destroy();
     sprite.type = 'health';
-    sprite.value = GameConfig.health.healAmount;
-    this.scene.tweens.add({ targets: sprite, scaleX: 1.2, scaleY: 1.2, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    sprite.value = healAmount || blueprint?.effect?.value || cr?.get('drops.health.healAmount', { defaultValue: 15 }) || 15;
+    sprite.healAmount = sprite.value; // For compatibility
+    
+    // Add bobbing animation if specified in blueprint
+    if (blueprint?.pickup?.bobbing !== false) {
+      this.scene.tweens.add({ 
+        targets: sprite, 
+        scaleX: 1.2, 
+        scaleY: 1.2, 
+        duration: 500, 
+        yoyo: true, 
+        repeat: -1, 
+        ease: 'Sine.easeInOut' 
+      });
+    }
+    
+    // Set lifetime if specified in blueprint
+    if (blueprint?.pickup?.lifetime) {
+      this.scene.time.delayedCall(blueprint.pickup.lifetime, () => {
+        if (sprite && sprite.active) {
+          this.scene.tweens.add({
+            targets: sprite,
+            alpha: 0,
+            duration: 500,
+            onComplete: () => sprite.destroy()
+          });
+        }
+      });
+    }
+    
     this.loot.add(sprite);
     return sprite;
   }
@@ -325,8 +562,8 @@ export class LootSystem {
     const startTime = profiler?.startMeasurement('LootSystem');
     
     const player = this.scene.player;
-    // magnetRange už obsahuje finální hodnotu z PowerUpSystem
-    const actualMagnetRange = this.magnetRange;
+    // Get XP magnet range from player (includes power-up modifiers)
+    const actualMagnetRange = player.getXPMagnetRadius ? player.getXPMagnetRadius() : this.magnetRange;
     
     // PERFORMANCE OPTIMALIZATION: Direct iteration místo children.entries.forEach
     const lootObjects = this.loot.children?.list || [];
@@ -340,8 +577,25 @@ export class LootSystem {
       const dy = player.y - orb.y;
       const distance = Math.hypot(dx, dy);
       
+      // Get pickup radius from blueprint or use default
+      let pickupRadius = 25;
+      if (orb._dropBlueprint?.pickup?.pickupRadius) {
+        pickupRadius = orb._dropBlueprint.pickup.pickupRadius;
+      } else {
+        const cr = this.scene.configResolver || window.ConfigResolver;
+        pickupRadius = cr?.get('collision.lootPickup', { defaultValue: 25 }) || 25;
+      }
+      
       // Detekce pickup pro VŠECHNY typy lootu při blízkém kontaktu
-      if (distance <= GameConfig.collision.lootPickup) {
+      if (distance <= pickupRadius) {
+        // Check autoPickup flag from blueprint
+        if (orb._dropBlueprint?.pickup?.autoPickup === false) {
+          // Don't auto-pickup if explicitly disabled (e.g., health at full HP)
+          if (orb.type === 'health' && player.hp >= player.maxHp) {
+            continue;
+          }
+        }
+        
         // V bezprostřední blízkosti hráče: zajistit správnou pozici TĚLA a vyvolat pickup
         orb.body.setVelocity(0, 0);
         if (orb.body && typeof orb.body.reset === 'function') {
@@ -352,30 +606,38 @@ export class LootSystem {
         }
         // Okamžitě zpracovat pickup mimo aktuální iteraci (bezpečné vůči mutaci kolekce)
         this.scene.time.delayedCall(0, () => {
-          try { this.scene.handlePlayerLootCollision(this.scene.player.sprite, orb); } catch (_) {}
+          try { this.scene.handlePlayerLootCollision(this.scene.player.sprite || this.scene.player, orb); } catch (_) {}
         });
         continue;
       }
       
-      // Magnetický efekt POUZE pro XP orby
-      if (orb.type === 'xp') {
-        if (distance > actualMagnetRange) {
-          orb.body.setVelocity(0, 0);
-          continue;
-        }
-        
+      // Magnet effect - check if item has magnetRange in blueprint
+      let magnetRange = 0;
+      if (orb._dropBlueprint?.pickup?.magnetRange) {
+        magnetRange = orb._dropBlueprint.pickup.magnetRange;
+      } else if (orb.type === 'xp') {
+        // Default magnet for XP orbs
+        magnetRange = actualMagnetRange;
+      }
+      
+      if (magnetRange > 0 && distance <= magnetRange) {
+        // Apply magnet effect
         const inv = 1 / (distance || 1);
         const dirX = dx * inv;
         const dirY = dy * inv;
-        const t = 1 - (distance / actualMagnetRange);
+        const t = 1 - (distance / magnetRange);
         const magnetStrength = t * t;
         const baseSpeed = 120;
         const maxBonus = 480;
         const speed = baseSpeed + magnetStrength * maxBonus;
         orb.body.setVelocity(dirX * speed, dirY * speed);
-        orb.rotation += 0.12;
+        
+        // Rotate XP orbs while being attracted
+        if (orb.type === 'xp') {
+          orb.rotation += 0.12;
+        }
       } else {
-        // Non-XP loot: žádný magnet, jen zastavit velocity
+        // No magnet effect - stop velocity
         orb.body.setVelocity(0, 0);
       }
     }
@@ -390,6 +652,30 @@ export class LootSystem {
     this.magnetRange = Math.min(560, 80 + this.magnetLevel * 40);
     console.log(`[LootSystem] Magnet level increased to ${this.magnetLevel}, range: ${this.magnetRange}`);
   }
+  
+  // === PUBLIC API FOR LOOT INTEGRATION ===
+  
+  /**
+   * Spawn XP orb (called from LootSystemIntegration)
+   */
+  spawnXP(x, y, value) {
+    return this.createXPOrb(x, y, value);
+  }
+  
+  /**
+   * Spawn health drop (called from LootSystemIntegration)
+   */
+  spawnHealthDrop(x, y, healAmount) {
+    return this.createHealthOrb(x, y, healAmount);
+  }
+  
+  /**
+   * Spawn Metotrexat (called from LootSystemIntegration)
+   */
+  spawnMetotrexat(x, y) {
+    return this.createMetotrexat(x, y);
+  }
+  
   clearAll() { this.loot.clear(true, true); }
 }
 

@@ -214,6 +214,39 @@ export class SFXRegistry {
       description: 'Spawn těžkého nepřítele',
       category: 'enemy'
     });
+    
+    // Přidáme další chybějící spawn zvuky
+    this.register('sfx.enemy.spawn.elite', {
+      key: 'npc_spawn',
+      volume: 0.7,
+      detune: 100,
+      description: 'Spawn elite nepřítele',
+      category: 'enemy'
+    });
+    
+    this.register('sfx.enemy.spawn.elite.major', {
+      key: 'npc_spawn',
+      volume: 0.8,
+      detune: 200,
+      description: 'Spawn major elite nepřítele',
+      category: 'enemy'
+    });
+    
+    this.register('sfx.enemy.spawn.swarm', {
+      key: 'npc_spawn',
+      volume: 0.4,
+      detuneRange: [-100, 300],
+      description: 'Spawn hejna',
+      category: 'enemy'
+    });
+    
+    this.register('sfx.enemy.spawn.aggressive', {
+      key: 'npc_spawn',
+      volume: 0.6,
+      detune: -100,
+      description: 'Spawn agresivního nepřítele',
+      category: 'enemy'
+    });
 
     this.register('sfx.npc.hit', {
       key: 'npc_hit',
@@ -236,6 +269,77 @@ export class SFXRegistry {
       volume: 0.5,
       detune: -400,
       description: 'Nekrotický zásah',
+      category: 'enemy'
+    });
+    
+    // Přidáme chybějící enemy hit zvuky
+    this.register('sfx.enemy.hit.small', {
+      key: 'hit_soft',
+      volume: 0.4,
+      detuneRange: [-100, 100],
+      description: 'Malý zásah nepřítele',
+      category: 'enemy'
+    });
+    
+    this.register('sfx.enemy.hit.soft', {
+      key: 'hit_soft', 
+      volume: 0.5,
+      description: 'Měkký zásah nepřítele',
+      category: 'enemy'
+    });
+    
+    this.register('sfx.enemy.hit.heavy', {
+      key: 'hit_hard',
+      volume: 0.6,
+      detune: -200,
+      description: 'Těžký zásah nepřítele',
+      category: 'enemy'
+    });
+    
+    this.register('sfx.enemy.hit.metal', {
+      key: 'hit_hard',
+      volume: 0.5,
+      detune: 200,
+      description: 'Kovový zásah nepřítele',
+      category: 'enemy'
+    });
+    
+    this.register('sfx.enemy.hit.shield', {
+      key: 'hit_soft',
+      volume: 0.3,
+      detune: 500,
+      description: 'Zásah štítu',
+      category: 'enemy'  
+    });
+    
+    this.register('sfx.enemy.hit.acid', {
+      key: 'npc_hit',
+      volume: 0.5,
+      detune: -200,
+      description: 'Kyselinový zásah',
+      category: 'enemy'
+    });
+    
+    this.register('sfx.enemy.hit.organic', {
+      key: 'hit_soft',
+      volume: 0.45,
+      detune: -300,
+      description: 'Organický zásah',
+      category: 'enemy'
+    });
+    
+    this.register('sfx.enemy.hit.flesh', {
+      key: 'npc_hit',
+      volume: 0.5,
+      detuneRange: [-150, 150],
+      description: 'Zásah masa',
+      category: 'enemy'
+    });
+    
+    this.register('sfx.enemy.hit.enhanced', {
+      key: 'hit_critical',
+      volume: 0.6,
+      description: 'Vylepšený zásah nepřítele',
       category: 'enemy'
     });
 
@@ -282,6 +386,30 @@ export class SFXRegistry {
       key: 'boss_phase',
       volume: 0.9,
       description: 'Boss změna fáze',
+      category: 'boss'
+    });
+
+    this.register('sfx.boss.shoot.fan', {
+      key: 'boss_shoot',
+      volume: 0.7,
+      detuneRange: [-100, 100],
+      description: 'Boss fan pattern střelba',
+      category: 'boss'
+    });
+
+    this.register('sfx.boss.shoot.tracking', {
+      key: 'boss_shoot',
+      volume: 0.6,
+      detune: 100,
+      description: 'Boss tracking střelba',
+      category: 'boss'
+    });
+
+    this.register('sfx.boss.shoot.circle', {
+      key: 'boss_shoot',
+      volume: 0.8,
+      detuneRange: [-50, 50],
+      description: 'Boss kruhová střelba',
       category: 'boss'
     });
 

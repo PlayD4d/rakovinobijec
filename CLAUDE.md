@@ -1,0 +1,2 @@
+- PR7 pravidla: @Dev_Guidelines.md
+- Development Guidelines @docs/DEVELOPER_GUIDE.md

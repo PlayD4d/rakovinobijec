@@ -4,7 +4,7 @@
   
   // Herní konfigurace
   game: {
-    version: "0.3.0",
+    version: "0.4.1",
     title: "Rakovinobijec",
     defaultLevel: 1,
     maxLevel: 20,
@@ -39,6 +39,15 @@
     sfxDebug: false
   },
   
+  // Logging
+  logging: {
+    maxLogs: 10000,
+    saveInterval: 30000,
+    level: "debug",
+    console: true,
+    file: true
+  },
+  
   // Výkonnostní nastavení
   performance: {
     maxEnemies: 100,
@@ -49,12 +58,86 @@
     updateRate: 60
   },
   
-  // PR7: Progression system configuration
+  // VFX konfigurace
+  vfx: {
+    shield: {
+      radius: 30,
+      color: 0x00ffff,  // Cyan
+      lineWidth: 2,
+      alpha: 0.6,
+      pulseSpeed: 2,
+      pulseMagnitude: 1.1
+    },
+    armorShield: {
+      radius: 1.2,
+      color: 0x808080,
+      lineWidth: 2,
+      alpha: 0.6
+    },
+    explosion: {
+      particleCount: 20,
+      speed: 200,
+      lifespan: 500
+    },
+    damage: {
+      flashDuration: 100,
+      flashColor: 0xff0000
+    },
+    flamethrower: {
+      length: 80,
+      angle: 0.5,  // Spread angle in radians
+      color: 0xff6600  // Orange flame color
+    }
+  },
+  
+  // PR7: Progression system configuration with softcap
   progression: {
     xp: {
-      baseRequirement: 10,
-      scalingMultiplier: 1.25,
-      maxLevel: 20
+      baseRequirement: 8,        // Rychlejší early-game
+      scalingMultiplier: 1.18,   // Mírnější růst
+      maxLevel: 30,               // Více level-upů pro lepší ekonomiku
+      softcapStart: 21,           // Softcap začíná od levelu 21
+      postSlope: 0.5,             // Poloviční růst po softcapu
+      
+      targets: {
+        // defaultní XP/min křivka pro 0–20 min; dá se zkrátit/extendovat podle levelu
+        xpPerMinute: [85,95,110,125,140,155,170,185,200,215,230,245,260,230,220,210,200,195,190,185],
+        bossXp: { min: 250, max: 600, capLevelsGranted: 1.5 },
+        pity: { enabled: true, minXpPerMinute: 60, untilMinute: 4 },
+        vacuum: { baseRadius: 1.0, perMinute: 0.05, maxRadius: 2.0 }
+      },
+      
+      enemyXp: {
+        "enemy.micro_shooter": 2,
+        "enemy.viral_swarm": 3,
+        "enemy.support_bacteria": 4,
+        "enemy.necrotic_cell": 6,
+        "enemy.acidic_blob": 5,
+        "enemy.metastasis_runner": 4,
+        "enemy.fungal_parasite": 5,
+        "enemy.aberrant_cell": 5,
+        "enemy.shielding_helper": 4,
+        "enemy.micro_shooter_enhanced": 3,
+        "enemy.viral_swarm_alpha": 5,
+        "elite.tank_cell": 20,
+        "elite.speed_virus": 18,
+        "elite.artillery_fungus": 22,
+        "unique.golden_cell": 35,
+        "unique.chromoblast": 40,
+        "unique.rainbow_virus": 45,
+        "boss.radiation_core": 300,
+        "boss.radiation": 500,
+        "boss.onkogen": 380,
+        "boss.onkogen_prime": 250,
+        "boss.karcinogenni_kral": 350,
+        "boss.genova_mutace": 400,
+        "boss.chemorezistence": 500
+      },
+      
+      timeScaling: { 
+        perMinuteMultiplier: 1.03, 
+        cap: 2.0 
+      }
     }
   },
   
@@ -142,7 +225,37 @@
     sfxVolume: 0.7,
     uiVolume: 0.8,
     
-    // Jednotlivé tracky
+    // Hudba pro různé scény
+    scenes: {
+      mainMenu: {
+        backgroundMusic: "music/8bit_main_menu.mp3",
+        volume: 0.5,
+        loop: true,
+        fadeIn: 1000,  // Fade in duration in ms
+        fadeOut: 500   // Fade out duration in ms
+      },
+      game: {
+        tracks: [
+          "music/8bit_track1.mp3",
+          "music/8bit_track2.mp3",
+          "music/8bit_track3.mp3",
+          "music/8bit_track4.mp3"
+        ],
+        randomize: true,
+        volume: 0.4,
+        loop: true
+      },
+      boss: {
+        tracks: [
+          "music/8bit_boss1.mp3",
+          "music/8bit_boss2.mp3"
+        ],
+        volume: 0.6,
+        loop: true
+      }
+    },
+    
+    // Jednotlivé tracky (legacy - pro zpětnou kompatibilitu)
     tracks: {
       levelMusic1: {
         volume: 1.0,
@@ -167,12 +280,24 @@
     worldMargin: 24
   },
   
-  // Loot system
+  // Loot system with progressive scaling
   loot: {
     dropLifetime: 30000,
     magnetRange: 100,
+    magnetRangeGrowth: 2,        // +2 pixels per minute
+    magnetRangeMax: 200,         // Max magnet range
     autoPickupDelay: 500,
-    maxDropsPerKill: 5
+    maxDropsPerKill: 5,
+    xpScaling: {
+      enabled: true,
+      growthPerMinute: 0.03,     // +3% XP per minute
+      maxMultiplier: 2.0         // Max 2x XP
+    },
+    pityFloor: {
+      enabled: true,
+      minXpPerMinute: 60,        // Min 60 XP/min in first 4 minutes
+      duration: 240000           // 4 minutes
+    }
   },
   
   // Enemy configuration
@@ -199,6 +324,20 @@
       homing: {
         color: 0xff00ff
       }
+    },
+    // Default projectile values
+    projectileSpeed: 150,
+    projectileRange: 400,
+    projectileDamage: 5
+  },
+  
+  // Projectile pools
+  projectiles: {
+    player: {
+      poolSize: 256
+    },
+    enemy: {
+      poolSize: 256
     }
   },
   
@@ -211,5 +350,111 @@
     performanceSnapshotInterval: 60000,
     lowFpsDebounce: 10000,
     maxRetries: 3
+  },
+  
+  // Player configuration - rozšířeno o fallback hodnoty z ConfigResolver
+  playerConfig: {
+    projectile: {
+      baseDamage: 10,
+      baseSpeed: 150,
+      baseRange: 600,
+      baseInterval: 1000,
+      muzzleOffset: 24
+    },
+    baseHp: 100,
+    baseSpeed: 4,
+    size: 30,
+    baseProjectiles: 1,
+    invincibilityTime: 1000,
+    shield: {
+      baseHP: 50,
+      hpPerLevel: 25,
+      baseRegenTime: 10000,
+      regenTimePerLevel: -1000,
+      minRegenTime: 6000
+    },
+    rendering: {
+      borderWidth: 2,
+      borderAlpha: 0.8,
+      alphaFrequency: 0.02,
+      speedMultiplier: 100
+    }
+  },
+  
+  // Abilities - převedeno z ConfigResolver fallbacks
+  abilities: {
+    radiotherapy: {
+      baseInterval: 1000,
+      intervalPerLevel: -100,
+      minInterval: 300
+    },
+    lightning: {
+      baseInterval: 2000,
+      intervalPerLevel: -200,
+      minInterval: 800
+    },
+    aura: {
+      tickRate: 0.05,
+      baseRadius: 50,
+      radiusGrowth: 1.15
+    }
+  },
+  
+  // Weapons - převedeno z ConfigResolver fallbacks
+  weapons: {
+    explosive: {
+      baseRadius: 30,
+      radiusPerLevel: 10,
+      damageMultiplier: 0.8
+    },
+    piercing: {
+      damageReduction: 0.9
+    }
+  },
+  
+  // Scaling - převedeno z ConfigResolver fallbacks
+  scaling: {
+    boss: {
+      hpMultiplier: 1.2,
+      damageMultiplier: 1.1,
+      xpMultiplier: 1.3
+    },
+    elite: {
+      baseChance: 0.05,
+      chancePerLevel: 0.01,
+      statMultiplier: 1.4
+    },
+    xp: {
+      perLevel: 0.2,
+      baseRequirement: 100
+    },
+    enemy: {
+      difficultyPerLevel: 0.1
+    }
+  },
+  
+  // Spawn system - převedeno z ConfigResolver fallbacks
+  spawn: {
+    intervalReductionRate: 0.005,
+    defeatedBossRespawnChance: 0.0001,
+    baseMaxEnemies: 20,
+    enemiesPerLevel: 2
+  },
+  
+  // Performance limits - převedeno z ConfigResolver fallbacks
+  limits: {
+    maxEmitters: 24,
+    maxProjectiles: 100,
+    maxEnemies: 50,
+    maxTrails: 10
+  },
+  
+  // Collision radiuses - z GameConfig
+  collision: {
+    projectile: 15,          // Projectile ↔ Enemy
+    lootPickup: 15,         // LootSystem pickup radius
+    lootOverlap: 20,        // Physics.overlap radius  
+    playerEnemy: 25,        // Player ↔ Enemy contact damage
+    explosion: 50           // Base explosion radius
   }
 }

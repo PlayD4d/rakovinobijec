@@ -116,13 +116,15 @@ class EnhancedDataAuditor {
       'blueprints/miniboss',
       'blueprints/unique',
       'blueprints/powerup',
-      'blueprints/drop',
+      'blueprints/items',  // PR7: items místo drop/loot
       'blueprints/projectile',
-      'blueprints/loot',
       'blueprints/spawn',
+      'blueprints/system',  // PR7: system konfigurace
+      'blueprints/templates',  // PR7: template blueprinty
       'schemas',
       'registries',
-      'i18n'
+      'i18n',
+      'config'  // PR7: config složka
     ];
     
     for (const folder of expectedFolders) {
@@ -140,7 +142,7 @@ class EnhancedDataAuditor {
     
     const blueprintDir = path.join(dataRoot, 'blueprints');
     
-    for (const category of ['boss', 'enemy', 'miniboss', 'unique', 'powerup', 'drop', 'projectile']) {
+    for (const category of ['boss', 'enemy', 'elite', 'miniboss', 'unique', 'powerup', 'projectile', 'items']) {
       const categoryDir = path.join(blueprintDir, category);
       
       if (!fs.existsSync(categoryDir)) continue;
@@ -192,8 +194,16 @@ class EnhancedDataAuditor {
         this.addWarning('FILENAME_MISMATCH', `File '${fileName}' should be '${expectedFileName}'`, filePath);
       }
       
-      // Check type consistency  
-      if (content.type !== expectedCategory) {
+      // Check type consistency (PR7: elite/unique now use type:"enemy" with meta.category)
+      if (expectedCategory === 'elite' || expectedCategory === 'unique') {
+        // Elite and unique entities should have type:"enemy" with meta.category
+        if (content.type !== 'enemy') {
+          this.addError('TYPE_MISMATCH', `Type '${content.type}' should be 'enemy' for ${expectedCategory}`, filePath);
+        }
+        if (!content.meta || content.meta.category !== expectedCategory) {
+          this.addWarning('MISSING_META_CATEGORY', `${expectedCategory} entity should have meta.category:'${expectedCategory}'`, filePath);
+        }
+      } else if (content.type !== expectedCategory) {
         this.addError('TYPE_MISMATCH', `Type '${content.type}' doesn't match folder '${expectedCategory}'`, filePath);
       }
       
@@ -332,10 +342,10 @@ class EnhancedDataAuditor {
       const content = fs.readFileSync(registryPath, 'utf8');
       const keys = new Set();
       
-      // Extract keys from registry format (looking for quoted keys)
-      const keyMatches = content.match(/"([^"]+)":/g) || [];
-      keyMatches.forEach(match => {
-        const key = match.slice(1, -2); // Remove quotes and colon
+      // Extract keys from registry format (looking for this.register calls)
+      const registerMatches = content.match(/this\.register\(['"]([^'"]+)['"]/g) || [];
+      registerMatches.forEach(match => {
+        const key = match.match(/['"]([^'"]+)['"]/)[1];
         keys.add(key);
       });
       

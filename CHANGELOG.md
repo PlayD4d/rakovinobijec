@@ -1,11 +1,46 @@
 # Changelog
 
-All notable changes to Rakovinobijec will be documented in this file.
+Všechny významné změny v projektu Rakovinobijec jsou dokumentovány v tomto souboru.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Formát založen na [Keep a Changelog](https://keepachangelog.com/cs/1.0.0/)
 
-## [Unreleased]
+## [0.4.1] - 2025-08-16
+
+### Přidáno
+- XP Magnet power-up do registry (chyběl ve výběru při level-upu)
+- Centralizovaná konfigurace hudby pro různé scény v main_config.json5
+- Podpora pro přímé cesty k audio souborům v blueprintech (PR7 kompatibilita)
+
+### Změněno
+- Všechny konfigurační hodnoty přesunuty z kódu do main_config.json5
+- ConfigResolver nyní obsahuje pouze minimální kritické fallbacky
+- Blueprint schema aktualizováno pro PR7 audio systém
+- Data audit script aktualizován pro novou strukturu složek
+- README.md kompletně přepsán s věnováním a lepší strukturou
+
+### Opraveno
+- VFX sekce v editoru již nezobrazuje audio ovládací prvky
+- Validátory nyní správně akceptují přímé cesty k audio souborům
+- Smoke testy aktualizovány pro novou strukturu konfigurace
+
+### Odstraněno
+- Hardcoded fallback hodnoty z ConfigResolver (140+ hodnot)
+- Legacy Enemy a Boss definitions z main_config.json5
+- Zastaralá audio migrační dokumentace
+
+## [0.4.0] - 2025-08-15
+
+### Přidáno
+- Kompletní PR7 architektura - 100% data-driven design
+- BlueprintLoader pro načítání všech entit z JSON5
+- SpawnDirector pro řízení vln nepřátel
+- ConfigResolver pro centralizovanou konfiguraci
+- Enhanced data audit script s validací schémat
+
+### Změněno
+- Všechny entity převedeny na blueprint systém
+- Audio systém refaktorován na přímé cesty k souborům
+- Power-up systém kompletně přepsán (PowerUpSystemV2)
 
 ## [0.3.1] - 2025-08-13
 

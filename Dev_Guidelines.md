@@ -15,12 +15,14 @@
 - **ModifierEngine**: Applies buffs, debuffs, and stat changes.
 - **ConfigResolver**: Fetches constants with fallback rules.
 - **VFX/SFX Registry**: Handles visual/audio effects.
+- **GraphicsFactory**: Centralized graphics object creation with pooling.
 
 ## Prohibited
 - Hardcoded gameplay constants in code.
 - Legacy imports from `/js/data/enemies/`, `/js/data/bosses/`, `/js/data/player/`, `/js/data/powerups/`.
 - Any feature flag branches for old systems.
 - Direct Phaser API calls for VFX/SFX from gameplay logic.
+- Direct `scene.add.graphics()` calls – use GraphicsFactory instead.
 
 ## Content Creation
 
@@ -48,12 +50,15 @@
    - Spawn NPC and trigger event that calls the VFX.
 
 ### Adding / Modifying SFX
-1. **Register** in `SFXRegistry`:
-   - Unique key, e.g. `"enemy_hit"`, with sound file path and volume.
+1. **Direct file path approach** (RECOMMENDED):
+   - Use direct file paths in blueprints, e.g. `"sound/laser.mp3"`
+   - Supports pooling and volume management automatically
+   - No registry maintenance required
 2. **Blueprint link**:
-   - Add `onShootSFX`, `onHitSFX`, or `onDeathSFX` field to blueprint.
+   - Add `onShootSFX`, `onHitSFX`, or `onDeathSFX` field to blueprint
+   - Example: `"hit": "sound/npc_hit.mp3"`
 3. **Test**:
-   - Trigger the event in-game and check console for missing registry warnings.
+   - Trigger the event in-game and check console for missing file warnings.
 
 ### Best Practices for Content
 - Keep stats balanced – test on multiple difficulty levels.
@@ -158,28 +163,24 @@ vfx: { spawn: "vfx.enemy.spawn.default", hit: "vfx.hit.spark.generic", death: "v
 
 ### 3) Přidání / úprava SFX
 
-**Krok 1 – Manifest nebo registr**
-- Preferujeme manifest `data/blueprints/system/system.audio_manifest.json5` (seznam klíč → soubor) **nebo** dynamickou
-  registraci v `SFXRegistry`.
+**NOVÝ PŘÍSTUP: Direct File Paths (DOPORUČENO)**
+- Použijte přímé cesty k souborům místo složitých registry systémů
+- Jednoduché, jasné a snadno udržovatelné
 
-**Příklad manifestu:**
+**Příklad direct path v blueprintu:**
 ```json5
-{
-  id: "system.audio_manifest",
-  type: "system",
-  audio: {
-    "sfx.enemy.spawn": "audio/enemy_spawn.ogg",
-    "sfx.enemy.hit.soft": "audio/enemy_hit_soft.ogg",
-    "sfx.enemy.death.small": "audio/enemy_death_small.ogg"
-  }
+sfx: { 
+  spawn: "sound/npc_spawn.mp3", 
+  hit: "sound/npc_hit.mp3", 
+  death: "sound/npc_death.mp3" 
 }
 ```
-Loader (AudioLoader) načte tyto položky přes `BlueprintLoader` a předá je `SFXSystem`.
 
-**Krok 2 – Použití v blueprintu**
-```json5
-sfx: { spawn: "sfx.enemy.spawn", hit: "sfx.enemy.hit.soft", death: "sfx.enemy.death.small" }
-```
+**Výhody direct paths:**
+- Žádná registrace potřeba - jednoduše odkazujte na soubor
+- Méně abstrakcí = méně chyb
+- Konsistence s loot systémem
+- Automatický pooling a volume management
 
 **Krok 3 – Hlasitosti a kanály**
 - Vše přes `ConfigResolver` (např. `audio.sfx.volume.master`, `audio.channels.effects`). Žádné hard‑coded hodnoty.
@@ -194,7 +195,57 @@ schématu, stačí v blueprintu nepřítele nastavit `loot.lootTableId` a loot s
 - `lootTable.*` má `stats` objekt a používá pouze podporované modifikátory.
 - CI `audit:data:strict` nesmí hlásit chyby.
 
-### 5) Rychlé DI testy v runtime
+### 5) Graphics Factory - PR7 Compliant Graphics Creation
+
+**Používání GraphicsFactory pro vytváření grafických objektů:**
+```javascript
+// ŠPATNĚ - přímé volání Phaser API
+this.graphics = this.scene.add.graphics();
+
+// SPRÁVNĚ - použití GraphicsFactory
+this.graphics = this.scene.graphicsFactory.create();
+
+// Cleanup - vrácení do poolu
+this.scene.graphicsFactory.release(this.graphics);
+```
+
+**Konfigurace vizuálních parametrů v blueprintu:**
+```json5
+// Všechny vizuální konstanty musí být v blueprintu
+"ability": {
+  "innerRadius": 30,
+  "innerWidthRatio": 0.4,
+  "outerWidthRatio": 0.8,
+  "beamColor": 0xCCFF00,
+  "strokeWidth": 2
+}
+```
+
+### 6) VFX System - Správné použití
+
+**Vytváření efektů přes VFXSystem:**
+```javascript
+// ŠPATNĚ - přímé volání particles
+this.scene.add.particles(...);
+
+// SPRÁVNĚ - použití VFXSystem
+this.scene.newVFXSystem.play('vfx.explosion.small', x, y);
+```
+
+**Registrace vlastních VFX efektů:**
+```javascript
+// V inicializaci nebo přes VFXRegistry
+vfxRegistry.register('vfx.custom.effect', {
+  type: 'particles',
+  texture: 'spark',
+  config: {
+    scale: { start: 0.5, end: 0 },
+    speed: { min: 100, max: 200 }
+  }
+});
+```
+
+### 7) Rychlé DI testy v runtime
 
 - `window.__framework.healthcheck()` → potvrďte `modernSystemsActive: true`, `spawnedFromLegacy: 0`,
   `spawnedFromSpawnTables > 0`.
@@ -206,3 +257,5 @@ schématu, stačí v blueprintu nepřítele nastavit `loot.lootTableId` a loot s
 - *VFX/SFX warningy:* špatné ID v blueprintu → použijte existující ID nebo přidejte alias do registru.
 - *Loot nepadá:* lootTable neprojde validací → dočasně se použije XP fallback. Opravte schéma `drop.*` a `lootTable.*`.
 - *Spawn mimo scénu:* zkontrolujte clamping ve `SpawnDirector.getSpawnPosition()` a rozměry kamery (`scene.cameras.main`).
+- *Graphics objekty:* Nikdy nepoužívejte `scene.add.graphics()` přímo. Vždy použijte `scene.graphicsFactory.create()`.
+- *Hardcoded vizuální konstanty:* Všechny vizuální parametry (barvy, velikosti, poměry) musí být v blueprintech.

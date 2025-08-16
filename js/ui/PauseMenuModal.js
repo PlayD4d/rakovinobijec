@@ -9,9 +9,13 @@ import { SettingsModal } from './SettingsModal.js';
 
 export class PauseMenuModal extends BaseUIComponent {
     constructor(scene, onResumeCallback = null) {
+        // Validate scene before using it
+        const width = scene?.scale?.width || 800;
+        const height = scene?.scale?.height || 600;
+        
         super(scene, 0, 0, {
-            width: scene.scale.width,
-            height: scene.scale.height,
+            width: width,
+            height: height,
             theme: 'modal',
             responsive: true
         });
@@ -24,7 +28,8 @@ export class PauseMenuModal extends BaseUIComponent {
         this.createPauseMenu();
         
         // Set proper depth to be above everything
-        this.setDepth(UI_THEME.depth.modal);
+        const modalDepth = scene.DEPTH_LAYERS?.UI_MODAL || UI_THEME.depth.modal || 20000;
+        this.setDepth(modalDepth);
         
         // Hide initially
         this.setVisible(false);
@@ -35,18 +40,17 @@ export class PauseMenuModal extends BaseUIComponent {
     }
     
     /**
-     * Vytvoří pause menu
+     * Vytvoří pause menu - container-based structure
      */
     createPauseMenu() {
-        // Modal overlay - create directly, not through BaseUIComponent
-        const { width, height } = this.scene.scale.gameSize;
-        this.overlay = this.scene.add.rectangle(0, 0, width, height, 0x000000, 0.7);
-        this.overlay.setOrigin(0, 0);
-        // Neděláme overlay interaktivní - neblokuje kliky na menu
-        // this.overlay.setInteractive(); // REMOVED - overlay should not block clicks
-        this.overlay.setScrollFactor(0); // Připnout k UI, ne ke kameře
-        this.overlay.setDepth(UI_THEME.depth.modal - 1); // Pod menu containerem
-        this.overlay.setVisible(false); // Hidden initially
+        // Validate scene before using it
+        if (!this.scene || !this.scene.scale) {
+            console.error('[PauseMenuModal] Cannot create pause menu - invalid scene reference');
+            return;
+        }
+        
+        // Overlay - přidat do kontejneru přes BaseUIComponent
+        this.overlay = this.createModalOverlay(0.7);
         
         // Get modal size
         const modalSize = RESPONSIVE.getModalSize(this.isMobileDevice);
@@ -54,6 +58,7 @@ export class PauseMenuModal extends BaseUIComponent {
         const menuHeight = Math.min(modalSize.height * 0.7, 500);
         
         // Menu container - pozice uprostřed scény
+        const { width, height } = this.scene.scale.gameSize;
         this.menuContainer = this.scene.rexUI.add.sizer({
             x: width / 2,
             y: height / 2,
@@ -63,9 +68,8 @@ export class PauseMenuModal extends BaseUIComponent {
             space: { item: UI_THEME.spacing.l }
         });
         
-        // Set high depth for menu container - must be above overlay
-        this.menuContainer.setDepth(UI_THEME.depth.modal + 1);
-        this.menuContainer.setAlpha(1); // Ensure full opacity
+        // Přidat menu container jako dítě BaseUIComponent kontejneru
+        this.add(this.menuContainer);
         
         // Background - make it more opaque for better visibility
         const background = this.scene.rexUI.add.roundRectangle(
@@ -261,6 +265,17 @@ export class PauseMenuModal extends BaseUIComponent {
         this.isPaused = true;
         this.isAnimating = true; // Začíná animace
         
+        // Debug: Check depth ordering
+        if (this.overlay && this.menuContainer) {
+            console.table({
+                overlayDepth: this.overlay.depth,
+                menuDepth: this.menuContainer.depth,
+                uiLayerDepth: this.scene.uiLayer?.depth,
+                expectedOverlay: this.scene.DEPTH_LAYERS?.UI_MODAL ? this.scene.DEPTH_LAYERS.UI_MODAL - 1 : 19999,
+                expectedModal: this.scene.DEPTH_LAYERS?.UI_MODAL || 20000
+            });
+        }
+        
         // PR7: Notify GameScene about pause state
         if (this.scene.setPaused) {
             this.scene.setPaused(true);
@@ -272,47 +287,20 @@ export class PauseMenuModal extends BaseUIComponent {
         // DŮLEŽITÉ: NEpauzovat scene.time tady - tweeny by se nespustily!
         // Pauzujeme až po dokončení animací
         
-        // Show overlay
-        if (this.overlay) {
-            this.overlay.setVisible(true);
-            this.overlay.setAlpha(0);
-            this.scene.tweens.add({
-                targets: this.overlay,
-                alpha: 0.7,
-                duration: 300,
-                ease: 'Power2'
-            });
-        }
-        
-        // Show menu container (RexUI object)
-        if (this.menuContainer) {
-            this.menuContainer.setVisible(true);
-            this.menuContainer.setScale(0.9);
-            this.menuContainer.setAlpha(0);
+        // Použít BaseUIComponent.show() pro pause-safe animace
+        this.show(true, 300).then(() => {
+            // Po dokončení animace zobrazit menu obsah
+            if (this.menuContainer) {
+                this.menuContainer.setVisible(true);
+                this.menuContainer.layout();
+            }
             
-            // Animate both alpha and scale for better visibility
-            this.scene.tweens.add({
-                targets: this.menuContainer,
-                alpha: 1,
-                scaleX: 1,
-                scaleY: 1,
-                duration: 300,
-                ease: 'Back.easeOut',
-                onComplete: () => {
-                    // Ensure full visibility after animation
-                    this.menuContainer.setAlpha(1);
-                    this.menuContainer.setScale(1);
-                    
-                    // TEPRVE TEĎ zastavit scene time - po dokončení animací
-                    this.scene.time.paused = true;
-                    
-                    this.isAnimating = false; // Animace dokončena
-                    console.log('[PauseMenuModal] Pause animation complete, alpha:', this.menuContainer.alpha, 'time paused:', this.scene.time.paused);
-                }
-            });
-        } else {
-            this.isAnimating = false; // Žádná animace
-        }
+            // TEPRVE TEĎ zastavit scene time - po dokončení animací
+            this.scene.time.paused = true;
+            
+            this.isAnimating = false; // Animace dokončena
+            console.log('[PauseMenuModal] Pause animation complete, time paused:', this.scene.time.paused);
+        });
     }
     
     /**
@@ -339,39 +327,19 @@ export class PauseMenuModal extends BaseUIComponent {
             this.scene.setPaused(false);
         }
         
-        // Hide menu container (RexUI object)
+        // Skrýt menu obsah nejprve
         if (this.menuContainer) {
-            this.scene.tweens.add({
-                targets: this.menuContainer,
-                alpha: 0,
-                duration: 300,
-                ease: 'Power2',
-                onComplete: () => {
-                    this.menuContainer.setVisible(false);
-                    this.isAnimating = false; // Animace dokončena
-                    console.log('[PauseMenuModal] Resume animation complete');
-                }
-            });
-        } else {
-            this.isAnimating = false; // Žádná animace
+            this.menuContainer.setVisible(false);
         }
         
-        // Hide overlay
-        if (this.overlay) {
-            this.scene.tweens.add({
-                targets: this.overlay,
-                alpha: 0,
-                duration: 300,
-                ease: 'Power2',
-                onComplete: () => {
-                    this.overlay.setVisible(false);
-                    console.log('[PauseMenuModal] Hide overlay complete');
-                    if (this.onResumeCallback) {
-                        this.onResumeCallback();
-                    }
-                }
-            });
-        }
+        // Použít BaseUIComponent.hide() pro pause-safe animace
+        this.hide(true, 300).then(() => {
+            this.isAnimating = false; // Animace dokončena
+            console.log('[PauseMenuModal] Resume animation complete');
+            if (this.onResumeCallback) {
+                this.onResumeCallback();
+            }
+        });
     }
     
     /**
@@ -390,13 +358,19 @@ export class PauseMenuModal extends BaseUIComponent {
      * Otevře nastavení
      */
     openSettings() {
-        const settingsModal = new SettingsModal(this.scene, () => {
-            // On close callback - nastavení aplikována
-            console.log('Settings modal closed from pause menu');
-        });
-        
-        // Přidat do scene
-        this.scene.add.existing(settingsModal);
+        // Reuse existing settings modal or create new one
+        if (!this.settingsModal) {
+            this.settingsModal = new SettingsModal(this.scene, () => {
+                // On close callback - nastavení aplikována
+                console.log('Settings modal closed from pause menu');
+            });
+            
+            // Přidat do scene pouze jednou
+            this.scene.add.existing(this.settingsModal);
+        } else {
+            // Just show existing modal
+            this.settingsModal.show();
+        }
     }
     
     /**
@@ -411,8 +385,44 @@ export class PauseMenuModal extends BaseUIComponent {
      * Ukončí hru a vrátí se do hlavního menu
      */
     quitGame() {
-        this.hide(false);
-        this.scene.scene.start('MainMenu');
+        console.log('[PauseMenuModal] Quitting game to main menu');
+        
+        // Uchovat referenci na scénu před jakýmkoliv cleanupem
+        const scene = this.scene;
+        if (!scene || !scene.sys) {
+            console.error('[PauseMenuModal] Cannot quit - scene invalid');
+            return;
+        }
+        
+        // Reset pause state přes uloženou scénu
+        this.isPaused = false;
+        
+        // Resume physics před scene switchem
+        if (scene.physics) {
+            scene.physics.resume();
+        }
+        
+        // Resume timers
+        if (scene.time) {
+            scene.time.paused = false;
+        }
+        
+        // Notify GameScene about unpause
+        if (scene.setPaused) {
+            scene.setPaused(false);
+        }
+        
+        // Stop sounds
+        scene.sound.stopAll();
+        
+        // Znič samotný PauseMenuModal (odstraní listenery a UI komponenty)
+        this.destroy();
+        
+        // Přepni scény na další tick, až skončí current call stack
+        scene.time.delayedCall(0, () => {
+            scene.scene.stop('GameScene');
+            scene.scene.start('MainMenu');
+        });
     }
     
     /**
@@ -465,6 +475,31 @@ export class PauseMenuModal extends BaseUIComponent {
     onCleanup() {
         this.isPaused = false;
         this.onResumeCallback = null;
+        
+        // Clean up settings modal if exists
+        if (this.settingsModal) {
+            this.settingsModal.destroy();
+            this.settingsModal = null;
+        }
+        
+        // Clean up menu container
+        if (this.menuContainer) {
+            // Remove from container first
+            this.remove(this.menuContainer);
+            this.menuContainer.destroy();
+            this.menuContainer = null;
+        }
+    }
+    
+    /**
+     * Override destroy to properly clean up
+     */
+    destroy() {
+        // Clean up all UI elements first
+        this.onCleanup();
+        
+        // Call parent destroy
+        super.destroy();
     }
 }
 

@@ -1,0 +1,43 @@
+{
+  id: 'item.protein_cache',
+  type: 'item',
+  
+  // Basic info
+  name: 'Protein Cache',
+  description: 'Fully restores health',
+  category: 'health',
+  rarity: 'rare',
+  
+  // Visual
+  icon: '🥩',
+  color: 0xFF4500,
+  graphics: {
+    shape: 'square',
+    scale: 1.1
+  },
+  
+  // Effects
+  effect: {
+    type: 'heal',
+    value: 'full'  // Special value for full heal
+  },
+  
+  // Pickup properties
+  pickup: {
+    magnetRange: 70,
+    pickupRadius: 35,
+    autoPickup: false,
+    lifetime: 40000,
+    bobbing: true
+  },
+  
+  // VFX/SFX
+  vfx: {
+    spawn: 'vfx.drop.spawn.rare',
+    pickup: 'vfx.player.heal.full'
+  },
+  sfx: {
+    spawn: 'sfx.drop.spawn.rare',
+    pickup: 'sfx.heal.full'
+  }
+}

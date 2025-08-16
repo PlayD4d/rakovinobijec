@@ -17,6 +17,7 @@ export class PowerUpVFXManager {
         this.effectTypes = {
             'shield': () => import('./effects/ShieldEffect.js').then(m => m.ShieldEffect),
             'flamethrower': () => import('./effects/FlamethrowerEffect.js').then(m => m.FlamethrowerEffect),
+            'radiotherapy': () => import('./effects/RadiotherapyEffect.js').then(m => m.RadiotherapyEffect),
             'chemoAura': () => import('./effects/ChemoAuraEffect.js').then(m => m.ChemoAuraEffect)
         };
         
@@ -54,7 +55,11 @@ export class PowerUpVFXManager {
         const entityEffects = this.activeEffects.get(entity);
         for (const effect of entityEffects) {
             if (effect.type === effectType) {
-                console.log(`[PowerUpVFXManager] Effect '${effectType}' already active on entity`);
+                console.log(`[PowerUpVFXManager] Effect '${effectType}' already active on entity, updating config`);
+                // Update existing effect configuration
+                if (effect.updateConfig) {
+                    effect.updateConfig(config);
+                }
                 return effect;
             }
         }
@@ -101,6 +106,25 @@ export class PowerUpVFXManager {
     }
     
     /**
+     * Get a specific effect attached to an entity
+     * @param {Phaser.GameObjects.Sprite} entity - The entity to check
+     * @param {string} effectType - Type of effect to find
+     * @returns {Object|null} The effect instance or null if not found
+     */
+    getEffect(entity, effectType) {
+        const entityEffects = this.activeEffects.get(entity);
+        if (!entityEffects) return null;
+        
+        for (const effect of entityEffects) {
+            if (effect.type === effectType) {
+                return effect;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
      * Detach all effects from an entity
      * @param {Phaser.GameObjects.Sprite} entity
      */
@@ -124,8 +148,10 @@ export class PowerUpVFXManager {
      */
     update(time, delta) {
         for (const [entity, effects] of this.activeEffects) {
-            if (!entity.active) {
-                // Entity inactive, detach all effects
+            // CRITICAL FIX: Only check for truly dead entities (hp <= 0)
+            // Don't detach effects just because entity is temporarily inactive
+            if (!entity.active && entity.hp !== undefined && entity.hp <= 0) {
+                // Entity is truly dead (hp <= 0), detach all effects
                 this.detachAllEffects(entity);
                 continue;
             }

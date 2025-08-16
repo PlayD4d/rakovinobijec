@@ -8,9 +8,13 @@ import { RESPONSIVE } from './UiConstants.js';
 
 export class HighScoreModal extends BaseUIComponent {
     constructor(scene, gameStats, onSubmitCallback = null) {
+        // Validate scene before using it
+        const width = scene?.scale?.width || 800;
+        const height = scene?.scale?.height || 600;
+        
         super(scene, 0, 0, {
-            width: scene.scale.width,
-            height: scene.scale.height,
+            width: width,
+            height: height,
             theme: 'modal',
             responsive: true
         });
@@ -34,12 +38,24 @@ export class HighScoreModal extends BaseUIComponent {
      * Zobrazí high score entry modal (zadání jména)
      */
     showEntry() {
+        // Validate scene is still valid
+        if (!this.scene || !this.scene.scale) {
+            console.error('[HighScoreModal] Cannot show - invalid scene reference');
+            return;
+        }
+        
         const { width, height } = this.scene.scale.gameSize;
         
         // Overlay
         const overlay = this.scene.add.graphics();
         overlay.fillStyle(UI_THEME.colors.background.overlay, 0.8);
         overlay.fillRect(0, 0, width, height);
+        overlay.setDepth(UI_THEME.depth.overlay);
+        
+        // Add overlay to UI layer if it exists
+        if (this.scene.uiLayer) {
+            this.scene.uiLayer.add(overlay);
+        }
         
         // Modal size
         const modalSize = RESPONSIVE.getModalSize(this.isMobileDevice, width, height);
@@ -66,6 +82,12 @@ export class HighScoreModal extends BaseUIComponent {
         );
         
         this.modalContainer.addBackground(background);
+        
+        // Set proper depth and add to UI layer
+        this.modalContainer.setDepth(UI_THEME.depth.modal);
+        if (this.scene.uiLayer) {
+            this.scene.uiLayer.add(this.modalContainer);
+        }
         
         // Title - Congratulations
         const titleText = this.scene.add.text(0, 0, 
@@ -199,6 +221,12 @@ export class HighScoreModal extends BaseUIComponent {
         const overlay = this.scene.add.graphics();
         overlay.fillStyle(UI_THEME.colors.background.overlay, 0.8);
         overlay.fillRect(0, 0, width, height);
+        overlay.setDepth(UI_THEME.depth.overlay);
+        
+        // Add overlay to UI layer if it exists
+        if (this.scene.uiLayer) {
+            this.scene.uiLayer.add(overlay);
+        }
         
         // Modal size
         const modalSize = RESPONSIVE.getModalSize(this.isMobileDevice, width, height);
@@ -224,6 +252,12 @@ export class HighScoreModal extends BaseUIComponent {
         );
         
         this.modalContainer.addBackground(background);
+        
+        // Set proper depth and add to UI layer
+        this.modalContainer.setDepth(UI_THEME.depth.modal);
+        if (this.scene.uiLayer) {
+            this.scene.uiLayer.add(this.modalContainer);
+        }
         
         // Title
         const titleText = this.scene.add.text(0, 0,

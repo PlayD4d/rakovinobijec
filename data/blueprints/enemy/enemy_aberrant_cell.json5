@@ -57,32 +57,50 @@
   },
   sfx: {
     spawn: 'sfx.enemy.spawn.elite.major',
-    hit: 'sfx.enemy.hit.heavy',
+    hit: 'sound/hit_hard.mp3',
     death: 'sfx.enemy.death.elite.major',
     enrage: 'sfx.enemy.enrage.roar',
   },
-  // PR7 Compliant: graphics field for visual configuration
   graphics: {
     sprite: 'enemy_aberrant_cell',
-    tint: 0xE91E63,
+    tint: 15277667,
     scale: 1.2,
     animation: {
       idle: 'aberrant_idle',
-      move: 'aberrant_move'
-    }
+      move: 'aberrant_move',
+    },
   },
-  // PR7 Compliant: ai field for behavior configuration
   ai: {
     behavior: 'chase',
     params: {
       aggroRange: 320,
       wanderRadius: 70,
       movePattern: 'aberrant_wobble',
-      targetPriority: 'nearest'
-    }
+      targetPriority: 'nearest',
+    },
   },
-  // PR7 Compliant: lootTable reference
-  lootTable: 'lootTable.level1.common',
+  drops: [
+    {
+      itemId: 'item.xp_medium',
+      chance: 1,
+    },
+    {
+      itemId: 'item.xp_large',
+      chance: 0.25,
+    },
+    {
+      itemId: 'item.heal_orb',
+      chance: 0.25,
+    },
+    {
+      itemId: 'item.protein_cache',
+      chance: 0.05,
+    },
+    {
+      itemId: 'item.energy_cell',
+      chance: 0.03,
+    },
+  ],
   display: {
     key: 'enemy.aberrant_cell.name',
     descKey: 'enemy.aberrant_cell.desc',
