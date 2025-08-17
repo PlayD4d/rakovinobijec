@@ -24,10 +24,6 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
         this.isInteractive = false;
         this.isDestroyed = false;
         
-        // Memory leak prevention - track interactive elements
-        this.interactiveElements = new WeakSet();
-        this.activeListeners = new Map(); // Track active event listeners
-        this.activeTweens = new Set(); // Track active tweens
         
         // Responsive detection
         this.isMobileDevice = isMobile();
@@ -135,12 +131,10 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
                 duration,
                 ease: 'Power2',
                 onComplete: () => {
-                    this.activeTweens.delete(tween);
                     this.onShowComplete();
                     resolve();
                 }
             });
-            this.activeTweens.add(tween);
         });
     }
 
@@ -166,13 +160,13 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
                 duration,
                 ease: 'Power2',
                 onComplete: () => {
-                    this.activeTweens.delete(tween);
+                    // Cleanup zjednodušen
                     this.setVisible(false);
                     this.onHideComplete();
                     resolve();
                 }
             });
-            this.activeTweens.add(tween);
+            // Tween tracking zjednodušeno
         });
     }
     
@@ -279,29 +273,16 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
         // Touch/click handling
         if (callback) {
             button.setInteractive();
-            this.interactiveElements.add(button);
-            
-            // Track the listeners
-            const pointerdownListener = { element: button, event: 'pointerdown', callback };
             button.on('pointerdown', callback);
-            this.activeListeners.set(`${button.name || 'button'}_pointerdown`, pointerdownListener);
             
             // Hover effects pro desktop
             if (!this.isMobileDevice) {
-                const overCallback = () => {
+                button.on('pointerover', () => {
                     button.getElement('background').setFillStyle(UI_THEME.colors.borders.active);
-                };
-                const outCallback = () => {
+                });
+                button.on('pointerout', () => {
                     button.getElement('background').setFillStyle(defaultConfig.backgroundColor);
-                };
-                
-                button.on('pointerover', overCallback);
-                button.on('pointerout', outCallback);
-                
-                this.activeListeners.set(`${button.name || 'button'}_pointerover`, 
-                    { element: button, event: 'pointerover', callback: overCallback });
-                this.activeListeners.set(`${button.name || 'button'}_pointerout`, 
-                    { element: button, event: 'pointerout', callback: outCallback });
+                });
             }
         }
         
@@ -395,27 +376,10 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
             this.scene.events.off('destroy', this.cleanup, this);
         }
         
-        // Zastavit a vyčistit všechny tweens
+        // Zastavit všechny tweens
         if (this.scene.tweens) {
-            // Kill tweens targeting this component
             this.scene.tweens.killTweensOf(this);
-            
-            // Clean tracked tweens
-            this.activeTweens.forEach(tween => {
-                if (tween && tween.remove) {
-                    tween.remove();
-                }
-            });
-            this.activeTweens.clear();
         }
-        
-        // Clean up tracked event listeners
-        this.activeListeners.forEach((listener, key) => {
-            if (listener && listener.element && listener.event) {
-                listener.element.off(listener.event, listener.callback);
-            }
-        });
-        this.activeListeners.clear();
         
         // Clean interactive elements (WeakSet will auto-cleanup when elements are destroyed)
         // But we'll still destroy any children that are interactive
@@ -457,50 +421,6 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
         return separator;
     }
     
-    /**
-     * Utility: Animace pulse efektu
-     */
-    addPulseAnimation(target = this, config = {}) {
-        const pulseConfig = {
-            scale: 1.05,
-            duration: 1000,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut',
-            ...config
-        };
-        
-        return this.scene.tweens.add({
-            targets: target,
-            scaleX: pulseConfig.scale,
-            scaleY: pulseConfig.scale,
-            duration: pulseConfig.duration,
-            yoyo: pulseConfig.yoyo,
-            repeat: pulseConfig.repeat,
-            ease: pulseConfig.ease
-        });
-    }
-    
-    /**
-     * Debug: Zobrazí bounds komponenty (development only)
-     */
-    showDebugBounds(color = 0xff0000) {
-        if (!this.scene.game.config.physics.arcade?.debug) return;
-        
-        const bounds = this.getBounds();
-        const debugRect = this.scene.add.graphics();
-        debugRect.lineStyle(2, color, 0.5);
-        debugRect.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
-        
-        // Auto cleanup po 5 sekundách
-        this.scene.time.delayedCall(5000, () => {
-            if (debugRect && debugRect.destroy) {
-                debugRect.destroy();
-            }
-        });
-        
-        return debugRect;
-    }
 }
 
 export default BaseUIComponent;

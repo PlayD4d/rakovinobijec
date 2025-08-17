@@ -18,14 +18,14 @@
     regenReductionPerLevel: 500,
   },
   vfx: {
-    pickup: 'vfx.powerup.pickup',
-    levelUp: 'vfx.powerup.levelup',
-    hit: 'vfx.hit.spark',
+    pickup: 'pickup',
+    levelUp: 'powerup',
+    hit: 'hit.small',
   },
   sfx: {
-    pickup: 'sfx.powerup.pickup',
-    apply: 'sfx.powerup.apply',
-    levelUp: 'sfx.powerup.levelup',
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
     hit: 'sound/player_hit.mp3',
   },
   display: {

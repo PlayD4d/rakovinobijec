@@ -1,0 +1,134 @@
+{
+  id: 'player',
+  type: 'player',
+  visuals: {
+    textureKey: 'player',
+    tint: 0x2385FF,
+    size: {
+      w: 24,
+      h: 24,
+    },
+  },
+  stats: {
+    hp: 100,
+    maxHp: 100,
+    armor: 0,
+    speed: 135,
+    size: 24,
+    level: 1,
+  },
+  mechanics: {
+    attack: {
+      intervalMs: 1000,
+      damageBase: 10,
+      critChance: 0.05,
+      critMultiplier: 2,
+    },
+    projectile: {
+      ref: 'projectile.player_basic',
+      count: 1,
+      spreadDeg: 15,
+      stats: {
+        damage: 10,
+        speed: 300,
+        range: 600,
+        piercing: false,
+      },
+    },
+    defense: {
+      dodgeChance: 0,
+      blockChance: 0,
+      damageReduction: 0,
+    },
+    regeneration: {
+      hpPerSecond: 0,
+      interval: 1000,
+    },
+    iFrames: {
+      ms: 1000,
+    },
+    progression: {
+      xpMultiplier: 1,
+      xpMagnetRange: 50,
+      xpAttractSpeed: 100,
+    },
+    abilities: {
+      dash: {
+        enabled: false,
+        cooldownMs: 3000,
+        distance: 100,
+        invulnerable: true,
+      },
+      shield: {
+        enabled: false,
+        duration: 3000,
+        charges: 1,
+        cooldownMs: 10000,
+      },
+    },
+    modifiersPerLevel: [
+      {
+        path: 'stats.hp',
+        type: 'add',
+        value: 10,
+      },
+      {
+        path: 'mechanics.attack.damageBase',
+        type: 'add',
+        value: 2,
+      },
+    ],
+  },
+  vfx: {
+    spawn: 'vfx.player.spawn',
+    hit: 'vfx.player.hit',
+    death: 'vfx.player.death',
+    shoot: 'vfx.weapon.muzzle',
+    heal: 'vfx.player.heal',
+    levelUp: 'vfx.player.levelup',
+    shield: {
+      activate: 'vfx.shield.activate',
+      block: 'vfx.shield.block',
+      break: 'vfx.shield.break',
+    },
+  },
+  sfx: {
+    spawn: 'sound/player_spawn.mp3',
+    hit: 'sound/player_hit.mp3',
+    death: 'sound/player_death.mp3',
+    shoot: 'sound/player_shoot.mp3',
+    heal: 'sound/heal.mp3',
+    levelUp: 'sound/levelup.mp3',
+    shield: {
+      activate: 'sound/shield_activate.mp3',
+      block: 'sound/shield_block.mp3',
+      break: 'sound/shield_break.mp3',
+    },
+  },
+  display: {
+    key: 'player.name',
+    descKey: 'player.desc',
+    devNameFallback: 'Šermíř',
+    devDescFallback: 'Odvážný bojovník s mečem, připravený čelit rakovinným buňkám',
+    templates: {
+      stats: 'HP: {{stats.hp}}/{{stats.maxHp}} • DMG: {{mechanics.attack.damageBase}}',
+      level: 'Level {{stats.level}} Šermíř',
+    },
+    category: 'player',
+    rarity: 'common',
+    icon: 'player.icon',
+    sortOrder: 100,
+    tags: [
+      'player',
+      'melee',
+      'starter',
+      'balanced',
+    ],
+  },
+  meta: {
+    version: '1.0.0',
+    author: 'PR7 System',
+    createdAt: '2024-01-13',
+    notes: 'Základní hráčská postava pro PR7 kompatibilní systém',
+  },
+}

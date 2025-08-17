@@ -52,7 +52,7 @@
           "cooldown": 15000
         }
       ],
-      "mutationVfx": "vfx.unique.mutation.adapt"
+      "mutationVfx": 'special'
     },
     "rapidStrikes": {
       "enabled": true,
@@ -119,22 +119,22 @@
     "adaptiveBehavior": true
   },
   "vfx": {
-    "spawn": "vfx.unique.spawn.splicer",
-    "death": "vfx.unique.death.mutation.burst",
-    "mutation": "vfx.unique.mutation.adapt",
-    "strikes": "vfx.unique.rapid.strikes",
-    "instability": "vfx.unique.genetic.instability",
-    "evolution": "vfx.unique.final.evolution",
-    "trail": "vfx.unique.toxic.trail",
-    "nova": "vfx.unique.damage.nova"
+    "spawn": 'spawn',
+    "death": 'death.large',
+    "mutation": 'special',
+    "strikes": 'special',
+    "instability": 'special',
+    "evolution": 'special',
+    "trail": 'special',
+    "nova": 'special'
   },
   "sfx": {
-    "spawn": "sfx.unique.spawn.splicer",
-    "death": "sfx.unique.death.mutation",
-    "mutation": "sfx.unique.mutation.change",
-    "strikes": "sfx.unique.rapid.strikes",
-    "instability": "sfx.unique.genetic.chaos",
-    "evolution": "sfx.unique.evolution.complete"
+    "spawn": 'sound/npc_spawn.mp3',
+    "death": 'sound/elite_death.mp3',
+    "mutation": 'sound/powerup.mp3',
+    "strikes": 'sound/powerup.mp3',
+    "instability": 'sound/powerup.mp3',
+    "evolution": 'sound/powerup.mp3'
   },
   "display": {
     "key": "unique.mutagen_splicer.name",

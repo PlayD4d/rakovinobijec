@@ -1,7 +1,7 @@
 # Smoke Test Report
 
 **Status**: ⚠️ PASS_WITH_WARNINGS
-**Timestamp**: 2025-08-16T05:59:42.205Z
+**Timestamp**: 2025-08-16T21:38:06.922Z
 **Duration**: 3ms
 
 ## System Validation
@@ -10,8 +10,8 @@
 |-------|--------|-----------|--------|
 | Legacy Spawns Inactive | ✅ | ≤ 0 | 0 |
 | Spawn Tables Used | ✅ | ≥ 10 | 10 |
-| VFX System Active | ✅ | ≥ 5 | 6 |
-| SFX System Active | ✅ | ≥ 5 | 8 |
+| VFX System Active | ✅ | ≥ 5 | 5 |
+| SFX System Active | ✅ | ≥ 5 | 5 |
 | Loot Tables Active | ❌ | ≥ 3 | 0 |
 
 ## TTK (Time-to-Kill) Validation
@@ -29,8 +29,8 @@
 - **Unique Enemy Types**: 0
 - **Elite Windows**: 0
 - **Unique Spawns**: 0
-- **VFX References**: 3
-- **SFX References**: 4
+- **VFX References**: 0
+- **SFX References**: 0
 - **Loot Tables**: 0
 - **Enemies Analyzed**: 0
 - **Average Enemy HP**: 30
@@ -45,8 +45,10 @@
 - ⚠️ Failed to parse blueprint enemy_fungal_parasite.json5: Expected ',' or '}' after property value in JSON at position 238 (line 16 column 14)
 - ⚠️ Failed to parse blueprint enemy_metastasis_runner.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint enemy_micro_shooter.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
+- ⚠️ Failed to parse blueprint enemy_micro_shooter_simplified.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint enemy_necrotic_cell.json5: Expected ',' or '}' after property value in JSON at position 590 (line 30 column 16)
 - ⚠️ Failed to parse blueprint enemy_shielding_helper.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
+- ⚠️ Failed to parse blueprint enemy_simple_example.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint enemy_support_bacteria.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint enemy_viral_swarm.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint enemy_viral_swarm_alpha.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
@@ -56,7 +58,7 @@
 - ⚠️ Failed to parse blueprint boss_onkogen.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint boss_onkogen_prime.json5: Expected ',' or '}' after property value in JSON at position 236 (line 15 column 14)
 - ⚠️ Failed to parse blueprint boss_radiation.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
-- ⚠️ Failed to parse blueprint boss_radiation_core.json5: Expected ',' or '}' after property value in JSON at position 239 (line 15 column 14)
+- ⚠️ Failed to parse blueprint boss_radiation_core.json5: Expected ',' or '}' after property value in JSON at position 241 (line 15 column 14)
 - ⚠️ Failed to parse blueprint unique_chromoblast.json5: Expected ',' or '}' after property value in JSON at position 360 (line 20 column 14)
 - ⚠️ Failed to parse blueprint unique_golden_cell.json5: Expected ',' or '}' after property value in JSON at position 326 (line 20 column 14)
 - ⚠️ Failed to parse blueprint unique_mutagen_splicer.json5: Expected ',' or '}' after property value in JSON at position 366 (line 20 column 14)
@@ -65,6 +67,9 @@
 - ⚠️ Failed to parse blueprint unique_radiomorph_titan.json5: Expected ',' or '}' after property value in JSON at position 370 (line 20 column 14)
 - ⚠️ Failed to parse blueprint unique_rainbow_virus.json5: Expected ',' or '}' after property value in JSON at position 328 (line 19 column 14)
 - ⚠️ Failed to parse blueprint powerup_chemo_reservoir.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
+- ⚠️ Failed to parse blueprint powerup_damage_boost.json5: Unexpected token ''', ..."levelUp": 'powerup'
+"... is not valid JSON
+- ⚠️ Failed to parse blueprint powerup_flamethrower.json5: Unexpected token ''', ..."levelUp": 'powerup',"... is not valid JSON
 - ⚠️ Failed to parse blueprint powerup_metabolic_haste.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint powerup_piercing_arrows.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint powerup_radiotherapy.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
@@ -75,8 +80,10 @@
 - ⚠️ Failed to parse enemy enemy_fungal_parasite.json5: Expected ',' or '}' after property value in JSON at position 238 (line 16 column 14)
 - ⚠️ Failed to parse enemy enemy_metastasis_runner.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse enemy enemy_micro_shooter.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
+- ⚠️ Failed to parse enemy enemy_micro_shooter_simplified.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse enemy enemy_necrotic_cell.json5: Expected ',' or '}' after property value in JSON at position 590 (line 30 column 16)
 - ⚠️ Failed to parse enemy enemy_shielding_helper.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
+- ⚠️ Failed to parse enemy enemy_simple_example.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse enemy enemy_support_bacteria.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse enemy enemy_viral_swarm.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse enemy enemy_viral_swarm_alpha.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)

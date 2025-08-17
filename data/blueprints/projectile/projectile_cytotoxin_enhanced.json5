@@ -29,7 +29,7 @@
     pierceDecay: 0,
     trail: {
       enabled: true,
-      vfx: 'vfx.trail.toxic_enhanced',
+      vfx: 'trail.small',
       fadeTime: 400,
     },
     homing: true,         // Light homing ability
@@ -46,17 +46,17 @@
   
   // VFX effects
   vfx: {
-    spawn: 'vfx.muzzle.enhanced',
-    trail: 'vfx.trail.toxic_enhanced',
-    hit: 'vfx.hit.toxic_enhanced',
-    expire: 'vfx.projectile.fade',
+    spawn: 'effect',
+    trail: 'trail.small',
+    hit: 'hit.small',
+    expire: 'hit.small',
   },
   
   // SFX sounds
   sfx: {
-    spawn: 'sfx.weapon.fire.enhanced',
-    hit: 'sfx.weapon.hit.enhanced',
-    expire: 'sfx.projectile.fade',
+    spawn: 'sound/laser.mp3',
+    hit: 'sound/laser.mp3',
+    expire: 'sound/projectile_hit.mp3',
   },
   
   // Display info

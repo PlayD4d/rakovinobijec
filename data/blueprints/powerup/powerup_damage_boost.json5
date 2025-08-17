@@ -20,13 +20,13 @@
     "effectType": "damage_boost"
   },
   "vfx": {
-    "pickup": "vfx.powerup.pickup",
-    "levelUp": "vfx.powerup.levelup"
+    "pickup": "pickup",
+    "levelUp": 'powerup'
   },
   "sfx": {
-    "pickup": "sfx.powerup.pickup",
-    "apply": "sfx.powerup.apply",
-    "levelUp": "sfx.powerup.levelup"
+    "pickup": "sound/pickup.mp3",
+    "apply": 'sound/powerup.mp3',
+    "levelUp": 'sound/powerup.mp3'
   },
   "display": {
     "key": "powerup.damage_boost.name",

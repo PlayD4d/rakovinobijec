@@ -1,0 +1,87 @@
+{
+  // Blueprint: enemy.fungal_parasite
+  "id": "enemy.fungal_parasite",
+  "type": "enemy",
+  "stats": {
+    "hp": 35,
+    "damage": 6,
+    "speed": 40,
+    "size": 16,
+    "armor": 1,
+    "xp": 5
+  },
+  // PR7 Compliant: renamed visuals to graphics
+  "graphics": {
+    "sprite": "enemy.fungal_parasite",
+    "tint": 0x8BC34A,
+    "scale": 1.0,
+    "animation": {
+      "idle": "parasite_idle",
+      "move": "parasite_move",
+      "attach": "parasite_attach"
+    }
+  },
+  // PR7 Compliant: ai field for behavior configuration
+  "ai": {
+    "behavior": "chase",
+    "params": {
+      "aggroRange": 200,
+      "wanderRadius": 50,
+      "movePattern": "parasitic_creep",
+      "targetPriority": "player",
+      "attachOnContact": true
+    }
+  },
+  // NEW: Direct drop system - consumables only (XP comes from stats.xp)
+  "drops": [
+    { "itemId": "item.health_small", "chance": 0.08 }  // 8% chance for health
+  ],
+  "mechanics": {
+    "movementType": "parasitic_creep",
+    "contactDamage": 6,
+    "aggroRange": 200,
+    "wanderRadius": 50,
+    "parasiteType": "drain",
+    "drainAmount": 2,
+    "drainInterval": 1500,
+    "sporeOnDeath": true,
+    "sporeCount": 2,
+    "dropChance": 0.9,
+    "healthDropChance": 0.08
+  },
+  "vfx": {
+    "spawn": "vfx.enemy.spawn.fungal",
+    "hit": "vfx.hit.spark.toxic",
+    "death": "vfx.enemy.death.spore_burst",
+    "drain": "vfx.enemy.drain.parasitic",
+    "spores": "vfx.enemy.spores.release"
+  },
+  "sfx": {
+    "spawn": "sfx.enemy.spawn.fungal",
+    "hit": "sfx.enemy.hit.organic",
+    "death": "sfx.enemy.death.fungal",
+    "drain": "sfx.enemy.drain.parasitic"
+  },
+  "display": {
+    "key": "enemy.fungal_parasite.name",
+    "descKey": "enemy.fungal_parasite.desc",
+    "devNameFallback": "Houbový parazit",
+    "devDescFallback": "Vysává zdraví a při smrti vypouští spory",
+    "templates": {
+      "short": "{{stats.hp}} HP • vysávání • spory",
+      "desc": "Houbový parazit s {{stats.hp}} HP. Vysává {{mechanics.drainAmount}} HP každé {{mechanics.drainInterval|ms}} a při smrti vypouští {{mechanics.sporeCount}} spor."
+    },
+    "color": "#8BC34A",
+    "rarity": "uncommon",
+    "icon": "enemy.fungal_parasite",
+    "category": "enemy",
+    "sortOrder": 160,
+    "tags": [
+      "enemy",
+      "parasite",
+      "fungal",
+      "drain",
+      "spores"
+    ]
+  }
+}

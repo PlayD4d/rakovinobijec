@@ -74,8 +74,10 @@ export class ArmorShieldEffect {
         const shieldData = this.activeShields.get(enemy);
         if (!shieldData) return;
         
-        // Break effect
-        this._playBreakEffect(enemy.x, enemy.y);
+        // Skip break effect if scene is shutting down
+        if (this.scene && this.scene.sys && this.scene.sys.isActive()) {
+            this._playBreakEffect(enemy.x, enemy.y);
+        }
         
         // Clean up graphics
         if (shieldData.graphics) {
@@ -216,20 +218,20 @@ export class ArmorShieldEffect {
         shieldData.hitFlashTime = this.hitFlashDuration;
         
         // Play hit VFX at impact point
-        if (this.scene.newVFXSystem) {
+        if (this.scene.vfxSystem) {
             // Create ripple effect at shield edge
             const angle = Math.random() * Math.PI * 2;
             const x = shieldData.enemy.x + Math.cos(angle) * shieldData.radius;
             const y = shieldData.enemy.y + Math.sin(angle) * shieldData.radius;
-            this.scene.newVFXSystem.play('vfx.shield.hit', x, y);
+            this.scene.vfxSystem.play('vfx.shield.hit', x, y);
         }
         
         // Play hit SFX from player blueprint
-        if (this.scene.newSFXSystem) {
+        if (this.scene.audioSystem) {
             const player = this.scene.player;
             const hitSFX = player?.blueprint?.sfx?.shield?.block;
             if (hitSFX) {
-                this.scene.newSFXSystem.play(hitSFX);
+                this.scene.audioSystem.play(hitSFX);
             } else {
                 console.warn('[ArmorShieldEffect] Missing shield.block sound in player blueprint');
             }
@@ -241,15 +243,18 @@ export class ArmorShieldEffect {
      * @private
      */
     _playBreakEffect(x, y) {
-        if (this.scene.newVFXSystem) {
-            this.scene.newVFXSystem.play('vfx.shield.break', x, y);
+        // Check if scene is still active before playing effects
+        if (!this.scene || !this.scene.sys?.isActive()) return;
+        
+        if (this.scene.vfxSystem) {
+            this.scene.vfxSystem.play('vfx.shield.break', x, y);
         }
         
-        if (this.scene.newSFXSystem) {
+        if (this.scene.audioSystem) {
             const player = this.scene.player;
             const breakSFX = player?.blueprint?.sfx?.shield?.break;
             if (breakSFX) {
-                this.scene.newSFXSystem.play(breakSFX);
+                this.scene.audioSystem.play(breakSFX);
             } else {
                 console.warn('[ArmorShieldEffect] Missing shield.break sound in player blueprint');
             }
@@ -302,13 +307,27 @@ export class ArmorShieldEffect {
     }
     
     /**
+     * Shutdown - clean up without triggering effects
+     */
+    shutdown() {
+        // Clear all shields without playing break effects
+        this.activeShields.forEach((shieldData) => {
+            if (shieldData.graphics) {
+                if (this.scene && this.scene.graphicsFactory) {
+                    this.scene.graphicsFactory.release(shieldData.graphics);
+                } else if (shieldData.graphics.scene) {
+                    shieldData.graphics.destroy();
+                }
+            }
+        });
+        this.activeShields.clear();
+    }
+    
+    /**
      * Clean up all shields
      */
     destroy() {
-        this.activeShields.forEach((shieldData, enemy) => {
-            this.removeArmorShield(enemy);
-        });
-        this.activeShields.clear();
+        this.shutdown();
     }
 }
 

@@ -20,10 +20,10 @@
     healthDropChance: 0.08,
   },
   vfx: {
-    spawn: 'vfx.enemy.spawn.acidic',
-    hit: 'vfx.hit.acid.splash',
-    death: 'vfx.enemy.death.acid.pool',
-    trail: 'vfx.trail.acid.drip',
+    spawn: 'spawn',
+    hit: 'enemy.hit',
+    death: 'death.medium',
+    trail: 'trail.small',
   },
   // PR7 Compliant: graphics field for visual configuration
   graphics: {
@@ -45,16 +45,14 @@
       targetPriority: 'nearest'
     }
   },
-  // NEW: Direct drop system - simple and clear like WoW/Diablo
+  // Direct drop system - consumables only (XP comes from stats.xp)
   drops: [
-    { itemId: 'item.xp_small', chance: 0.9 },      // 90% chance for XP
-    { itemId: 'item.health_small', chance: 0.08 }, // 8% chance for health
-    { itemId: 'item.xp_medium', chance: 0.03 }     // 3% chance for bonus XP
+    { itemId: 'item.health_small', chance: 0.08 }  // 8% chance for health
   ],
   sfx: {
-    spawn: 'sfx.enemy.spawn.bubble',
-    hit: 'sfx.enemy.hit.acid',
-    death: 'sfx.enemy.death.splash',
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/npc_death.mp3',
   },
   display: {
     key: 'enemy.acidic_blob.name',

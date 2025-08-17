@@ -110,10 +110,7 @@ export class FrameworkDebugAPI {
                     ready: !!this.gameScene.settingsManager,
                     configResolved: !!this.gameScene.configResolver
                 },
-                modifierEngine: {
-                    ready: !!this.gameScene.modifierEngine,
-                    activeModifiers: this.getActiveModifiersCount()
-                }
+                // Modifiers applied directly in Player
             },
             
             usage: {
@@ -199,7 +196,7 @@ export class FrameworkDebugAPI {
     }
 
     getActiveModifiersCount() {
-        return this.gameScene.modifierEngine?.activeModifiers?.length || 0;
+        return this.gameScene.player?.activeModifiers?.length || 0;
     }
 
     getUniqueVFXUsed() {
@@ -236,7 +233,7 @@ export class FrameworkDebugAPI {
     areAllSystemsReady() {
         const systems = [
             'vfxSystem', 'sfxSystem', 'lootManager', 
-            'spawnDirector', 'settingsManager', 'modifierEngine'
+            'spawnDirector', 'settingsManager'
         ];
         
         return systems.every(system => !!this.gameScene[system]);

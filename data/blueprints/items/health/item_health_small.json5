@@ -5,11 +5,12 @@
   description: 'Restores 10 health points',
   category: 'health',
   rarity: 'common',
+  sprite: 'item_health_small',
   icon: '❤️',
   color: 16739179,
   graphics: {
     shape: 'circle',
-    scale: 0.9,
+    scale: 1.8  // Visible size for 16px texture
   },
   effect: {
     type: 'heal',
@@ -23,11 +24,11 @@
     bobbing: true,
   },
   vfx: {
-    spawn: 'vfx.drop.spawn.health',
-    pickup: 'vfx.player.heal.small',
+    spawn: 'effect',
+    pickup: 'effect',
   },
   sfx: {
-    spawn: 'sfx.drop.spawn',
+    spawn: 'sound/hit_soft.mp3',
     pickup: 'sound/heal.mp3',
   },
 }

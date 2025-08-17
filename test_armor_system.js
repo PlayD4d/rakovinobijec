@@ -22,7 +22,8 @@ window.testArmorSystem = function() {
     ];
     
     const results = [];
-    const baseDamage = 10;
+    // PR7: Získat base damage z ConfigResolver
+    const baseDamage = window.ConfigResolver?.get('mechanics.projectile.stats.damage', { defaultValue: 10 }) || 10;
     
     testEnemies.forEach(test => {
         const blueprint = scene.blueprintLoader?.get(test.id);

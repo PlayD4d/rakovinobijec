@@ -1,8 +1,8 @@
 /**
- * SpawnDirector - Data-driven spawn system using spawn tables
+ * SpawnDirector - Systém spawnu řízený daty používající spawn tabulky
  * 
- * Manages enemy spawning based on spawn tables from /data/blueprints/spawn/
- * Handles waves, elite windows, unique spawns, and boss triggers
+ * Spravuje spawn nepřátel na základě spawn tabulek z /data/blueprints/spawn/
+ * Zajišťuje vlny, elite okna, unikátní spawny a boss triggery
  */
 
 export class SpawnDirector {
@@ -13,26 +13,26 @@ export class SpawnDirector {
         this.vfx = options.vfx;
         this.sfx = options.sfx;
         
-        // Current spawn table
+        // Aktuální spawn tabulka
         this.currentTable = null;
         this.scenarioId = null;
         this.ngPlusLevel = 0;
         
-        // Runtime state
+        // Stav běhu aplikace
         this.running = false;
-        this.gameTime = 0; // milliseconds since start
+        this.gameTime = 0; // milisekundy od startu
         this.lastSpawnTime = 0;
         
-        // Wave management
+        // Správa vln
         this.currentWaveIndex = 0;
         this.activeWaves = [];
         
-        // Cooldowns
+        // Cooldowny (doba čekání)
         this.eliteCooldowns = new Map();
         this.uniqueCooldowns = new Map();
         this.lastBossSpawn = 0;
         
-        // Statistics
+        // Statistiky
         this.stats = {
             totalSpawned: 0,
             spawnedByType: new Map(),
@@ -46,7 +46,7 @@ export class SpawnDirector {
     }
     
     /**
-     * Load spawn table for a scenario
+     * Načte spawn tabulku pro daný scénář
      */
     async loadSpawnTable(scenarioId) {
         console.log(`[SpawnDirector] Loading spawn table: ${scenarioId}`);

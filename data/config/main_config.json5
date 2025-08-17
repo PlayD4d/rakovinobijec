@@ -143,12 +143,7 @@
   
   // Herní mechaniky
   mechanics: {
-    // XP a levelování (legacy, používej progression.xp)
-    xp: {
-      baseRequired: 10,
-      growthFactor: 1.5,
-      maxLevel: 20
-    },
+    // XP konfigurace přesunuta do progression sekce
     
     // Zdraví hráče
     health: {
@@ -220,10 +215,15 @@
   
   // Audio nastavení
   audio: {
-    masterVolume: 1.0,
-    musicVolume: 0.5,
-    sfxVolume: 0.7,
-    uiVolume: 0.8,
+    volume: {
+      master: 1.0,
+      music: 0.5,
+      sfx: 0.7,
+      ui: 0.8
+    },
+    music: {
+      enabled: true
+    },
     
     // Hudba pro různé scény
     scenes: {
@@ -255,21 +255,51 @@
       }
     },
     
-    // Jednotlivé tracky (legacy - pro zpětnou kompatibilitu)
-    tracks: {
-      levelMusic1: {
-        volume: 1.0,
-        loop: true
-      },
-      levelMusic2: {
-        volume: 0.8,
-        loop: true
-      },
-      levelMusic3: {
-        volume: 1.1,
-        loop: true
-      }
-    }
+    // Fallback audio manifest - základní SFX soubory pokud blueprint scanning selže
+    fallbackManifest: [
+      // Core player sounds
+      "sound/player_shoot.mp3",
+      "sound/player_hit.mp3", 
+      "sound/player_death.mp3",
+      "sound/player_spawn.mp3",
+      
+      // Core UI sounds
+      "sound/pickup.mp3",
+      "sound/powerup.mp3",
+      "sound/heal.mp3",
+      "sound/levelup.mp3",
+      
+      // Core enemy sounds
+      "sound/npc_hit.mp3",
+      "sound/npc_death.mp3",
+      "sound/npc_spawn.mp3",
+      "sound/npc_shoot.mp3",
+      "sound/elite_death.mp3",
+      "sound/elite_shoot.mp3",
+      
+      // Core boss sounds
+      "sound/boss_spawn.mp3",
+      "sound/boss_hit.mp3", 
+      "sound/boss_death.mp3",
+      "sound/boss_phase.mp3",
+      
+      // Core effect sounds
+      "sound/explosion_small.mp3",
+      "sound/explosion_large.mp3",
+      "sound/hit_soft.mp3",
+      "sound/hit_hard.mp3",
+      "sound/hit_critical.mp3",
+      
+      // Shield system
+      "sound/shield_activate.mp3",
+      "sound/shield_block.mp3",
+      "sound/shield_break.mp3",
+      
+      // Special effects
+      "sound/flamethrower.mp3",
+      "sound/radiotherapy.mp3",
+      "sound/metotrexat.mp3"
+    ]
   },
   
   // Spawning

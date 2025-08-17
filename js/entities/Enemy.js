@@ -24,6 +24,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.type = config.type || 'enemy'; // Entity type
         this.config = config;
         
+        // PR7: Store full blueprint for SimpleLootSystem
+        this._blueprint = config;
+        
         // ConfigResolver přes dependency injection
         const CR = scene.configResolver;
         
@@ -247,8 +250,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.auraGraphics.setDepth(this.depth - 1);
         
         // Play elite spawn VFX if available
-        if (this._vfx && this._vfx.aura && this.scene.newVFXSystem) {
-            this.scene.newVFXSystem.play(this._vfx.aura, this.x, this.y);
+        if (this._vfx && this._vfx.aura && this.scene.vfxSystem) {
+            this.scene.vfxSystem.play(this._vfx.aura, this.x, this.y);
         }
     }
     
@@ -262,8 +265,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         }
         
         // Play unique spawn VFX if available
-        if (this._vfx && this._vfx.spawn && this.scene.newVFXSystem) {
-            this.scene.newVFXSystem.play(this._vfx.spawn, this.x, this.y);
+        if (this._vfx && this._vfx.spawn && this.scene.vfxSystem) {
+            this.scene.vfxSystem.play(this._vfx.spawn, this.x, this.y);
         }
     }
     
@@ -326,8 +329,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
                     }
                     
                     // VFX
-                    if (this._vfx && this._vfx.pulse && this.scene.newVFXSystem) {
-                        this.scene.newVFXSystem.play(this._vfx.pulse, this.x, this.y);
+                    if (this._vfx && this._vfx.pulse && this.scene.vfxSystem) {
+                        this.scene.vfxSystem.play(this._vfx.pulse, this.x, this.y);
                     }
                 }
                 break;
@@ -362,8 +365,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
                     player.takeDamage(ability.damage, this);
                     
                     // VFX for rainbow beam
-                    if (this._vfx && this._vfx.beam && this.scene.newVFXSystem) {
-                        this.scene.newVFXSystem.play(this._vfx.beam, this.x, this.y);
+                    if (this._vfx && this._vfx.beam && this.scene.vfxSystem) {
+                        this.scene.vfxSystem.play(this._vfx.beam, this.x, this.y);
                     }
                 }
                 break;
@@ -391,8 +394,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
                     }
                     
                     // VFX for burst
-                    if (this._vfx && this._vfx.burst && this.scene.newVFXSystem) {
-                        this.scene.newVFXSystem.play(this._vfx.burst, this.x, this.y);
+                    if (this._vfx && this._vfx.burst && this.scene.vfxSystem) {
+                        this.scene.vfxSystem.play(this._vfx.burst, this.x, this.y);
                     }
                 }
                 break;
@@ -460,26 +463,15 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
     
     applyBuffToEnemy(enemy) {
-        // PR7: Use ModifierEngine if available
-        if (this.scene.modifierEngine) {
-            this.scene.modifierEngine.applyModifier(enemy, {
-                type: 'MULTIPLY',
-                stat: 'damage',
-                value: this.buffMultiplier,
-                duration: 5000,
-                source: this
-            });
-        } else {
-            // Simple fallback
-            enemy.damage *= this.buffMultiplier;
-            enemy.showBuffEffect();
-        }
+        // Apply damage buff directly
+        enemy.damage *= this.buffMultiplier;
+        enemy.showBuffEffect();
     }
     
     showBuffEffect() {
         // PR7: Use VFX system for visual feedback
-        if (this.scene.newVFXSystem) {
-            this.scene.newVFXSystem.play('enemy.buff.aura', this.x, this.y);
+        if (this.scene.vfxSystem) {
+            this.scene.vfxSystem.play('enemy.buff.aura', this.x, this.y);
         }
         
         // Tint change for buff indication
@@ -487,8 +479,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         const buffTint = CR.get('enemy.rendering.buffTint');
         this.setTint(buffTint);
         
-        // Reset tint after duration
-        this.scene.time.delayedCall(5000, () => {
+        // Clear any existing buff timer
+        if (this.buffTintTimer) {
+            this.scene.time.removeEvent(this.buffTintTimer);
+        }
+        
+        // Reset tint after duration (store timer reference for cleanup)
+        this.buffTintTimer = this.scene.time.delayedCall(5000, () => {
             if (this.active) {
                 this.clearTint();
                 if (this.isElite) {
@@ -496,6 +493,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
                     this.setTint(eliteTint);
                 }
             }
+            this.buffTintTimer = null;
         });
     }
     
@@ -689,12 +687,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     
     // PR7: VFX/SFX helper methods
     playVFX(effectType) {
-        if (!this.scene.newVFXSystem) return;
+        if (!this.scene.vfxSystem) return;
         
         // Try to get VFX ID from blueprint VFX mapping
         const vfxId = this._vfx?.[effectType];
         if (vfxId) {
-            this.scene.newVFXSystem.play(vfxId, this.x, this.y);
+            this.scene.vfxSystem.play(vfxId, this.x, this.y);
         } else {
             // Fallback: try common VFX patterns
             const fallbackIds = [
@@ -706,7 +704,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
             let played = false;
             for (const fallbackId of fallbackIds) {
                 try {
-                    this.scene.newVFXSystem.play(fallbackId, this.x, this.y);
+                    this.scene.vfxSystem.play(fallbackId, this.x, this.y);
                     played = true;
                     break;
                 } catch (error) {
@@ -718,7 +716,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
             // Final fallback - simple hit spark for any effect
             if (!played && effectType !== 'none') {
                 try {
-                    this.scene.newVFXSystem.playHitSpark(this.x, this.y, 'default');
+                    this.scene.vfxSystem.playHitSpark(this.x, this.y, 'default');
                 } catch (error) {
                     // Silent fail - don't break gameplay for missing VFX
                     console.debug(`[Enemy] VFX fallback failed for ${effectType}:`, error.message);
@@ -728,20 +726,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
     
     playSFX(soundType) {
-        // Temporarily disabled - blueprint IDs don't match registry
-        return;
-        /*
-        if (!this.scene.newSFXSystem) return;
+        if (!this.scene.audioSystem) return;
         
-        const sfxId = this._sfx?.[soundType];
-        if (sfxId) {
-            this.scene.newSFXSystem.play(sfxId);
-        } else {
-            // Use default SFX based on type
-            const defaultSfx = `enemy.${soundType}`;
-            this.scene.newSFXSystem.play(defaultSfx);
+        // PR7: Use only blueprint-defined SFX (no hardcoded fallbacks)
+        const sfxPath = this._sfx?.[soundType];
+        if (sfxPath) {
+            // Blueprint uses direct file paths (PR7 compliant)
+            this.scene.audioSystem.play(sfxPath);
         }
-        */
+        // No fallback - if blueprint doesn't define it, no sound plays
+        // This is intentional - all data must come from blueprints
     }
     
     // ========= DAMAGE & DEATH HANDLING =========
@@ -769,8 +763,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
             this.lastDamageTime = Date.now();
             
             // Shield break VFX
-            if (this.shieldHP <= 0 && this._vfx && this._vfx.shield && this.scene.newVFXSystem) {
-                this.scene.newVFXSystem.play(this._vfx.shield, this.x, this.y);
+            if (this.shieldHP <= 0 && this._vfx && this._vfx.shield && this.scene.vfxSystem) {
+                this.scene.vfxSystem.play(this._vfx.shield, this.x, this.y);
             }
         }
         
@@ -856,20 +850,63 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         });
     }
     
-    // PR7: Cleanup
-    destroy() {
-        // Clean up graphics
-        if (this.auraGraphics) {
-            this.auraGraphics.destroy();
-        }
-        if (this.goldAuraGraphics) {
-            this.goldAuraGraphics.destroy();
+    /**
+     * Clean up all VFX effects attached to this enemy
+     * Called before enemy death/destruction to prevent orphaned graphics
+     */
+    cleanupAllVFX() {
+        // This method is called before destroy
+        // If scene is shutting down, it won't be called at all due to shutdown cleanup
+        
+        // Clean up armor shield
+        if (this._hasArmorShield && this.scene && this.scene.armorShieldEffect) {
+            this.scene.armorShieldEffect.removeArmorShield(this);
+            this._hasArmorShield = false;
         }
         
-        // Clean up tweens
-        if (this.flashTween) {
-            this.flashTween.remove();
+        // Clean up aura graphics (elite enemies)
+        if (this.auraGraphics) {
+            if (this.auraGraphics.scene) {  // Check if graphics still has a scene
+                this.auraGraphics.destroy();
+            }
+            this.auraGraphics = null;
         }
+        
+        // Clean up gold aura graphics (unique enemies)
+        if (this.goldAuraGraphics) {
+            if (this.goldAuraGraphics.scene) {  // Check if graphics still has a scene
+                this.goldAuraGraphics.destroy();
+            }
+            this.goldAuraGraphics = null;
+        }
+        
+        // Clean up any attached VFX effects through VFXSystem
+        if (this.scene && this.scene.vfxSystem && this.scene.vfxSystem.detachAllEffectsForEntity) {
+            this.scene.vfxSystem.detachAllEffectsForEntity(this);
+        }
+        
+        // Clean up active tweens
+        if (this.flashTween) {
+            // Safe tween removal - just stop, don't remove
+            this.flashTween.stop();
+            // Do NOT call remove() - let Phaser handle cleanup
+            this.flashTween = null;
+        }
+        
+        // Clean up any buff tint effects
+        if (this.buffTintTimer) {
+            // Safe timer removal - check if time system exists
+            if (this.scene && this.scene.time) {
+                this.scene.time.removeEvent(this.buffTintTimer);
+            }
+            this.buffTintTimer = null;
+        }
+    }
+    
+    // PR7: Cleanup
+    destroy() {
+        // Clean up all VFX effects
+        this.cleanupAllVFX();
         
         super.destroy();
     }

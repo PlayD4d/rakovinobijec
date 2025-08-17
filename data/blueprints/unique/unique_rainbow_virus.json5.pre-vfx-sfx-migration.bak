@@ -1,0 +1,94 @@
+{
+  // Blueprint: unique.rainbow_virus
+  "id": "unique.rainbow_virus",
+  "type": "enemy",
+  "meta": {
+    "category": "unique",
+    "tier": "legendary",
+    "spawnWeight": 2
+  },  "stats": {
+    "hp": 180,
+    "damage": 15,
+    "speed": 75,
+    "size": 20,
+    "armor": 6,
+    "xp": 150
+  },
+  "visuals": {
+    "textureKey": "unique.rainbow_virus",
+    "tint": 0xFF00FF,
+    "size": { "w": 20, "h": 20 }
+  },
+  "mechanics": {
+    "movementType": "prismatic_phase",
+    "contactDamage": 15,
+    "aggroRange": 280,
+    "wanderRadius": 120,
+    "colorPhases": ["red", "orange", "yellow", "green", "blue", "indigo", "violet"],
+    "phaseInterval": 3000,
+    "currentPhase": 0,
+    "phaseAbilities": {
+      "red": { "damageBoost": 2.0, "speedBoost": 1.0 },
+      "orange": { "damageBoost": 1.5, "speedBoost": 1.2 },
+      "yellow": { "damageBoost": 1.2, "speedBoost": 1.5 },
+      "green": { "damageBoost": 1.0, "speedBoost": 1.0, "healRate": 5 },
+      "blue": { "damageBoost": 0.8, "speedBoost": 1.8 },
+      "indigo": { "damageBoost": 1.0, "speedBoost": 1.0, "invisibility": 0.5 },
+      "violet": { "damageBoost": 1.3, "speedBoost": 1.3, "teleport": true }
+    },
+    "dropChance": 1.0,
+    "guaranteedDrops": ["drop.xp_large", "drop.energy_cell"],
+    "uniqueAbilities": {
+      "rainbowBeam": {
+        "interval": 4000,
+        "damage": 20,
+        "range": 250,
+        "piercing": true,
+        "multiHit": 3
+      },
+      "prismaticBurst": {
+        "interval": 10000,
+        "projectileCount": 7,
+        "damage": 12,
+        "pattern": "rainbow_spiral"
+      }
+    }
+  },
+  "vfx": {
+    "spawn": "vfx.unique.spawn.rainbow",
+    "hit": "vfx.hit.spark.prismatic",
+    "death": "vfx.unique.death.rainbow_burst",
+    "phase": "vfx.unique.rainbow.phase_shift",
+    "beam": "vfx.unique.rainbow.beam",
+    "burst": "vfx.unique.rainbow.burst"
+  },
+  "sfx": {
+    "spawn": "sfx.unique.spawn.rainbow",
+    "hit": "sfx.unique.hit.prismatic",
+    "death": "sfx.unique.death.rainbow",
+    "phase": "sfx.unique.rainbow.phase",
+    "beam": "sfx.unique.rainbow.beam"
+  },
+  "display": {
+    "key": "unique.rainbow_virus.name",
+    "descKey": "unique.rainbow_virus.desc",
+    "devNameFallback": "Duhový virus",
+    "devDescFallback": "Mystický virus měnící barvy s unikátními schopnostmi",
+    "templates": {
+      "short": "{{stats.hp}} HP • fázování • duhové schopnosti",
+      "desc": "Mystický duhový virus s {{stats.hp}} HP. Mění fáze každé {{mechanics.phaseInterval|ms}} a každá fáze má unikátní schopnosti."
+    },
+    "color": "#FF00FF",
+    "rarity": "mythic",
+    "icon": "unique.rainbow_virus",
+    "category": "unique",
+    "sortOrder": 720,
+    "tags": [
+      "unique",
+      "rainbow",
+      "mythic",
+      "phase-shift",
+      "prismatic"
+    ]
+  }
+}

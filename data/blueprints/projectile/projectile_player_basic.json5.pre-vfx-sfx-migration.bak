@@ -1,0 +1,61 @@
+{
+  id: 'projectile.player_basic',
+  type: 'projectile',
+  stats: {
+    damage: 10,
+    speed: 300,
+    range: 600,
+    size: 6,
+    pierce: 0,
+    lifetime: 2,
+  },
+  graphics: {
+    shape: 'circle',
+    tint: 16777215,
+    size: 6,
+    scale: 1,
+  },
+  mechanics: {
+    onHit: 'none',
+    pierceDecay: 0,
+    trail: {
+      enabled: true,
+      vfx: 'vfx.trail.player',
+      fadeTime: 200,
+    },
+    homing: false,
+    bounce: false,
+  },
+  vfx: {
+    spawn: 'vfx.muzzle.player',
+    trail: 'vfx.trail.player',
+    hit: 'vfx.hit.player',
+    expire: 'vfx.projectile.fade',
+  },
+  sfx: {
+    spawn: 'sound/laser.mp3',
+    hit: 'sfx.weapon.hit.impact',
+    expire: 'sfx.projectile.fade',
+  },
+  display: {
+    key: 'projectile.player_basic.name',
+    descKey: 'projectile.player_basic.desc',
+    templates: {
+      short: '{{stats.damage}} DMG • {{stats.speed}} px/s',
+      desc: 'Základní projektil hráče s {{stats.damage}} poškozením.',
+    },
+    color: '#FFFFFF',
+    rarity: 'common',
+    icon: 'projectile.player_basic',
+    category: 'projectile',
+    sortOrder: 100,
+    tags: [
+      'projectile',
+      'player',
+      'basic',
+      'white',
+    ],
+    devNameFallback: 'Basic Bullet',
+    devDescFallback: 'Základní hráčský projektil',
+  },
+}

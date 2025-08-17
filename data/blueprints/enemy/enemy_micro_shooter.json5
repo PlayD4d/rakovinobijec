@@ -5,7 +5,7 @@
     hp: 20,
     damage: 5,
     speed: 95,
-    size: 10,
+    size: 14,  // Increased from 10 to be more visible
     armor: 0,
     xp: 2,
   },
@@ -25,7 +25,7 @@
   graphics: {
     sprite: 'enemy_micro_shooter',
     tint: 16733986,
-    scale: 0.9,
+    scale: 1.0,
     animation: {
       idle: 'shooter_idle',
       move: 'shooter_move',
@@ -43,31 +43,21 @@
       shootInterval: 2400,
     },
   },
+  // Direct drop system - consumables only (XP comes from stats.xp)
   drops: [
-    {
-      itemId: 'item.xp_small',
-      chance: 0.85,
-    },
-    {
-      itemId: 'item.health_small',
-      chance: 0.07,
-    },
-    {
-      itemId: 'item.xp_medium',
-      chance: 0.04,
-    },
+    { itemId: 'item.health_small', chance: 0.07 }  // 7% chance for health
   ],
   vfx: {
-    spawn: 'vfx.enemy.spawn.shooter',
-    hit: 'vfx.hit.spark.small',
-    death: 'vfx.enemy.death.burst.blue',
-    muzzleFlash: 'vfx.muzzle.micro',
+    spawn: 'spawn',
+    hit: 'enemy.hit',
+    death: 'death.medium',
+    shoot: 'enemy.shoot',
   },
   sfx: {
-    spawn: 'sfx.enemy.spawn.chirp',
-    hit: 'sound/hit_soft.mp3',
-    death: 'sfx.enemy.death.pop',
-    shoot: 'sound/shoot.mp3',
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/npc_death.mp3',
+    shoot: 'sound/npc_shoot.mp3',
   },
   display: {
     key: 'enemy.micro_shooter.name',

@@ -40,7 +40,7 @@
       "radius": 100,
       "spreadChance": 0.4,
       "infectDamageBonus": 1.3,
-      "spreadVfx": "vfx.unique.viral.spread",
+      "spreadVfx": 'special',
       "maxSpreadTargets": 6
     },
     "phageBurst": {
@@ -87,21 +87,21 @@
     "kiteDistance": 80
   },
   "vfx": {
-    "spawn": "vfx.unique.spawn.phage",
-    "death": "vfx.unique.death.viral.burst",
-    "projectile": "vfx.unique.phage.spore",
-    "infection": "vfx.unique.viral.infection",
-    "spread": "vfx.unique.viral.spread",
-    "dash": "vfx.unique.phase.dash",
-    "burst": "vfx.unique.phage.burst"
+    "spawn": 'spawn',
+    "death": 'death.large',
+    "projectile": 'special',
+    "infection": 'special',
+    "spread": 'special',
+    "dash": 'special',
+    "burst": 'special'
   },
   "sfx": {
-    "spawn": "sfx.unique.spawn.overlord",
-    "death": "sfx.unique.death.viral",
-    "shoot": "sfx.unique.phage.shoot",
-    "infection": "sfx.unique.viral.infect",
-    "spread": "sfx.unique.viral.spread",
-    "dash": "sfx.unique.phase.dash"
+    "spawn": 'sound/npc_spawn.mp3',
+    "death": 'sound/elite_death.mp3',
+    "shoot": 'sound/powerup.mp3',
+    "infection": 'sound/powerup.mp3',
+    "spread": 'sound/powerup.mp3',
+    "dash": 'sound/powerup.mp3'
   },
   "display": {
     "key": "unique.phage_overlord.name",

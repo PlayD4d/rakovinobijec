@@ -259,8 +259,9 @@ export class TelemetryLogger {
         
         // Get active power-ups/mutators
         const activePowerups = [];
-        if (this.gameScene.powerUpManager?.activePowerUps) {
-            this.gameScene.powerUpManager.activePowerUps.forEach(powerup => {
+        if (this.gameScene.powerUpSystem?.getActivePowerUps) {
+            const powerups = this.gameScene.powerUpSystem.getActivePowerUps();
+            powerups.forEach(powerup => {
                 activePowerups.push({
                     id: powerup.id || 'unknown',
                     level: powerup.level || 1,

@@ -81,8 +81,8 @@
       behavior: "defensive",
       // Phase transition effects
       onEnter: {
-        vfx: "vfx.boss.enrage",
-        sfx: "sfx.boss.phase_change",
+        vfx: 'boss.special',
+        sfx: 'sound/boss_hit.mp3',
         text: "The boss becomes enraged!"
       }
     },
@@ -97,8 +97,8 @@
       abilities: ["basic_shot", "charge", "aoe_blast", "summon_minions"],
       behavior: "berserk",
       onEnter: {
-        vfx: "vfx.boss.final_phase",
-        sfx: "sfx.boss.roar",
+        vfx: 'boss.special',
+        sfx: 'sound/boss_hit.mp3',
         text: "FINAL PHASE!"
       }
     }
@@ -116,8 +116,8 @@
       pattern: "single", // single, burst, fan, circle
       projectileCount: 1,
       projectileSpeed: 300,
-      vfx: "vfx.projectile.boss_shot",
-      sfx: "sfx.boss.shoot"
+      vfx: 'hit.small',
+      sfx: 'sound/boss_hit.mp3'
     },
     {
       id: "charge",
@@ -127,8 +127,8 @@
       chargeSpeed: 500,
       chargeDuration: 1000,
       telegraphTime: 500, // Warning time before charge
-      vfx: "vfx.boss.charge_trail",
-      sfx: "sfx.boss.charge"
+      vfx: 'boss.special',
+      sfx: 'sound/boss_hit.mp3'
     },
     {
       id: "aoe_blast",
@@ -137,8 +137,8 @@
       damage: 75,
       radius: 200,
       delay: 1000, // Cast time
-      vfx: "vfx.explosion.large",
-      sfx: "sfx.boss.aoe_blast"
+      vfx: "explosion.large",
+      sfx: 'sound/boss_hit.mp3'
     },
     {
       id: "summon_minions",
@@ -147,8 +147,8 @@
       summonCount: 3,
       summonType: "enemy.minion",
       formation: "circle", // circle, line, random
-      vfx: "vfx.summon.portal",
-      sfx: "sfx.boss.summon"
+      vfx: 'effect',
+      sfx: 'sound/boss_hit.mp3'
     }
   ],
   
@@ -181,46 +181,46 @@
   // VFX (Visual Effects)
   // ==========================================
   vfx: {
-    spawn: "vfx.boss.spawn.epic", // Spawn effect
-    idle: "vfx.boss.aura.red", // Continuous aura effect
-    hit: "vfx.hit.heavy", // When boss takes damage
-    death: "vfx.boss.death.explosion", // Death animation
+    spawn: 'boss.special', // Spawn effect
+    idle: 'boss.special', // Continuous aura effect
+    hit: 'hit.small', // When boss takes damage
+    death: 'boss.special', // Death animation
     
     // Phase-specific effects
-    phase2: "vfx.boss.enrage_aura",
-    phase3: "vfx.boss.berserk_flames",
+    phase2: 'boss.special',
+    phase3: 'boss.special',
     
     // Attack effects (referenced in abilities)
-    chargeWarning: "vfx.telegraph.line",
-    aoeWarning: "vfx.telegraph.circle"
+    chargeWarning: 'telegraph',
+    aoeWarning: 'telegraph'
   },
   
   // ==========================================
   // SFX (Sound Effects)
   // ==========================================
   sfx: {
-    spawn: "sfx.boss.spawn.dramatic", // Spawn sound
-    idle: ["sfx.boss.growl.1", "sfx.boss.growl.2"], // Random idle sounds
-    hit: "sfx.boss.hit.heavy", // When hit
-    death: "sfx.boss.death.epic", // Death sound
+    spawn: 'sound/boss_hit.mp3', // Spawn sound
+    idle: ['sound/boss_hit.mp3', 'sound/boss_hit.mp3'], // Random idle sounds
+    hit: 'sound/boss_hit.mp3', // When hit
+    death: 'sound/boss_hit.mp3', // Death sound
     
     // Attack sounds (referenced in abilities)
     shoot: {
-      id: "sfx.boss.shoot.heavy",
+      id: 'sound/boss_hit.mp3',
       volume: 0.8,
       detuneRange: [-100, 100] // Random pitch variation
     },
     
     // Phase transition sounds
-    phaseChange: "sfx.boss.roar",
-    enrage: "sfx.boss.enrage",
+    phaseChange: 'sound/boss_hit.mp3',
+    enrage: 'sound/boss_hit.mp3',
     
     // Voice lines (optional)
     voiceLines: {
-      spawn: "sfx.voice.boss.intro",
-      phase2: "sfx.voice.boss.taunt1",
-      phase3: "sfx.voice.boss.desperate",
-      death: "sfx.voice.boss.defeat"
+      spawn: 'sound/hit_soft.mp3',
+      phase2: 'sound/hit_soft.mp3',
+      phase3: 'sound/hit_soft.mp3',
+      death: 'sound/hit_soft.mp3'
     }
   },
   
@@ -265,8 +265,8 @@
     shield: {
       hp: 1000,
       regenRate: 10, // HP per second
-      vfx: "vfx.shield.blue",
-      sfx: "sfx.shield.hit"
+      vfx: 'shield.hit',
+      sfx: 'sound/hit_soft.mp3'
     },
     
     // Weak points for extra damage
@@ -290,7 +290,7 @@
       {
         trigger: "phase_change",
         duration: 2000,
-        vfx: "vfx.immunity.bubble"
+        vfx: 'effect'
       }
     ]
   }

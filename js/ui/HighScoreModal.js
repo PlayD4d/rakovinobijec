@@ -329,33 +329,36 @@ export class HighScoreModal extends BaseUIComponent {
      * Setup keyboard input for name entry
      */
     setupKeyboardInput() {
-        this.keyboardHandler = (event) => {
-            if (this.hasSubmitted) return;
-            
-            if (event.key === 'Enter') {
-                // Odeslat jméno (i když je prázdné - použije se "Anonym" v GameScene)
-                this.hasSubmitted = true;
-                this.scene.input.keyboard.off('keydown', this.keyboardHandler);
+        // Register keyboard handler via KeyboardManager when shown
+        if (this.scene.keyboardManager) {
+            this.scene.keyboardManager.registerTextInput('highscore', (event) => {
+                if (this.hasSubmitted) return;
                 
-                if (this.onSubmitCallback) {
-                    // Poslat prázdný string nebo trimované jméno
-                    this.onSubmitCallback(this.playerName.trim());
+                if (event.key === 'Enter') {
+                    // Odeslat jméno (i když je prázdné - použije se "Anonym" v GameScene)
+                    this.hasSubmitted = true;
+                    
+                    // Cleanup keyboard handler
+                    this.scene.keyboardManager.cleanupModal('highscore');
+                    
+                    if (this.onSubmitCallback) {
+                        // Poslat prázdný string nebo trimované jméno
+                        this.onSubmitCallback(this.playerName.trim());
+                    }
+                } else if (event.key === 'Backspace') {
+                    if (this.playerName.length > 0) {
+                        this.playerName = this.playerName.slice(0, -1);
+                        this.inputText.setText(this.playerName + '_');
+                    }
+                } else if (event.key.length === 1 && this.playerName.length < 8) {
+                    // Přidat znak (pouze písmena, číslice a základní znaky)
+                    if (/[a-zA-Z0-9čďěščřžýáíéúů]/i.test(event.key)) {
+                        this.playerName += event.key;
+                        this.inputText.setText(this.playerName + '_');
+                    }
                 }
-            } else if (event.key === 'Backspace') {
-                if (this.playerName.length > 0) {
-                    this.playerName = this.playerName.slice(0, -1);
-                    this.inputText.setText(this.playerName + '_');
-                }
-            } else if (event.key.length === 1 && this.playerName.length < 8) {
-                // Přidat znak (pouze písmena, číslice a základní znaky)
-                if (/[a-zA-Z0-9čďěščřžýáíéúů]/i.test(event.key)) {
-                    this.playerName += event.key;
-                    this.inputText.setText(this.playerName + '_');
-                }
-            }
-        };
-        
-        this.scene.input.keyboard.on('keydown', this.keyboardHandler);
+            });
+        }
     }
     
     /**
@@ -374,9 +377,9 @@ export class HighScoreModal extends BaseUIComponent {
      * Cleanup
      */
     onCleanup() {
-        if (this.keyboardHandler) {
-            this.scene.input.keyboard.off('keydown', this.keyboardHandler);
-            this.keyboardHandler = null;
+        // Cleanup modal keyboard handlers
+        if (this.scene && this.scene.keyboardManager) {
+            this.scene.keyboardManager.cleanupModal('highscore');
         }
         
         this.onSubmitCallback = null;

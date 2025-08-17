@@ -177,90 +177,28 @@ export class SoftRefresh {
   }
   
   /**
-   * Refresh registries (VFX, SFX)
+   * Refresh registries (placeholder for future use)
    */
   async refreshRegistries() {
-    console.log('[SoftRefresh] Refreshing registries...');
-    
-    // Refresh VFX Registry
-    if (this.scene.vfxSystem?.registry) {
-      await this.refreshVFXRegistry();
-    }
-    
-    // Refresh SFX Registry
-    if (this.scene.sfxSystem?.registry) {
-      await this.refreshSFXRegistry();
-    }
+    console.log('[SoftRefresh] Registry refresh skipped - using simplified systems');
+    // SimplifiedVFXSystem and SimplifiedAudioSystem don't use registries
+    // All configuration is in blueprints now
   }
   
   /**
-   * Refresh VFX Registry
+   * Refresh VFX Registry (deprecated - kept for compatibility)
    */
   async refreshVFXRegistry() {
-    try {
-      // VFX Registry is code-based, so we check for data-driven config
-      const url = `data/registries/vfx.json5?t=${Date.now()}`;
-      const response = await fetch(url);
-      
-      if (response.ok) {
-        const text = await response.text();
-        const vfxData = await this.parseJSON5(text);
-        
-        if (vfxData && vfxData.effects) {
-          Object.entries(vfxData.effects).forEach(([id, config]) => {
-            const key = `vfx:${id}`;
-            const newHash = this.hashData(config);
-            const oldHash = this.previousData.get(key);
-            
-            if (!oldHash) {
-              this.changes.added.push(`vfx:${id}`);
-            } else if (oldHash !== newHash) {
-              this.changes.modified.push(`vfx:${id}`);
-            }
-            
-            // Update in registry
-            this.scene.vfxSystem.registry.register(id, config);
-          });
-        }
-      }
-    } catch (error) {
-      console.warn('[SoftRefresh] VFX registry refresh failed:', error);
-    }
+    // No-op - SimplifiedVFXSystem doesn't use registry
+    console.log('[SoftRefresh] VFX registry refresh skipped - using SimplifiedVFXSystem');
   }
   
   /**
-   * Refresh SFX Registry
+   * Refresh SFX Registry (deprecated - kept for compatibility)
    */
   async refreshSFXRegistry() {
-    try {
-      // SFX Registry is code-based, so we check for data-driven config
-      const url = `data/registries/sfx.json5?t=${Date.now()}`;
-      const response = await fetch(url);
-      
-      if (response.ok) {
-        const text = await response.text();
-        const sfxData = await this.parseJSON5(text);
-        
-        if (sfxData && sfxData.sounds) {
-          Object.entries(sfxData.sounds).forEach(([id, config]) => {
-            const key = `sfx:${id}`;
-            const newHash = this.hashData(config);
-            const oldHash = this.previousData.get(key);
-            
-            if (!oldHash) {
-              this.changes.added.push(`sfx:${id}`);
-            } else if (oldHash !== newHash) {
-              this.changes.modified.push(`sfx:${id}`);
-            }
-            
-            // Update in registry
-            this.scene.sfxSystem.registry.register(id, config);
-          });
-        }
-      }
-    } catch (error) {
-      console.warn('[SoftRefresh] SFX registry refresh failed:', error);
-    }
+    // No-op - SimplifiedAudioSystem doesn't use registry
+    console.log('[SoftRefresh] SFX registry refresh skipped - using SimplifiedAudioSystem');
   }
   
   /**

@@ -43,7 +43,7 @@ export const UI_THEME = {
             disabled: 0x666666     // Zakázané prvky
         },
         
-        // Specifické barvy pro power-upy (z PowerUpManager)
+        // Specifické barvy pro power-upy (z PowerUpSystem)
         powerUp: {
             weapon: 0xff4444,      // Zbraňové power-upy (červená)
             upgrade: 0x44ff44,     // Upgrade power-upy (zelená) 

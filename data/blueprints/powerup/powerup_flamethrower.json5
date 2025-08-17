@@ -20,16 +20,16 @@
     "tickRate": 0.1  // Damage tick rate
   },
   "vfx": {
-    "pickup": "vfx.powerup.pickup",
-    "levelUp": "vfx.powerup.levelup",
-    "impact": "vfx.projectile.impact"
+    "pickup": "pickup",
+    "levelUp": 'powerup',
+    "impact": "hit.medium"
   },
   "sfx": {
-    "pickup": "sfx.powerup.pickup",
-    "apply": "sfx.powerup.apply",
-    "levelUp": "sfx.powerup.levelup",
-    "loop": "sfx.flamethrower.loop",  // Loop sound while active
-    "ignite": "sfx.powerup.apply"
+    "pickup": "sound/pickup.mp3",
+    "apply": 'sound/powerup.mp3',
+    "levelUp": 'sound/powerup.mp3',
+    "loop": 'sound/flamethrower.mp3',  // Loop sound while active
+    "ignite": 'sound/powerup.mp3'
   },
   "display": {
     "key": "powerup.flamethrower.name",

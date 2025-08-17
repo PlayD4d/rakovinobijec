@@ -30,7 +30,7 @@
       "tickInterval": 800,
       "regenDebuff": 0.5,
       "stackable": false,
-      "auraVfx": "vfx.unique.necrotic.aura"
+      "auraVfx": 'special'
     },
     "summonMinions": {
       "enabled": true,
@@ -51,7 +51,7 @@
       "cooldown": 15000,
       "triggerHealthPercent": 0.5,
       "immuneToProjectiles": true,
-      "shieldVfx": "vfx.unique.armor.shield"
+      "shieldVfx": 'special'
     },
     "deathExplosion": {
       "enabled": true,
@@ -85,19 +85,19 @@
     "flankingBehavior": false
   },
   "vfx": {
-    "spawn": "vfx.unique.spawn.necrocyte",
-    "death": "vfx.unique.death.necrotic.explosion",
-    "aura": "vfx.unique.necrotic.aura",
-    "shield": "vfx.unique.armor.shield",
-    "summon": "vfx.unique.summon.necrotic",
-    "debuff": "vfx.unique.necrotic.debuff"
+    "spawn": 'spawn',
+    "death": 'death.large',
+    "aura": 'special',
+    "shield": 'special',
+    "summon": 'special',
+    "debuff": 'special'
   },
   "sfx": {
-    "spawn": "sfx.unique.spawn.sentinel",
-    "death": "sfx.unique.death.necrotic",
-    "aura": "sfx.unique.necrotic.pulse",
-    "shield": "sfx.unique.shield.activate",
-    "summon": "sfx.unique.summon.dark"
+    "spawn": 'sound/npc_spawn.mp3',
+    "death": 'sound/elite_death.mp3',
+    "aura": 'sound/powerup.mp3',
+    "shield": 'sound/powerup.mp3',
+    "summon": 'sound/powerup.mp3'
   },
   "display": {
     "key": "unique.necrocyte_sentinel.name",

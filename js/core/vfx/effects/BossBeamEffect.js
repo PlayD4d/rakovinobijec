@@ -96,7 +96,7 @@ export class BossBeamEffect {
         this.active = false;
         
         if (this.updateEvent) {
-            this.updateEvent.remove();
+            this.updateEvent.destroy();
             this.updateEvent = null;
         }
         

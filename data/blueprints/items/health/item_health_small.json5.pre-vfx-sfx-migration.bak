@@ -1,0 +1,34 @@
+{
+  id: 'item.health_small',
+  type: 'item',
+  name: 'Small Health Pack',
+  description: 'Restores 10 health points',
+  category: 'health',
+  rarity: 'common',
+  sprite: 'item_health_small',
+  icon: '❤️',
+  color: 16739179,
+  graphics: {
+    shape: 'circle',
+    scale: 1.8  // Visible size for 16px texture
+  },
+  effect: {
+    type: 'heal',
+    value: 10,
+  },
+  pickup: {
+    magnetRange: 50,
+    pickupRadius: 30,
+    autoPickup: false,
+    lifetime: 30000,
+    bobbing: true,
+  },
+  vfx: {
+    spawn: 'vfx.drop.spawn.health',
+    pickup: 'vfx.player.heal.small',
+  },
+  sfx: {
+    spawn: 'sfx.drop.spawn',
+    pickup: 'sound/heal.mp3',
+  },
+}

@@ -19,7 +19,7 @@
     hp: 40,
     damage: 8,
     speed: 110,
-    size: 12,
+    size: 16,  // Increased from 12 to be more visible
     armor: 2,
     xp: 5,
   },
@@ -70,7 +70,7 @@
     eliteIndicator: {
       type: 'star',          // Star or crown above enemy
       color: 0xFFD700,       // Gold color
-      scale: 0.8,
+      scale: 1.0,
     }
   },
   
@@ -100,21 +100,18 @@
   
   // Elite VFX
   vfx: {
-    spawn: 'vfx.elite.spawn',
-    hit: 'vfx.hit.spark.elite',
-    death: 'vfx.elite.death.explosion',
-    muzzleFlash: 'vfx.muzzle.elite',
-    aura: 'vfx.aura.elite.orange',
-    indicator: 'vfx.elite.indicator',
+    spawn: 'elite.special',
+    hit: 'enemy.hit',
+    death: 'elite.special',
+    shoot: 'enemy.shoot',
   },
   
   // Elite SFX
   sfx: {
-    spawn: 'sfx.elite.spawn',
-    hit: 'sfx.enemy.hit.armored',
-    death: 'sfx.elite.death',
-    shoot: 'sfx.weapon.fire.elite',
-    alert: 'sfx.elite.alert',
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/elite_death.mp3',
+    shoot: 'sound/elite_shoot.mp3',
   },
   
   // Display configuration

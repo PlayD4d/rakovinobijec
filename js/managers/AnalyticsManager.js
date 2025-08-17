@@ -779,4 +779,239 @@ export class AnalyticsManager {
             enabled: this.enabled
         };
     }
+    
+    // ===== EVENT BUS INTEGRATION =====
+    // Merged from AnalyticsSystem - removes unnecessary abstraction layer
+    
+    /**
+     * Connect to EventBus for automatic event tracking
+     * @param {EventBus} eventBus - The scene's event bus
+     * @param {Scene} scene - The game scene for context
+     */
+    connectEventBus(eventBus, scene) {
+        this.eventBus = eventBus;
+        this.scene = scene;
+        this.eventBusConnected = !!(eventBus && this.enabled);
+        
+        if (this.eventBusConnected) {
+            this._setupEventListeners();
+            console.log('[AnalyticsManager] Connected to EventBus - listening for events');
+        } else {
+            console.debug('[AnalyticsManager] EventBus connection skipped (analytics disabled or no EventBus)');
+        }
+    }
+    
+    _setupEventListeners() {
+        // NOTE: Combat events are not whitelisted in EventBus
+        // They should be tracked through direct system calls, not events
+        // Keeping handlers commented for reference
+        
+        // Player události - NOT WHITELISTED
+        // this.eventBus.on('player.hit', (data) => this._handlePlayerHit(data)); 
+        // this.eventBus.on('player.death', (data) => this._handlePlayerDeath(data));
+        
+        // Enemy události - NOT WHITELISTED
+        // this.eventBus.on('npc.spawn', (data) => this._handleEnemySpawn(data));
+        // this.eventBus.on('npc.hit', (data) => this._handleEnemyHit(data));
+        // this.eventBus.on('npc.death', (data) => this._handleEnemyDeath(data));
+        
+        // Weapon/projectile události - NOT WHITELISTED
+        // this.eventBus.on('weapon.fire', (data) => this._handleWeaponFire(data));
+        // this.eventBus.on('projectile.impact', (data) => this._handleProjectileImpact(data));
+        
+        // Power-up události - NOT WHITELISTED
+        // this.eventBus.on('powerup.select', (data) => this._handlePowerUpSelect(data));
+        
+        // Boss události - NOT WHITELISTED
+        // this.eventBus.on('boss.spawn', (data) => this._handleBossSpawn(data));
+        // this.eventBus.on('boss.phase', (data) => this._handleBossPhase(data));
+        // this.eventBus.on('boss.action', (data) => this._handleBossAction(data));
+        // this.eventBus.on('boss.defeat', (data) => this._handleBossDefeat(data));
+        
+        // Drop události - NOT WHITELISTED (except special drop)
+        // this.eventBus.on('drop.pickup', (data) => this._handleDropPickup(data));
+        this.eventBus.on('drop.metotrexat.pickup', (data) => this._handleSpecialDropPickup(data));
+        
+        // Game události - NOT WHITELISTED (except game.over which is whitelisted)
+        // this.eventBus.on('game.levelup', (data) => this._handleLevelUp(data));
+        this.eventBus.on('game.over', (data) => this._handleGameOver(data));
+    }
+    
+    // Event handlers - integrated from AnalyticsSystem
+    
+    _handlePlayerHit(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackDamageTaken && data.damage) {
+            this.trackDamageTaken(
+                data.damage, 
+                data.source || 'unknown', 
+                this.scene.gameStats?.level || 1
+            );
+        }
+    }
+    
+    _handlePlayerDeath(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackPlayerDeath) {
+            this.trackPlayerDeath(
+                data.cause || 'unknown',
+                this.scene.gameStats?.level || 1,
+                this.scene.gameStats?.time || 0
+            );
+        }
+    }
+    
+    _handleEnemySpawn(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackEnemySpawn && data.enemyType) {
+            this.trackEnemySpawn(data.enemyType);
+        }
+    }
+    
+    _handleEnemyHit(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackDamageDealt && data.damage && data.enemyType) {
+            this.trackDamageDealt(data.damage, data.enemyType);
+        }
+    }
+    
+    _handleEnemyDeath(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackEnemyDeath && data.enemyType) {
+            this.trackEnemyDeath(
+                data.enemyType,
+                this.scene.gameStats?.level || 1
+            );
+        }
+    }
+    
+    _handleWeaponFire(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackWeaponFire) {
+            this.trackWeaponFire(
+                data.weaponType || 'basic',
+                this.scene.gameStats?.level || 1
+            );
+        }
+    }
+    
+    _handleProjectileImpact(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackProjectileHit) {
+            this.trackProjectileHit(
+                data.projectileType || 'basic',
+                data.damage || 0
+            );
+        }
+    }
+    
+    _handlePowerUpSelect(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackPowerUpSelection && data.powerUpName) {
+            this.trackPowerUpSelection(
+                data.powerUpName,
+                this.scene.gameStats?.level || 1
+            );
+        }
+    }
+    
+    _handleBossSpawn(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackBossEncounter && data.bossName) {
+            this.trackBossEncounter(
+                data.bossName,
+                this.scene.gameStats?.level || 1
+            );
+        }
+    }
+    
+    _handleBossPhase(data) {
+        if (!this.eventBusConnected) return;
+        if (this.setBossPhase && data.phase) {
+            this.setBossPhase(data.phase);
+        }
+    }
+    
+    _handleBossAction(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackBossAction && data.action) {
+            this.trackBossAction(data.action);
+        }
+    }
+    
+    _handleBossDefeat(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackBossDefeat && data.bossName) {
+            this.trackBossDefeat(
+                data.bossName,
+                data.timeToKill || 0,
+                this.scene.gameStats?.level || 1
+            );
+        }
+    }
+    
+    _handleDropPickup(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackItemPickup) {
+            this.trackItemPickup(
+                data.itemType || 'xp',
+                data.value || 1
+            );
+        }
+    }
+    
+    _handleSpecialDropPickup(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackSpecialDrop) {
+            this.trackSpecialDrop(
+                'metotrexat',
+                this.scene.gameStats?.level || 1
+            );
+        }
+    }
+    
+    _handleLevelUp(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackLevelUp) {
+            this.trackLevelUp(
+                data.newLevel || this.scene.gameStats?.level,
+                data.timeToLevel || 0
+            );
+        }
+    }
+    
+    _handleGameOver(data) {
+        if (!this.eventBusConnected) return;
+        if (this.trackGameOver) {
+            this.trackGameOver(
+                this.scene.gameStats?.level || 1,
+                this.scene.gameStats?.time || 0,
+                data.cause || 'unknown'
+            );
+        }
+    }
+    
+    /**
+     * Disconnect from EventBus and cleanup listeners
+     */
+    disconnectEventBus() {
+        if (this.eventBus && this.eventBusConnected) {
+            const events = [
+                'player.hit', 'player.death',
+                'npc.spawn', 'npc.hit', 'npc.death',
+                'weapon.fire', 'projectile.impact',
+                'powerup.select',
+                'boss.spawn', 'boss.phase', 'boss.action', 'boss.defeat',
+                'drop.pickup', 'drop.metotrexat.pickup',
+                'game.levelup', 'game.over'
+            ];
+            
+            events.forEach(event => {
+                this.eventBus.off(event);
+            });
+            
+            this.eventBusConnected = false;
+            console.log('[AnalyticsManager] Disconnected from EventBus');
+        }
+    }
 }

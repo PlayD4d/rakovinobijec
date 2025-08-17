@@ -214,8 +214,8 @@ export default class Phase5Debug {
   // === LOOT METHODS ===
   
   testLootTable(tableId, count = 100) {
-    if (!this.scene.lootDropManager) {
-      console.error('[Phase5Debug] LootDropManager not available');
+    if (!this.scene.lootSystem) {
+      console.error('[Phase5Debug] LootSystem not available');
       return;
     }
     
@@ -466,12 +466,13 @@ export default class Phase5Debug {
   }
   
   showLootStats() {
-    if (!this.scene.lootDropManager) {
-      console.error('[Phase5Debug] LootDropManager not available');
+    if (!this.scene.lootSystem) {
+      console.error('[Phase5Debug] LootSystem not available');
       return;
     }
     
-    const telemetry = this.scene.lootDropManager.getTelemetry();
+    // SimpleLootSystem doesn't have telemetry yet - just show stats
+    const telemetry = { message: 'SimpleLootSystem active' };
     console.log('[Phase5Debug] Loot telemetry:', telemetry);
     
     return telemetry;

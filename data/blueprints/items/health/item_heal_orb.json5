@@ -5,11 +5,12 @@
   description: 'Restores 25 health points',
   category: 'health',
   rarity: 'uncommon',
+  sprite: 'item_heal_orb',
   icon: '💚',
   color: 5025616,
   graphics: {
     shape: 'circle',
-    scale: 1.1,
+    scale: 1.5,
   },
   effect: {
     type: 'heal',
@@ -23,11 +24,11 @@
     bobbing: true,
   },
   vfx: {
-    spawn: 'vfx.drop.spawn.health',
-    pickup: 'vfx.player.heal.medium',
+    spawn: 'effect',
+    pickup: 'effect',
   },
   sfx: {
-    spawn: 'sfx.drop.spawn',
+    spawn: 'sound/hit_soft.mp3',
     pickup: 'sound/heal.mp3',
   },
 }

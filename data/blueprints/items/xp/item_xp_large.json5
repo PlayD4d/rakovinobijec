@@ -1,43 +1,33 @@
 {
   id: 'item.xp_large',
   type: 'item',
-  
-  // Basic info
   name: 'Large XP Orb',
   description: 'Grants 10 experience points',
   category: 'xp',
   rarity: 'uncommon',
-  
-  // Visual
+  sprite: 'item_xp_large',
   icon: '💎',
-  color: 0x9400D3,
+  color: 9699539,
   graphics: {
     shape: 'hexagon',
-    scale: 1.3
+    scale: 1.2,
   },
-  
-  // Effects
   effect: {
     type: 'xp',
-    value: 10
+    value: 10,
   },
-  
-  // Pickup properties
   pickup: {
     magnetRange: 100,
     pickupRadius: 35,
     autoPickup: true,
     lifetime: 30000,
-    bobbing: true
+    bobbing: true,
   },
-  
-  // VFX/SFX
   vfx: {
-    spawn: 'vfx.drop.spawn.xp.large',
-    pickup: 'vfx.player.xp.gain.large'
+    spawn: 'effect',
+    pickup: 'effect',
   },
   sfx: {
-    spawn: 'sound/pickup.mp3',
-    pickup: 'sound/pickup.mp3'
-  }
+    pickup: 'sound/pickup.mp3',
+  },
 }

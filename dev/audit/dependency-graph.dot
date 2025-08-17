@@ -1,0 +1,185 @@
+digraph Dependencies {
+  rankdir=LR;
+  node [shape=box];
+
+  subgraph cluster_root {
+    label="root";
+    style=filled;
+    color=lightgrey;
+    "js_config_js" [label="config.js\nutil\n499 LOC", fillcolor="#ffffcc", style=filled];
+    "js_main_js" [label="main.js\nutil\n98 LOC", fillcolor="#ffffcc", style=filled];
+  }
+
+  subgraph cluster_core {
+    label="core";
+    style=filled;
+    color=lightgrey;
+    "js_core_FrameworkDebugAPI_js" [label="FrameworkDebugAPI.js\nother\n641 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_GameConstants_js" [label="GameConstants.js\nconfig\n114 LOC", fillcolor="#ffcccc", style=filled];
+    "js_core_TelemetryLogger_js" [label="TelemetryLogger.js\nother\n499 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_audio_AudioAssets_js" [label="AudioAssets.js\nutil\n7 LOC", fillcolor="#ffffcc", style=filled];
+    "js_core_audio_SimplifiedAudioSystem_js" [label="SimplifiedAudioSystem.js\nsystem\n582 LOC", fillcolor="#99ccff", style=filled];
+    "js_core_blueprints_DisplayResolver_js" [label="DisplayResolver.js\nui-component\n193 LOC", fillcolor="#ffcc99", style=filled];
+    "js_core_data_BlueprintLoader_js" [label="BlueprintLoader.js\nother\n481 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_debug_Phase5Debug_js" [label="Phase5Debug.js\nother\n752 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_dev_HotReload_js" [label="HotReload.js\nother\n290 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_drops_effects_js" [label="effects.js\nother\n48 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_events_EventBus_js" [label="EventBus.js\nother\n64 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_events_EventWhitelist_js" [label="EventWhitelist.js\nutil\n122 LOC", fillcolor="#ffffcc", style=filled];
+    "js_core_graphics_GraphicsFactory_js" [label="GraphicsFactory.js\nfactory\n89 LOC", fillcolor="#ccffcc", style=filled];
+    "js_core_input_KeyboardManager_js" [label="KeyboardManager.js\nui-component\n254 LOC", fillcolor="#ffcc99", style=filled];
+    "js_core_logging_GameLogger_js" [label="GameLogger.js\nother\n407 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_logging_SessionLogger_js" [label="SessionLogger.js\nother\n245 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_projectiles_EnemyProjectile_js" [label="EnemyProjectile.js\nother\n194 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_projectiles_PlayerProjectile_js" [label="PlayerProjectile.js\nother\n98 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_spawn_SpawnDirector_js" [label="SpawnDirector.js\nother\n837 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_systems_ProjectileSystem_js" [label="ProjectileSystem.js\nsystem\n583 LOC", fillcolor="#99ccff", style=filled];
+    "js_core_systems_SimpleLootSystem_js" [label="SimpleLootSystem.js\nsystem\n365 LOC", fillcolor="#99ccff", style=filled];
+    "js_core_systems_powerup_PowerUpAbilities_js" [label="PowerUpAbilities.js\nother\n362 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_systems_powerup_PowerUpEffects_js" [label="PowerUpEffects.js\nother\n201 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_systems_powerup_PowerUpModifiers_js" [label="PowerUpModifiers.js\nother\n108 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_systems_powerup_PowerUpSystem_js" [label="PowerUpSystem.js\nsystem\n376 LOC", fillcolor="#99ccff", style=filled];
+    "js_core_utils_ConfigResolver_js" [label="ConfigResolver.js\nutil\n280 LOC", fillcolor="#ffffcc", style=filled];
+    "js_core_utils_ShapeRenderer_js" [label="ShapeRenderer.js\nutil\n213 LOC", fillcolor="#ffffcc", style=filled];
+    "js_core_utils_SoftRefresh_js" [label="SoftRefresh.js\nutil\n508 LOC", fillcolor="#ffffcc", style=filled];
+    "js_core_utils_bossActions_js" [label="bossActions.js\nutil\n74 LOC", fillcolor="#ffffcc", style=filled];
+    "js_core_utils_devConsole_js" [label="devConsole.js\nui-component\n930 LOC", fillcolor="#ffcc99", style=filled];
+    "js_core_validation_BlueprintValidator_js" [label="BlueprintValidator.js\nother\n596 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_vfx_ArmorVisualizer_js" [label="ArmorVisualizer.js\nother\n220 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_vfx_SimplifiedVFXSystem_js" [label="SimplifiedVFXSystem.js\nsystem\n430 LOC", fillcolor="#99ccff", style=filled];
+    "js_core_vfx_VFXPresets_js" [label="VFXPresets.js\nother\n789 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_vfx_effects_ArmorShieldEffect_js" [label="ArmorShieldEffect.js\nother\n334 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_vfx_effects_BossBeamEffect_js" [label="BossBeamEffect.js\nother\n154 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_vfx_effects_ChemoAuraEffect_js" [label="ChemoAuraEffect.js\nother\n296 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_vfx_effects_FlamethrowerEffect_js" [label="FlamethrowerEffect.js\nother\n379 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_vfx_effects_RadiotherapyEffect_js" [label="RadiotherapyEffect.js\nother\n447 LOC", fillcolor="#ffffff", style=filled];
+    "js_core_vfx_effects_ShieldEffect_js" [label="ShieldEffect.js\nother\n240 LOC", fillcolor="#ffffff", style=filled];
+  }
+
+  subgraph cluster_entities {
+    label="entities";
+    style=filled;
+    color=lightgrey;
+    "js_entities_Boss_js" [label="Boss.js\nui-component\n1097 LOC", fillcolor="#ffcc99", style=filled];
+    "js_entities_BossAbilitiesV2_js" [label="BossAbilitiesV2.js\nentity\n434 LOC", fillcolor="#ccccff", style=filled];
+    "js_entities_Enemy_js" [label="Enemy.js\nui-component\n913 LOC", fillcolor="#ffcc99", style=filled];
+    "js_entities_Player_js" [label="Player.js\nui-component\n680 LOC", fillcolor="#ffcc99", style=filled];
+  }
+
+  subgraph cluster_integration {
+    label="integration";
+    style=filled;
+    color=lightgrey;
+    "js_integration_SpawnDirectorIntegration_js" [label="SpawnDirectorIntegration.js\nui-component\n188 LOC", fillcolor="#ffcc99", style=filled];
+  }
+
+  subgraph cluster_managers {
+    label="managers";
+    style=filled;
+    color=lightgrey;
+    "js_managers_AnalyticsManager_js" [label="AnalyticsManager.js\nmanager\n1017 LOC", fillcolor="#ffccff", style=filled];
+    "js_managers_GlobalHighScoreManager_js" [label="GlobalHighScoreManager.js\nmanager\n216 LOC", fillcolor="#ffccff", style=filled];
+    "js_managers_HighScoreManager_js" [label="HighScoreManager.js\nmanager\n136 LOC", fillcolor="#ffccff", style=filled];
+    "js_managers_MobileControlsManager_js" [label="MobileControlsManager.js\nmanager\n226 LOC", fillcolor="#ffccff", style=filled];
+  }
+
+  subgraph cluster_scenes {
+    label="scenes";
+    style=filled;
+    color=lightgrey;
+    "js_scenes_DevPlayground_js" [label="DevPlayground.js\nscene\n1015 LOC", fillcolor="#ff9999", style=filled];
+    "js_scenes_GameScene_js" [label="GameScene.js\nscene\n3303 LOC", fillcolor="#ff9999", style=filled];
+    "js_scenes_GameUIScene_js" [label="GameUIScene.js\nscene\n167 LOC", fillcolor="#ff9999", style=filled];
+    "js_scenes_MainMenu_js" [label="MainMenu.js\nscene\n276 LOC", fillcolor="#ff9999", style=filled];
+  }
+
+  subgraph cluster_tests {
+    label="tests";
+    style=filled;
+    color=lightgrey;
+    "js_tests_ConfigResolver_test_js" [label="ConfigResolver.test.js\ntest\n300 LOC", fillcolor="#cccccc", style=filled];
+    "js_tests_PR5-Final-SmokeTest_js" [label="PR5-Final-SmokeTest.js\nutil\n290 LOC", fillcolor="#ffffcc", style=filled];
+    "js_tests_boss_pr7_smoketest_js" [label="boss_pr7_smoketest.js\ntest\n143 LOC", fillcolor="#cccccc", style=filled];
+    "js_tests_enemy_pr7_smoketest_js" [label="enemy_pr7_smoketest.js\ntest\n160 LOC", fillcolor="#cccccc", style=filled];
+  }
+
+  subgraph cluster_ui {
+    label="ui";
+    style=filled;
+    color=lightgrey;
+    "js_ui_BaseUIComponent_js" [label="BaseUIComponent.js\nui-component\n426 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_DetailsPanel_js" [label="DetailsPanel.js\nui-component\n210 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_DevPlaygroundUI_js" [label="DevPlaygroundUI.js\nui-component\n673 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_HighScoreModal_js" [label="HighScoreModal.js\nui-component\n402 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_HighScoresModal_js" [label="HighScoresModal.js\nui-component\n395 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_PowerUpSelectionModal_js" [label="PowerUpSelectionModal.js\nui-component\n838 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_SFXSoundboard_js" [label="SFXSoundboard.js\nui-component\n617 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_SettingsManager_js" [label="SettingsManager.js\nui-component\n358 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_SettingsModal_js" [label="SettingsModal.js\nui-component\n1363 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_Tooltip_js" [label="Tooltip.js\nui-component\n116 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_UITheme_js" [label="UITheme.js\nui-component\n196 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_UiConstants_js" [label="UiConstants.js\nui-component\n142 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_UnifiedHUD_js" [label="UnifiedHUD.js\nui-component\n446 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_ValueChip_js" [label="ValueChip.js\nui-component\n118 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_lite_GameOverUI_js" [label="GameOverUI.js\nui-component\n143 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_lite_MainMenuUI_js" [label="MainMenuUI.js\nother\n125 LOC", fillcolor="#ffffff", style=filled];
+    "js_ui_lite_PauseUI_js" [label="PauseUI.js\nui-component\n114 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_lite_PowerUpUI_js" [label="PowerUpUI.js\nui-component\n338 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_lite_SimpleButton_js" [label="SimpleButton.js\nui-component\n114 LOC", fillcolor="#ffcc99", style=filled];
+    "js_ui_lite_SimpleModal_js" [label="SimpleModal.js\nui-component\n158 LOC", fillcolor="#ffcc99", style=filled];
+  }
+
+  subgraph cluster_utils {
+    label="utils";
+    style=filled;
+    color=lightgrey;
+    "js_utils_DebugOverlay_js" [label="DebugOverlay.js\nui-component\n354 LOC", fillcolor="#ffcc99", style=filled];
+    "js_utils_PerformanceProfiler_js" [label="PerformanceProfiler.js\nutil\n197 LOC", fillcolor="#ffffcc", style=filled];
+    "js_utils_SmokeTest_js" [label="SmokeTest.js\nutil\n490 LOC", fillcolor="#ffffcc", style=filled];
+    "js_utils_supabaseClient_js" [label="supabaseClient.js\nutil\n31 LOC", fillcolor="#ffffcc", style=filled];
+    "js_utils_version_js" [label="version.js\nutil\n35 LOC", fillcolor="#ffffcc", style=filled];
+  }
+
+  "js_core_events_EventBus_js" -> "js_core_events_EventWhitelist_js";
+  "js_core_systems_powerup_PowerUpSystem_js" -> "js_core_systems_powerup_PowerUpModifiers_js";
+  "js_core_systems_powerup_PowerUpSystem_js" -> "js_core_systems_powerup_PowerUpAbilities_js";
+  "js_core_systems_powerup_PowerUpSystem_js" -> "js_core_systems_powerup_PowerUpEffects_js";
+  "js_core_vfx_SimplifiedVFXSystem_js" -> "js_core_vfx_VFXPresets_js";
+  "js_core_vfx_SimplifiedVFXSystem_js" -> "js_core_vfx_effects_RadiotherapyEffect_js";
+  "js_core_vfx_SimplifiedVFXSystem_js" -> "js_core_vfx_effects_FlamethrowerEffect_js";
+  "js_core_vfx_SimplifiedVFXSystem_js" -> "js_core_vfx_effects_ShieldEffect_js";
+  "js_entities_Boss_js" -> "js_entities_Enemy_js";
+  "js_entities_Boss_js" -> "js_entities_BossAbilitiesV2_js";
+  "js_main_js" -> "js_scenes_GameScene_js";
+  "js_main_js" -> "js_scenes_GameUIScene_js";
+  "js_main_js" -> "js_scenes_MainMenu_js";
+  "js_main_js" -> "js_scenes_DevPlayground_js";
+  "js_main_js" -> "js_config_js";
+  "js_main_js" -> "js_core_utils_ConfigResolver_js";
+  "js_ui_BaseUIComponent_js" -> "js_ui_UITheme_js";
+  "js_ui_BaseUIComponent_js" -> "js_ui_UiConstants_js";
+  "js_ui_HighScoreModal_js" -> "js_ui_BaseUIComponent_js";
+  "js_ui_HighScoreModal_js" -> "js_ui_UITheme_js";
+  "js_ui_HighScoreModal_js" -> "js_ui_UiConstants_js";
+  "js_ui_HighScoresModal_js" -> "js_ui_BaseUIComponent_js";
+  "js_ui_HighScoresModal_js" -> "js_ui_UITheme_js";
+  "js_ui_HighScoresModal_js" -> "js_ui_UiConstants_js";
+  "js_ui_PowerUpSelectionModal_js" -> "js_ui_BaseUIComponent_js";
+  "js_ui_PowerUpSelectionModal_js" -> "js_ui_UITheme_js";
+  "js_ui_PowerUpSelectionModal_js" -> "js_ui_UiConstants_js";
+  "js_ui_SettingsModal_js" -> "js_ui_BaseUIComponent_js";
+  "js_ui_SettingsModal_js" -> "js_ui_UITheme_js";
+  "js_ui_SettingsModal_js" -> "js_ui_UiConstants_js";
+  "js_ui_SettingsModal_js" -> "js_ui_SettingsManager_js";
+  "js_ui_UiConstants_js" -> "js_ui_UITheme_js";
+  "js_ui_UnifiedHUD_js" -> "js_ui_BaseUIComponent_js";
+  "js_ui_UnifiedHUD_js" -> "js_ui_UITheme_js";
+  "js_ui_UnifiedHUD_js" -> "js_ui_UiConstants_js";
+  "js_ui_lite_GameOverUI_js" -> "js_ui_lite_SimpleModal_js";
+  "js_ui_lite_GameOverUI_js" -> "js_ui_lite_SimpleButton_js";
+  "js_ui_lite_MainMenuUI_js" -> "js_ui_lite_SimpleButton_js";
+  "js_ui_lite_PauseUI_js" -> "js_ui_lite_SimpleModal_js";
+  "js_ui_lite_PauseUI_js" -> "js_ui_lite_SimpleButton_js";
+  "js_ui_lite_PowerUpUI_js" -> "js_ui_lite_SimpleModal_js";
+  "js_utils_DebugOverlay_js" -> "js_utils_PerformanceProfiler_js";
+}

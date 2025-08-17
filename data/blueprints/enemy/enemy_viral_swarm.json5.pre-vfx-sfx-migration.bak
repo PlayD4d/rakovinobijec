@@ -1,0 +1,78 @@
+{
+  id: 'enemy.viral_swarm',
+  type: 'enemy',
+  stats: {
+    hp: 12,
+    damage: 4,
+    speed: 100,
+    size: 18,
+    armor: 0,
+    xp: 2,
+  },
+  mechanics: {
+    movementType: 'swarm',
+    contactDamage: 4,
+    aggroRange: 300,
+    wanderRadius: 80,
+    swarmBehavior: true,
+    dropChance: 0.8,
+    healthDropChance: 0.08,
+  },
+  vfx: {
+    spawn: 'vfx.enemy.spawn.swarm',
+    hit: 'vfx.hit.spark.small',
+    death: 'vfx.enemy.death.burst.small',
+    trail: 'vfx.trail.viral',
+    move: 'vfx.trail.swarm',
+  },
+  sfx: {
+    spawn: 'sfx.enemy.spawn.swarm',
+    hit: 'sfx.enemy.hit.small',
+    death: 'sound/npc_death.mp3',
+  },
+  // Direct drop system - consumables only (XP comes from stats.xp)
+  drops: [
+    { itemId: 'item.health_small', chance: 0.05 }  // 5% chance for health
+  ],
+  graphics: {
+    sprite: 'enemy_viral_swarm',
+    tint: 10233776,
+    scale: 0.8,
+    animation: {
+      idle: 'swarm_idle',
+      move: 'swarm_move',
+    },
+  },
+  ai: {
+    behavior: 'chase',
+    params: {
+      aggroRange: 300,
+      wanderRadius: 80,
+      movePattern: 'swarm',
+      targetPriority: 'nearest',
+      swarmBehavior: true,
+    },
+  },
+  display: {
+    key: 'enemy.viral_swarm.name',
+    descKey: 'enemy.viral_swarm.desc',
+    templates: {
+      short: '{{stats.hp}} HP • rychlá • roj',
+      desc: 'Virová rojnice s {{stats.hp}} HP. Rychlá a pohyblivá, útočí ve skupinách.',
+    },
+    color: '#9C27B0',
+    rarity: 'common',
+    icon: 'enemy.viral_swarm',
+    category: 'enemy',
+    sortOrder: 110,
+    tags: [
+      'enemy',
+      'swarm',
+      'fast',
+      'viral',
+      'weak',
+    ],
+    devNameFallback: 'Virový roj',
+    devDescFallback: 'Rychlý roj virových částic',
+  },
+}

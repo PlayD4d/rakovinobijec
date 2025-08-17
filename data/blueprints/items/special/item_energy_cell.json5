@@ -5,11 +5,12 @@
   description: 'Boosts attack speed for 10 seconds',
   category: 'special',
   rarity: 'uncommon',
+  sprite: 'item_energy_cell',
   icon: '⚡',
   color: 16766720,
   graphics: {
     shape: 'diamond',
-    scale: 1,
+    scale: 1.8,  // Visible size
   },
   effect: {
     type: 'buff',
@@ -25,11 +26,11 @@
     bobbing: true,
   },
   vfx: {
-    spawn: 'vfx.drop.spawn.energy',
-    pickup: 'vfx.player.buff.speed',
+    spawn: 'effect',
+    pickup: 'effect',
   },
   sfx: {
-    spawn: 'sfx.drop.spawn',
+    spawn: 'sound/hit_soft.mp3',
     pickup: 'sound/powerup.mp3',
   },
 }

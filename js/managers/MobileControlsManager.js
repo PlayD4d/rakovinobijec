@@ -2,12 +2,8 @@
  * MobileControlsManager - Správce mobilního ovládání
  * 
  * PR7 kompatibilní - všechny parametry z ConfigResolver
- * Používá InputSystem a CameraSystem místo přímých Phaser API volání
  * Virtuální joystick pro mobilní zařízení
  */
-
-import { getInputSystem } from '../core/systems/InputSystem.js';
-import { getCameraSystem } from '../core/systems/CameraSystem.js';
 
 export class MobileControlsManager {
   constructor(scene, options = {}) {
@@ -15,9 +11,7 @@ export class MobileControlsManager {
     this.enabled = false;
     this.activePointerId = null;
     
-    // Inicializace systémů
-    this.inputSystem = getInputSystem(scene);
-    this.cameraSystem = getCameraSystem(scene);
+    // Přímé použití Phaser API (InputSystem a CameraSystem odstraněny)
     
     // PR7: Získat parametry z ConfigResolver
     const CR = this.scene.configResolver || window.ConfigResolver;
@@ -142,8 +136,8 @@ export class MobileControlsManager {
 
   _bindInput() {
     // Připojení vstupních událostí přes InputSystem
-    if (this.inputSystem.getPointersTotal() < 2) {
-      this.inputSystem.addPointers(2 - this.inputSystem.getPointersTotal());
+    if (this.scene.input.getPointersTotal() < 2) {
+      this.scene.input.addPointers(2 - this.scene.input.getPointersTotal());
     }
     this._onDown = (pointer) => {
       if (!this.enabled || this.activePointerId !== null) return;
@@ -162,26 +156,26 @@ export class MobileControlsManager {
       this.vector = { x: 0, y: 0 };
       this._positionKnob(this.basePos.x, this.basePos.y);
     };
-    this.inputSystem.on('pointerdown', this._onDown, this);
-    this.inputSystem.on('pointermove', this._onMove, this);
-    this.inputSystem.on('pointerup', this._onUp, this);
-    this.inputSystem.on('pointerupoutside', this._onUp, this);
+    this.scene.input.on('pointerdown', this._onDown, this);
+    this.scene.input.on('pointermove', this._onMove, this);
+    this.scene.input.on('pointerup', this._onUp, this);
+    this.scene.input.on('pointerupoutside', this._onUp, this);
   }
 
   _unbindInput() {
     // Odpojení vstupních událostí přes InputSystem
-    if (this._onDown) this.inputSystem.off('pointerdown', this._onDown, this);
-    if (this._onMove) this.inputSystem.off('pointermove', this._onMove, this);
+    if (this._onDown) this.scene.input.off('pointerdown', this._onDown, this);
+    if (this._onMove) this.scene.input.off('pointermove', this._onMove, this);
     if (this._onUp) {
-      this.inputSystem.off('pointerup', this._onUp, this);
-      this.inputSystem.off('pointerupoutside', this._onUp, this);
+      this.scene.input.off('pointerup', this._onUp, this);
+      this.scene.input.off('pointerupoutside', this._onUp, this);
     }
     this._onDown = this._onMove = this._onUp = null;
   }
 
   _reposition() {
-    const w = this.cameraSystem.getWidth();
-    const h = this.cameraSystem.getHeight();
+    const w = this.scene.cameras.main.width;
+    const h = this.scene.cameras.main.height;
     const margin = 90;
     const x = this.side === 'right' ? (w - margin) : margin;
     const y = h - margin;

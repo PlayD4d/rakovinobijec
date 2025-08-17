@@ -5,8 +5,9 @@
 import { SimpleButton } from './SimpleButton.js';
 
 export class MainMenuUI {
-  constructor(scene) {
+  constructor(scene, gameVersion = 'unknown') {
     this.scene = scene;
+    this.gameVersion = gameVersion;
     
     const cx = scene.cameras.main.width / 2;
     const cy = scene.cameras.main.height / 2;
@@ -85,7 +86,7 @@ export class MainMenuUI {
     
     // Version info
     this.version = scene.add.text(10, scene.cameras.main.height - 20, 
-      'v0.1.5 | LiteUI Edition', {
+      `v${this.gameVersion} | (c) PlayD4d 2025`, {
       fontSize: '12px',
       color: '#666666'
     });

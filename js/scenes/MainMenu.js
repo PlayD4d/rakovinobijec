@@ -4,14 +4,15 @@ import { calculateGameSize } from '../config.js';
 import { HighScoreManager } from '../managers/HighScoreManager.js';
 import { GlobalHighScoreManager } from '../managers/GlobalHighScoreManager.js';
 // AudioLoader removed - using direct loading
-import { VfxSystem } from '../core/vfx/VFXSystem.js';
+import { SimplifiedVFXSystem } from '../core/vfx/SimplifiedVFXSystem.js';
 import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
 // buildSfxManifest removed - using direct loading
 import { EventBus } from '../core/events/EventBus.js';
+import { KeyboardManager } from '../core/input/KeyboardManager.js';
 // LiteUI components - replacing RexUI modals
 import { MainMenuUI } from '../ui/lite/MainMenuUI.js';
 import { loadGameVersion, getCachedVersion } from '../utils/version.js';
-import { getMusicManager } from '../core/audio/MusicManager.js';
+// SimplifiedAudioSystem will be imported dynamically in create()
 
 export class MainMenu extends Phaser.Scene {
     constructor() {
@@ -21,6 +22,7 @@ export class MainMenu extends Phaser.Scene {
         this.highScoreManager = null;
         this.globalHighScoreManager = null;
         this.musicManager = null;
+        this.keyboardManager = null;
         
         // Flag pro tracking fullscreen stavu
         this.isFullscreenMode = false;
@@ -36,9 +38,11 @@ export class MainMenu extends Phaser.Scene {
         ];
         
         menuSounds.forEach(path => {
-            const key = path.split('/').pop().replace('.mp3', '');
+            // Use consistent key generation - same as GameScene and SimplifiedAudioSystem
+            const key = path.replace(/[^a-zA-Z0-9]/g, '_');
             if (!this.cache.audio.has(key)) {
                 this.load.audio(key, path);
+                console.log(`[MainMenu] Loading audio: ${path} -> ${key}`);
             }
         });
         
@@ -47,9 +51,11 @@ export class MainMenu extends Phaser.Scene {
         if (CR) {
             const menuMusic = CR.get('audio.scenes.mainMenu.backgroundMusic');
             if (menuMusic) {
-                const musicKey = menuMusic.split('/').pop().split('.')[0];
+                // Use same key generation as SimplifiedAudioSystem
+                const musicKey = menuMusic.replace(/[^a-zA-Z0-9]/g, '_');
                 if (!this.cache.audio.has(musicKey)) {
                     this.load.audio(musicKey, menuMusic);
+                    console.log(`[MainMenu] Loading menu music: ${menuMusic} -> ${musicKey}`);
                 }
             }
         }
@@ -81,29 +87,53 @@ export class MainMenu extends Phaser.Scene {
         this.globalHighScoreManager = new GlobalHighScoreManager();
         this.globalHighScoreManager.setLocalFallback(this.highScoreManager);
         
-        // Vytvoření main menu UI (LiteUI)
-        this.mainMenuUI = new MainMenuUI(this);
-        
-        // Simple keyboard controls for ESC
-        if (this.input.keyboard) {
-            this.input.keyboard.on('keydown-ESC', this.handleEscKey, this);
+        // PR7: Init EventBus first (needed by KeyboardManager)
+        try {
+            this.eventBus = new EventBus();
+        } catch (error) {
+            console.warn('EventBus init failed:', error);
+            this.eventBus = null;
         }
         
-        // PR7: Init GraphicsFactory first, then EventBus + VFX pro menu
+        // Vytvoření main menu UI (LiteUI)
+        this.mainMenuUI = new MainMenuUI(this, this.gameVersion);
+        
+        // Setup KeyboardManager for MainMenu
+        try {
+            this.keyboardManager = new KeyboardManager(this, this.eventBus);
+            this.setupMenuKeyboardEvents();
+            this.keyboardManager.register('ESC', 'menu.escape', 'menu');
+            console.log('✅ MainMenu KeyboardManager initialized');
+        } catch (error) {
+            console.error('MainMenu KeyboardManager init failed:', error);
+        }
+        
+        // PR7: Init GraphicsFactory and VFX pro menu
         try {
             this.graphicsFactory = new GraphicsFactory(this);
-            this.eventBus = new EventBus();
-            this.vfxSystem = new VfxSystem(this);
+            this.vfxSystem = new SimplifiedVFXSystem(this);
             this.vfxSystem.initialize();
         } catch (_) {}
 
-        // Přehrát intro zvuk přes router (použij leaf klíč, asset je v kořeni)
-        try { this.eventBus && this.eventBus.emit('ui.ready_fight', { sfx: 'ready_fight' }); } catch (_) {}
+        // Přehrát intro zvuk přímo přes audio system
+        try { 
+            if (this.sound && this.sound.add) {
+                const introKey = 'sound_ready_fight_mp3'; // Key generated from 'sound/ready_fight.mp3'
+                if (this.cache.audio.exists(introKey)) {
+                    this.sound.play(introKey, { volume: 0.5 });
+                    console.log('[MainMenu] Playing intro sound');
+                }
+            }
+        } catch (e) {
+            console.warn('[MainMenu] Failed to play intro sound:', e);
+        }
         
-        // Initialize and start menu music
+        // Initialize and start menu music - create own instance (PR7: no singleton issues)
         try {
-            this.musicManager = getMusicManager(this);
-            this.musicManager.playCategory('mainMenu');
+            const { SimplifiedAudioSystem } = await import('../core/audio/SimplifiedAudioSystem.js');
+            this.musicManager = new SimplifiedAudioSystem(this);
+            await this.musicManager.initialize();
+            this.musicManager.playMusic('music/8bit_main_menu.mp3');
         } catch (e) {
             console.warn('[MainMenu] Failed to start music:', e);
         }
@@ -140,15 +170,22 @@ export class MainMenu extends Phaser.Scene {
     startGame() {
         // Stop menu music before transitioning
         if (this.musicManager) {
-            this.musicManager.stop();
+            this.musicManager.stopMusic();
         }
         
         // Obnovit normální FPS před přechodem do hry
         try { this.game.loop.targetFps = 60; } catch (_) {}
         // Pro jistotu okamžitě uklidit posluchače z MainMenu ještě před přepnutím scény
         try { this.shutdown(); } catch (_) {}
-        // Emit menu confirm (reuse drop.pickup jako jednoduchý potvrzovací zvuk)
-        try { this.eventBus && this.eventBus.emit('drop.pickup', {}); } catch (_) {}
+        // Play pickup sound for menu confirm
+        try { 
+            if (this.sound && this.sound.add) {
+                const pickupKey = 'sound_pickup_mp3'; // Key generated from 'sound/pickup.mp3'
+                if (this.cache.audio.exists(pickupKey)) {
+                    this.sound.play(pickupKey, { volume: 0.5 });
+                }
+            }
+        } catch (_) {}
         
         // Transition to game
         this.scene.start('GameScene');
@@ -159,6 +196,17 @@ export class MainMenu extends Phaser.Scene {
     // Settings functionality temporarily disabled - will be added to LiteUI later
     
     // Audio and enemy info functionality will be added to LiteUI later
+    
+    /**
+     * Setup keyboard event listeners for MainMenu
+     */
+    setupMenuKeyboardEvents() {
+        this.eventBus.on('menu.escape', () => {
+            this.handleEscKey();
+        });
+        
+        console.log('[MainMenu] Menu keyboard event listeners registered');
+    }
     
     /**
      * Handle ESC key
@@ -176,7 +224,14 @@ export class MainMenu extends Phaser.Scene {
     tryPlayIntro() {
         // Delay to ensure audio is loaded
         this.time.delayedCall(500, () => {
-            try { this.eventBus && this.eventBus.emit('ui.ready_fight', { sfx: 'ready_fight' }); } catch (_) {}
+            try { 
+                if (this.sound && this.sound.add) {
+                    const introKey = 'sound_ready_fight_mp3';
+                    if (this.cache.audio.exists(introKey)) {
+                        this.sound.play(introKey, { volume: 0.5 });
+                    }
+                }
+            } catch (_) {}
         });
     }
     
@@ -186,6 +241,12 @@ export class MainMenu extends Phaser.Scene {
      * Cleanup when leaving scene
      */
     shutdown() {
+        // Cleanup KeyboardManager
+        if (this.keyboardManager) {
+            this.keyboardManager.destroy();
+            this.keyboardManager = null;
+        }
+        
         // Cleanup music manager
         if (this.musicManager) {
             this.musicManager.destroy();

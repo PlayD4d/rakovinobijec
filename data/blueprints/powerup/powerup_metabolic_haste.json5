@@ -38,15 +38,15 @@
     effectType: 'metabolic_haste' // PR7: Explicit effect type
   },
   vfx: {
-    pickup: 'vfx.powerup.pickup',
-    levelup: 'vfx.powerup.levelup',
-    apply: 'vfx.powerup.apply',
-    dodge: 'vfx.projectile.impact',
+    pickup: 'pickup',
+    levelup: 'powerup',
+    apply: 'powerup',
+    dodge: 'hit.medium',
   },
   sfx: {
-    pickup: 'sfx.powerup.pickup',
-    levelup: 'sfx.powerup.levelup',
-    apply: 'sfx.powerup.apply',
+    pickup: 'sound/pickup.mp3',
+    levelup: 'sound/powerup.mp3',
+    apply: 'sound/powerup.mp3',
   },
   display: {
     key: 'powerup.metabolic_haste.name',

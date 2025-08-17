@@ -1,0 +1,126 @@
+{
+  // Blueprint: unique.necrocyte_sentinel
+  "id": "unique.necrocyte_sentinel",
+  "type": "enemy",
+  "meta": {
+    "category": "unique",
+    "tier": "legendary",
+    "spawnWeight": 2
+  },  "baseType": "enemy.necrotic_cell",
+  "stats": {
+    "hp": 135,
+    "damage": 12,
+    "speed": 45,
+    "size": 35,
+    "armor": 6,
+    "xp": 45
+  },
+  "visuals": {
+    "textureKey": "unique.necrocyte_sentinel",
+    "tint": 0x4B0082,
+    "size": { "w": 35, "h": 35 }
+  },
+  "mechanics": {
+    "movementType": "sentinel_guard",
+    "contactDamage": 12,
+    "necroticAura": {
+      "enabled": true,
+      "radius": 120,
+      "damage": 4,
+      "tickInterval": 800,
+      "regenDebuff": 0.5,
+      "stackable": false,
+      "auraVfx": "vfx.unique.necrotic.aura"
+    },
+    "summonMinions": {
+      "enabled": true,
+      "minionType": "enemy.necrotic_cell",
+      "count": 3,
+      "interval": 8000,
+      "spawnRadius": 80,
+      "maxMinions": 6,
+      "minionModifiers": {
+        "hp": 0.6,
+        "damage": 0.8,
+        "speed": 1.2
+      }
+    },
+    "armorShield": {
+      "enabled": true,
+      "duration": 3000,
+      "cooldown": 15000,
+      "triggerHealthPercent": 0.5,
+      "immuneToProjectiles": true,
+      "shieldVfx": "vfx.unique.armor.shield"
+    },
+    "deathExplosion": {
+      "enabled": true,
+      "radius": 150,
+      "damage": 20,
+      "necroticSplash": true,
+      "splashDuration": 5000
+    },
+    "specialLoot": {
+      "mutatorChance": 0.3,
+      "researchPointChance": 0.4,
+      "guaranteedRareDrop": true
+    },
+    "resistances": {
+      "necrotic": 1,
+      "poison": 0.7,
+      "physical": 0.8
+    }
+  },
+  "aiProfile": {
+    "type": "sentinel_guardian",
+    "aggressionLevel": "defensive",
+    "preferredRange": 100,
+    "retreatThreshold": 0.3,
+    "abilityPriority": [
+      "armorShield",
+      "summonMinions",
+      "necroticAura"
+    ],
+    "targetingType": "closest",
+    "flankingBehavior": false
+  },
+  "vfx": {
+    "spawn": "vfx.unique.spawn.necrocyte",
+    "death": "vfx.unique.death.necrotic.explosion",
+    "aura": "vfx.unique.necrotic.aura",
+    "shield": "vfx.unique.armor.shield",
+    "summon": "vfx.unique.summon.necrotic",
+    "debuff": "vfx.unique.necrotic.debuff"
+  },
+  "sfx": {
+    "spawn": "sfx.unique.spawn.sentinel",
+    "death": "sfx.unique.death.necrotic",
+    "aura": "sfx.unique.necrotic.pulse",
+    "shield": "sfx.unique.shield.activate",
+    "summon": "sfx.unique.summon.dark"
+  },
+  "display": {
+    "key": "unique.necrocyte_sentinel.name",
+    "descKey": "unique.necrocyte_sentinel.desc",
+    "name": "Necrocyte Sentinel",
+    "templates": {
+      "short": "UNIQUE • {{stats.hp}} HP • Necrotic aura • Summoner",
+      "desc": "Strážce nekrotických buněk s {{stats.hp}} HP. Vyvolává spojence a šíří nekrotickou auru snižující regeneraci."
+    },
+    "color": "#4A148C",
+    "rarity": "legendary",
+    "icon": "unique.necrocyte_sentinel",
+    "category": "unique",
+    "sortOrder": 350,
+    "tags": [
+      "unique",
+      "named",
+      "sentinel",
+      "necrotic",
+      "aura",
+      "summoner",
+      "defensive",
+      "guardian"
+    ]
+  }
+}

@@ -31,8 +31,8 @@
       "stackingDamage": true,
       "stackDuration": 8000,
       "maxStacks": 4,
-      "pulseVfx": "vfx.unique.radiation.pulse",
-      "debuffVfx": "vfx.unique.radiation.debuff"
+      "pulseVfx": 'special',
+      "debuffVfx": 'special'
     },
     "phaseShift": {
       "enabled": true,
@@ -60,14 +60,14 @@
       "damageMultiplier": 1.8,
       "speedMultiplier": 1.6,
       "pulseFrequencyMultiplier": 1.5,
-      "enrageVfx": "vfx.unique.titan.enrage"
+      "enrageVfx": 'special'
     },
     "deathBlast": {
       "enabled": true,
       "radius": 250,
       "damage": 35,
       "radiationDuration": 15000,
-      "blastVfx": "vfx.unique.titan.death.blast"
+      "blastVfx": 'special'
     },
     "specialLoot": {
       "mutatorChance": 0.5,
@@ -100,22 +100,22 @@
     "territorialBehavior": true
   },
   "vfx": {
-    "spawn": "vfx.unique.spawn.titan",
-    "death": "vfx.unique.death.radiation.titan",
-    "pulse": "vfx.unique.radiation.pulse",
-    "shift": "vfx.unique.phase.shift.titan",
-    "zones": "vfx.unique.radiation.zones",
-    "enrage": "vfx.unique.titan.enrage",
-    "blast": "vfx.unique.titan.death.blast",
-    "debuff": "vfx.unique.radiation.debuff"
+    "spawn": 'spawn',
+    "death": 'death.large',
+    "pulse": 'special',
+    "shift": 'special',
+    "zones": 'special',
+    "enrage": 'special',
+    "blast": 'special',
+    "debuff": 'special'
   },
   "sfx": {
-    "spawn": "sfx.unique.spawn.titan",
-    "death": "sfx.unique.death.radiation.blast",
-    "pulse": "sfx.unique.radiation.pulse",
-    "shift": "sfx.unique.phase.shift",
-    "zones": "sfx.unique.radiation.zones",
-    "enrage": "sfx.unique.titan.enrage"
+    "spawn": 'sound/npc_spawn.mp3',
+    "death": 'sound/elite_death.mp3',
+    "pulse": 'sound/powerup.mp3',
+    "shift": 'sound/powerup.mp3',
+    "zones": 'sound/powerup.mp3',
+    "enrage": 'sound/powerup.mp3'
   },
   "display": {
     "key": "unique.radiomorph_titan.name",

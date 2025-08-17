@@ -218,11 +218,11 @@ export class ProjectileSystem {
     bullet.setTexture(textureName);
     
     // Play player shoot sound from blueprint - PR7 compliant
-    if (this.scene.newSFXSystem) {
+    if (this.scene.audioSystem) {
       const player = this.scene.player;
       const shootSFX = player?.blueprint?.sfx?.shoot;
       if (shootSFX) {
-        this.scene.newSFXSystem.play(shootSFX);
+        this.scene.audioSystem.play(shootSFX);
       } else {
         console.warn('[ProjectileSystem] Missing shoot sound in player blueprint');
       }
@@ -239,6 +239,25 @@ export class ProjectileSystem {
     
     // Vystřelení pomocí zero-GC API
     bullet.fire(x, y, dirX, dirY, speed, range, damage, tint);
+    
+    // Add piercing properties from player if active
+    const player = this.scene.player;
+    if (player && player.piercingLevel > 0) {
+        bullet.piercing = true;
+        bullet.maxPiercing = player.piercingMaxPierces || 1;
+        bullet.hitCount = 0;
+        bullet.damageReduction = player.piercingDamageReduction || 0.1;
+        
+        // Debug: Log piercing setup occasionally
+        if (Math.random() < 0.01) {
+            console.log(`[ProjectileSystem] ✅ PIERCING - Max pierces: ${bullet.maxPiercing}, damage reduction: ${(bullet.damageReduction * 100).toFixed(1)}%`);
+        }
+    } else {
+        // Ensure no piercing properties if not active
+        bullet.piercing = false;
+        bullet.maxPiercing = 0;
+        bullet.hitCount = 0;
+    }
     
     // Přehrání zvuku střelby (volitelné, s ošetřením chyb)
     try {
@@ -496,15 +515,15 @@ export class ProjectileSystem {
     });
     
     // PR7: VFX/SFX integrace pro exploze
-    if (this.scene.newVFXSystem) {
-      this.scene.newVFXSystem.play('vfx.explosion.small', x, y);
+    if (this.scene.vfxSystem) {
+      this.scene.vfxSystem.play('vfx.explosion.small', x, y);
     }
-    if (this.scene.newSFXSystem) {
+    if (this.scene.audioSystem) {
       // Get explosion sound from projectile blueprint if available
       const projectileBlueprint = this.blueprintLoader?.getBlueprint(projectileId);
       const explosionSFX = projectileBlueprint?.sfx?.explosion;
       if (explosionSFX) {
-        this.scene.newSFXSystem.play(explosionSFX);
+        this.scene.audioSystem.play(explosionSFX);
       } else {
         console.warn('[ProjectileSystem] Missing explosion sound in projectile blueprint:', projectileId);
       }

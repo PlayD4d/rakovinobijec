@@ -28,6 +28,37 @@ export class FlamethrowerEffect {
         
         // Damage zone (for collision detection)
         this.damageZone = null;
+        
+        // Damage configuration
+        this.damage = config.damage || 3;
+        this.tickRate = config.tickRate || 0.1; // Damage every 100ms
+        this.lastDamageTick = 0;
+        
+        console.log(`[FlamethrowerEffect] Created - damage: ${this.damage}, tick rate: ${this.tickRate}s`);
+    }
+    
+    /**
+     * Update effect configuration (called when power-up levels up)
+     * @param {Object} config - New configuration
+     */
+    updateConfig(config) {
+        console.log('[FlamethrowerEffect] Updating config:', config);
+        
+        // Update damage parameters
+        if (config.damage !== undefined) this.damage = config.damage;
+        if (config.tickRate !== undefined) this.tickRate = config.tickRate;
+        
+        // Update visual parameters
+        if (config.length !== undefined) this.baseLength = config.length;
+        if (config.angle !== undefined) this.coneAngle = config.angle;
+        if (config.color !== undefined) this.color = config.color;
+        
+        // Update damage zone if active
+        if (this.active && this.damageZone) {
+            this._updateDamageZone();
+        }
+        
+        console.log(`[FlamethrowerEffect] Config updated - Length: ${this.baseLength}, Angle: ${(this.coneAngle * 180/Math.PI).toFixed(1)}°, Damage: ${this.damage}`);
     }
     
     /**
@@ -49,9 +80,9 @@ export class FlamethrowerEffect {
         // Create damage zone for collision detection
         this._createDamageZone();
         
-        // Play looping flamethrower sound - PR7: používáme newSFXSystem
-        if (this.scene.newSFXSystem) {
-            this.loopId = this.scene.newSFXSystem.playLoop('flamethrower');
+        // Play looping flamethrower sound - PR7: používáme audioSystem
+        if (this.scene.audioSystem) {
+            this.loopId = this.scene.audioSystem.playLoop('flamethrower');
         }
     }
     
@@ -81,9 +112,9 @@ export class FlamethrowerEffect {
             this.damageZone = null;
         }
         
-        // Stop looping flame sound - PR7: používáme newSFXSystem
-        if (this.loopId && this.scene.newSFXSystem) {
-            this.scene.newSFXSystem.stopLoop(this.loopId);
+        // Stop looping flame sound - PR7: používáme audioSystem
+        if (this.loopId && this.scene.audioSystem) {
+            this.scene.audioSystem.stopLoop(this.loopId);
             this.loopId = null;
         }
     }
@@ -116,8 +147,16 @@ export class FlamethrowerEffect {
             this.particleTimer = 0;
         }
         
-        // Apply damage to enemies in cone
-        this._applyFlameDamage();
+        // Apply damage to enemies in cone (with timing)
+        if (time - this.lastDamageTick > this.tickRate * 1000) {
+            this._applyFlameDamage(time);
+            this.lastDamageTick = time;
+            
+            // Debug: Log damage ticks occasionally
+            if (Math.random() < 0.1) { // 10% chance to log
+                console.log(`[FlamethrowerEffect] 🔥 DAMAGE TICK - ${this.damage} damage, tick rate: ${this.tickRate}s`);
+            }
+        }
     }
     
     /**
@@ -174,7 +213,7 @@ export class FlamethrowerEffect {
      * @private
      */
     _emitFlameParticle() {
-        if (!this.scene.newVFXSystem || !this.entity) return;
+        if (!this.scene.vfxSystem || !this.entity) return;
         
         const rotation = this.entity.rotation || 0;
         const particleAngle = rotation + (Math.random() - 0.5) * this.coneAngle * 2;
@@ -183,7 +222,7 @@ export class FlamethrowerEffect {
         const particleX = this.entity.x + Math.cos(particleAngle) * particleDistance;
         const particleY = this.entity.y + Math.sin(particleAngle) * particleDistance;
         
-        this.scene.newVFXSystem.play('vfx.flame.particle', particleX, particleY);
+        this.scene.vfxSystem.play('vfx.flame.particle', particleX, particleY);
     }
     
     /**
@@ -217,27 +256,40 @@ export class FlamethrowerEffect {
      * Apply flame damage to enemies in cone
      * @private
      */
-    _applyFlameDamage() {
+    _applyFlameDamage(time) {
         if (!this.entity || !this.scene.enemiesGroup) return;
         
-        const damage = this.entity.flamethrowerDamage || 2;
         const enemies = this.scene.enemiesGroup.getChildren();
+        let enemiesInRange = 0;
+        let enemiesHit = 0;
         
         for (const enemy of enemies) {
-            if (!enemy.active) continue;
+            if (!enemy.active || enemy.hp <= 0) continue;
             
             // Check if enemy is in flame cone
             if (this._isInFlameCone(enemy)) {
-                // Apply damage through proper system
-                if (enemy.takeDamage) {
-                    enemy.takeDamage(damage, { type: 'flame', source: this.entity });
-                }
+                enemiesInRange++;
                 
-                // Apply burn VFX
-                if (this.scene.newVFXSystem) {
-                    this.scene.newVFXSystem.play('vfx.burn.small', enemy.x, enemy.y);
+                // Apply damage through proper system
+                if (enemy.takeDamage && typeof enemy.takeDamage === 'function') {
+                    const result = enemy.takeDamage(this.damage, 'flamethrower');
+                    if (result > 0) {
+                        enemiesHit++;
+                        
+                        // Apply burn VFX
+                        if (this.scene.vfxSystem) {
+                            this.scene.vfxSystem.play('vfx.hit.fire', enemy.x, enemy.y);
+                        }
+                    }
+                } else if (Math.random() < 0.01) {
+                    console.warn(`[FlamethrowerEffect] Enemy missing takeDamage method:`, enemy?.constructor?.name);
                 }
             }
+        }
+        
+        // Debug: Log damage results occasionally
+        if (Math.random() < 0.05 && (enemiesInRange > 0 || enemiesHit > 0)) { // 5% chance when there are enemies
+            console.log(`[FlamethrowerEffect] 🔥 DAMAGE RESULTS - In range: ${enemiesInRange}, Hit: ${enemiesHit}, Total enemies: ${enemies.length}`);
         }
     }
     
@@ -309,8 +361,8 @@ export class FlamethrowerEffect {
         }
         
         // PR7: Check if VFXSystem provides graphics creation
-        if (this.scene.newVFXSystem && this.scene.newVFXSystem._createGraphics) {
-            return this.scene.newVFXSystem._createGraphics();
+        if (this.scene.vfxSystem && this.scene.vfxSystem._createGraphics) {
+            return this.scene.vfxSystem._createGraphics();
         }
         
         // PR7: Fallback with warning

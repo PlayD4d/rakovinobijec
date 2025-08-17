@@ -33,11 +33,8 @@ export class GameUIScene extends Phaser.Scene {
         // Listen for events from GameScene
         this.setupEventListeners();
         
-        // ESC key handler
-        this.input.keyboard.on('keydown-ESC', () => {
-            console.log('[GameUIScene] ESC pressed');
-            this.togglePause();
-        });
+        // ESC is handled by GameScene KeyboardManager via 'ui.escape' event
+        // which forwards to 'game-pause-request' event that we listen for below
     }
     
     setupEventListeners() {
@@ -75,10 +72,14 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         if (!gameScene) return;
         
-        // Pause the game scene
-        gameScene.scene.pause();
-        this.pauseUI.show();
-        console.log('[GameUIScene] Game paused');
+        // Pause the game scene (only if it's running)
+        if (gameScene.scene.isActive()) {
+            gameScene.scene.pause();
+            this.pauseUI.show();
+            console.log('[GameUIScene] Game paused');
+        } else {
+            console.warn('[GameUIScene] Cannot pause - GameScene not active');
+        }
     }
     
     handleResume() {
@@ -95,16 +96,8 @@ export class GameUIScene extends Phaser.Scene {
         // Clean up and return to menu
         this.pauseUI.hide();
         
-        // Get GameScene to clean up properly
-        const gameScene = this.scene.get('GameScene');
-        if (gameScene) {
-            // Clean up systems before stopping
-            if (gameScene.cleanupSystems) {
-                gameScene.cleanupSystems();
-            }
-        }
-        
-        // Stop both scenes
+        // Stop both scenes - this will trigger shutdown on GameScene
+        // The shutdown method will handle all cleanup
         this.scene.stop('GameScene');
         this.scene.stop('GameUIScene');
         
@@ -120,9 +113,13 @@ export class GameUIScene extends Phaser.Scene {
             return;
         }
         
-        // Pause game while selecting
+        // Pause game while selecting (only if it's running)
         console.log('[GameUIScene] Pausing GameScene for power-up selection');
-        gameScene.scene.pause();
+        if (gameScene.scene.isActive()) {
+            gameScene.scene.pause();
+        } else {
+            console.warn('[GameUIScene] Cannot pause for power-up - GameScene not active');
+        }
         
         console.log('[GameUIScene] Showing PowerUpUI modal');
         this.powerUpUI.show(options);
@@ -154,11 +151,7 @@ export class GameUIScene extends Phaser.Scene {
     }
     
     shutdown() {
-        // Clean up keyboard handlers BEFORE destroying UI
-        if (this.input && this.input.keyboard) {
-            // Remove ESC key listener but don't destroy the key
-            this.input.keyboard.off('keydown-ESC');
-        }
+        // No direct keyboard handlers to clean up - KeyboardManager handles everything
         
         // Clean up UI components
         this.pauseUI?.destroy();

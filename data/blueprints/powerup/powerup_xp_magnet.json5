@@ -43,12 +43,12 @@
   
   // Visual/Audio effects
   vfx: {
-    apply: "vfx.powerup.utility.apply",
-    aura: "vfx.xp_magnet.aura"
+    apply: 'powerup',
+    aura: 'effect'
   },
   
   sfx: {
-    apply: "sfx.powerup.apply",
-    collect: "sfx.xp.collect"
+    apply: 'sound/powerup.mp3',
+    collect: 'sound/hit_soft.mp3'
   }
 }

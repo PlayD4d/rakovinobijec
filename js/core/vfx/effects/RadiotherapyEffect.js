@@ -59,7 +59,8 @@ export class RadiotherapyEffect {
         this.entity = entity;
         this.active = true;
         
-        console.log(`[RadiotherapyEffect] Attached with ${this.beamCount} beams, range: ${this.beamRange}, width: ${(this.beamWidth * 180/Math.PI).toFixed(1)}°, damage: ${this.damage}/tick`);
+        console.log(`[RadiotherapyEffect] ✅ ATTACHED - ${this.beamCount} beams, range: ${this.beamRange}, width: ${(this.beamWidth * 180/Math.PI).toFixed(1)}°, damage: ${this.damage}/tick`);
+        console.log(`[RadiotherapyEffect] Entity:`, entity?.constructor?.name, `at (${entity?.x}, ${entity?.y})`);
         
         // PR7: Create graphics through factory method
         this.graphics = this._createGraphics();
@@ -97,9 +98,9 @@ export class RadiotherapyEffect {
             this.graphics = null;
         }
         
-        // Stop looping sound - PR7: používáme newSFXSystem
-        if (this.loopId && this.scene.newSFXSystem) {
-            this.scene.newSFXSystem.stopLoop(this.loopId);
+        // Stop looping sound - PR7: používáme audioSystem
+        if (this.loopId && this.scene.audioSystem) {
+            this.scene.audioSystem.stopLoop(this.loopId);
             this.loopId = null;
         }
         
@@ -148,7 +149,12 @@ export class RadiotherapyEffect {
      * @param {number} delta - Delta time in ms
      */
     update(time, delta) {
-        if (!this.active || !this.entity || !this.entity.active) return;
+        if (!this.active || !this.entity || !this.entity.active) {
+            if (Math.random() < 0.01) { // Log occasionally to avoid spam
+                console.log(`[RadiotherapyEffect] Update skipped - active: ${this.active}, entity: ${!!this.entity}, entity.active: ${this.entity?.active}`);
+            }
+            return;
+        }
         
         // Update graphics position to follow entity
         if (this.graphics) {
@@ -164,6 +170,11 @@ export class RadiotherapyEffect {
         
         // Clear and redraw beams
         this.graphics.clear();
+        
+        // Debug: Log occasionally to verify update is being called
+        if (Math.random() < 0.001) { // Very rare logging
+            console.log(`[RadiotherapyEffect] 🔄 UPDATE - Drawing ${this.beamCount} beams at angle ${(this.currentAngle * 180/Math.PI).toFixed(1)}°`);
+        }
         
         // Draw each beam - EVENLY SPACED like radioactive symbol ☢️
         // For 3 beams: 120° apart (0°, 120°, 240°)
@@ -181,6 +192,11 @@ export class RadiotherapyEffect {
             this._applyDamage(time);
             this.lastDamageTick = time;
             this.damagedEnemies.clear(); // Reset for next tick
+            
+            // Debug: Log damage ticks occasionally
+            if (Math.random() < 0.1) { // 10% chance to log
+                console.log(`[RadiotherapyEffect] 💥 DAMAGE TICK - ${this.damage} damage, tick rate: ${this.tickRate}s`);
+            }
         }
     }
     
@@ -311,7 +327,12 @@ export class RadiotherapyEffect {
             if (!enemy || !enemy.active || enemy.hp <= 0 || this.damagedEnemies.has(enemy)) return;
             
             // Also skip if enemy doesn't have required methods
-            if (!enemy.takeDamage || typeof enemy.takeDamage !== 'function') return;
+            if (!enemy.takeDamage || typeof enemy.takeDamage !== 'function') {
+                if (Math.random() < 0.01) { // Log occasionally
+                    console.warn(`[RadiotherapyEffect] Enemy missing takeDamage method:`, enemy?.constructor?.name);
+                }
+                return;
+            }
             
             // Calculate distance and angle to enemy
             const dx = enemy.x - x;
@@ -356,8 +377,8 @@ export class RadiotherapyEffect {
                         enemiesHit++;
                         
                         // Visual hit effect
-                        if (this.scene.newVFXSystem) {
-                            this.scene.newVFXSystem.play('vfx.hit.radiation', enemy.x, enemy.y);
+                        if (this.scene.vfxSystem) {
+                            this.scene.vfxSystem.play('vfx.hit.radiation', enemy.x, enemy.y);
                         }
                     }
                     
@@ -365,6 +386,11 @@ export class RadiotherapyEffect {
                 }
             }
         });
+        
+        // Debug: Log damage results occasionally
+        if (Math.random() < 0.05 && (enemiesInRange > 0 || enemiesHit > 0)) { // 5% chance when there are enemies
+            console.log(`[RadiotherapyEffect] 🎯 DAMAGE RESULTS - In range: ${enemiesInRange}, Hit: ${enemiesHit}, Total enemies: ${enemies.length}`);
+        }
     }
     
     /**

@@ -112,9 +112,12 @@ export class SpawnDirectorIntegration {
         // Add to group
         this.bossGroup.add(boss);
         
-        // Switch to boss music using MusicManager
-        if (this.scene.musicManager) {
-            this.scene.musicManager.switchCategory('boss');
+        // Switch to boss music using audioSystem
+        if (this.scene.audioSystem) {
+            this.scene.audioSystem.switchMusicCategory('boss', {
+                fadeOut: 500,
+                fadeIn: 1000
+            });
             console.log('[SpawnDirector] Switched to boss music');
         }
         

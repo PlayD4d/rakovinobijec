@@ -27,6 +27,28 @@ export class ShieldEffect {
     }
     
     /**
+     * Update effect configuration (called when power-up levels up)
+     * @param {Object} config - New configuration
+     */
+    updateConfig(config) {
+        console.log('[ShieldEffect] Updating config:', config);
+        
+        // Update visual parameters
+        if (config.radius !== undefined) this.radius = config.radius;
+        if (config.color !== undefined) this.color = config.color;
+        if (config.lineWidth !== undefined) this.lineWidth = config.lineWidth;
+        if (config.pulseSpeed !== undefined) this.pulseSpeed = config.pulseSpeed;
+        if (config.rotationSpeed !== undefined) this.rotationSpeed = config.rotationSpeed;
+        
+        // Redraw shield with new parameters
+        if (this.active) {
+            this._drawShield();
+        }
+        
+        console.log(`[ShieldEffect] Config updated - Radius: ${this.radius}, Color: 0x${this.color.toString(16)}`);
+    }
+    
+    /**
      * Attach effect to an entity
      * @param {Phaser.GameObjects.Sprite} entity
      */
@@ -46,16 +68,16 @@ export class ShieldEffect {
         this._drawShield();
         
         // Play activation VFX through VFXSystem
-        if (this.scene.newVFXSystem) {
-            this.scene.newVFXSystem.play('vfx.shield.activate', entity.x, entity.y);
+        if (this.scene.vfxSystem) {
+            this.scene.vfxSystem.play('vfx.shield.activate', entity.x, entity.y);
         }
         
         // Play activation SFX from player blueprint
-        if (this.scene.newSFXSystem) {
+        if (this.scene.audioSystem) {
             const player = this.scene.player;
             const activateSFX = player?.blueprint?.sfx?.shield?.activate;
             if (activateSFX) {
-                this.scene.newSFXSystem.play(activateSFX);
+                this.scene.audioSystem.play(activateSFX);
             } else {
                 console.warn('[ShieldEffect] Missing shield.activate sound in player blueprint');
             }
@@ -72,8 +94,8 @@ export class ShieldEffect {
         this.entity = null;
         
         // Play deactivation VFX if entity still exists
-        if (this.entity && this.scene.newVFXSystem) {
-            this.scene.newVFXSystem.play('vfx.shield.break', this.entity.x, this.entity.y);
+        if (this.entity && this.scene.vfxSystem) {
+            this.scene.vfxSystem.play('vfx.shield.break', this.entity.x, this.entity.y);
         }
         
         // PR7: Clean up graphics properly
@@ -200,8 +222,8 @@ export class ShieldEffect {
         }
         
         // PR7: Check if VFXSystem provides graphics creation
-        if (this.scene.newVFXSystem && this.scene.newVFXSystem._createGraphics) {
-            return this.scene.newVFXSystem._createGraphics();
+        if (this.scene.vfxSystem && this.scene.vfxSystem._createGraphics) {
+            return this.scene.vfxSystem._createGraphics();
         }
         
         // PR7: Fallback with warning

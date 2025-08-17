@@ -36,14 +36,14 @@
     damageReduction: 0.1,
   },
   vfx: {
-    pickup: 'vfx.powerup.pickup',
-    levelUp: 'vfx.powerup.levelup',
-    impact: 'vfx.hit.spark',
+    pickup: 'pickup',
+    levelUp: 'powerup',
+    impact: 'hit.small',
   },
   sfx: {
-    pickup: 'sfx.powerup.pickup',
-    apply: 'sfx.powerup.apply',
-    levelUp: 'sfx.powerup.levelup',
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
     impact: 'sound/hit_soft.mp3',
   },
   display: {

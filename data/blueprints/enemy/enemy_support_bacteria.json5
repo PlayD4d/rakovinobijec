@@ -29,20 +29,6 @@
       supportType: 'healer',
     },
   },
-  drops: [
-    {
-      itemId: 'item.xp_small',
-      chance: 0.6,
-    },
-    {
-      itemId: 'item.heal_orb',
-      chance: 0.15,
-    },
-    {
-      itemId: 'item.xp_medium',
-      chance: 0.03,
-    },
-  ],
   mechanics: {
     movementType: 'support_hover',
     contactDamage: 4,
@@ -56,18 +42,19 @@
     healthDropChance: 0.05,
   },
   vfx: {
-    spawn: 'vfx.enemy.spawn.support',
-    hit: 'vfx.hit.spark.small',
-    death: 'vfx.enemy.death.support',
-    heal: 'vfx.enemy.heal.pulse',
-    aura: 'vfx.enemy.aura.support',
+    spawn: 'spawn',
+    hit: 'enemy.hit',
+    death: 'death.medium',
   },
   sfx: {
-    spawn: 'sfx.enemy.spawn.light',
-    hit: 'sound/hit_soft.mp3',
-    death: 'sfx.enemy.death.light',
-    heal: 'sfx.enemy.heal.pulse',
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/npc_death.mp3',
   },
+  // Direct drop system - consumables only (XP comes from stats.xp)
+  drops: [
+    { itemId: 'item.health_small', chance: 0.10 }  // 10% chance for health
+  ],
   display: {
     key: 'enemy.support_bacteria.name',
     descKey: 'enemy.support_bacteria.desc',

@@ -1,0 +1,33 @@
+{
+  id: 'item.xp_medium',
+  type: 'item',
+  name: 'Medium XP Orb',
+  description: 'Grants 5 experience points',
+  category: 'xp',
+  rarity: 'common',
+  sprite: 'item_xp_medium',
+  icon: '⭐',
+  color: 49151,
+  graphics: {
+    shape: 'hexagon',
+    scale: 1.2,
+  },
+  effect: {
+    type: 'xp',
+    value: 5,
+  },
+  pickup: {
+    magnetRange: 80,
+    pickupRadius: 30,
+    autoPickup: true,
+    lifetime: 25000,
+    bobbing: true,
+  },
+  vfx: {
+    spawn: 'vfx.drop.spawn.xp.medium',
+    pickup: 'vfx.player.xp.gain.medium',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+  },
+}

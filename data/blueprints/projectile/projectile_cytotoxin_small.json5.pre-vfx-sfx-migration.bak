@@ -1,0 +1,77 @@
+{
+  // Small cytotoxin projectile for basic enemies
+  id: 'projectile.cytotoxin_small',
+  type: 'projectile',
+  
+  // Small projectile stats
+  stats: {
+    damage: 5,            // Low damage for basic enemies
+    speed: 200,           // Slower than enhanced
+    range: 400,           // Short range
+    size: 6,              // Small projectile
+    pierce: 0,            // No piercing
+    lifetime: 2.0,        // Short lifespan
+    critChance: 0.05,     // Low crit chance
+    critMultiplier: 1.5,  // Modest crit multiplier
+  },
+  
+  // Graphics configuration for shape rendering
+  graphics: {
+    shape: 'diamond',     // Diamond shape for small projectiles
+    tint: 0x4CAF50,       // Green color
+    size: 6,              // Size in pixels
+    scale: 1.0
+  },
+  
+  // Basic mechanics
+  mechanics: {
+    onHit: 'none',
+    pierceDecay: 0,
+    trail: {
+      enabled: true,
+      vfx: 'vfx.trail.cytotoxin_small',
+      fadeTime: 200,
+    },
+    homing: false,        // No homing for basic version
+    bounce: false,
+  },
+  
+  // VFX effects
+  vfx: {
+    spawn: 'vfx.muzzle.small',
+    trail: 'vfx.trail.cytotoxin_small',
+    hit: 'vfx.hit.small',
+    expire: 'vfx.projectile.fade',
+  },
+  
+  // SFX sounds
+  sfx: {
+    spawn: 'sfx.weapon.fire.small',
+    hit: 'sfx.weapon.hit.small',
+    expire: 'sfx.projectile.fade',
+  },
+  
+  // Display info
+  display: {
+    key: 'projectile.cytotoxin_small.name',
+    descKey: 'projectile.cytotoxin_small.desc',
+    templates: {
+      short: '{{stats.damage}} DMG • {{stats.speed}} px/s',
+      desc: 'Malý cytotoxický projektil s {{stats.damage}} poškozením pro základní nepřátele.',
+    },
+    color: '#4CAF50',
+    rarity: 'common',
+    icon: 'projectile.cytotoxin_small',
+    category: 'projectile',
+    sortOrder: 105,
+    tags: [
+      'projectile',
+      'small',
+      'basic',
+      'cytotoxin',
+      'green',
+    ],
+    devNameFallback: 'Malý cytotoxin',
+    devDescFallback: 'Malý cytotoxický projektil pro základní nepřátele',
+  },
+}

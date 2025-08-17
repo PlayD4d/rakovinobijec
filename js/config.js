@@ -269,7 +269,7 @@ export const GameConfig = {
         bossLevelInterval: 5
     },
 
-    // === NOVÉ SEKCE PRO ConfigResolver/ModifierEngine ===
+    // === NOVÉ SEKCE PRO ConfigResolver ===
     
     // Globální performance limity
     limits: {

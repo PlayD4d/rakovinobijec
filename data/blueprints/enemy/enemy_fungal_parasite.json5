@@ -32,11 +32,9 @@
       "attachOnContact": true
     }
   },
-  // NEW: Direct drop system - simple and clear like WoW/Diablo
+  // NEW: Direct drop system - consumables only (XP comes from stats.xp)
   "drops": [
-    { "itemId": "item.xp_small", "chance": 0.7 },      // 70% chance for small XP
-    { "itemId": "item.health_small", "chance": 0.08 },  // 8% chance for health
-    { "itemId": "item.xp_medium", "chance": 0.05 }      // 5% chance for medium XP
+    { "itemId": "item.health_small", "chance": 0.08 }  // 8% chance for health
   ],
   "mechanics": {
     "movementType": "parasitic_creep",
@@ -52,17 +50,17 @@
     "healthDropChance": 0.08
   },
   "vfx": {
-    "spawn": "vfx.enemy.spawn.fungal",
-    "hit": "vfx.hit.spark.toxic",
-    "death": "vfx.enemy.death.spore_burst",
-    "drain": "vfx.enemy.drain.parasitic",
-    "spores": "vfx.enemy.spores.release"
+    "spawn": 'spawn',
+    "hit": 'hit.small',
+    "death": 'death.medium',
+    "drain": 'effect',
+    "spores": 'effect'
   },
   "sfx": {
-    "spawn": "sfx.enemy.spawn.fungal",
-    "hit": "sfx.enemy.hit.organic",
-    "death": "sfx.enemy.death.fungal",
-    "drain": "sfx.enemy.drain.parasitic"
+    "spawn": 'sound/npc_spawn.mp3',
+    "hit": 'sound/npc_hit.mp3',
+    "death": 'sound/npc_death.mp3',
+    "drain": 'sound/hit_soft.mp3'
   },
   "display": {
     "key": "enemy.fungal_parasite.name",

@@ -46,17 +46,17 @@
     }
   },
   "vfx": {
-    "spawn": "vfx.unique.spawn.golden",
-    "hit": "vfx.hit.spark.golden",
-    "death": "vfx.unique.death.golden_explosion",
-    "pulse": "vfx.unique.golden.pulse",
-    "aura": "vfx.unique.aura.golden"
+    "spawn": 'spawn',
+    "hit": 'hit.small',
+    "death": 'death.large',
+    "pulse": 'special',
+    "aura": 'special'
   },
   "sfx": {
-    "spawn": "sfx.unique.spawn.golden",
-    "hit": "sfx.unique.hit.metallic",
-    "death": "sfx.unique.death.golden",
-    "pulse": "sfx.unique.golden.pulse"
+    "spawn": 'sound/npc_spawn.mp3',
+    "hit": 'sound/hit_hard.mp3',
+    "death": 'sound/elite_death.mp3',
+    "pulse": 'sound/powerup.mp3'
   },
   "display": {
     "key": "unique.golden_cell.name",

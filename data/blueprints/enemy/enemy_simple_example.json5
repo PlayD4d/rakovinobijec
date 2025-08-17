@@ -1,0 +1,27 @@
+{
+  id: 'enemy.simple_example',
+  type: 'enemy',
+  stats: {
+    hp: 15,
+    damage: 4,
+    speed: 80,
+    size: 16,
+    armor: 0,
+    xp: 3,
+  },
+  
+  // Using VFX presets - even simpler!
+  // The system will recognize these preset names and apply them with the color
+  vfx: {
+    spawn: 'spawn',        // Will use VFXPresets.spawn() with default purple
+    hit: 'hit.small',      // Will use VFXPresets.smallHit()
+    death: 'death.small'   // Will use VFXPresets.deathBurst('small')
+  },
+  
+  // Direct file paths for audio
+  sfx: {
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/npc_death.mp3'
+  }
+}

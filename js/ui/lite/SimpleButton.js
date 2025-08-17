@@ -46,10 +46,8 @@ export class SimpleButton extends Phaser.GameObjects.Container {
     this.onClick = onClick;
     
     // Interaktivita - make sure it's always responsive
-    this.setInteractive(
-      new Phaser.Geom.Rectangle(-width/2, -height/2, width, height),
-      Phaser.Geom.Rectangle.Contains
-    );
+    // Use the default hit area which matches the container size
+    this.setInteractive();
     
     // Ensure button is always active and responsive
     this.setActive(true);

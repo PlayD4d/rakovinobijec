@@ -44,46 +44,34 @@
       buffRadius: 120
     }
   },
-  // NEW: Direct drop system - support enemy drops more healing
+  // Direct drop system - consumables only (XP comes from stats.xp)
   drops: [
-    { itemId: 'item.xp_small', chance: 0.5 },       // 50% chance for small XP
-    { itemId: 'item.heal_orb', chance: 0.2 },       // 20% chance for heal orb
-    { itemId: 'item.xp_medium', chance: 0.08 },     // 8% chance for medium XP
-    { itemId: 'item.energy_cell', chance: 0.02 }    // 2% chance for energy cell
+    { itemId: 'item.health_small', chance: 0.09 }  // 9% chance for health
   ],
   vfx: {
-    spawn: 'vfx.enemy.spawn.support',
-    hit: 'vfx.hit.spark.shield',
-    death: 'vfx.enemy.death.shield.break',
-    buff: 'vfx.enemy.buff.shield',
-    aura: 'vfx.enemy.aura.protective',
+    spawn: 'spawn',
+    hit: 'enemy.hit',
+    death: 'death.medium',
   },
   sfx: {
-    spawn: 'sfx.enemy.spawn.harmonic',
-    hit: 'sfx.enemy.hit.shield',
-    death: 'sfx.enemy.death.shield',
-    buff: 'sfx.enemy.buff.cast',
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/npc_death.mp3',
   },
   display: {
     key: 'enemy.shielding_helper.name',
     descKey: 'enemy.shielding_helper.desc',
     templates: {
-      short: '{{stats.hp}} HP • support • {{mechanics.shieldAmount}} štít',
-      desc: 'Ochranná buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Poskytuje štíty ({{mechanics.shieldAmount}}) okolním nepřátelům.',
+      short: '{{stats.hp}} HP • podpora • štít',
+      desc: 'Podpůrný pomocník s {{stats.hp}} HP. Vytváří štíty pro okolní nepřátele.',
     },
-    color: '#9C27B0',
-    rarity: 'common',
+    color: '#3F51B5',
+    rarity: 'uncommon',
     icon: 'enemy.shielding_helper',
     category: 'enemy',
-    sortOrder: 160,
-    tags: [
-      'enemy',
-      'support',
-      'shield',
-      'buff',
-      'defensive',
-    ],
+    sortOrder: 180,
+    tags: ['enemy', 'support', 'shield', 'buff'],
     devNameFallback: 'Štítový pomocník',
-    devDescFallback: 'Poskytuje štíty ostatním',
+    devDescFallback: 'Vytváří štíty pro okolní nepřátele',
   },
 }

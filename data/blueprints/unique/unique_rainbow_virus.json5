@@ -55,19 +55,19 @@
     }
   },
   "vfx": {
-    "spawn": "vfx.unique.spawn.rainbow",
-    "hit": "vfx.hit.spark.prismatic",
-    "death": "vfx.unique.death.rainbow_burst",
-    "phase": "vfx.unique.rainbow.phase_shift",
-    "beam": "vfx.unique.rainbow.beam",
-    "burst": "vfx.unique.rainbow.burst"
+    "spawn": 'spawn',
+    "hit": 'hit.small',
+    "death": 'death.large',
+    "phase": 'special',
+    "beam": 'special',
+    "burst": 'special'
   },
   "sfx": {
-    "spawn": "sfx.unique.spawn.rainbow",
-    "hit": "sfx.unique.hit.prismatic",
-    "death": "sfx.unique.death.rainbow",
-    "phase": "sfx.unique.rainbow.phase",
-    "beam": "sfx.unique.rainbow.beam"
+    "spawn": 'sound/npc_spawn.mp3',
+    "hit": 'sound/hit_hard.mp3',
+    "death": 'sound/elite_death.mp3',
+    "phase": 'sound/powerup.mp3',
+    "beam": 'sound/powerup.mp3'
   },
   "display": {
     "key": "unique.rainbow_virus.name",

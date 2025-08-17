@@ -21,19 +21,19 @@
     healthDropChance: 0.1,
   },
   vfx: {
-    spawn: 'vfx.enemy.spawn.dash',
-    hit: 'vfx.hit.spark.red',
-    death: 'vfx.enemy.death.burst.red',
-    charge: 'vfx.enemy.dash.charge',
-    dash: 'vfx.enemy.dash.trail',
+    spawn: 'spawn',
+    hit: 'enemy.hit',
+    death: 'death.medium',
   },
   sfx: {
-    spawn: 'sfx.enemy.spawn.aggressive',
-    hit: 'sfx.enemy.hit.flesh',
-    death: 'sfx.enemy.death.burst',
-    charge: 'sfx.enemy.dash.charge',
-    dash: 'sfx.enemy.dash.whoosh',
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/npc_death.mp3',
   },
+  // Direct drop system - consumables only (XP comes from stats.xp)
+  drops: [
+    { itemId: 'item.health_small', chance: 0.05 }  // 5% chance for health
+  ],
   // PR7 Compliant: graphics field for visual configuration
   graphics: {
     sprite: 'enemy_metastasis_runner',
@@ -55,12 +55,6 @@
       dashEnabled: true
     }
   },
-  // NEW: Direct drop system - simple and clear like WoW/Diablo
-  drops: [
-    { itemId: 'item.xp_medium', chance: 0.75 },     // 75% chance for medium XP
-    { itemId: 'item.health_small', chance: 0.1 },   // 10% chance for health
-    { itemId: 'item.xp_large', chance: 0.02 }       // 2% chance for large XP
-  ],
   display: {
     key: 'enemy.metastasis_runner.name',
     descKey: 'enemy.metastasis_runner.desc',

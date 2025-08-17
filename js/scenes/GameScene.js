@@ -1,16 +1,12 @@
-// GameConfig removed - PR7 compliance requires ConfigResolver only
 import { Player } from '../entities/Player.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Boss } from '../entities/Boss.js';
 import { UnifiedHUD } from '../ui/UnifiedHUD.js';
-// import { PauseMenuModal } from '../ui/PauseMenuModal.js'; // Replaced with LiteUI
 import { MobileControlsManager } from '../managers/MobileControlsManager.js';
 
-// LiteUI components
-// GameUIScene will handle all UI overlays
-// Legacy AudioManager removed - using modern SFXSystem
+// LiteUI komponenty
+// GameUIScene zvládne všechny UI overlays
 import { HighScoreManager } from '../managers/HighScoreManager.js';
-// AudioLoader removed - using direct blueprint loading
 import { GlobalHighScoreManager } from '../managers/GlobalHighScoreManager.js';
 import { AnalyticsManager } from '../managers/AnalyticsManager.js';
 import { SupabaseClient } from '../utils/supabaseClient.js';
@@ -18,47 +14,42 @@ import { UIThemeUtils } from '../ui/UITheme.js';
 import { HighScoreModal } from '../ui/HighScoreModal.js';
 
 // Základní systémy - pouze moderní PR7 implementace
-import { LootSystem } from '../core/systems/LootSystem.js';
-import { PowerUpSystemV2 } from '../core/systems/PowerUpSystemV2.js';
-import { InputSystem } from '../core/systems/InputSystem.js';
+import { SimpleLootSystem } from '../core/systems/SimpleLootSystem.js';
+import { PowerUpSystem } from '../core/systems/powerup/PowerUpSystem.js';
 import { ShapeRenderer } from '../core/utils/ShapeRenderer.js';
-import { MovementSystem } from '../core/systems/MovementSystem.js';
-import { ShieldSystem } from '../core/systems/ShieldSystem.js';
-import { CollisionSystem } from '../core/systems/CollisionSystem.js';
-import { SpawnSystem } from '../core/systems/SpawnSystem.js';
 import { installDevConsole } from '../core/utils/devConsole.js';
-// buildSfxManifest removed - using direct blueprint loading
 import { EventBus } from '../core/events/EventBus.js';
-import { VfxRouter } from '../core/vfx/VfxRouter.js';
-import { VfxSystem } from '../core/vfx/VFXSystem.js';
-import { SFXSystem } from '../core/sfx/SFXSystem.js';
+import { KeyboardManager } from '../core/input/KeyboardManager.js';
+import { SimplifiedVFXSystem } from '../core/vfx/SimplifiedVFXSystem.js';
+// SimplifiedAudioSystem will be imported dynamically in initializeDataDrivenSystems()
 import { initSessionLogger, getSessionLogger } from '../core/logging/SessionLogger.js';
-import { vfxRegistry } from '../core/vfx/VFXRegistry.js';
-import { sfxRegistry } from '../core/sfx/SFXRegistry.js';
-import { AnalyticsSystem } from '../core/systems/AnalyticsSystem.js';
+// Registry removed - using simplified systems directly
+// AnalyticsSystem removed - functionality merged into AnalyticsManager
 import { displayResolver } from '../core/blueprints/DisplayResolver.js';
 // ConfigResolver je nyní inicializován globálně v main.js
 import { TelemetryLogger } from '../core/TelemetryLogger.js';
 import { DebugOverlay } from '../utils/DebugOverlay.js';
 import { Phase5Debug } from '../core/debug/Phase5Debug.js';
 import { SmokeTest } from '../utils/SmokeTest.js';
-import { getMusicManager } from '../core/audio/MusicManager.js';
+// getMusicManager je nyní poskytován SimplifiedAudioSystem
 
 // Data-driven systémy - vše řízeno blueprinty
 import { BlueprintLoader } from '../core/data/BlueprintLoader.js';
 import { SpawnDirector } from '../core/spawn/SpawnDirector.js';
+
+// Store BlueprintLoader for synchronous access in preload
+window.BlueprintLoaderModule = { BlueprintLoader };
 import { FrameworkDebugAPI } from '../core/FrameworkDebugAPI.js';
 import { ProjectileSystem } from '../core/systems/ProjectileSystem.js';
-import LootSystemBootstrap from '../core/loot/LootSystemBootstrap.js';
-import { ModifierEngine } from '../core/utils/ModifierEngine.js';
-import { PowerUpVFXManager } from '../core/vfx/PowerUpVFXManager.js';
+// Modifiers are applied directly in Player.js
+// PowerUpVFXManager sloučen do SimplifiedVFXSystem
 import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
 
 export class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
         
-        // Core entities
+        // Hlavní herní entity
         this.player = null;
         this.enemies = null; // Phaser physics group for all enemies
         this.currentBoss = null;
@@ -71,7 +62,6 @@ export class GameScene extends Phaser.Scene {
         this.mobileControls = null;
         
         // Core systems
-        // audioManager removed - using SFXSystem
         this.analyticsManager = null;
         this.musicManager = null;
         
@@ -81,11 +71,17 @@ export class GameScene extends Phaser.Scene {
         this.spawnDirector = null; // Řídí spawning nepřátel podle tabulek
         this.frameworkDebug = null; // Debug API pro vývoj
         this.projectileSystem = null; // Správa projektilů s zero-GC poolingem
-        this.coreLootSystem = null; // Systém dropů a odměn
-        this.corePowerUpSystem = null; // Systém vylepšení hráče
-        this.newVFXSystem = null; // Vizuální efekty (exploze, částice)
-        this.newSFXSystem = null; // Zvukové efekty
-        this.modifierEngine = ModifierEngine; // Engine pro modifikace stats
+        this.lootSystem = null; // Systém dropů a odměn
+        this.powerUpSystem = null; // Systém vylepšení hráče
+        this.vfxSystem = null; // Unified VFX system (particles, power-ups, all effects)
+        this.audioSystem = null; // Unified audio system (SFX + Music)
+        
+        // Compatibility aliases (for legacy code)
+        this.lootSystem = null;
+        this.powerUpSystem = null;
+        this.vfxSystem = null;
+        this.audioSystem = null;
+        // Modifiers handled directly in Player.js
         
         // Herní statistiky
         // PR7: Get XP requirements from ConfigResolver
@@ -120,123 +116,240 @@ export class GameScene extends Phaser.Scene {
         // Konfigurace (PR7)
         this.configResolver = window.ConfigResolver; // Jednotný přístup ke konfiguraci - již inicializováno v main.js
         this.eventBus = new EventBus(); // Systém událostí
+        this.keyboardManager = null; // Bude inicializován v create()
     }
     
     /**
-     * Preload metoda - načte všechny zvukové soubory z blueprintů
-     * PR7 kompatibilní - 100% data-driven z blueprintů
+     * Preload metoda - načte všechny zvukové soubory automaticky z blueprintů a konfigurace
+     * PR7 kompatibilní - 100% data-driven hybrid loading
+     * IMPORTANT: Phaser does NOT support async preload - must be synchronous!
      */
     preload() {
-        console.log('[GameScene] Preload - načítání audio souborů z blueprintů...');
+        console.log('[GameScene] Preload phase starting...');
         
-        // Načíst všechny zvuky přímo ze složek
-        // PR7: Jednoduchý přístup - načteme všechny mp3 soubory
-        this.loadAudioFromDirectory();
+        // 1. Initialize BlueprintLoader synchronously (basic setup only)
+        this._initializeBlueprintLoaderSync();
+        
+        // 2. Then preload all audio based on config (blueprints not loaded yet)
+        this._preloadAllAudio();
+        
+        console.log('[GameScene] Preload phase completed');
     }
     
     /**
-     * Načte všechny audio soubory ze složek sound/ a music/
-     * PR7: Přímé načítání bez složitých manifestů
+     * Inicializuje BlueprintLoader synchronně v preload fázi
+     * Note: Blueprint scanning will be deferred to create() phase
      */
-    loadAudioFromDirectory() {
-        // Seznam všech zvukových souborů které potřebujeme
-        // PR7: V budoucnu můžeme toto extrahovat z blueprintů
-        const audioFiles = [
-            // Hudba
-            'music/level_1.mp3',
-            'music/level_2.mp3',
-            'music/level_3.mp3',
-            'music/boss.mp3',
-            
-            // Základní zvuky hráče
-            'sound/player_hit.mp3',
-            'sound/player_death.mp3',
-            'sound/player_spawn.mp3',
-            'sound/player_shoot.mp3',
-            'sound/levelup.mp3',
-            'sound/heal.mp3',
-            'sound/shoot.mp3',
-            'sound/laser.mp3',
-            
-            // Zvuky nepřátel
-            'sound/npc_spawn.mp3',
-            'sound/npc_hit.mp3',
-            'sound/npc_death.mp3',
-            'sound/npc_death_1.mp3',
-            'sound/npc_death_2.mp3',
-            'sound/elite_death.mp3',
-            
-            // Boss zvuky
-            'sound/boss_enter.mp3',
-            'sound/boss_hit.mp3',
-            'sound/boss_death.mp3',
-            'sound/boss_phase.mp3',
-            
-            // Efekty
-            'sound/explosion_small.mp3',
-            'sound/explosion_large.mp3',
-            'sound/decay.mp3',
-            'sound/hit_soft.mp3',
-            'sound/hit_hard.mp3',
-            'sound/hit_critical.mp3',
-            
-            // Speciální efekty
-            'sound/flamethrower.mp3',
-            'sound/radiotherapy.mp3',
-            'sound/machinegun.mp3',
-            'sound/laser1.mp3',
-            'sound/laser2.mp3',
-            
-            // UI zvuky
-            'sound/pickup.mp3',
-            'sound/powerup.mp3',
-            'sound/metotrexat.mp3',
-            'sound/intro.mp3',
-            'sound/ready_fight.mp3',
-            'sound/game_over.mp3'
-        ];
-        
-        // Load music tracks from config
-        const CR = window.ConfigResolver;
-        if (CR) {
-            // Load game music tracks
-            const gameTracks = CR.get('audio.scenes.game.tracks', { defaultValue: [] });
-            gameTracks.forEach(track => {
-                const key = track.split('/').pop().split('.')[0];
-                if (!this.cache.audio.has(key)) {
-                    this.load.audio(key, track);
-                    console.log(`[GameScene] Loading game music: ${key} from ${track}`);
-                }
-            });
-            
-            // Load boss music tracks
-            const bossTracks = CR.get('audio.scenes.boss.tracks', { defaultValue: [] });
-            bossTracks.forEach(track => {
-                const key = track.split('/').pop().split('.')[0];
-                if (!this.cache.audio.has(key)) {
-                    this.load.audio(key, track);
-                    console.log(`[GameScene] Loading boss music: ${key} from ${track}`);
-                }
-            });
+    _initializeBlueprintLoaderSync() {
+        try {
+            console.log('[GameScene] Creating BlueprintLoader instance in preload...');
+            this.blueprints = new BlueprintLoader(this.game);
+            this.blueprintLoader = this.blueprints; // Alias for compatibility
+            // Note: We can't call async init() here, so blueprint scanning is deferred
+            // Audio will use fallback manifest from main_config
+            console.log('✅ BlueprintLoader instance created (full init deferred to create)');
+        } catch (error) {
+            console.warn('⚠️ BlueprintLoader creation failed, using fallback audio only:', error);
+            this.blueprintLoader = null;
+            this.blueprints = null;
+        }
+    }
+    
+    /**
+     * Complete BlueprintLoader initialization (async) in create phase
+     * This was deferred from preload because Phaser doesn't support async preload
+     */
+    async _initializeBlueprintLoader() {
+        // Skip if already fully loaded
+        if (this.blueprintLoader && this.blueprintLoader.loaded) {
+            console.log('[GameScene] BlueprintLoader already fully loaded');
+            return;
         }
         
-        // Načíst každý soubor
-        audioFiles.forEach(path => {
-            // Extrahovat klíč z cesty (např. 'sound/laser.mp3' -> 'laser')
-            const key = path.split('/').pop().replace('.mp3', '');
+        try {
+            console.log('[GameScene] Completing BlueprintLoader initialization...');
             
-            // Načíst audio soubor
+            // Create instance if needed (shouldn't happen if preload worked)
+            if (!this.blueprintLoader) {
+                this.blueprints = new BlueprintLoader(this.game);
+                this.blueprintLoader = this.blueprints;
+            }
+            
+            // Complete the async initialization
+            await this.blueprintLoader.init();
+            
+            console.log('✅ BlueprintLoader fully initialized with', this.blueprintLoader.blueprints.size, 'blueprints');
+            
+            // Log summary of loaded content
+            const categories = ['enemy', 'boss', 'powerup', 'projectile'];
+            categories.forEach(cat => {
+                const count = this.blueprintLoader.getAll(cat).length;
+                if (count > 0) {
+                    console.log(`   - ${cat}: ${count} blueprints`);
+                }
+            });
+            
+        } catch (error) {
+            console.error('❌ BlueprintLoader init failed:', error);
+            // Keep the instance but it won't be fully functional
+            // Game will continue with fallback audio and limited functionality
+        }
+    }
+    
+    /**
+     * Hybrid audio loading systém
+     * In preload phase: Uses main_config fallback only (blueprints not loaded yet)
+     * Future enhancement: Cache blueprint audio paths for next session
+     */
+    _preloadAllAudio() {
+        const audioSources = new Set(); // Automatická deduplikace
+        
+        // 1. MAIN SOURCE: Core audio from main_config
+        // (In preload phase, this is our only source since blueprints aren't loaded yet)
+        this._extractAudioFromScenes(audioSources);
+        
+        // 2. TRY BLUEPRINTS: Usually won't work in preload, but kept for future caching
+        this._scanBlueprintsForAudio(audioSources);
+        
+        // 3. Preload všech unikátních souborů
+        const totalFiles = audioSources.size;
+        let loadedCount = 0;
+        
+        audioSources.forEach(path => {
+            const key = path.replace(/[^a-zA-Z0-9]/g, '_');
+            
             if (!this.cache.audio.has(key)) {
                 this.load.audio(key, path);
-                console.log(`[GameScene] Načítám zvuk: ${key} z ${path}`);
+                console.log(`[AudioPreload] Loading: ${path} -> ${key}`);
+                loadedCount++;
+            } else {
+                console.log(`[AudioPreload] Already cached: ${path}`);
             }
         });
         
-        console.log(`[GameScene] Připraveno ${audioFiles.length} zvukových souborů k načtení`);
+        console.log(`[AudioPreload] Prepared ${loadedCount}/${totalFiles} audio files for loading`);
+    }
+    
+    /**
+     * Extrahuje audio soubory z main_config.json5 scenes konfigurace + fallback manifest
+     * Slouží jako fallback pro core hudbu a základní SFX
+     */
+    _extractAudioFromScenes(audioSet) {
+        const CR = window.ConfigResolver;
+        if (!CR) {
+            console.warn('[AudioPreload] ConfigResolver not available for scene audio');
+            return;
+        }
+        
+        // 1. Načíst hudbu ze scenes
+        const scenes = CR.get('audio.scenes', { defaultValue: {} });
+        
+        Object.entries(scenes).forEach(([sceneName, sceneConfig]) => {
+            // Jednoduchá hudba (backgroundMusic)
+            if (sceneConfig.backgroundMusic) {
+                audioSet.add(sceneConfig.backgroundMusic);
+                console.log(`[AudioPreload] Scene '${sceneName}' music: ${sceneConfig.backgroundMusic}`);
+            }
+            
+            // Array hudby (tracks)
+            if (sceneConfig.tracks && Array.isArray(sceneConfig.tracks)) {
+                sceneConfig.tracks.forEach(track => {
+                    audioSet.add(track);
+                    console.log(`[AudioPreload] Scene '${sceneName}' track: ${track}`);
+                });
+            }
+        });
+        
+        // 2. Načíst fallback SFX manifest (pokud blueprint scanning selže)
+        const fallbackManifest = CR.get('audio.fallbackManifest', { defaultValue: [] });
+        let fallbackCount = 0;
+        
+        fallbackManifest.forEach(path => {
+            if (path && typeof path === 'string') {
+                audioSet.add(path);
+                fallbackCount++;
+                console.log(`[AudioPreload] Fallback SFX: ${path}`);
+            }
+        });
+        
+        if (fallbackCount > 0) {
+            console.log(`[AudioPreload] Added ${fallbackCount} fallback SFX files from main_config`);
+        }
+    }
+    
+    /**
+     * Skenuje všechny blueprinty pro audio odkazy
+     * PRIORITY: Blueprint audio má přednost před main_config
+     * NOTE: In preload phase, blueprints won't be loaded yet, so this is mainly for future use
+     */
+    _scanBlueprintsForAudio(audioSet) {
+        // In preload phase, blueprints aren't loaded yet
+        // This function is kept for future use when we implement caching
+        if (!this.blueprintLoader || !this.blueprintLoader.loaded) {
+            console.log('[AudioPreload] Blueprints not loaded yet (expected in preload phase)');
+            return;
+        }
+        
+        try {
+            const blueprints = this.blueprintLoader.getAllBlueprints();
+            let blueprintCount = 0;
+            let audioCount = 0;
+            
+            // getAllBlueprints() returns an object, so we need Object.values() to iterate
+            Object.values(blueprints).forEach(blueprint => {
+                blueprintCount++;
+                
+                // SFX z blueprintů (sfx.hit, sfx.death, sfx.spawn, atd.)
+                if (blueprint.sfx && typeof blueprint.sfx === 'object') {
+                    Object.entries(blueprint.sfx).forEach(([event, path]) => {
+                        if (path && typeof path === 'string' && path.includes('.mp3')) {
+                            audioSet.add(path);
+                            audioCount++;
+                            console.log(`[AudioPreload] Blueprint SFX '${blueprint.id || 'unknown'}': ${event} -> ${path}`);
+                        }
+                    });
+                }
+                
+                // Hudba z boss fightů, spawn levelů atd.
+                if (blueprint.music) {
+                    if (typeof blueprint.music === 'string') {
+                        audioSet.add(blueprint.music);
+                        audioCount++;
+                        console.log(`[AudioPreload] Blueprint music '${blueprint.id || 'unknown'}': ${blueprint.music}`);
+                    } else if (Array.isArray(blueprint.music)) {
+                        blueprint.music.forEach(track => {
+                            if (track && typeof track === 'string') {
+                                audioSet.add(track);
+                                audioCount++;
+                                console.log(`[AudioPreload] Blueprint track '${blueprint.id || 'unknown'}': ${track}`);
+                            }
+                        });
+                    }
+                }
+                
+                // Audio odkazy v jiných sekcích (pro budoucí rozšíření)
+                if (blueprint.audio && typeof blueprint.audio === 'object') {
+                    Object.values(blueprint.audio).forEach(path => {
+                        if (path && typeof path === 'string' && (path.includes('.mp3') || path.includes('.ogg'))) {
+                            audioSet.add(path);
+                            audioCount++;
+                        }
+                    });
+                }
+            });
+            
+            console.log(`[AudioPreload] Scanned ${blueprintCount} blueprints, found ${audioCount} audio references`);
+            
+        } catch (error) {
+            console.error('[AudioPreload] Error scanning blueprints for audio:', error);
+        }
     }
     
     async create() {
         console.log('🎮 GameScene starting - DATA-DRIVEN MODE ONLY');
+        
+        // Complete BlueprintLoader initialization (async) that was deferred from preload
+        await this._initializeBlueprintLoader();
         
         // Store start time for XP scaling
         this.startTime = this.time.now;
@@ -297,6 +410,9 @@ export class GameScene extends Phaser.Scene {
         // Generate placeholder enemy textures BEFORE spawning
         this.generateEnemyPlaceholderTextures();
         
+        // Generate item textures for drops
+        this.generateItemTextures();
+        
         // Initialize data-driven systems first (before player creation)
         // PR7: Fail fast - if critical systems fail, stop game initialization
         try {
@@ -310,6 +426,8 @@ export class GameScene extends Phaser.Scene {
         // Create player with blueprint
         const playerBlueprint = this.createPlayerBlueprint();
         this.player = new Player(this, this.scale.width / 2, this.scale.height / 2, playerBlueprint);
+        
+        // Player is ready - PowerUpSystem can now interact with it
         
         // Set player depth
         this.player.setDepth(this.DEPTH_LAYERS.PLAYER);
@@ -338,9 +456,8 @@ export class GameScene extends Phaser.Scene {
         
         // Initialize music manager and start game music
         try {
-            this.musicManager = getMusicManager(this);
-            this.musicManager.playCategory('game');
-            console.log('[GameScene] Music manager initialized');
+            // Music will be handled by SimplifiedAudioSystem
+            console.log('[GameScene] Music will be initialized with audio system');
         } catch (error) {
             console.warn('[GameScene] Failed to initialize music:', error);
         }
@@ -390,8 +507,8 @@ export class GameScene extends Phaser.Scene {
             console.log('[GameScene] Received powerup-selected event:', selection);
             
             // Apply the selected power-up if we have the system
-            if (selection && this.corePowerUpSystem) {
-                this.corePowerUpSystem.applyPowerUp(selection.id, (selection.level || 0) + 1);
+            if (selection && this.powerUpSystem) {
+                this.powerUpSystem.applyPowerUp(selection.id, (selection.level || 0) + 1);
             }
             
             // IMPORTANT: Ensure player is still active after power-up selection
@@ -473,51 +590,71 @@ export class GameScene extends Phaser.Scene {
         
         // VFX System (initialize early)
         try {
-            this.newVFXSystem = new VfxSystem(this);
-            this.newVFXSystem.initialize();
-            console.log('✅ VFX System initialized');
+            this.vfxSystem = new SimplifiedVFXSystem(this);
+            await this.vfxSystem.initialize();
+            this.vfxSystem = this.vfxSystem; // Compatibility alias
+            console.log('✅ Simplified VFX System initialized');
             
-            // Initialize ArmorShieldEffect for enemy armor visuals
+            // Initialize shield effects for armor and player shield
             const { ArmorShieldEffect } = await import('../core/vfx/effects/ArmorShieldEffect.js');
             this.armorShieldEffect = new ArmorShieldEffect(this);
             console.log('✅ ArmorShieldEffect initialized');
+            
+            // Initialize ShieldEffect for player shield power-up
+            const { ShieldEffect } = await import('../core/vfx/effects/ShieldEffect.js');
+            this.playerShieldEffect = new ShieldEffect(this, 'player', {
+                radius: 35,
+                color: 0x00ffff,
+                lineWidth: 3,
+                pulseSpeed: 0.003
+            });
+            console.log('✅ Player ShieldEffect initialized');
         } catch (error) {
             console.warn('VFX System init failed:', error);
         }
         
-        // SFX System (initialize early)
+        // Audio System - create new instance for GameScene (PR7: no singleton issues)
         try {
-            this.newSFXSystem = new SFXSystem(this);
-            this.newSFXSystem.initialize();
-            console.log('✅ SFX System initialized');
+            console.log('[GameScene] Creating SimplifiedAudioSystem for GameScene...');
+            const { SimplifiedAudioSystem } = await import('../core/audio/SimplifiedAudioSystem.js');
+            this.audioSystem = new SimplifiedAudioSystem(this);
+            await this.audioSystem.initialize();
+            
+            // Start game music with category system
+            this.audioSystem.switchMusicCategory('game', {
+                fadeIn: 1000,
+                random: true  // Start with random track
+            });
+            console.log('✅ Simplified Audio System initialized for GameScene');
         } catch (error) {
-            console.warn('SFX System init failed:', error);
+            console.error('Audio System init failed:', error);
+            // Continue without audio rather than crash
+            this.audioSystem = null;
         }
         
-        // Blueprint Loader (REQUIRED)
+        // Keyboard Manager - centralized keyboard handling (PR7)
         try {
-            this.blueprints = new BlueprintLoader(this.game);
-            this.blueprintLoader = this.blueprints; // Alias for compatibility
-            await this.blueprints.init();
-            console.log('✅ BlueprintLoader initialized');
+            this.keyboardManager = new KeyboardManager(this, this.eventBus);
+            this.setupKeyboardEvents(); // Setup EventBus listeners for keyboard events
+            this.keyboardManager.setupGameKeys();
+            this.keyboardManager.setupDebugKeys();
+            this.keyboardManager.setupUIKeys();
+            console.log('✅ KeyboardManager initialized');
         } catch (error) {
-            console.error('❌ Failed to load blueprints:', error);
-            throw new Error('Cannot start game without blueprints');
+            console.error('KeyboardManager init failed:', error);
+            this.keyboardManager = null;
         }
         
-        // Loot System - fail-safe mode
-        try {
-            this.lootBootstrap = new LootSystemBootstrap(this);
-            await this.lootBootstrap.initialize();
-            this.lootDropManager = this.lootBootstrap.lootDropManager;
-            this.coreLootSystem = this.lootBootstrap.lootSystem;
-            console.log('✅ LootSystemBootstrap initialized');
-        } catch (error) {
-            console.warn('⚠️ LootSystemBootstrap failed, disabling loot system:', error.message);
-            this.lootEnabled = false;
-            this.lootDropManager = null;
-            this.coreLootSystem = null;
+        // Blueprint Loader - verify it's loaded
+        if (!this.blueprintLoader || !this.blueprintLoader.loaded) {
+            console.error('❌ BlueprintLoader not fully loaded');
+            // Continue anyway with limited functionality
+            console.warn('⚠️ Game will run with limited blueprint functionality');
+        } else {
+            console.log('✅ BlueprintLoader fully loaded with', this.blueprintLoader.blueprints.size, 'blueprints');
         }
+        
+        // Simple Loot System will be initialized after PowerUpManager
         
         // SpawnDirector (REQUIRED)
         try {
@@ -530,8 +667,8 @@ export class GameScene extends Phaser.Scene {
             this.spawnDirector = new SpawnDirector(this, {
                 blueprints: this.blueprints,
                 config: ConfigResolver,
-                vfx: this.newVFXSystem,
-                sfx: this.newSFXSystem
+                vfx: this.vfxSystem,
+                sfx: this.audioSystem
             });
             
             // Level progression tracking
@@ -567,35 +704,39 @@ export class GameScene extends Phaser.Scene {
             console.error('❌ Failed to initialize ProjectileSystem:', error);
         }
         
-        // Power-up VFX Manager (before PowerUpSystem)
+        // Power-up System - PR7 compliant (uses SimplifiedVFXSystem now)
         try {
-            this.powerUpVFXManager = new PowerUpVFXManager(this);
-            await this.powerUpVFXManager.initialize();
-            console.log('✅ PowerUpVFXManager initialized');
-        } catch (error) {
-            console.error('❌ Failed to initialize PowerUpVFXManager:', error);
-        }
-        
-        // Power-up System V2 - PR7 compliant
-        try {
-            this.powerUpSystem = new PowerUpSystemV2(this);
-            this.powerUpSystem.setVFXManager(this.powerUpVFXManager);
+            this.powerUpSystem = new PowerUpSystem(this);
+            this.powerUpSystem.setVFXManager(this.vfxSystem); // Use unified VFX system
             // Keep compatibility reference
             this.corePowerUpSystem = this.powerUpSystem;
-            console.log('✅ PowerUpSystemV2 initialized (PR7 compliant)');
+            console.log('✅ PowerUpSystem initialized (PR7 compliant)');
         } catch (error) {
-            console.error('❌ Failed to initialize PowerUpSystemV2:', error);
+            console.error('❌ Failed to initialize PowerUpSystem:', error);
+        }
+        
+        // Simple Loot System (works with PowerUpSystem for PR7 compliance)
+        try {
+            this.lootSystem = new SimpleLootSystem(this);
+            this.coreLootSystem = this.lootSystem; // Alias for compatibility
+            console.log('✅ SimpleLootSystem initialized');
+        } catch (error) {
+            console.warn('⚠️ SimpleLootSystem failed:', error.message);
+            this.lootEnabled = false;
+            this.lootSystem = null;
+            this.coreLootSystem = null;
         }
         
         // VFX and SFX already initialized at the beginning
         
-        // Analytics System - silent mode
-        try {
-            this.coreAnalyticsSystem = new AnalyticsSystem(this, this.analyticsManager);
-            console.log('✅ AnalyticsSystem initialized');
-        } catch (error) {
-            console.warn('⚠️ AnalyticsSystem init failed (silenced):', error.message);
-            this.coreAnalyticsSystem = null;
+        // Analytics EventBus integration - merged from AnalyticsSystem
+        if (this.analyticsManager) {
+            try {
+                this.analyticsManager.connectEventBus(this.eventBus, this);
+                console.log('✅ AnalyticsManager EventBus connected');
+            } catch (error) {
+                console.warn('⚠️ AnalyticsManager EventBus connection failed (silenced):', error.message);
+            }
         }
         
         // Telemetry and Debug
@@ -865,6 +1006,163 @@ export class GameScene extends Phaser.Scene {
     }
     
     /**
+     * Generate item textures programmatically
+     */
+    generateItemTextures() {
+        console.log('[GameScene] Generating item textures...');
+        
+        // XP Orb - Small (cyan hexagon, 12px)
+        if (!this.textures.exists('item_xp_small')) {
+            const graphics = this.add.graphics();
+            const size = 12;
+            // Use ShapeRenderer for hexagon
+            ShapeRenderer.drawShape(graphics, 'hexagon', size/2, size/2, size/2 - 1, {
+                fillColor: 0x00E8FC,
+                fillAlpha: 1.0
+            });
+            // Add white star in center
+            graphics.fillStyle(0xFFFFFF, 1);
+            graphics.fillCircle(size/2, size/2, 2);
+            graphics.generateTexture('item_xp_small', size, size);
+            graphics.destroy();
+        }
+        
+        // XP Orb - Medium (blue hexagon, 16px)
+        if (!this.textures.exists('item_xp_medium')) {
+            const graphics = this.add.graphics();
+            const size = 16;
+            // Use ShapeRenderer for hexagon
+            ShapeRenderer.drawShape(graphics, 'hexagon', size/2, size/2, size/2 - 1, {
+                fillColor: 0x0080FF,
+                fillAlpha: 1.0
+            });
+            // Add white star in center
+            graphics.fillStyle(0xFFFFFF, 1);
+            graphics.fillCircle(size/2, size/2, 3);
+            graphics.generateTexture('item_xp_medium', size, size);
+            graphics.destroy();
+        }
+        
+        // XP Orb - Large (dark blue hexagon, 20px)
+        if (!this.textures.exists('item_xp_large')) {
+            const graphics = this.add.graphics();
+            const size = 20;
+            // Use ShapeRenderer for hexagon
+            ShapeRenderer.drawShape(graphics, 'hexagon', size/2, size/2, size/2 - 1, {
+                fillColor: 0x0040CC,
+                fillAlpha: 1.0
+            });
+            // Add white star in center
+            graphics.fillStyle(0xFFFFFF, 1);
+            graphics.fillCircle(size/2, size/2, 4);
+            graphics.generateTexture('item_xp_large', size, size);
+            graphics.destroy();
+        }
+        
+        // Health Small (red circle with white cross, 16px)
+        if (!this.textures.exists('item_health_small')) {
+            const graphics = this.add.graphics();
+            const size = 16;
+            // Red circle background
+            graphics.fillStyle(0xFF0000, 1);
+            graphics.fillCircle(size/2, size/2, size/2);
+            // White cross
+            graphics.fillStyle(0xFFFFFF, 1);
+            graphics.fillRect(size/2 - 1, size/4, 2, size/2); // Vertical
+            graphics.fillRect(size/4, size/2 - 1, size/2, 2); // Horizontal
+            graphics.generateTexture('item_health_small', size, size);
+            graphics.destroy();
+        }
+        
+        // Heal Orb (larger red circle with cross, 20px)
+        if (!this.textures.exists('item_heal_orb')) {
+            const graphics = this.add.graphics();
+            const size = 20;
+            // Red circle with gradient effect
+            graphics.fillStyle(0xFF3333, 1);
+            graphics.fillCircle(size/2, size/2, size/2);
+            graphics.fillStyle(0xFF0000, 0.8);
+            graphics.fillCircle(size/2, size/2, size/2 - 2);
+            // White cross
+            graphics.fillStyle(0xFFFFFF, 1);
+            graphics.fillRect(size/2 - 2, size/4, 4, size/2);
+            graphics.fillRect(size/4, size/2 - 2, size/2, 4);
+            graphics.generateTexture('item_heal_orb', size, size);
+            graphics.destroy();
+        }
+        
+        // Protein Cache (green capsule, 18px)
+        if (!this.textures.exists('item_protein_cache')) {
+            const graphics = this.add.graphics();
+            const size = 18;
+            // Green capsule shape
+            graphics.fillStyle(0x00FF00, 1);
+            graphics.fillRoundedRect(size/4, 0, size/2, size, 4);
+            // White P letter
+            graphics.fillStyle(0xFFFFFF, 1);
+            graphics.fillCircle(size/2, size/2, 3);
+            graphics.generateTexture('item_protein_cache', size, size);
+            graphics.destroy();
+        }
+        
+        // Energy Cell (yellow lightning bolt, 16px)
+        if (!this.textures.exists('item_energy_cell')) {
+            const graphics = this.add.graphics();
+            const size = 16;
+            // Yellow lightning bolt - use triangles to approximate
+            graphics.fillStyle(0xFFFF00, 1);
+            // Top triangle
+            graphics.fillTriangle(
+                size * 0.6, 0,
+                size * 0.7, size * 0.4,
+                size * 0.5, size * 0.4
+            );
+            // Bottom triangle
+            graphics.fillTriangle(
+                size * 0.5, size * 0.4,
+                size * 0.4, size,
+                size * 0.3, size * 0.6
+            );
+            graphics.generateTexture('item_energy_cell', size, size);
+            graphics.destroy();
+        }
+        
+        // Metotrexat (purple circle with M, 18px)
+        if (!this.textures.exists('item_metotrexat')) {
+            const graphics = this.add.graphics();
+            const size = 18;
+            // Purple pulsing circle
+            graphics.fillStyle(0x9C27B0, 1);
+            graphics.fillCircle(size/2, size/2, size/2);
+            graphics.fillStyle(0xE91E63, 0.5);
+            graphics.fillCircle(size/2, size/2, size/2 - 2);
+            // White M
+            graphics.fillStyle(0xFFFFFF, 1);
+            graphics.fillCircle(size/2, size/2, 4);
+            graphics.generateTexture('item_metotrexat', size, size);
+            graphics.destroy();
+        }
+        
+        // Research Point (blue diamond, 14px)
+        if (!this.textures.exists('item_research_point')) {
+            const graphics = this.add.graphics();
+            const size = 14;
+            // Use ShapeRenderer for diamond
+            ShapeRenderer.drawShape(graphics, 'diamond', size/2, size/2, size/2, {
+                fillColor: 0x2196F3,
+                fillAlpha: 1.0
+            });
+            // White center dot
+            graphics.fillStyle(0xFFFFFF, 1);
+            graphics.fillCircle(size/2, size/2, 2);
+            graphics.generateTexture('item_research_point', size, size);
+            graphics.destroy();
+        }
+        
+        console.log('[GameScene] ✅ Item textures generated');
+    }
+    
+    /**
      * Show critical error overlay - PR7 fail fast
      */
     showCriticalError(title, message) {
@@ -910,124 +1208,18 @@ export class GameScene extends Phaser.Scene {
         
         console.log('✅ Input keys configured:', this.inputKeys);
         
-        // ESC key for pause menu - using LiteUI
-        this.escKey = this.input.keyboard.addKey('ESC');
-        this.escKey.on('down', () => {
-            console.log('[GameScene] ESC key DOWN event, pauseUI exists:', !!this.pauseUI, 'isGameOver:', this.isGameOver);
-            
-            // Pokud je otevřené highScoreModal, ignorovat
-            if (this.highScoreModal) return;
-            
-            // Pokud je game over, vrátit se do menu
-            if (this.isGameOver) {
-                this.scene.start('MainMenu');
-            }
-            // ESC is now handled by GameUIScene for pause menu
-        });
+        // All keyboard shortcuts now handled by KeyboardManager + EventBus
+        // ESC - handled by GameUIScene via KeyboardManager 'ui.escape' event
+        // F3 - debug overlay toggle via KeyboardManager 'debug.overlay.toggle' event
+        // F4 - enemy spawn via KeyboardManager 'debug.enemy.spawn' event  
+        // F6 - missing assets toggle via KeyboardManager 'debug.missing-assets.toggle' event
+        // F7 - boss spawn via KeyboardManager 'debug.boss.spawn' event
+        // F8 - SFX soundboard via KeyboardManager 'debug.sfx.soundboard' event
+        // F9 - VFX test via KeyboardManager 'debug.vfx.test' event
+        // R - game restart via KeyboardManager 'game.restart' event
         
-        // F3 handler already set up in isDev section above
-        
-        // F4: Run smoke test
-        this.f4Key = this.input.keyboard.addKey('F4');
-        this.f4Key.on('down', async () => {
-            try {
-                console.log('[SmokeTest] Running smoke test...');
-                const smokeTest = new SmokeTest(this);
-                const report = await smokeTest.run();
-                
-                if (report.summary.success) {
-                    this.cameras.main.flash(500, 0, 255, 0, true);
-                } else {
-                    this.cameras.main.flash(500, 255, 0, 0, true);
-                }
-            } catch (error) {
-                console.error('[SmokeTest] Failed to run:', error);
-            }
-        });
-        
-        // F7: Boss Playground (DEV mode only)
-        if (window.DEV_MODE === true || window.location.search.includes('debug=true')) {
-            this.f7Key = this.input.keyboard.addKey('F7');
-            this.f7Key.on('down', () => {
-                if (!this.devPlaygroundUI) {
-                    // Lazy load Dev Playground UI
-                    import('../ui/DevPlaygroundUI.js').then(module => {
-                        this.devPlaygroundUI = new module.DevPlaygroundUI(this);
-                        this.devPlaygroundUI.toggle();
-                        console.log('🎯 Dev Playground UI initialized');
-                    }).catch(err => {
-                        console.error('Failed to load Boss Playground UI:', err);
-                    });
-                } else {
-                    this.devPlaygroundUI.toggle();
-                }
-            });
-            
-            // F8: SFX Soundboard (DEV mode only)
-            this.f8Key = this.input.keyboard.addKey('F8');
-            this.f8Key.on('down', () => {
-                if (!this.sfxSoundboard) {
-                    // Lazy load SFX Soundboard
-                    import('../ui/SFXSoundboard.js').then(module => {
-                        this.sfxSoundboard = new module.SFXSoundboard(this);
-                        this.sfxSoundboard.toggle();
-                        console.log('🔊 SFX Soundboard initialized');
-                    }).catch(err => {
-                        console.error('Failed to load SFX Soundboard:', err);
-                    });
-                } else {
-                    this.sfxSoundboard.toggle();
-                }
-            });
-            
-            // F9: Soft Refresh - Hot reload data (DEV mode only)
-            this.f9Key = this.input.keyboard.addKey('F9');
-            this.f9Key.on('down', async () => {
-                if (!this.softRefresh) {
-                    // Lazy load Soft Refresh system
-                    try {
-                        const module = await import('../core/utils/SoftRefresh.js');
-                        this.softRefresh = new module.SoftRefresh(this);
-                        
-                        // Extend systems with update methods
-                        if (this.blueprintLoader) {
-                            module.extendBlueprintLoader(this.blueprintLoader);
-                        }
-                        if (this.spawnDirector) {
-                            module.extendSpawnDirector(this.spawnDirector);
-                        }
-                        
-                        console.log('🔄 Soft Refresh system initialized');
-                    } catch (err) {
-                        console.error('Failed to load Soft Refresh:', err);
-                        return;
-                    }
-                }
-                
-                // Perform refresh
-                console.log('🔄 [F9] Refreshing game data...');
-                const changes = await this.softRefresh.refresh();
-                
-                // Update debug overlay if visible
-                if (this.debugOverlay && this.debugOverlay.visible) {
-                    const message = `Data refreshed: ${changes.added.length} added, ${changes.modified.length} modified`;
-                    this.debugOverlay.flashMessage(message, 3000);
-                }
-            });
-        }
-        
-        // ESC handler je už nastavený výše (řádek 632) - odstraňujeme duplicitu
-        // Původní handler zde volal toggle() místo handleEscKey(), což způsobovalo problémy
-        
-        // R: Restart after game over
-        this.rKey = this.input.keyboard.addKey('R');
-        this.rKey.on('down', () => {
-            if (this.highScoreModal) return;
-            
-            if (this.isGameOver) {
-                this.scene.restart();
-            }
-        });
+        // Only movement keys remain as direct input for performance
+        // WASD/Arrow keys are checked in update() loop for player movement
         
         // Mobile controls (načíst z SettingsManager)
         try {
@@ -1069,11 +1261,11 @@ export class GameScene extends Phaser.Scene {
         }
         
         // Player vs loot - PR7: Player is Sprite directly
-        if (this.coreLootSystem) {
+        if (this.lootSystem) {
             this.physics.add.overlap(
                 this.player,
-                this.coreLootSystem.loot,
-                (player, loot) => this.handlePlayerLootCollision(player, loot)
+                this.lootSystem.lootGroup,
+                (player, loot) => this.lootSystem.handlePickup(player, loot)
             );
         }
         
@@ -1087,36 +1279,7 @@ export class GameScene extends Phaser.Scene {
         console.log('✅ All collision detection setup complete');
     }
     
-    /**
-     * Handle player bullet hitting enemy
-     */
-    handlePlayerBulletEnemyHit(bullet, enemy) {
-        if (!bullet.active || !enemy.active) return;
-        
-        // Get damage from bullet
-        const damage = bullet.damage || 10;
-        
-        // Apply damage to enemy
-        enemy.hp -= damage;
-        
-        // Play hit VFX
-        if (this.newVFXSystem && enemy._vfx?.hit) {
-            this.newVFXSystem.play(enemy._vfx.hit, enemy.x, enemy.y);
-        }
-        
-        // Play hit SFX
-        if (this.newSFXSystem && enemy._sfx?.hit) {
-            this.newSFXSystem.play(enemy._sfx.hit);
-        }
-        
-        // Check if enemy died
-        if (enemy.hp <= 0) {
-            this.handleEnemyDeath(enemy);
-        }
-        
-        // Destroy bullet
-        bullet.kill();
-    }
+    // Note: handlePlayerBulletEnemyHit is implemented below with full piercing support
     
     /**
      * Handle enemy bullet hitting player
@@ -1140,9 +1303,9 @@ export class GameScene extends Phaser.Scene {
     }
     
     /**
-     * Handle player collecting loot
+     * Handle player collecting loot (DEPRECATED - now handled by SimpleLootSystem)
      */
-    handlePlayerLootCollision(player, loot) {
+    handlePlayerLootCollision_OLD(player, loot) {
         if (!loot.active || !player.active) return;
         
         // Process based on loot type (supports both new and legacy format)
@@ -1157,9 +1320,9 @@ export class GameScene extends Phaser.Scene {
                 
                 // Play pickup SFX (from blueprint if available)
                 if (loot._dropBlueprint?.sfx?.pickup) {
-                    this.newSFXSystem?.play(loot._dropBlueprint.sfx.pickup);
+                    this.audioSystem?.play(loot._dropBlueprint.sfx.pickup);
                 } else {
-                    this.newSFXSystem?.play('sound/pickup.mp3');
+                    this.audioSystem?.play('sound/pickup.mp3');
                 }
                 break;
                 
@@ -1171,9 +1334,9 @@ export class GameScene extends Phaser.Scene {
                 
                 // Play heal SFX
                 if (loot._dropBlueprint?.sfx?.pickup) {
-                    this.newSFXSystem?.play(loot._dropBlueprint.sfx.pickup);
+                    this.audioSystem?.play(loot._dropBlueprint.sfx.pickup);
                 } else {
-                    this.newSFXSystem?.play('sound/heal.mp3');
+                    this.audioSystem?.play('sound/heal.mp3');
                 }
                 break;
                 
@@ -1188,9 +1351,9 @@ export class GameScene extends Phaser.Scene {
                 
                 // Play special SFX
                 if (loot._dropBlueprint?.sfx?.pickup) {
-                    this.newSFXSystem?.play(loot._dropBlueprint.sfx.pickup);
+                    this.audioSystem?.play(loot._dropBlueprint.sfx.pickup);
                 } else {
-                    this.newSFXSystem?.play('sound/metotrexat.mp3');
+                    this.audioSystem?.play('sound/metotrexat.mp3');
                 }
                 break;
                 
@@ -1198,28 +1361,28 @@ export class GameScene extends Phaser.Scene {
             case 'research':
                 // Special orbs - for now just add XP
                 this.addXP(5);
-                this.newSFXSystem?.play('sound/pickup.mp3');
+                this.audioSystem?.play('sound/pickup.mp3');
                 break;
                 
             default:
                 // Unknown type - try legacy compatibility
                 if (loot.isXPOrb) {
                     this.addXP(loot.xpAmount || 1);
-                    this.newSFXSystem?.play('sound/pickup.mp3');
+                    this.audioSystem?.play('sound/pickup.mp3');
                 } else if (loot.isHealthOrb) {
                     if (this.player.heal) {
                         this.player.heal(loot.healAmount || 10);
                     }
-                    this.newSFXSystem?.play('sound/heal.mp3');
+                    this.audioSystem?.play('sound/heal.mp3');
                 } else if (loot.isMetotrexat) {
                     this.killAllEnemies();
-                    this.newSFXSystem?.play('sound/metotrexat.mp3');
+                    this.audioSystem?.play('sound/metotrexat.mp3');
                 }
         }
         
         // Play pickup VFX if defined in blueprint
-        if (loot._dropBlueprint?.vfx?.pickup && this.newVFXSystem) {
-            this.newVFXSystem.play(loot._dropBlueprint.vfx.pickup, loot.x, loot.y);
+        if (loot._dropBlueprint?.vfx?.pickup && this.vfxSystem) {
+            this.vfxSystem.play(loot._dropBlueprint.vfx.pickup, loot.x, loot.y);
         }
         
         // Destroy loot
@@ -1242,57 +1405,6 @@ export class GameScene extends Phaser.Scene {
         if (player.takeDamage) {
             player.takeDamage(damage);
         }
-    }
-    
-    /**
-     * Handle enemy death - process drops and cleanup
-     */
-    handleEnemyDeath(enemy) {
-        if (!enemy || !enemy.active) return;
-        
-        // Mark as inactive first
-        enemy.active = false;
-        
-        // Play death VFX
-        if (this.newVFXSystem && enemy._vfx?.death) {
-            this.newVFXSystem.play(enemy._vfx.death, enemy.x, enemy.y);
-        }
-        
-        // Play death SFX
-        if (this.newSFXSystem && enemy._sfx?.death) {
-            this.newSFXSystem.play(enemy._sfx.death);
-        }
-        
-        // Add XP from enemy stats
-        if (enemy.xp) {
-            this.addXP(enemy.xp);
-        }
-        
-        // Process drops from blueprint
-        if (enemy._blueprint?.drops && this.lootBootstrap?.lootSystemIntegration) {
-            // Use LootSystemIntegration to handle drops
-            this.lootBootstrap.lootSystemIntegration.handleEnemyDeath(enemy);
-        } else if (enemy._blueprint?.drops && this.coreLootSystem) {
-            // Fallback: Process drops directly
-            const drops = enemy._blueprint.drops;
-            drops.forEach(drop => {
-                if (Math.random() < drop.chance) {
-                    this.spawnDrop(drop.itemId, enemy.x, enemy.y);
-                }
-            });
-        }
-        
-        // Update statistics
-        this.gameStats.enemiesKilled++;
-        this.gameStats.kills++;
-        
-        // Analytics
-        if (this.analyticsManager) {
-            this.analyticsManager.trackEnemyKill(enemy.blueprintId || 'unknown');
-        }
-        
-        // Destroy enemy
-        enemy.destroy();
     }
     
     /**
@@ -1329,7 +1441,7 @@ export class GameScene extends Phaser.Scene {
      * Spawn a drop item
      */
     spawnDrop(itemId, x, y) {
-        if (!this.coreLootSystem || !itemId) return;
+        if (!this.lootSystem || !itemId) return;
         
         // Get item blueprint
         const itemBlueprint = this.blueprintLoader?.get(itemId);
@@ -1339,7 +1451,48 @@ export class GameScene extends Phaser.Scene {
         }
         
         // PR7: Use LootSystem to create the drop (single source of truth)
-        this.coreLootSystem.createItemDrop(x, y, itemBlueprint);
+        this.lootSystem.createItemDrop(x, y, itemBlueprint);
+    }
+    
+    /**
+     * Create XP orbs based on XP amount
+     * Uses tiered system: small (1 XP), medium (5 XP), large (10 XP)
+     */
+    createXPOrbs(x, y, totalXP) {
+        if (!totalXP || totalXP <= 0) return;
+        
+        // Calculate orb distribution
+        const largeOrbs = Math.floor(totalXP / 10);
+        const remaining = totalXP % 10;
+        const mediumOrbs = Math.floor(remaining / 5);
+        const smallOrbs = remaining % 5;
+        
+        // Spawn large XP orbs (10 XP each)
+        for (let i = 0; i < largeOrbs; i++) {
+            const offsetX = (Math.random() - 0.5) * 30;
+            const offsetY = (Math.random() - 0.5) * 30;
+            if (this.lootSystem) {
+                this.lootSystem.createDrop(x + offsetX, y + offsetY, 'item.xp_large');
+            }
+        }
+        
+        // Spawn medium XP orbs (5 XP each)
+        for (let i = 0; i < mediumOrbs; i++) {
+            const offsetX = (Math.random() - 0.5) * 30;
+            const offsetY = (Math.random() - 0.5) * 30;
+            if (this.lootSystem) {
+                this.lootSystem.createDrop(x + offsetX, y + offsetY, 'item.xp_medium');
+            }
+        }
+        
+        // Spawn small XP orbs (1 XP each)
+        for (let i = 0; i < smallOrbs; i++) {
+            const offsetX = (Math.random() - 0.5) * 30;
+            const offsetY = (Math.random() - 0.5) * 30;
+            if (this.lootSystem) {
+                this.lootSystem.createDrop(x + offsetX, y + offsetY, 'item.xp_small');
+            }
+        }
     }
     
     /**
@@ -1391,6 +1544,17 @@ export class GameScene extends Phaser.Scene {
             // }
         }
         
+        // SAFETY CHECK: Ensure player stays active if alive
+        if (this.player && this.player.hp > 0 && !this.player.active) {
+            console.warn('[GameScene] ⚠️ Player was inactive but has HP - reactivating!');
+            console.log(`[GameScene] Player state: HP=${this.player.hp}, active=${this.player.active}, visible=${this.player.visible}`);
+            this.player.setActive(true);
+            this.player.setVisible(true);
+            if (this.player.body) {
+                this.player.body.enable = true;
+            }
+        }
+        
         // Update player - PR7: Player uses preUpdate() internally
         // Player's preUpdate checks isPaused flag internally
         
@@ -1398,6 +1562,13 @@ export class GameScene extends Phaser.Scene {
         if (this.armorShieldEffect && !this.isPaused) {
             this.armorShieldEffect.update(time, delta);
         }
+        
+        // Update player's shield effect
+        if (this.playerShieldEffect && !this.isPaused) {
+            this.playerShieldEffect.update(time, delta);
+        }
+        
+        // PowerUp system update is handled in PowerUpSystem update loop
         
         // Update enemies
         if (!this.isPaused && this.enemiesGroup) {
@@ -1427,14 +1598,19 @@ export class GameScene extends Phaser.Scene {
             this.projectileSystem.update(time, delta);
         }
         
-        // Update PowerUp VFX Manager
-        if (this.powerUpVFXManager && !this.isPaused) {
-            this.powerUpVFXManager.update(time, delta);
+        // Update Loot System (for XP magnet effect)
+        if (this.lootSystem && !this.isPaused) {
+            this.lootSystem.update(time, delta);
+        }
+        
+        // Update Unified VFX System (includes power-up effects)
+        if (this.vfxSystem && !this.isPaused) {
+            this.vfxSystem.update(time, delta);
         }
         
         // Update PowerUp System (for radiotherapy and other per-frame effects)
-        if (this.corePowerUpSystem && !this.isPaused) {
-            this.corePowerUpSystem.update(time, delta);
+        if (this.powerUpSystem && !this.isPaused) {
+            this.powerUpSystem.update(time, delta);
         }
         
         // Update debug overlay (visibility is checked inside update method)
@@ -1463,9 +1639,20 @@ export class GameScene extends Phaser.Scene {
             return;
         }
         
-        // Apply damage
-        // Get damage from bullet first, then from player's projectile damage
-        const damage = bullet.damage || this.player?.baseStats?.projectileDamage || 10;
+        // Apply damage with piercing reduction
+        let damage = bullet.damage || this.player?.baseStats?.projectileDamage || 10;
+        
+        // Apply damage reduction for piercing bullets
+        if (bullet.piercing && bullet.hitCount > 0 && bullet.damageReduction) {
+            const reductionFactor = Math.pow(1 - bullet.damageReduction, bullet.hitCount);
+            damage = damage * reductionFactor;
+            
+            // Debug: Log damage reduction occasionally
+            if (Math.random() < 0.05) {
+                console.log(`[GameScene] 🏹 PIERCING DAMAGE - Hit #${bullet.hitCount + 1}, reduction: ${(bullet.damageReduction * 100).toFixed(1)}%, final damage: ${damage.toFixed(1)}`);
+            }
+        }
+        
         enemy.takeDamage(damage);
         
         // Check if enemy died
@@ -1473,11 +1660,15 @@ export class GameScene extends Phaser.Scene {
             this.handleEnemyDeath(enemy);
         }
         
-        // Handle explosive bullets from chemo_reservoir or explosive power-up
-        if (this.player.getExplosionRadius && this.player.getExplosionRadius() > 0) {
-            console.log('[DEBUG] Explosive bullet impact!');
-            const explosionRadius = 50 + (this.player.getExplosionRadius ? this.player.getExplosionRadius() : 0);
-            const explosionDamage = damage * 0.5 + (this.player.getExplosionDamage ? this.player.getExplosionDamage() : 0);
+        // Handle explosive bullets from chemo_reservoir power-up
+        if (this.player.chemoAuraActive && this.player.chemoAuraConfig?.enableExplosions) {
+            const explosionRadius = this.player.getExplosionRadius ? this.player.getExplosionRadius() : 35;
+            let explosionDamage = this.player.getExplosionDamage ? this.player.getExplosionDamage() : damage * 0.5;
+            
+            // Ensure explosionDamage is a number
+            explosionDamage = Number(explosionDamage) || (damage * 0.5);
+            
+            console.log(`[GameScene] 💥 CHEMO EXPLOSION - Radius: ${explosionRadius}, Damage: ${explosionDamage.toFixed(1)}`);
             
             // Create explosion effect
             if (this.projectileSystem && this.projectileSystem.createExplosion) {
@@ -1487,6 +1678,16 @@ export class GameScene extends Phaser.Scene {
                     explosionRadius, 
                     1  // Default level
                 );
+            }
+            
+            // Play explosion VFX
+            if (this.vfxSystem) {
+                this.vfxSystem.play('vfx.explosion.small', bullet.x, bullet.y);
+            }
+            
+            // Play explosion SFX  
+            if (this.audioSystem) {
+                this.audioSystem.play('sound/explosion_small.mp3');
             }
         }
         
@@ -1499,16 +1700,16 @@ export class GameScene extends Phaser.Scene {
         
         // VFX/SFX - HOTFIX V3: Silent fail mode
         try {
-            if (enemy._vfx?.hit && this.newVFXSystem) {
-                this.newVFXSystem.play(enemy._vfx.hit, enemy.x, enemy.y);
+            if (enemy._vfx?.hit && this.vfxSystem) {
+                this.vfxSystem.play(enemy._vfx.hit, enemy.x, enemy.y);
             }
         } catch (error) {
             console.debug('[VFX] Failed to play hit effect, continuing:', error.message);
         }
         
         try {
-            if (enemy._sfx?.hit && this.newSFXSystem) {
-                this.newSFXSystem.play(enemy._sfx.hit);
+            if (enemy._sfx?.hit && this.audioSystem) {
+                this.audioSystem.play(enemy._sfx.hit);
             }
         } catch (error) {
             console.debug('[SFX] Failed to play hit sound, continuing:', error.message);
@@ -1617,6 +1818,7 @@ export class GameScene extends Phaser.Scene {
                 sfx: blueprint.sfx,
                 vfx: blueprint.vfx,
                 ai: blueprint.ai, // PR7 Compliant: Pass AI configuration from blueprint
+                drops: blueprint.drops, // IMPORTANT: Include drops for loot system
                 // Special flags based on type
                 isElite: options.elite || blueprint.type === 'elite',
                 isUnique: blueprint.type === 'unique',
@@ -1661,13 +1863,47 @@ export class GameScene extends Phaser.Scene {
     }
     
     handleEnemyDeath(enemy) {
+        if (!enemy || !enemy.active) return;
+        
+        // Mark as inactive first
+        enemy.active = false;
+        
+        // Clean up ALL VFX effects immediately before any other cleanup
+        if (enemy.cleanupAllVFX && typeof enemy.cleanupAllVFX === 'function') {
+            enemy.cleanupAllVFX();
+        }
+        
         try {
-            // a) Kill count and score update
+            // Play death VFX
+            if (this.vfxSystem && enemy._vfx?.death) {
+                this.vfxSystem.play(enemy._vfx.death, enemy.x, enemy.y);
+            }
+            
+            // Play death SFX
+            if (this.audioSystem && enemy._sfx?.death) {
+                this.audioSystem.play(enemy._sfx.death);
+            }
+            
+            // Create XP orbs based on enemy XP value
+            if (enemy.xp && enemy.xp > 0) {
+                this.createXPOrbs(enemy.x, enemy.y, enemy.xp);
+            }
+            
+            // Handle drops using SimpleLootSystem (for consumables only, not XP)
+            if (this.lootSystem) {
+                try {
+                    this.lootSystem.handleEnemyDeath(enemy);
+                } catch (error) {
+                    console.debug('[Loot] Failed to handle enemy death:', error.message);
+                }
+            }
+            
+            // Update statistics
             this.gameStats.kills = (this.gameStats.kills || 0) + 1;
             this.gameStats.enemiesKilled++;
             this.gameStats.score += enemy.xp * 10;
             
-            // b) Safe analytics with proper checks
+            // Safe analytics with proper checks
             const enemy_type = enemy.blueprintId || enemy.type || 'unknown';
             if (this.analyticsManager && typeof this.analyticsManager.trackEvent === 'function') {
                 this.analyticsManager.trackEvent('enemy_killed', {
@@ -1676,46 +1912,15 @@ export class GameScene extends Phaser.Scene {
                 });
             }
             
-            // c) Handle boss death
+            // Handle boss death
             if (enemy instanceof Boss) {
                 this.gameStats.bossesDefeated++;
                 this.currentBoss = null;
-                
                 // Don't auto level up after boss - that's handled by boss:die event
-                // which transitions to next stage
             }
-            
-            // d) Loot system - use LootDropManager to get drops
-            let lootDropped = false;
-            
-            if (this.lootDropManager && typeof this.lootDropManager.getDropsForEnemy === 'function') {
-                try {
-                    const drops = this.lootDropManager.getDropsForEnemy(enemy, {
-                        level: this.gameStats?.level ?? 1,
-                        position: { x: enemy.x, y: enemy.y }
-                    });
-                    
-                    // Process each drop
-                    if (drops && drops.length > 0) {
-                        drops.forEach(drop => {
-                            this.spawnLootDrop(drop, enemy.x, enemy.y);
-                        });
-                        lootDropped = true;
-                    }
-                } catch (error) {
-                    console.debug('[Loot] Failed to get drops:', error.message);
-                }
-            }
-            
-            // HOTFIX: Always drop XP regardless of loot system status
-            // This ensures players can level up even if loot system fails
-            const xpAmount = enemy.xp || enemy.data?.xp || enemy.stats?.xp || 3; // Default to 3 XP
-            this.dropSimpleXP(enemy.x, enemy.y, xpAmount);
             
         } catch (error) {
             console.warn('[GameScene] enemy death handling failed:', error);
-            // Fallback: ensure at least XP drops
-            this.dropSimpleXP(enemy.x, enemy.y, 1);
         } finally {
             // Always destroy the enemy sprite
             if (enemy && enemy.destroy) {
@@ -1749,7 +1954,7 @@ export class GameScene extends Phaser.Scene {
     }
     
     /**
-     * Spawn loot drop from LootDropManager
+     * Spawn loot drop from SimpleLootSystem
      */
     spawnLootDrop(drop, x, y) {
         // Support both old format (ref) and new format (itemId)
@@ -2009,7 +2214,7 @@ export class GameScene extends Phaser.Scene {
         });
         
         // PR7: Check XP magnet through coreLootSystem
-        if (this.coreLootSystem?.magnetLevel > 0) {
+        if (this.lootSystem?.magnetLevel > 0) {
             this.time.delayedCall(500, () => {
                 if (xpOrb && xpOrb.active) {
                     this.attractXPOrb(xpOrb);
@@ -2022,9 +2227,9 @@ export class GameScene extends Phaser.Scene {
             this.addXP(orb.xpAmount);
             
             // Play pickup sound based on tier
-            if (this.newSFXSystem) {
+            if (this.audioSystem) {
                 const sfxId = `sfx.player.xp.${orb.tier}`;
-                this.newSFXSystem.play(sfxId);
+                this.audioSystem.play(sfxId);
             }
             
             orb.destroy();
@@ -2221,8 +2426,8 @@ export class GameScene extends Phaser.Scene {
         ];
         
         // If we have a proper power-up system, get real options from it
-        if (this.corePowerUpSystem && typeof this.corePowerUpSystem._generatePowerUpOptions === 'function') {
-            const systemOptions = this.corePowerUpSystem._generatePowerUpOptions();
+        if (this.powerUpSystem && typeof this.powerUpSystem._generatePowerUpOptions === 'function') {
+            const systemOptions = this.powerUpSystem._generatePowerUpOptions();
             if (systemOptions && systemOptions.length > 0) {
                 // Map system options to LiteUI format
                 return systemOptions.map(opt => ({
@@ -2344,8 +2549,18 @@ export class GameScene extends Phaser.Scene {
             this.spawnDirector.stop();
         }
         
-        // Clear remaining enemies with delay for visual effect
-        this.time.delayedCall(1000, async () => {
+        // IMMEDIATELY ensure player is visible and active
+        if (this.player) {
+            this.player.setVisible(true);
+            this.player.setActive(true);
+            if (this.player.body) {
+                this.player.body.enable = true;
+            }
+            console.log('👤 Hráč reaktivován okamžitě při přechodu levelu');
+        }
+        
+        // Clear remaining enemies with SHORT delay for visual effect
+        this.time.delayedCall(100, async () => {
             // Clear all enemies
             this.clearAllEnemies();
             
@@ -2373,6 +2588,16 @@ export class GameScene extends Phaser.Scene {
                 });
                 
                 console.log(`✅ Level ${this.currentLevel} započat!`);
+                
+                // Re-attach power-up visual effects AFTER clearing enemies
+                if (this.player && this.vfxSystem && this.player.powerUps) {
+                    for (const [powerUpId, powerUp] of this.player.powerUps) {
+                        if (powerUp.vfxType) {
+                            this.vfxSystem.attachEffect(this.player, powerUp.vfxType, powerUp.config);
+                        }
+                    }
+                    console.log('✨ Power-up efekty obnoveny');
+                }
                 
                 // Hide level transition UI after delay
                 this.time.delayedCall(2000, () => {
@@ -2536,7 +2761,7 @@ export class GameScene extends Phaser.Scene {
         
         // Continue text
         const continueText = this.add.text(0, 150, 
-            'Stiskni R pro novou hru nebo ESC pro menu',
+            'Stiskni R pro novou hru nebo ESC pro pause menu',
             {
                 fontSize: '20px',
                 fontFamily: 'Arial',
@@ -2546,14 +2771,9 @@ export class GameScene extends Phaser.Scene {
         
         victoryContainer.add([bg, victoryText, statsText, continueText]);
         
-        // Add keyboard handlers
-        this.input.keyboard.once('keydown-R', () => {
-            this.restartGame();
-        });
+        // R key restart is handled by KeyboardManager 'game.restart' event
         
-        this.input.keyboard.once('keydown-ESC', () => {
-            this.returnToMenu();
-        });
+        // ESC for return to menu is handled by GameUIScene
         
         // Save as high score
         const finalScore = this.gameStats.score;
@@ -2672,9 +2892,6 @@ export class GameScene extends Phaser.Scene {
     restartGame() {
         console.log('[GameScene] Restarting game...');
         
-        // Clean up systems FIRST before any scene operations
-        this.cleanupSystems();
-        
         // Clean up player first to prevent destroy errors
         if (this.player && !this.player.active) {
             // Player is already inactive from die(), just remove references
@@ -2710,9 +2927,6 @@ export class GameScene extends Phaser.Scene {
     returnToMenu() {
         console.log('[GameScene] Returning to main menu...');
         
-        // Clean up systems FIRST before any scene operations
-        this.cleanupSystems();
-        
         // Clean up player first to prevent destroy errors
         if (this.player && !this.player.active) {
             // Player is already inactive from die(), just remove references
@@ -2732,17 +2946,228 @@ export class GameScene extends Phaser.Scene {
         // Stop all sounds
         this.sound.stopAll();
         
-        // Now stop scenes and transition
+        // Stop GameUIScene and transition to menu
+        // Don't stop GameScene from itself - let the transition handle it
         this.scene.stop('GameUIScene');
-        this.scene.stop('GameScene');
         this.scene.start('MainMenu');
+    }
+    
+    /**
+     * Handle game restart via keyboard shortcut
+     */
+    handleGameRestart() {
+        console.log('[GameScene] Restart requested via keyboard');
+        this.scene.restart();
+    }
+    
+    /**
+     * Handle debug enemy spawn
+     */
+    handleDebugEnemySpawn() {
+        if (this.spawnDirector) {
+            console.log('[GameScene] Debug: spawning enemy');
+            // Spawn a random enemy from current level
+            this.spawnDirector.debugSpawnRandomEnemy();
+        }
+    }
+    
+    /**
+     * Handle debug boss spawn
+     */
+    handleDebugBossSpawn() {
+        if (this.spawnDirector) {
+            console.log('[GameScene] Debug: spawning boss');
+            this.spawnDirector.debugSpawnBoss();
+        }
+    }
+    
+    /**
+     * Handle debug SFX soundboard
+     */
+    handleDebugSFXSoundboard() {
+        if (!this.sfxSoundboard) {
+            // Dynamically load SFXSoundboard
+            import('../ui/SFXSoundboard.js').then(module => {
+                this.sfxSoundboard = new module.SFXSoundboard(this);
+                this.sfxSoundboard.show();
+            });
+        } else {
+            this.sfxSoundboard.toggle();
+        }
+    }
+    
+    /**
+     * Shutdown handler - called when scene is stopped
+     * Clean up all resources to prevent errors during destroy
+     */
+    shutdown() {
+        console.log('[GameScene] Shutdown initiated...');
+        
+        // 1. First pause everything to stop execution
+        this.scene.pause();
+        this.physics.pause();
+        
+        // 2. Stop and remove all tweens more safely
+        if (this.tweens) {
+            // CRITICAL: Kill tweens on ALL scene children first
+            // This prevents the "this.manager.removeKey" error
+            if (this.children && this.children.list) {
+                this.children.list.forEach(child => {
+                    if (child) {
+                        this.tweens.killTweensOf(child);
+                    }
+                });
+            }
+            
+            // Get all tweens and stop them individually
+            const allTweens = this.tweens.getAllTweens();
+            allTweens.forEach(tween => {
+                if (tween) {
+                    tween.stop();
+                    // Do NOT call tween.remove() - let Phaser handle cleanup
+                }
+            });
+            // Then kill all remaining
+            this.tweens.killAll();
+        }
+        
+        // 3. Remove all delayed calls and timed events
+        if (this.time) {
+            // Remove all delayed calls
+            this.time.removeAllEvents();
+            // Clear the timer queue
+            if (this.time.delayedCalls) {
+                this.time.delayedCalls.forEach(timer => {
+                    if (timer) {
+                        timer.destroy();
+                        // Do NOT call timer.remove() - use destroy() instead
+                    }
+                });
+            }
+        }
+        
+        // 4. Clean up level transition container explicitly
+        if (this.levelTransitionContainer) {
+            // Stop any tweens on this container
+            if (this.tweens) {
+                this.tweens.killTweensOf(this.levelTransitionContainer);
+            }
+            this.levelTransitionContainer.destroy();
+            this.levelTransitionContainer = null;
+        }
+        
+        // 5. Stop all sounds
+        if (this.sound) {
+            this.sound.stopAll();
+            this.sound.removeAll();
+        }
+        
+        // 6. Clean up audio system
+        if (this.audioSystem) {
+            // Stop music without fade (to avoid creating new tweens)
+            if (this.audioSystem.stopImmediately) {
+                this.audioSystem.stopImmediately();
+            } else {
+                // Fallback for older version
+                if (this.audioSystem.currentMusic) {
+                    this.audioSystem.currentMusic.stop();
+                    this.audioSystem.currentMusic = null;
+                }
+                this.audioSystem.stopAll();
+            }
+        }
+        
+        // 7. Clean up VFX system
+        if (this.vfxSystem) {
+            this.vfxSystem.shutdown();
+        }
+        
+        // 8. Clean up armor shield effect
+        if (this.armorShieldEffect) {
+            this.armorShieldEffect.shutdown();
+        }
+        
+        // 9. Clean up spawn director
+        if (this.spawnDirector) {
+            this.spawnDirector.stop();
+        }
+        
+        // 10. Clean up loot system (this will stop all tweens on loot)
+        if (this.lootSystem && this.lootSystem.shutdown) {
+            this.lootSystem.shutdown();
+        }
+        
+        // 11. Destroy all game objects in groups
+        if (this.enemiesGroup) {
+            // Kill tweens on all enemies first
+            if (this.tweens) {
+                this.enemiesGroup.getChildren().forEach(enemy => {
+                    if (enemy) {
+                        this.tweens.killTweensOf(enemy);
+                    }
+                });
+            }
+            this.enemiesGroup.clear(true, true);
+        }
+        
+        if (this.bossGroup) {
+            // Kill tweens on all bosses first
+            if (this.tweens) {
+                this.bossGroup.getChildren().forEach(boss => {
+                    if (boss) {
+                        this.tweens.killTweensOf(boss);
+                    }
+                });
+            }
+            this.bossGroup.clear(true, true);
+        }
+        
+        // Note: loot group already handled by lootSystem.shutdown()
+        
+        // 12. Clean up player
+        if (this.player) {
+            if (this.tweens) {
+                this.tweens.killTweensOf(this.player);
+            }
+            this.player = null;
+        }
+        
+        // 13. Clean up UI layer
+        if (this.uiLayer) {
+            this.uiLayer.destroy();
+            this.uiLayer = null;
+        }
+        
+        // 14. Clean up keyboard manager
+        if (this.keyboardManager) {
+            this.keyboardManager.destroy();
+            this.keyboardManager = null;
+        }
+        
+        // 15. Clean up any modals
+        if (this.highScoreModal) {
+            this.highScoreModal.destroy();
+            this.highScoreModal = null;
+        }
+        
+        console.log('[GameScene] Shutdown complete');
+    }
+    
+    /**
+     * Handle debug VFX test
+     */
+    handleDebugVFXTest() {
+        if (this.vfxSystem && this.player) {
+            console.log('[GameScene] Debug: testing VFX');
+            this.vfxSystem.play('vfx.explosion.small', this.player.x, this.player.y);
+        }
     }
     
     /**
      * Clean up all systems and components
      */
     cleanupSystems() {
-        // Clean up PowerUpSystemV2 and its modal
+        // Clean up PowerUpSystem and its modal
         if (this.powerUpSystem && typeof this.powerUpSystem.destroy === 'function') {
             this.powerUpSystem.destroy();
             this.powerUpSystem = null;
@@ -2772,34 +3197,107 @@ export class GameScene extends Phaser.Scene {
             this.gameOverModal = null;
         }
         
-        // Clean up other systems
-        if (this.newVFXSystem && typeof this.newVFXSystem.destroy === 'function') {
-            this.newVFXSystem.destroy();
-            this.newVFXSystem = null;
+        // Clean up ArmorShieldEffect
+        if (this.armorShieldEffect && typeof this.armorShieldEffect.destroy === 'function') {
+            this.armorShieldEffect.destroy();
+            this.armorShieldEffect = null;
         }
         
-        if (this.newSFXSystem && typeof this.newSFXSystem.destroy === 'function') {
-            this.newSFXSystem.destroy();
-            this.newSFXSystem = null;
+        // Clean up VFX system
+        if (this.vfxSystem && typeof this.vfxSystem.destroy === 'function') {
+            this.vfxSystem.destroy();
+            this.vfxSystem = null;
+            this.newVFXSystem = null; // Clear alias
         }
         
-        // Klávesy nečisti manuálně – Phaser si je zlikviduje sám.
-        // Jen uvolni reference, ať GC může pracovat.
-        // IMPORTANT: Do NOT call destroy on keys, just null the references
-        ['escKey', 'f4Key', 'f7Key', 'f8Key', 'f9Key', 'rKey'].forEach(k => {
-            if (this[k]) {
-                // Remove all event listeners but don't destroy the key
-                this[k].removeAllListeners();
-                this[k] = null;
-            }
-        });
+        // Clean up audio system
+        if (this.audioSystem && typeof this.audioSystem.destroy === 'function') {
+            this.audioSystem.destroy();
+            this.audioSystem = null;
+            this.newSFXSystem = null; // Clear alias
+        }
         
-        // Also clean up the main input keys
-        if (this.inputKeys) {
-            // Don't destroy, just null the reference
-            this.inputKeys = null;
+        // Clean up keyboard references - KeyboardManager handles cleanup automatically
+        // Movement keys (inputKeys) remain for direct input performance
+        
+        // Also null the main input keys reference
+        this.inputKeys = null;
+        
+        // Clean up DebugOverlay
+        if (this.debugOverlay && typeof this.debugOverlay.destroy === 'function') {
+            this.debugOverlay.destroy();
+            this.debugOverlay = null;
+        }
+        
+        // Clean up SFXSoundboard
+        if (this.sfxSoundboard && typeof this.sfxSoundboard.destroy === 'function') {
+            this.sfxSoundboard.destroy();
+            this.sfxSoundboard = null;
+        }
+        
+        // Clean up KeyboardManager
+        if (this.keyboardManager && typeof this.keyboardManager.destroy === 'function') {
+            this.keyboardManager.destroy();
+            this.keyboardManager = null;
+        }
+        
+        // Clean up AnalyticsManager EventBus connection
+        if (this.analyticsManager && typeof this.analyticsManager.disconnectEventBus === 'function') {
+            this.analyticsManager.disconnectEventBus();
         }
         
         console.log('[GameScene] Systems cleaned up');
+    }
+    
+    /**
+     * Setup EventBus listeners for keyboard events
+     * Centralizované zpracování všech klávesových zkratek přes EventBus
+     */
+    setupKeyboardEvents() {
+        // Game events
+        this.eventBus.on('game.restart', () => {
+            this.handleGameRestart();
+        });
+        
+        // Debug events
+        this.eventBus.on('debug.overlay.toggle', () => {
+            if (this.debugOverlay) {
+                this.debugOverlay.toggle();
+            }
+        });
+        
+        this.eventBus.on('debug.enemy.spawn', () => {
+            this.handleDebugEnemySpawn();
+        });
+        
+        this.eventBus.on('debug.missing-assets.toggle', () => {
+            if (this.debugOverlay) {
+                this.debugOverlay.showMissingAssets = !this.debugOverlay.showMissingAssets;
+                this.debugOverlay.missingAssetsText.setVisible(this.debugOverlay.showMissingAssets);
+                if (this.debugOverlay.showMissingAssets) {
+                    this.debugOverlay._updateMissingAssetsPanel();
+                }
+            }
+        });
+        
+        this.eventBus.on('debug.boss.spawn', () => {
+            this.handleDebugBossSpawn();
+        });
+        
+        this.eventBus.on('debug.sfx.soundboard', () => {
+            this.handleDebugSFXSoundboard();
+        });
+        
+        this.eventBus.on('debug.vfx.test', () => {
+            this.handleDebugVFXTest();
+        });
+        
+        // UI events - these will be handled by GameUIScene
+        this.eventBus.on('ui.escape', () => {
+            // Forward to GameUIScene via global events
+            this.game.events.emit('game-pause-request');
+        });
+        
+        console.log('[GameScene] Keyboard event listeners registered');
     }
 }

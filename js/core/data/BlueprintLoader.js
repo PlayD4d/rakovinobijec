@@ -1,15 +1,15 @@
 /**
- * BlueprintLoader - Centralized loading system for all blueprint data
+ * BlueprintLoader - Centralizovaný systém pro načítání všech blueprint dat
  * 
  * PR7 kompatibilní - všechny cesty a konfigurace z ConfigResolver
- * Loads and manages blueprints from /data/ folder including:
- * - Enemy, Boss, Unique blueprints
- * - Powerup and Drop blueprints  
- * - Loot tables and Spawn tables
- * - System configurations (NG+, pity system)
+ * Načítá a spravuje blueprinty ze složky /data/ včetně:
+ * - Nepřátelé, Bossové, Unikátní jednotky
+ * - Power-upy a Drop předměty  
+ * - Loot tabulky a Spawn tabulky
+ * - Systémové konfigurace (NG+, pity systém)
  */
 
-// JSON5 will be used via global if available, otherwise fallback to JSON
+// JSON5 se použije pokud je dostupné globálně, jinak fallback na JSON
 
 export class BlueprintLoader {
     constructor(game) {
@@ -19,7 +19,7 @@ export class BlueprintLoader {
         this.loaded = false;
         this.config = null;
         
-        // Blueprint categories - budou inicializované z konfigurace
+        // Kategorie blueprintů - budou inicializované z konfigurace
         this.categories = {};
         
         console.log('[BlueprintLoader] Initialized');
@@ -27,13 +27,13 @@ export class BlueprintLoader {
     
     /**
      * Načte konfiguraci z ConfigResolver
-     * PR7 kompatibilní - vše data-driven
+     * PR7 kompatibilní - vše je řízeno daty
      */
     loadConfig() {
         const CR = window.ConfigResolver;
         if (!CR) {
             console.error('[BlueprintLoader] ConfigResolver není dostupný!');
-            // Záložní konfigurace
+            // Záložní konfigurace pro případ selhání
             this.config = {
                 paths: {
                     dataRoot: '/data',

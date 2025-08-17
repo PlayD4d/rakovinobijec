@@ -3,15 +3,15 @@
  * 
  * PR7 kompatibilní - 100% data-driven implementace
  * Všechny hodnoty načítají z blueprintů přes ConfigResolver
- * Žádné hardcodované konstanty, vše přes ModifierEngine
+ * Žádné hardcodované konstanty, modifikátory aplikovány přímo
  */
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y, blueprint) {
-        // Validace povinných systémů (PR7 - fail fast)
+        // Validace povinných systémů (PR7 - rychlé selhání)
         if (!scene) throw new Error('[Player] Chybí scéna');
         if (!scene.configResolver) throw new Error('[Player] Chybí ConfigResolver');
-        if (!scene.modifierEngine?.apply) throw new Error('[Player] Chybí ModifierEngine');
+        // ModifierEngine removed - modifiers handled directly
         if (!scene.projectileSystem?.createPlayerProjectile) throw new Error('[Player] Chybí ProjectileSystem');
         if (!scene.blueprintLoader) throw new Error('[Player] Chybí BlueprintLoader');
         if (!blueprint || blueprint.type !== 'player' || !blueprint.id) {
@@ -28,19 +28,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.scene = scene;
         this.blueprint = blueprint;
 
-        // PR7: Optional visual customization - správná cesta
+        // PR7: Volitelné vizuální přizpůsobení - správná cesta
         const tint = CR.get('visuals.tint', { blueprint });
         if (tint != null) this.setTint(tint);
         this.setOrigin(0.5, 0.5);
 
-        // Physics setup
+        // Nastavení fyziky
         scene.add.existing(this);
         scene.physics.add.existing(this);
         const radius = (CR.get('stats.size', { blueprint }) ?? this.width) * 0.5;
         this.body.setCircle(radius);
         this.body.setCollideWorldBounds(true);
         
-        // PR7: Visual effects are now handled by PowerUpVFXManager
+        // PR7: Vizuální efekty jsou nyní zpracovávány PowerUpVFXManager
 
         // Základní statistiky - vše z blueprintu, žádné výchozí hodnoty!
         // Povinné cesty v blueprintu:
@@ -89,13 +89,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this._iFramesMsLeft = 0; // Zbývající čas nezranitelnosti
         this.activeModifiers = []; // Aktivní modifikátory z PowerUpSystem
         
-        // Shield system
+        // Shield compatibility - managed by PowerUpSystem
         this.shieldActive = false;
         this.shieldHits = 0;
         this.shieldLevel = 0;
-        this.shieldRegenTimer = 0; // Timer for shield regeneration
-        this.shieldRegenTimeMs = 10000; // Base regen time (10s)
-        this.shieldBroken = false; // Track if shield was broken
+        this.shieldBroken = false;
+        this.shieldRegenMs = 10000;
+        this.shieldRegenTimer = 0;
+        
+        // Power-up states (set by PowerUpSystem)
+        this.xpMagnetLevel = 0;
+        this.radiotherapyActive = false;
+        this.radiotherapyLevel = 0;
+        this.radiotherapyConfig = null;
+        this.flamethrowerActive = false;
+        this.flamethrowerLevel = 0;
+        this.flamethrowerConfig = null;
+        this.chemoAuraActive = false;
+        this.chemoAuraConfig = null;
+        this.piercingLevel = 0;
+        this.piercingMaxPierces = 0;
+        this.piercingDamageReduction = 0;
         
         // Shooting system
         this.fireTimer = 0;
@@ -151,12 +165,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.fireTimer += delta;
         if (this._cooldownMs > 0) this._cooldownMs -= delta;
         if (this._iFramesMsLeft > 0) this._iFramesMsLeft -= delta;
-        
-        // Shield regeneration
-        this._updateShieldRegeneration(delta);
 
         // Auto-shooting
         this._updateShooting(delta);
+        
+        // Update active power-ups
+        this._updatePowerUps(time, delta);
     }
 
     // ================ Pohyb hráče ================
@@ -243,7 +257,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             });
         }
 
-        this._playVfx(this.vfx.shoot, this.x, this.y);
+        // VFX effect removed - doesn't follow player properly
+        // this._playVfx(this.vfx.shoot, this.x, this.y);
         this._playSfx(this.sfx.shoot);
         this.scene.frameworkDebug?.onPlayerShoot?.(this, projectileCount);
     }
@@ -323,56 +338,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             return 0;
         }
 
-        // Check if shield is active
-        if (this.shieldActive && this.shieldHits > 0) {
-            try {
-                // Shield blocks damage
-                this.shieldHits--;
+        // Check shield directly on player (simplified PR7 approach)
+        if (this.shieldActive && this.shieldHits > 0 && !this.shieldBroken) {
+            // Shield blocks the hit
+            this.shieldHits--;
+            console.log(`[Player] 🛡️ SHIELD BLOCKED - Hits remaining: ${this.shieldHits}`);
+            
+            // If shield depleted, start regeneration
+            if (this.shieldHits <= 0) {
+                this.shieldBroken = true;
+                this.shieldRegenTimer = 0;
+                console.log(`[Player] 🛡️ SHIELD BROKEN - Regenerating in ${this.shieldRegenMs}ms`);
                 
-                // Play shield block VFX through VFXSystem
-                this._playVfx('vfx.shield.block', this.x, this.y);
-                
-                // Deactivate shield if no more hits
-                if (this.shieldHits <= 0) {
-                    this.shieldActive = false;
-                    this.shieldBroken = true;
-                    
-                    // Play shield break VFX
-                    this._playVfx('vfx.shield.break', this.x, this.y);
-                    
-                    // CRITICAL FIX: Save active state before detaching effect
-                    const wasActive = this.active;
-                    
-                    // Detach shield visual effect
-                    if (this.scene.powerUpVFXManager) {
-                        this.scene.powerUpVFXManager.detachEffect(this, 'shield');
-                        
-                        // CRITICAL FIX: Restore active state if it was changed
-                        if (wasActive && !this.active) {
-                            console.error(`[Player DEBUG] PowerUpVFXManager incorrectly deactivated player! Restoring active state.`);
-                            this.active = true;
-                            this.visible = true;
-                            if (this.body) this.body.enable = true;
-                        }
-                    }
-                    
-                    // Start regeneration timer
-                    this.shieldRegenTimer = 0;
-                    console.log(`[Player] Shield broken! Will regenerate in ${this.shieldRegenTimeMs}ms`);
+                // Remove shield visual effect
+                if (this.scene.vfxSystem) {
+                    this.scene.vfxSystem.detachEffect(this, 'shield');
                 }
-                
-                // PR7: Get shield duration - ensure proper fallback through baseStats
-                this._iFramesMsLeft = this.baseStats.iFramesMs;
-                
-                // Play shield block sound through SFX system
-                this._playSfx('sfx.shield.block');
-                
-                return 0; // No damage taken
-            } catch (error) {
-                console.error(`[Player DEBUG] Error in shield handling:`, error);
-                console.error(`[Player DEBUG] Player state: active=${this.active}, scene=${!!this.scene}`);
-                // Don't crash, just let damage through
             }
+            
+            // Play hit effects and return 0 damage
+            this._iFramesMsLeft = this.baseStats.iFramesMs;
+            return 0;
         }
 
         const dmg = Math.max(0, amount | 0);
@@ -430,6 +416,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             return;
         }
         
+        console.log('[Player] die() called!');
+        console.log(`[Player] Death state: HP=${this.hp}, active=${this.active}, source=${source?.constructor?.name || source}`);
+        console.trace('[Player] Death stack trace:');  // This will show what called die()
+        
         // IMPORTANT: Don't die during pause (e.g., during level-up power-up selection)
         if (this.scene.isPaused || this.scene.scene.isPaused()) {
             console.warn(`[Player] Attempted to die during pause - ignoring! Source: ${source?.constructor?.name || source}`);
@@ -461,6 +451,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
 
         // Don't destroy player immediately - let GameScene handle it after showing game over
+        console.log('[Player] Setting player to inactive state (active=false, visible=false)');
         this.active = false;
         this.visible = false;
         this.body.enable = false; // Disable physics body to prevent further collisions
@@ -470,7 +461,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     /**
      * Replace current modifiers (from PowerUpSystem)
-     * Modifiers are plain objects for ModifierEngine
+     * Modifiers are plain objects applied directly
      */
     setActiveModifiers(modArray) {
         if (!Array.isArray(modArray)) {
@@ -504,58 +495,33 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
      * @returns {number} The effective XP collection radius
      */
     getXPMagnetRadius() {
-        // Start with base radius
-        let radius = this.baseStats.xpMagnetRadius || 100;
-        
-        // Apply modifiers using ModifierEngine
-        if (this.scene.modifierEngine) {
-            radius = this.scene.modifierEngine.apply(radius, 'xpMagnetRadius', this.activeModifiers);
+        // Use PowerUpSystem if available
+        if (this.scene.powerUpSystem) {
+            return this.scene.powerUpSystem.getXPMagnetRadius();
         }
         
-        return radius;
+        // Fallback to base radius
+        return this.baseStats.xpMagnetRadius || 100;
     }
 
     getExplosionRadius() {
-        let radius = this.baseStats.explosionRadius || 0;
-        
-        // Apply modifiers using ModifierEngine
-        if (this.scene.modifierEngine) {
-            radius = this.scene.modifierEngine.apply(radius, 'explosionRadius', this.activeModifiers);
-        }
-        
-        return radius;
+        const baseRadius = this.baseStats.explosionRadius || 0;
+        return this.applyModifiers(baseRadius, 'explosionRadius');
     }
     
     getExplosionDamage() {
-        let damage = this.baseStats.explosionDamage || 0;
-        
-        // Apply modifiers using ModifierEngine
-        if (this.scene.modifierEngine) {
-            damage = this.scene.modifierEngine.apply(damage, 'explosionDamage', this.activeModifiers);
-        }
-        
-        return damage;
+        const baseDamage = this.baseStats.explosionDamage || 0;
+        return this.applyModifiers(baseDamage, 'explosionDamage');
     }
     
     getDodgeChance() {
-        let chance = this.baseStats.dodgeChance || 0;
-        
-        // Apply modifiers using ModifierEngine
-        if (this.scene.modifierEngine) {
-            chance = this.scene.modifierEngine.apply(chance, 'dodgeChance', this.activeModifiers);
-        }
-        
-        return chance;
+        const baseChance = this.baseStats.dodgeChance || 0;
+        return this.applyModifiers(baseChance, 'dodgeChance');
     }
     
     getProjectilePiercing() {
-        let piercing = this.baseStats.projectilePiercing || 0;
-        
-        // Apply modifiers using ModifierEngine
-        if (this.scene.modifierEngine) {
-            piercing = this.scene.modifierEngine.apply(piercing, 'projectilePiercing', this.activeModifiers);
-        }
-        
+        const basePiercing = this.baseStats.projectilePiercing || 0;
+        const piercing = this.applyModifiers(basePiercing, 'projectilePiercing');
         return Math.floor(piercing); // Piercing should be integer
     }
 
@@ -568,25 +534,53 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // ================ Pomocné metody ================
 
-    _stats() {
-        // PR7: Calculate current stats via ModifierEngine with safety check
-        const modifiers = this.activeModifiers || [];
-        // CRITICAL FIX: Save active state before calling external systems
-        const wasActive = this.active;
-        const result = this.scene.modifierEngine.apply(this.baseStats, modifiers);
-        // Restore active state if it was changed
-        if (wasActive && !this.active) {
-            console.error(`[Player DEBUG] ModifierEngine incorrectly deactivated player! Restoring.`);
-            this.active = true;
+    /**
+     * Simple modifier application - direct calculation
+     * @param {number} baseValue - Base value to modify
+     * @param {string} statName - Name of the stat (e.g., 'projectileDamage')
+     * @returns {number} Modified value
+     */
+    applyModifiers(baseValue, statName) {
+        let value = baseValue || 0;
+        
+        // Apply modifiers in order
+        for (const mod of this.activeModifiers || []) {
+            if (mod.path === statName) {
+                if (mod.type === 'add') {
+                    value += mod.value;
+                } else if (mod.type === 'multiply') {
+                    value *= mod.value;
+                } else if (mod.type === 'mul') {
+                    // Some blueprints use 'mul' instead of 'multiply'
+                    value *= (1 + mod.value);
+                }
+            }
         }
-        return result;
+        
+        return value;
+    }
+    
+    /**
+     * Get all current stats with modifiers applied
+     * Used for compatibility with existing code
+     */
+    _stats() {
+        // Build stats object with all modifiers applied
+        const stats = {};
+        
+        // Copy base stats
+        for (const key in this.baseStats) {
+            stats[key] = this.applyModifiers(this.baseStats[key], key);
+        }
+        
+        return stats;
     }
 
     _playVfx(id, x = this.x, y = this.y) {
         if (!id) return;
         // CRITICAL FIX: Save active state before calling external systems
         const wasActive = this.active;
-        this.scene.newVFXSystem?.play(id, x, y);
+        this.scene.vfxSystem?.play(id, x, y);
         // Restore active state if it was changed
         if (wasActive && !this.active) {
             console.error(`[Player DEBUG] VFXSystem incorrectly deactivated player! Restoring.`);
@@ -598,11 +592,73 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         if (!id) return;
         // CRITICAL FIX: Save active state before calling external systems
         const wasActive = this.active;
-        this.scene.newSFXSystem?.play(id);
+        this.scene.audioSystem?.play(id);
         // Restore active state if it was changed
         if (wasActive && !this.active) {
             console.error(`[Player DEBUG] SFXSystem incorrectly deactivated player! Restoring.`);
             this.active = true;
+        }
+    }
+
+    // ================ Power-up Update Loop ================
+    
+    /**
+     * Update active power-ups that need per-frame processing
+     * Called from preUpdate - handles radiotherapy, flamethrower, etc.
+     */
+    _updatePowerUps(time, delta) {
+        // Shield regeneration
+        if (this.shieldActive && this.shieldBroken) {
+            this.shieldRegenTimer += delta;
+            
+            if (this.shieldRegenTimer >= this.shieldRegenMs) {
+                // Regenerate shield
+                this.shieldHits = this.shieldLevel;
+                this.shieldBroken = false;
+                this.shieldRegenTimer = 0;
+                
+                console.log(`[Player] ✨ SHIELD REGENERATED - Hits: ${this.shieldHits}`);
+                
+                // Restore shield visual effect
+                if (this.scene.vfxSystem) {
+                    this.scene.vfxSystem.attachEffect(this, 'shield', {
+                        radius: 40 + (this.shieldLevel * 5),
+                        color: 0x00ffff,
+                        alpha: 0.3
+                    });
+                }
+            }
+        }
+        
+        // Radiotherapy - doesn't need update here since it's handled by VFX system
+        // Just verify the property is set correctly
+        if (this.radiotherapyActive && Math.random() < 0.001) {
+            console.log(`[Player] 🔬 Radiotherapy active: level ${this.radiotherapyLevel}`);
+        }
+        
+        // Flamethrower - doesn't need update here since it's handled by VFX system
+        if (this.flamethrowerActive && Math.random() < 0.001) {
+            console.log(`[Player] 🔥 Flamethrower active: level ${this.flamethrowerLevel}`);
+        }
+        
+        // Chemo Aura - could be handled here in future if needed
+        if (this.chemoAuraActive && Math.random() < 0.001) {
+            console.log(`[Player] 💚 Chemo Aura active`);
+        }
+        
+        // XP Magnet is handled by SimpleLootSystem
+        if (this.xpMagnetLevel > 0 && Math.random() < 0.001) {
+            console.log(`[Player] 🧲 XP Magnet active: level ${this.xpMagnetLevel}`);
+        }
+        
+        // Piercing is applied during projectile creation
+        if (this.piercingLevel > 0 && Math.random() < 0.001) {
+            console.log(`[Player] 🏹 Piercing active: level ${this.piercingLevel}, max pierces: ${this.piercingMaxPierces}`);
+        }
+        
+        // Shield status debug
+        if (this.shieldActive && Math.random() < 0.001) {
+            console.log(`[Player] 🛡️ Shield: level ${this.shieldLevel}, hits ${this.shieldHits}, broken: ${this.shieldBroken}, regen: ${this.shieldRegenTimer}/${this.shieldRegenMs}ms`);
         }
     }
 
@@ -615,87 +671,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    // ================ Shield system ================
-    
-    /**
-     * Update shield regeneration timer
-     */
-    _updateShieldRegeneration(delta) {
-        // Only regenerate if shield is broken and player has shield level
-        if (!this.shieldBroken || this.shieldLevel <= 0) return;
-        
-        // Update regeneration timer
-        this.shieldRegenTimer += delta;
-        
-        // Check if shield should regenerate
-        if (this.shieldRegenTimer >= this.shieldRegenTimeMs) {
-            this._regenerateShield();
-        }
-    }
-    
-    /**
-     * Regenerate the shield after cooldown
-     */
-    _regenerateShield() {
-        console.log(`[Player] Shield regenerated! Level: ${this.shieldLevel}`);
-        
-        // Reset shield
-        this.shieldActive = true;
-        this.shieldHits = this.shieldLevel; // Shield hits = shield level
-        this.shieldBroken = false;
-        this.shieldRegenTimer = 0;
-        
-        // Play regeneration effects
-        this._playVfx('vfx.shield.activate', this.x, this.y);
-        this._playSfx('sfx.shield.activate');
-        
-        // Attach shield visual effect
-        if (this.scene.powerUpVFXManager) {
-            this.scene.powerUpVFXManager.attachEffect(this, 'shield', {
-                type: 'shield',
-                level: this.shieldLevel
-            });
-        }
-    }
-    
-    /**
-     * Apply shield powerup - called by PowerUpSystem
-     * @param {number} level - Shield level (1-10)
-     */
-    applyShieldPowerUp(level) {
-        this.shieldLevel = Math.min(10, Math.max(1, level));
-        
-        // Calculate regeneration time: 10s - (0.5s * (level - 1))
-        // Level 1: 10s, Level 10: 5.5s
-        this.shieldRegenTimeMs = Math.max(5000, 10000 - (500 * (this.shieldLevel - 1)));
-        
-        // If this is first shield or shield is broken, activate immediately
-        if (!this.shieldActive || this.shieldBroken) {
-            this._regenerateShield();
-        } else {
-            // Update existing shield
-            this.shieldHits = Math.max(this.shieldHits, this.shieldLevel);
-            console.log(`[Player] Shield upgraded to level ${this.shieldLevel}, regen time: ${this.shieldRegenTimeMs}ms`);
-        }
-    }
-    
-    /**
-     * Get shield status for UI
-     */
-    getShieldStatus() {
-        return {
-            active: this.shieldActive,
-            hits: this.shieldHits,
-            level: this.shieldLevel,
-            broken: this.shieldBroken,
-            regenProgress: this.shieldBroken ? (this.shieldRegenTimer / this.shieldRegenTimeMs) : 0,
-            regenTimeMs: this.shieldRegenTimeMs
-        };
-    }
-    
     // PR7: Žádné legacy metody - vše je data-driven
     // Žádné applyPowerUp, žádná hardcodovaná logika power-upů
     // PowerUpSystem převádí na modifikátory a volá setActiveModifiers
+    // Shield logika přesunuta do ShieldPowerUp.js
 }
 
 export default Player;

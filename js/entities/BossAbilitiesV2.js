@@ -36,9 +36,9 @@ export class BossAbilitiesV2 {
                 logger?.logVFXCall('vfx.boss.radiation.pulse', boss.x, boss.y, { radius, expandSpeed });
                 
                 // Play pulse VFX through VFX system with fallback
-                if (boss.scene.newVFXSystem) {
+                if (boss.scene.vfxSystem) {
                     try {
-                        boss.scene.newVFXSystem.play('vfx.boss.radiation.pulse', boss.x, boss.y);
+                        boss.scene.vfxSystem.play('vfx.boss.radiation.pulse', boss.x, boss.y);
                     } catch (error) {
                         console.warn('[BossAbilitiesV2] Fallback to visual pulse');
                         this._createFallbackPulse(boss, radius, 0x4CAF50);
@@ -81,9 +81,9 @@ export class BossAbilitiesV2 {
         }
         
         // Show warning with fallback
-        if (boss.scene.newVFXSystem) {
+        if (boss.scene.vfxSystem) {
             try {
-                boss.scene.newVFXSystem.play('vfx.boss.beam.warning', boss.x, boss.y, {
+                boss.scene.vfxSystem.play('vfx.boss.beam.warning', boss.x, boss.y, {
                     beamCount,
                     range,
                     duration: chargeTime,
@@ -135,7 +135,7 @@ export class BossAbilitiesV2 {
             delay: fireInterval,
             callback: () => {
                 if (!boss.active || !boss.scene || !isActive) {
-                    fireEvent.remove();
+                    fireEvent.destroy();
                     return;
                 }
                 
@@ -143,8 +143,8 @@ export class BossAbilitiesV2 {
                 for (let i = 0; i < beamCount; i++) {
                     const angle = (i / beamCount) * Math.PI * 2;
                     
-                    if (boss.scene.newVFXSystem) {
-                        boss.scene.newVFXSystem.play('vfx.boss.beam.rapid', boss.x, boss.y, {
+                    if (boss.scene.vfxSystem) {
+                        boss.scene.vfxSystem.play('vfx.boss.beam.rapid', boss.x, boss.y, {
                             angle,
                             range,
                             damage,
@@ -159,7 +159,7 @@ export class BossAbilitiesV2 {
         
         boss.scene.time.delayedCall(duration, () => {
             isActive = false;
-            if (fireEvent) fireEvent.remove();
+            if (fireEvent) fireEvent.destroy();
         });
     }
     
@@ -176,8 +176,8 @@ export class BossAbilitiesV2 {
         const tickInterval = params.tickInterval || 300;
         
         // Play storm VFX through VFX system
-        if (boss.scene.newVFXSystem) {
-            const stormEffect = boss.scene.newVFXSystem.play('vfx.boss.radiation.storm', boss.x, boss.y, {
+        if (boss.scene.vfxSystem) {
+            const stormEffect = boss.scene.vfxSystem.play('vfx.boss.radiation.storm', boss.x, boss.y, {
                 radius,
                 duration: stormDuration,
                 follow: boss,
@@ -189,7 +189,7 @@ export class BossAbilitiesV2 {
                 delay: tickInterval,
                 callback: () => {
                     if (!boss.active || !boss.scene) {
-                        damageEvent.remove();
+                        damageEvent.destroy();
                         if (stormEffect && stormEffect.stop) {
                             stormEffect.stop();
                         }
@@ -229,8 +229,8 @@ export class BossAbilitiesV2 {
         const selfDamage = params.selfDamage || 50;
         
         // Play charging VFX through VFX system
-        if (boss.scene.newVFXSystem) {
-            boss.scene.newVFXSystem.play('vfx.boss.overload.charge', boss.x, boss.y, {
+        if (boss.scene.vfxSystem) {
+            boss.scene.vfxSystem.play('vfx.boss.overload.charge', boss.x, boss.y, {
                 radius,
                 duration: chargeTime,
                 follow: boss
@@ -246,8 +246,8 @@ export class BossAbilitiesV2 {
                     if (!boss.active || !boss.scene) return;
                     
                     // Play explosion VFX
-                    if (boss.scene.newVFXSystem) {
-                        boss.scene.newVFXSystem.play('vfx.boss.overload.explosion', boss.x, boss.y, {
+                    if (boss.scene.vfxSystem) {
+                        boss.scene.vfxSystem.play('vfx.boss.overload.explosion', boss.x, boss.y, {
                             radius,
                             damage,
                             source: boss
@@ -290,7 +290,7 @@ export class BossAbilitiesV2 {
         }
         
         if (boss._activeStormDamage) {
-            boss._activeStormDamage.remove();
+            boss._activeStormDamage.destroy();
             boss._activeStormDamage = null;
         }
         
@@ -319,7 +319,7 @@ export class BossAbilitiesV2 {
             delay: 50,
             callback: () => {
                 if (!boss.active || !graphics.active) {
-                    warningEvent.remove();
+                    warningEvent.destroy();
                     graphics.destroy();
                     return;
                 }
@@ -362,7 +362,7 @@ export class BossAbilitiesV2 {
             callback: () => {
                 currentRadius += radius / 25;
                 if (currentRadius >= radius) {
-                    expandEvent.remove();
+                    expandEvent.destroy();
                     graphics.destroy();
                     return;
                 }
@@ -393,7 +393,7 @@ export class BossAbilitiesV2 {
             delay: 50,
             callback: () => {
                 if (!boss.active || !graphics.active) {
-                    warningEvent.remove();
+                    warningEvent.destroy();
                     graphics.destroy();
                     return;
                 }

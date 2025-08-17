@@ -114,23 +114,16 @@
   
   // Elite VFX
   vfx: {
-    spawn: 'vfx.elite.spawn.speed',
-    hit: 'vfx.hit.spark.fast',
-    death: 'vfx.elite.death.speed_burst',
-    dash: 'vfx.elite.dash.trail',
-    afterimage: 'vfx.elite.afterimage.virus',
-    aura: 'vfx.elite.aura.speed',
-    indicator: 'vfx.elite.indicator.wings',
-    dodge: 'vfx.elite.dodge.blur',
+    spawn: 'elite.special',
+    hit: 'enemy.hit',
+    death: 'elite.special',
   },
   
   // Elite SFX
   sfx: {
-    spawn: 'sfx.elite.spawn.fast',
-    hit: 'sfx.elite.hit.quick',
-    death: 'sfx.elite.death.speed',
-    dash: 'sfx.elite.dash.whoosh',
-    dodge: 'sfx.elite.dodge.miss',
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/hit_hard.mp3',
+    death: 'sound/elite_death.mp3',
   },
   
   // Display configuration

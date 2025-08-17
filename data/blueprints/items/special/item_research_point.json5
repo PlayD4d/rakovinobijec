@@ -7,13 +7,14 @@
   description: 'Unlocks upgrades and abilities',
   category: 'special',
   rarity: 'rare',
+  sprite: 'item_research_point',
   
   // Visual
   icon: '🔬',
   color: 0x00CED1,
   graphics: {
     shape: 'triangle',
-    scale: 1.0
+    scale: 1.6  // Visible size
   },
   
   // Effects
@@ -33,11 +34,11 @@
   
   // VFX/SFX
   vfx: {
-    spawn: 'vfx.drop.spawn.rare',
-    pickup: 'vfx.player.research.gain'
+    spawn: 'effect',
+    pickup: 'effect'
   },
   sfx: {
-    spawn: 'sfx.drop.spawn.rare',
-    pickup: 'sfx.research'
+    spawn: 'sound/hit_soft.mp3',
+    pickup: 'sound/hit_soft.mp3'
   }
 }

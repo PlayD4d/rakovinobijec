@@ -48,19 +48,19 @@
     },
   ],
   vfx: {
-    spawn: 'vfx.enemy.spawn.elite.major',
-    hit: 'vfx.hit.spark.armored',
-    death: 'vfx.enemy.death.elite.explosion',
-    enrage: 'vfx.enemy.enrage.burst',
-    aura: 'vfx.enemy.aura.aberrant',
-    resistance: 'vfx.enemy.resist.glow',
+    spawn: 'spawn',
+    hit: 'enemy.hit',
+    death: 'death.medium',
   },
   sfx: {
-    spawn: 'sfx.enemy.spawn.elite.major',
-    hit: 'sound/hit_hard.mp3',
-    death: 'sfx.enemy.death.elite.major',
-    enrage: 'sfx.enemy.enrage.roar',
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/npc_death.mp3',
   },
+  // Direct drop system - consumables only (XP comes from stats.xp)
+  drops: [
+    { itemId: 'item.health_small', chance: 0.07 }  // 7% chance for health
+  ],
   graphics: {
     sprite: 'enemy_aberrant_cell',
     tint: 15277667,
@@ -79,28 +79,6 @@
       targetPriority: 'nearest',
     },
   },
-  drops: [
-    {
-      itemId: 'item.xp_medium',
-      chance: 1,
-    },
-    {
-      itemId: 'item.xp_large',
-      chance: 0.25,
-    },
-    {
-      itemId: 'item.heal_orb',
-      chance: 0.25,
-    },
-    {
-      itemId: 'item.protein_cache',
-      chance: 0.05,
-    },
-    {
-      itemId: 'item.energy_cell',
-      chance: 0.03,
-    },
-  ],
   display: {
     key: 'enemy.aberrant_cell.name',
     descKey: 'enemy.aberrant_cell.desc',

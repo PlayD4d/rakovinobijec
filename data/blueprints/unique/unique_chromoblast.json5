@@ -41,7 +41,7 @@
       "fieldDuration": 4000,
       "cooldown": 12000,
       "affectsProjectiles": true,
-      "fieldVfx": "vfx.unique.temporal.field"
+      "fieldVfx": 'special'
     },
     "chronoBlast": {
       "enabled": true,
@@ -103,22 +103,22 @@
     "predictiveBehavior": true
   },
   "vfx": {
-    "spawn": "vfx.unique.spawn.chromoblast",
-    "death": "vfx.unique.death.cellular.overload",
-    "burst": "vfx.unique.leukemic.burst",
-    "temporal": "vfx.unique.temporal.field",
-    "chrono": "vfx.unique.chrono.blast",
-    "echo": "vfx.unique.time.echo",
-    "rift": "vfx.unique.temporal.rift",
-    "overload": "vfx.unique.cellular.overload"
+    "spawn": 'spawn',
+    "death": 'death.large',
+    "burst": 'special',
+    "temporal": 'special',
+    "chrono": 'special',
+    "echo": 'special',
+    "rift": 'special',
+    "overload": 'special'
   },
   "sfx": {
-    "spawn": "sfx.unique.spawn.chromoblast",
-    "death": "sfx.unique.death.overload",
-    "burst": "sfx.unique.leukemic.burst",
-    "temporal": "sfx.unique.temporal.field",
-    "chrono": "sfx.unique.chrono.blast",
-    "echo": "sfx.unique.time.echo"
+    "spawn": 'sound/npc_spawn.mp3',
+    "death": 'sound/elite_death.mp3',
+    "burst": 'sound/powerup.mp3',
+    "temporal": 'sound/powerup.mp3',
+    "chrono": 'sound/powerup.mp3',
+    "echo": 'sound/powerup.mp3'
   },
   "display": {
     "key": "unique.chromoblast.name",

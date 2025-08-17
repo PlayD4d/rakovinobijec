@@ -107,36 +107,35 @@
     }
   },
   "vfx": {
-    "spawn": "vfx.boss.spawn.onkogen",
-    "phase1": "vfx.boss.phase.moderate",
-    "phase2": "vfx.boss.phase.aggressive",
-    "phase3": "vfx.boss.phase.extreme",
-    "death": "vfx.boss.death.explosion",
-    "shoot_fans": "vfx.boss.muzzle.fan",
-    "summon_minions": "vfx.boss.spawn.minions",
-    "circle_burst": "vfx.boss.circle.burst",
-    "dash_attack": "vfx.boss.dash.onkogen",
-    "laser_sweep": "vfx.boss.laser.sweep",
-    "rapid_spawns": "vfx.boss.spawn.minions",
-    "enrage_mode": "vfx.boss.enrage.aura"
+    "spawn": 'boss.special',
+    "phase1": 'boss.special',
+    "phase2": 'boss.special',
+    "phase3": 'boss.special',
+    "death": 'boss.special',
+    "shoot_fans": 'boss.special',
+    "summon_minions": 'boss.special',
+    "circle_burst": 'boss.special',
+    "dash_attack": 'boss.special',
+    "laser_sweep": 'boss.special',
+    "rapid_spawns": 'boss.special',
+    "enrage_mode": 'boss.special'
   },
   "sfx": {
-    "spawn": "sfx.boss.spawn.major",
-    "phase1": "sfx.boss.phase.change",
-    "phase2": "sfx.boss.phase.change",
-    "phase3": "sfx.boss.phase.final",
-    "death": "sfx.boss.death.explosion",
-    "shoot_fans": "sfx.boss.shoot.fan",
-    "summon_minions": "sfx.boss.spawn.minions",
-    "circle_burst": "sfx.boss.shoot.circle",
-    "dash_attack": "sfx.boss.dash.impact",
-    "laser_sweep": "sfx.boss.laser.charge",
-    "rapid_spawns": "sfx.boss.spawn.minions",
-    "enrage_mode": "sfx.boss.enrage.roar"
+    "spawn": 'sound/boss_spawn.mp3',
+    "phase1": 'sound/boss_hit.mp3',
+    "phase2": 'sound/boss_hit.mp3',
+    "phase3": 'sound/boss_hit.mp3',
+    "death": 'sound/boss_hit.mp3',
+    "shoot_fans": 'sound/boss_hit.mp3',
+    "summon_minions": 'sound/boss_hit.mp3',
+    "circle_burst": 'sound/boss_hit.mp3',
+    "dash_attack": 'sound/boss_hit.mp3',
+    "laser_sweep": 'sound/boss_hit.mp3',
+    "rapid_spawns": 'sound/boss_hit.mp3',
+    "enrage_mode": 'sound/boss_hit.mp3'
   },
-  // NEW: Direct drop system - enhanced boss drops better loot
+  // NEW: Direct drop system - consumables only (XP comes from stats.xp)
   "drops": [
-    { "itemId": "item.xp_large", "chance": 1.0, "quantity": 4 },    // Always drops 4x large XP
     { "itemId": "item.protein_cache", "chance": 0.6 },              // 60% chance for full heal
     { "itemId": "item.energy_cell", "chance": 0.4, "quantity": 3 }, // 40% chance for 3x energy
     { "itemId": "item.research_point", "chance": 0.25 },            // 25% chance for research

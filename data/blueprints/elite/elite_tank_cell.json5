@@ -102,23 +102,16 @@
   
   // Elite VFX
   vfx: {
-    spawn: 'vfx.elite.spawn.tank',
-    hit: 'vfx.hit.spark.heavy',
-    death: 'vfx.elite.death.tank_explosion',
-    shield: 'vfx.elite.shield.active',
-    aura: 'vfx.elite.aura.tank',
-    indicator: 'vfx.elite.indicator.shield',
-    shieldBreak: 'vfx.elite.shield.break',
+    spawn: 'elite.special',
+    hit: 'enemy.hit',
+    death: 'elite.special',
   },
   
   // Elite SFX
   sfx: {
-    spawn: 'sfx.elite.spawn.heavy',
-    hit: 'sfx.elite.hit.armored',
-    death: 'sfx.elite.death.heavy',
-    shield: 'sfx.elite.shield.impact',
-    shieldBreak: 'sfx.elite.shield.break',
-    taunt: 'sfx.elite.tank.taunt',
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/hit_hard.mp3',
+    death: 'sound/elite_death.mp3',
   },
   
   // Display configuration

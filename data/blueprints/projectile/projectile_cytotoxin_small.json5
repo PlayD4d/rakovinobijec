@@ -29,7 +29,7 @@
     pierceDecay: 0,
     trail: {
       enabled: true,
-      vfx: 'vfx.trail.cytotoxin_small',
+      vfx: 'trail.small',
       fadeTime: 200,
     },
     homing: false,        // No homing for basic version
@@ -38,17 +38,17 @@
   
   // VFX effects
   vfx: {
-    spawn: 'vfx.muzzle.small',
-    trail: 'vfx.trail.cytotoxin_small',
-    hit: 'vfx.hit.small',
-    expire: 'vfx.projectile.fade',
+    spawn: 'effect',
+    trail: 'trail.small',
+    hit: 'hit.small',
+    expire: 'hit.small',
   },
   
   // SFX sounds
   sfx: {
-    spawn: 'sfx.weapon.fire.small',
-    hit: 'sfx.weapon.hit.small',
-    expire: 'sfx.projectile.fade',
+    spawn: 'sound/laser.mp3',
+    hit: 'sound/laser.mp3',
+    expire: 'sound/projectile_hit.mp3',
   },
   
   // Display info

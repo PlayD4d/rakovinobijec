@@ -230,36 +230,7 @@ export class SFXSoundboard {
     // Track if we're typing
     this.isTyping = false;
     
-    // Keyboard handler
-    this.scene.input.keyboard.on('keydown', (event) => {
-      if (!this.visible) return;
-      
-      // Handle special keys
-      if (event.key === 'Escape') {
-        this.hide();
-        return;
-      }
-      
-      if (event.key === 'Enter') {
-        // Play first filtered sound
-        if (this.filteredSounds.length > 0) {
-          this.playSound(this.filteredSounds[0].id);
-        }
-        return;
-      }
-      
-      if (event.key === 'Backspace') {
-        this.currentFilter = this.currentFilter.slice(0, -1);
-        this.updateSearch();
-        return;
-      }
-      
-      // Handle regular typing
-      if (event.key.length === 1) {
-        this.currentFilter += event.key;
-        this.updateSearch();
-      }
-    });
+    // Keyboard handlers will be registered through KeyboardManager when shown
   }
   
   setupScrollControls() {
@@ -280,14 +251,7 @@ export class SFXSoundboard {
       }
     });
     
-    // Arrow key scrolling
-    this.scene.input.keyboard.on('keydown-UP', () => {
-      if (this.visible) this.scrollUp();
-    });
-    
-    this.scene.input.keyboard.on('keydown-DOWN', () => {
-      if (this.visible) this.scrollDown();
-    });
+    // Arrow key scrolling will be handled by KeyboardManager when modal is shown
   }
   
   loadSoundList() {
@@ -560,6 +524,48 @@ export class SFXSoundboard {
     // Pause game
     this.scene.scene.pause();
     
+    // Register keyboard handlers via KeyboardManager
+    if (this.scene.keyboardManager) {
+      // Text input handler
+      this.scene.keyboardManager.registerTextInput('sfxsoundboard', (event) => {
+        if (!this.visible) return;
+        
+        if (event.key === 'Escape') {
+          this.hide();
+          return;
+        }
+        
+        if (event.key === 'Enter') {
+          // Play first filtered sound
+          if (this.filteredSounds.length > 0) {
+            this.playSound(this.filteredSounds[0].id);
+          }
+          return;
+        }
+        
+        if (event.key === 'Backspace') {
+          this.currentFilter = this.currentFilter.slice(0, -1);
+          this.updateSearch();
+          return;
+        }
+        
+        // Handle regular typing
+        if (event.key.length === 1) {
+          this.currentFilter += event.key;
+          this.updateSearch();
+        }
+      });
+      
+      // Arrow key handlers
+      this.scene.keyboardManager.registerModal('sfxsoundboard', 'UP', () => {
+        if (this.visible) this.scrollUp();
+      });
+      
+      this.scene.keyboardManager.registerModal('sfxsoundboard', 'DOWN', () => {
+        if (this.visible) this.scrollDown();
+      });
+    }
+    
     // Refresh sound list
     this.loadSoundList();
     
@@ -573,6 +579,11 @@ export class SFXSoundboard {
   hide() {
     this.visible = false;
     this.container.setVisible(false);
+    
+    // Cleanup keyboard handlers via KeyboardManager
+    if (this.scene.keyboardManager) {
+      this.scene.keyboardManager.cleanupModal('sfxsoundboard');
+    }
     
     // Stop any playing sound
     this.stopCurrentSound();
@@ -593,6 +604,12 @@ export class SFXSoundboard {
   
   destroy() {
     this.stopCurrentSound();
+    
+    // Cleanup modal keyboard handlers
+    if (this.scene && this.scene.keyboardManager) {
+      this.scene.keyboardManager.cleanupModal('sfxsoundboard');
+    }
+    
     if (this.container) {
       this.container.destroy();
     }

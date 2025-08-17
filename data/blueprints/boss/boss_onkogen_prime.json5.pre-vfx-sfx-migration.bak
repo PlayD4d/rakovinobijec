@@ -1,0 +1,168 @@
+{
+  // Blueprint: boss.onkogen_prime
+  "id": "boss.onkogen_prime",
+  "type": "boss",
+  "stats": {
+    "hp": 1200,
+    "damage": 25,
+    "speed": 45,
+    "size": 35,
+    "armor": 8,
+    "xp": 250
+  },
+  "visuals": {
+    "textureKey": "boss.onkogen_prime",
+    "tint": 0xE91E63,
+    "size": { "w": 35, "h": 35 }
+  },
+  "mechanics": {
+    "phases": [
+      {
+        "thresholdPct": 0.66,
+        "abilities": [
+          "shoot_fans",
+          "summon_minions"
+        ],
+        "movePattern": "slow_orbit",
+        "aggressionLevel": "moderate"
+      },
+      {
+        "thresholdPct": 0.33,
+        "abilities": [
+          "circle_burst",
+          "dash_attack",
+          "shoot_fans"
+        ],
+        "movePattern": "aggressive_orbit",
+        "aggressionLevel": "high"
+      },
+      {
+        "thresholdPct": 0,
+        "abilities": [
+          "laser_sweep",
+          "rapid_spawns",
+          "circle_burst",
+          "enrage_mode"
+        ],
+        "movePattern": "erratic_dash",
+        "aggressionLevel": "extreme"
+      }
+    ],
+    "abilities": {
+      "shoot_fans": {
+        "projectileRef": "projectile.onkogen_shot",
+        "count": 5,
+        "spreadDeg": 35,
+        "interval": 2200,
+        "damage": 20,
+        "inaccuracy": 0.1
+      },
+      "circle_burst": {
+        "projectileRef": "projectile.onkogen_shot",
+        "count": 16,
+        "speed": 280,
+        "interval": 4500,
+        "damage": 15,
+        "pattern": "perfect_circle"
+      },
+      "dash_attack": {
+        "dashSpeed": 350,
+        "dashDistance": 200,
+        "chargeTime": 1200,
+        "cooldown": 3800,
+        "damage": 35,
+        "stunDuration": 800
+      },
+      "laser_sweep": {
+        "damage": 12,
+        "sweepDuration": 2500,
+        "rotationSpeed": 180,
+        "warningTime": 1000,
+        "range": 400,
+        "thickness": 8
+      },
+      "summon_minions": {
+        "enemyTypes": ["enemy.viral_swarm"],
+        "count": 4,
+        "spreadRadius": 120,
+        "interval": 8000
+      },
+      "rapid_spawns": {
+        "enemyTypes": ["enemy.necrotic_cell"],
+        "count": 3,
+        "spreadRadius": 150,
+        "interval": 3500
+      },
+      "enrage_mode": {
+        "trigger": "low_hp",
+        "speedMultiplier": 1.8,
+        "damageMultiplier": 1.5,
+        "abilitySpeedMultiplier": 0.6,
+        "duration": 15000
+      }
+    },
+    "resistances": {
+      "pierce": 0.6,
+      "explosion": 0.4
+    }
+  },
+  "vfx": {
+    "spawn": "vfx.boss.spawn.onkogen",
+    "phase1": "vfx.boss.phase.moderate",
+    "phase2": "vfx.boss.phase.aggressive",
+    "phase3": "vfx.boss.phase.extreme",
+    "death": "vfx.boss.death.explosion",
+    "shoot_fans": "vfx.boss.muzzle.fan",
+    "summon_minions": "vfx.boss.spawn.minions",
+    "circle_burst": "vfx.boss.circle.burst",
+    "dash_attack": "vfx.boss.dash.onkogen",
+    "laser_sweep": "vfx.boss.laser.sweep",
+    "rapid_spawns": "vfx.boss.spawn.minions",
+    "enrage_mode": "vfx.boss.enrage.aura"
+  },
+  "sfx": {
+    "spawn": "sfx.boss.spawn.major",
+    "phase1": "sfx.boss.phase.change",
+    "phase2": "sfx.boss.phase.change",
+    "phase3": "sfx.boss.phase.final",
+    "death": "sfx.boss.death.explosion",
+    "shoot_fans": "sfx.boss.shoot.fan",
+    "summon_minions": "sfx.boss.spawn.minions",
+    "circle_burst": "sfx.boss.shoot.circle",
+    "dash_attack": "sfx.boss.dash.impact",
+    "laser_sweep": "sfx.boss.laser.charge",
+    "rapid_spawns": "sfx.boss.spawn.minions",
+    "enrage_mode": "sfx.boss.enrage.roar"
+  },
+  // NEW: Direct drop system - consumables only (XP comes from stats.xp)
+  "drops": [
+    { "itemId": "item.protein_cache", "chance": 0.6 },              // 60% chance for full heal
+    { "itemId": "item.energy_cell", "chance": 0.4, "quantity": 3 }, // 40% chance for 3x energy
+    { "itemId": "item.research_point", "chance": 0.25 },            // 25% chance for research
+    { "itemId": "item.metotrexat", "chance": 0.08 }                 // 8% chance for metotrexat
+  ],
+  "display": {
+    "key": "boss.onkogen_prime.name",
+    "descKey": "boss.onkogen_prime.desc",
+    "devNameFallback": "Onkogen Prime",
+    "devDescFallback": "Vylepšená verze onkogenu s pokročilými mutačními schopnostmi",
+    "templates": {
+      "short": "{{stats.hp}} HP • 3 fáze • {{stats.armor}} pancíř • střelba + dash",
+      "desc": "Onkogen Nejvyšší s {{stats.hp}} HP a {{stats.armor}} pancířem. Prochází 3 fázemi s různou agresivitou a schopnostmi včetně dash útoků a laser sweepu."
+    },
+    "color": "#FF5722",
+    "rarity": "boss",
+    "icon": "boss.onkogen_prime",
+    "category": "boss",
+    "sortOrder": 910,
+    "tags": [
+      "boss",
+      "phases",
+      "aggressive",
+      "shoot",
+      "dash",
+      "laser",
+      "summon"
+    ]
+  }
+}

@@ -55,8 +55,8 @@ export class PowerUpUI {
       strokeThickness: 1
     }).setOrigin(0.5);
     
-    // Add blinking animation
-    scene.tweens.add({
+    // Add blinking animation - store reference for cleanup
+    this.hintTween = scene.tweens.add({
       targets: this.hint,
       alpha: 0.5,
       duration: 800,
@@ -324,6 +324,13 @@ export class PowerUpUI {
    * Clean destroy
    */
   destroy() {
+    // Stop the infinite tween first
+    if (this.hintTween) {
+      this.hintTween.stop();
+      // Do NOT call remove() - let Phaser handle cleanup
+      this.hintTween = null;
+    }
+    
     this.cards.forEach(card => card?.destroy());
     this.cards = [];
     this.modal?.destroy();

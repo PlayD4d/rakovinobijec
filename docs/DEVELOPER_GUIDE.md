@@ -3,14 +3,11 @@
 ## 📚 Obsah
 1. [Úvod do architektury](#úvod-do-architektury)
 2. [Blueprint systém](#blueprint-systém)
-3. [Enemy blueprinty](#enemy-blueprinty)
-4. [Boss blueprinty](#boss-blueprinty)
-5. [Spawn tabulky a levely](#spawn-tabulky-a-levely)
-6. [Loot systém](#loot-systém)
-7. [VFX a SFX systém](#vfx-a-sfx-systém)
-8. [Power-up systém](#power-up-systém)
-9. [Projektily](#projektily)
-10. [Herní flow](#herní-flow)
+3. [Praktické návody](#praktické-návody)
+4. [Development Tools](#development-tools)
+5. [XP a progression systém](#xp-a-progression-systém)
+6. [I18n lokalizace](#i18n-lokalizace)
+7. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -24,6 +21,8 @@ Rakovinobijec je 2D top-down survival hra, kde hráč bojuje proti rakovinným b
 - **Single Source of Truth** - ConfigResolver je jediný zdroj hodnot
 - **Blueprint systém** - všechny entity jsou definované v JSON5 souborech
 - **Žádné legacy kódy** - pouze moderní systémy
+- **VFX/SFX systémy** - data-driven přes registry nebo direct file paths
+- **GraphicsFactory** - centralizované vytváření grafických objektů s poolingem
 
 ### Adresářová struktura
 ```
@@ -31,10 +30,11 @@ Rakovinobijec je 2D top-down survival hra, kde hráč bojuje proti rakovinným b
 ├── enemy/           # Definice nepřátel
 ├── boss/            # Definice bossů
 ├── spawn/           # Spawn tabulky (levely)
-├── loot/            # Loot tabulky
 ├── powerup/         # Power-upy
 ├── projectile/      # Projektily
-└── system/          # Systémové konfigurace
+├── templates/       # Šablony pro rychlé vytváření
+└── /data/config/    # Systémové konfigurace
+└── /data/i18n/      # Lokalizace (cs.json, en.json)
 ```
 
 ---
@@ -62,235 +62,124 @@ Blueprint je JSON5 soubor, který definuje entitu ve hře. Každý nepřítel, b
 
 ---
 
-## 👾 Enemy blueprinty
+## 📋 Praktické návody
 
-### Kompletní struktura enemy blueprintu
+### 🆕 Přidání nového nepřítele (3 kroky)
 
+**1. Vytvoř blueprint** v `/data/blueprints/enemy/`
+```bash
+cp data/blueprints/templates/enemy.json5 data/blueprints/enemy/enemy.novy_nepritel.json5
+```
+
+**2. Nastav základní parametry:**
 ```json5
 {
-  // === POVINNÁ POLE ===
-  
-  id: "enemy.viral_swarm",       // Unikátní ID
-  type: "enemy",                  // Vždy "enemy" pro nepřátele
-  
-  // Základní statistiky
-  stats: {
-    hp: 20,                       // Životy
-    damage: 5,                    // Poškození při kontaktu
-    speed: 100,                   // Rychlost pohybu (50-150)
-    size: 18,                     // Velikost kolize v pixelech
-    armor: 0,                     // Redukce poškození (0-5)
-    xp: 3                         // XP za zabití
-  },
-  
-  // Vizuální nastavení
-  graphics: {
-    sprite: "enemy_viral_swarm",  // Název sprite (může chybět -> placeholder)
-    tint: 0x9C27B0,               // Barva (hex hodnota)
-    scale: 1.0,                   // Velikost sprite (0.5-2.0)
-    animation: {
-      idle: "swarm_idle",         // Animace při nečinnosti
-      move: "swarm_move",         // Animace při pohybu
-      attack: "swarm_attack"      // Animace při útoku (volitelné)
-    }
-  },
-  
-  // AI chování
-  ai: {
-    behavior: "chase",            // Typ AI: "chase", "shoot", "patrol"
-    params: {
-      aggroRange: 300,            // Vzdálenost detekce hráče
-      wanderRadius: 80,           // Radius pro náhodný pohyb
-      movePattern: "swarm",       // Vzor pohybu
-      targetPriority: "nearest",  // Priorita cíle
-      
-      // Pro behavior: "shoot"
-      attackRange: 250,           // Dostřel
-      projectileType: "projectile.acid_spit",
-      shootInterval: 2000,        // Interval střelby (ms)
-      
-      // Pro behavior: "patrol"
-      patrolPoints: [],           // Body patroly
-      supportType: "healer"       // Typ podpory
-    }
-  },
-  
-  // Reference na loot tabulku
+  id: "enemy.novy_nepritel",
+  type: "enemy",
+  stats: { hp: 25, damage: 8, speed: 80, size: 16, xp: 4 },
+  ai: { behavior: "chase", params: { aggroRange: 250 } },
   lootTable: "lootTable.level1.common",
-  
-  // === VOLITELNÁ POLE ===
-  
-  // Herní mechaniky
+  sfx: { hit: "sound/npc_hit.mp3", death: "sound/npc_death.mp3" }
+}
+```
+
+**3. Registruj a testuj:**
+- Přidej do `/data/registries/index.json`
+- Test: `DEV.spawnEnemy("enemy.novy_nepritel")`
+- Přidej do spawn tabulky v `/data/blueprints/spawn/`
+
+### 🐉 Přidání nového bosse (3 kroky)
+
+**1. Zkopíruj template:**
+```bash
+cp data/blueprints/templates/boss.json5 data/blueprints/boss/boss.novy_boss.json5
+```
+
+**2. Nastav fáze a schopnosti:**
+```json5
+{
+  id: "boss.novy_boss",
+  type: "boss",
+  stats: { hp: 1500, damage: 25, speed: 50, size: 48, xp: 200 },
   mechanics: {
-    movementType: "swarm",        // Typ pohybu
-    contactDamage: 5,             // Poškození při dotyku
-    aggroRange: 300,              // Dosah agrese
-    wanderRadius: 80,             // Radius bloudění
-    
-    // Speciální schopnosti
-    swarmBehavior: true,          // Rojové chování
-    canShoot: false,              // Může střílet
-    healRadius: 100,              // Radius léčení (support)
-    healAmount: 3,                // Množství léčení
-    
-    // Drop šance
-    dropChance: 1.0,              // Šance na drop (0-1)
-    healthDropChance: 0.15        // Šance na health pack
-  },
-  
-  // Vizuální efekty
-  vfx: {
-    spawn: "vfx.enemy.spawn.swarm",      // Efekt při spawnu
-    hit: "vfx.hit.spark.small",          // Efekt při zásahu
-    death: "vfx.enemy.death.burst",      // Efekt při smrti
-    trail: "vfx.trail.viral",            // Stopa za nepřítelem
-    aura: "vfx.enemy.aura.toxic"         // Aura kolem nepřítele
-  },
-  
-  // Zvukové efekty
-  sfx: {
-    spawn: "sfx.enemy.spawn.swarm",      // Zvuk při spawnu
-    hit: "sfx.enemy.hit.small",          // Zvuk při zásahu
-    death: "sfx.enemy.death.small",      // Zvuk při smrti
-    ambient: "sfx.enemy.buzz"            // Ambientní zvuk
-  },
-  
-  // Zobrazení v UI
-  display: {
-    key: "enemy.viral_swarm.name",       // Lokalizační klíč
-    descKey: "enemy.viral_swarm.desc",   // Klíč popisu
-    templates: {
-      short: "{{stats.hp}} HP • rychlá",
-      desc: "Rychlý roj s {{stats.hp}} HP"
-    },
-    color: "#9C27B0",                    // Barva v UI
-    rarity: "common",                     // Vzácnost
-    icon: "enemy.viral_swarm",           // Ikona
-    tags: ["enemy", "swarm", "fast"]     // Tagy
+    phases: [
+      { hpThreshold: 1.0, abilities: ["basic_attack"] },
+      { hpThreshold: 0.5, abilities: ["basic_attack", "rage_mode"] }
+    ]
   }
 }
 ```
 
-### Typy AI behavior
+**3. Test v Boss Playground:**
+- Stiskni **F7** pro otevření Boss Playground
+- Vyber svého bosse ze seznamu
+- Klikni **SPAWN** pro test
 
-#### 1. **chase** - Pronásledování
-```json5
-ai: {
-  behavior: "chase",
-  params: {
-    aggroRange: 300,          // Jak daleko vidí hráče
-    wanderRadius: 50,         // Náhodný pohyb když nevidí hráče
-    movePattern: "direct",    // direct/zigzag/orbit
-    targetPriority: "nearest" // nearest/weakest/player
-  }
-}
-```
+### ⚡ Přidání nového power-upu (3 kroky)
 
-#### 2. **shoot** - Střelec
-```json5
-ai: {
-  behavior: "shoot",
-  params: {
-    aggroRange: 400,
-    attackRange: 300,         // Maximální dostřel
-    movePattern: "kite",      // kite = udržuje vzdálenost
-    projectileType: "projectile.acid_spit",
-    shootInterval: 2000,      // Střílí každé 2 sekundy
-    burstFire: false,         // Dávková střelba
-    projectileCount: 1        // Počet projektilů
-  }
-}
-```
-
-#### 3. **patrol** - Hlídka/Podpora
-```json5
-ai: {
-  behavior: "patrol",
-  params: {
-    aggroRange: 200,
-    movePattern: "orbit_enemies",  // Obíhá kolem spojenců
-    supportType: "healer",          // healer/buffer/shield
-    buffRadius: 120,                // Radius podpory
-    targetPriority: "allies"        // Prioritizuje spojence
-  }
-}
-```
-
-### Příklady různých typů nepřátel
-
-#### Základní nepřítel - Necrotic Cell
+**1. Vytvoř blueprint:**
 ```json5
 {
-  id: "enemy.necrotic_cell",
-  type: "enemy",
-  stats: { hp: 35, damage: 8, speed: 35, size: 18, armor: 2, xp: 6 },
-  graphics: {
-    sprite: "enemy_necrotic_cell",
-    tint: 0x8d8e65,
-    scale: 1.0
-  },
-  ai: {
-    behavior: "chase",
-    params: {
-      aggroRange: 250,
-      movePattern: "slow_tank"  // Pomalý ale vytrvalý
-    }
-  },
-  lootTable: "lootTable.level1.common"
+  id: "powerup.novy_powerup",
+  type: "powerup",
+  modifiers: [
+    { stat: "damage", type: "multiply", value: 1.5, duration: 10000 }
+  ],
+  levels: [
+    { level: 1, modifiers: [{ value: 1.5 }] },
+    { level: 2, modifiers: [{ value: 1.8 }] }
+  ]
 }
 ```
 
-#### Střelec - Micro Shooter
+**2. Přidej do loot tabulek** v `/data/blueprints/loot/`
+
+**3. Test:** `DEV.spawnDrop("powerup.novy_powerup")`
+
+### 🎮 SFX a VFX systém
+
+**DOPORUČENÝ PŘÍSTUP: Direct File Paths**
 ```json5
-{
-  id: "enemy.micro_shooter",
-  type: "enemy",
-  stats: { hp: 20, damage: 5, speed: 95, size: 10, armor: 0, xp: 2 },
-  graphics: {
-    sprite: "enemy_micro_shooter",
-    tint: 0xFF5722,
-    scale: 0.9
-  },
-  ai: {
-    behavior: "shoot",
-    params: {
-      aggroRange: 450,
-      attackRange: 280,
-      movePattern: "kite_player",
-      projectileType: "projectile.cytotoxin_small",
-      shootInterval: 2400
-    }
-  },
-  lootTable: "lootTable.level1.common"
+// V blueprintu - jednoduché a jasné
+sfx: { 
+  spawn: "sound/npc_spawn.mp3", 
+  hit: "sound/npc_hit.mp3", 
+  death: "sound/npc_death.mp3" 
 }
 ```
 
-#### Support - Support Bacteria
+**Výhody:**
+- Žádná registrace potřeba
+- Méně abstrakcí = méně chyb
+- Automatický pooling a volume management
+- Konzistence s loot systémem
+
+**VFX použití:**
 ```json5
-{
-  id: "enemy.support_bacteria",
-  type: "enemy",
-  stats: { hp: 25, damage: 4, speed: 55, size: 14, armor: 0, xp: 4 },
-  graphics: {
-    sprite: "enemy.support_bacteria",
-    tint: 0x00BCD4,
-    scale: 1.0
-  },
-  ai: {
-    behavior: "patrol",
-    params: {
-      aggroRange: 180,
-      movePattern: "support_hover",
-      supportType: "healer",
-      buffRadius: 100
-    }
-  },
-  mechanics: {
-    healRadius: 100,
-    healAmount: 3,
-    healInterval: 2000
-  },
-  lootTable: "lootTable.level1.common"
+vfx: {
+  spawn: "vfx.enemy.spawn.default",
+  hit: "vfx.hit.spark.small",
+  death: "vfx.enemy.death.burst"
+}
+```
+
+### 🎯 Graphics Factory - PR7 Compliant
+
+**SPRÁVNÉ použití:**
+```javascript
+// Vytvoření grafického objektu
+this.graphics = this.scene.graphicsFactory.create();
+
+// Cleanup - vrácení do poolu
+this.scene.graphicsFactory.release(this.graphics);
+```
+
+**Všechny vizuální konstanty v blueprintech:**
+```json5
+"ability": {
+  "innerRadius": 30,
+  "beamColor": 0xCCFF00,
+  "strokeWidth": 2
 }
 ```
 

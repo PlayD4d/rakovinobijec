@@ -85,8 +85,8 @@ export class PlayerProjectile extends Phaser.Physics.Arcade.Sprite {
   kill() {
     if (!this.active) return; // Already killed, prevent double processing
     
-    // VFX: Detach particle trail
-    if (this.scene.vfxSystem) {
+    // VFX: Detach particle trail with defensive check
+    if (this.scene && this.scene.vfxSystem && typeof this.scene.vfxSystem.detachTrail === 'function') {
       this.scene.vfxSystem.detachTrail(this);
     }
     

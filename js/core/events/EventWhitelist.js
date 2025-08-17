@@ -27,7 +27,9 @@ export const EventWhitelist = {
     READY_FIGHT: 'ui.ready_fight',
     MENU_CONFIRM: 'ui.menu.confirm',
     MODAL_OPENED: 'ui.modal.opened',
-    MODAL_CLOSED: 'ui.modal.closed'
+    MODAL_CLOSED: 'ui.modal.closed',
+    ESCAPE: 'ui.escape',
+    MENU_ESCAPE: 'menu.escape'
   },
 
   // Game Lifecycle Events
@@ -46,7 +48,13 @@ export const EventWhitelist = {
     SNAPSHOT: 'debug.snapshot',
     BALANCE_PROBE: 'debug.balanceProbe',
     PERFORMANCE_REPORT: 'debug.performance.report',
-    MEMORY_LEAK_CHECK: 'debug.memory.check'
+    MEMORY_LEAK_CHECK: 'debug.memory.check',
+    OVERLAY_TOGGLE: 'debug.overlay.toggle',
+    ENEMY_SPAWN: 'debug.enemy.spawn',
+    BOSS_SPAWN: 'debug.boss.spawn',
+    VFX_TEST: 'debug.vfx.test',
+    SFX_SOUNDBOARD: 'debug.sfx.soundboard',
+    MISSING_ASSETS_TOGGLE: 'debug.missing-assets.toggle'
   },
 
   // Special pickups (rare, not hot-path)

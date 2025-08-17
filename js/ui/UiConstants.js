@@ -9,7 +9,7 @@ export const UI_DEPTH = UI_THEME.depth;
 
 // Responsive utilities pro komponenty
 export const RESPONSIVE = {
-    // Adaptivní velikosti karet (PowerUpManager, atd.)
+    // Adaptivní velikosti karet (PowerUpSystem, atd.)
     getCardSize: (isMobile = false) => ({
         width: isMobile ? 280 : 320,
         height: isMobile ? 320 : 360,  // Menší výška pro lepší fit

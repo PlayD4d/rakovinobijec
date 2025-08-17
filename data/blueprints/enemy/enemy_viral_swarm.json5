@@ -19,17 +19,20 @@
     healthDropChance: 0.08,
   },
   vfx: {
-    spawn: 'vfx.enemy.spawn.swarm',
-    hit: 'vfx.hit.spark.small',
-    death: 'vfx.enemy.death.burst.small',
-    trail: 'vfx.trail.viral',
-    move: 'vfx.trail.swarm',
+    spawn: 'spawn',
+    hit: 'enemy.hit',
+    death: 'death.small',
+    trail: 'trail.toxic',
   },
   sfx: {
-    spawn: 'sfx.enemy.spawn.swarm',
-    hit: 'sfx.enemy.hit.small',
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
     death: 'sound/npc_death.mp3',
   },
+  // Direct drop system - consumables only (XP comes from stats.xp)
+  drops: [
+    { itemId: 'item.health_small', chance: 0.05 }  // 5% chance for health
+  ],
   graphics: {
     sprite: 'enemy_viral_swarm',
     tint: 10233776,
@@ -49,20 +52,6 @@
       swarmBehavior: true,
     },
   },
-  drops: [
-    {
-      itemId: 'item.xp_small',
-      chance: 1,
-    },
-    {
-      itemId: 'item.health_small',
-      chance: 0.08,
-    },
-    {
-      itemId: 'item.xp_medium',
-      chance: 0.02,
-    },
-  ],
   display: {
     key: 'enemy.viral_swarm.name',
     descKey: 'enemy.viral_swarm.desc',

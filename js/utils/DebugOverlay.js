@@ -93,17 +93,7 @@ export class DebugOverlay {
       this.missingAssetsText = null;
     }
     
-    // Properly clean up keyboard listeners
-    if (this.f3Key) {
-      this.f3Key.off('down'); // Remove all 'down' event listeners
-      this.f3Key.destroy();
-      this.f3Key = null;
-    }
-    if (this.f6Key) {
-      this.f6Key.off('down'); // Remove all 'down' event listeners
-      this.f6Key.destroy();
-      this.f6Key = null;
-    }
+    // No keyboard listeners to clean up - KeyboardManager handles everything
     
     // Clean up resize listener if exists
     if (this.scene?.scale) {
@@ -112,21 +102,10 @@ export class DebugOverlay {
   }
   
   _setupKeyBindings() {
-    // F3 for main debug overlay toggle
-    this.f3Key = this.scene.input.keyboard.addKey('F3');
-    this.f3Key.on('down', () => {
-      this.toggle();
-    });
-    
-    // F6 for missing assets panel toggle
-    this.f6Key = this.scene.input.keyboard.addKey('F6');
-    this.f6Key.on('down', () => {
-      this.showMissingAssets = !this.showMissingAssets;
-      this.missingAssetsText.setVisible(this.showMissingAssets);
-      if (this.showMissingAssets) {
-        this._updateMissingAssetsPanel();
-      }
-    });
+    // Keyboard shortcuts are now handled centrally by KeyboardManager
+    // F3 - debug overlay toggle via 'debug.overlay.toggle' event
+    // F6 - missing assets toggle via 'debug.missing-assets.toggle' event
+    // No direct keyboard handlers needed here
   }
   
   _updateMissingAssetsPanel() {

@@ -1,0 +1,83 @@
+{
+  // Blueprint: unique.golden_cell
+  "id": "unique.golden_cell",
+  "type": "enemy",
+  "meta": {
+    "category": "unique",
+    "tier": "legendary",
+    "spawnWeight": 2
+  },
+  "stats": {
+    "hp": 250,
+    "damage": 18,
+    "speed": 50,
+    "size": 28,
+    "armor": 10,
+    "xp": 100
+  },
+  "visuals": {
+    "textureKey": "unique.golden_cell",
+    "tint": 0xFFD700,
+    "size": { "w": 28, "h": 28 }
+  },
+  "mechanics": {
+    "movementType": "golden_drift",
+    "contactDamage": 18,
+    "aggroRange": 300,
+    "wanderRadius": 100,
+    "goldAura": true,
+    "goldAuraRadius": 150,
+    "goldAuraBonus": 2.0,
+    "dropChance": 1.0,
+    "guaranteedDrops": ["drop.xp_large", "drop.heal_orb"],
+    "uniqueAbilities": {
+      "goldenPulse": {
+        "interval": 5000,
+        "damage": 25,
+        "radius": 200,
+        "knockback": 150
+      },
+      "summonGoldenMinions": {
+        "interval": 8000,
+        "count": 3,
+        "minionType": "enemy.aberrant_cell",
+        "goldenBuff": true
+      }
+    }
+  },
+  "vfx": {
+    "spawn": "vfx.unique.spawn.golden",
+    "hit": "vfx.hit.spark.golden",
+    "death": "vfx.unique.death.golden_explosion",
+    "pulse": "vfx.unique.golden.pulse",
+    "aura": "vfx.unique.aura.golden"
+  },
+  "sfx": {
+    "spawn": "sfx.unique.spawn.golden",
+    "hit": "sfx.unique.hit.metallic",
+    "death": "sfx.unique.death.golden",
+    "pulse": "sfx.unique.golden.pulse"
+  },
+  "display": {
+    "key": "unique.golden_cell.name",
+    "descKey": "unique.golden_cell.desc",
+    "devNameFallback": "Zlatá buňka",
+    "devDescFallback": "Vzácná zlatá buňka poskytující velké odměny",
+    "templates": {
+      "short": "{{stats.hp}} HP • {{stats.armor}} pancíř • zlatá aura",
+      "desc": "Vzácná zlatá buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Má zlatou auru zvyšující odměny {{mechanics.goldAuraBonus}}x a garantuje cenné dropy."
+    },
+    "color": "#FFD700",
+    "rarity": "legendary",
+    "icon": "unique.golden_cell",
+    "category": "unique",
+    "sortOrder": 710,
+    "tags": [
+      "unique",
+      "golden",
+      "legendary",
+      "high-reward",
+      "aura"
+    ]
+  }
+}

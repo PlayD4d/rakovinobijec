@@ -1,0 +1,430 @@
+/**
+ * SimplifiedVFXSystem - Direct VFX system without registry
+ * PR7 Compliant - 100% data-driven from blueprints
+ * 
+ * Accepts VFX configurations directly from blueprints
+ * Uses VFXPresets for common effects
+ */
+
+import { VFXPresets } from './VFXPresets.js';
+import { RadiotherapyEffect } from './effects/RadiotherapyEffect.js';
+import { FlamethrowerEffect } from './effects/FlamethrowerEffect.js';
+import { ShieldEffect } from './effects/ShieldEffect.js';
+
+export class SimplifiedVFXSystem {
+    constructor(scene) {
+        this.scene = scene;
+        
+        // Particle emitters pool
+        this.emitterPool = [];
+        this.activeEmitters = new Map();
+        
+        // Power-up effects
+        this.powerUpEffects = new Map();
+        
+        // Performance settings
+        this.maxEmitters = 24;
+        this.maxParticles = 1000;
+        
+        this.initialized = false;
+    }
+    
+    /**
+     * Initialize the VFX system
+     */
+    initialize() {
+        if (this.initialized) return;
+        
+        // Create basic particle textures if needed
+        this._createBasicTextures();
+        
+        // Setup cleanup handlers
+        this.scene.events.once('shutdown', () => this.shutdown());
+        this.scene.events.once('destroy', () => this.destroy());
+        
+        this.initialized = true;
+        console.log('[SimplifiedVFXSystem] Initialized');
+    }
+    
+    /**
+     * Play a VFX effect
+     * @param {string|object} config - Effect config or preset name
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @param {object} options - Additional options
+     */
+    play(config, x, y, options = {}) {
+        if (!this.initialized || !this.scene || !this.scene.sys?.isActive()) return null;
+        
+        // Handle string references (presets or legacy IDs)
+        if (typeof config === 'string') {
+            // Check if it's a preset
+            if (config.includes('.')) {
+                // Extract preset name and optional color
+                const parts = config.split('.');
+                const presetName = parts.slice(1).join('.');
+                const presetConfig = VFXPresets.getPreset(presetName, options.color);
+                if (presetConfig) {
+                    config = presetConfig;
+                } else {
+                    // Legacy fallback - try to extract type from ID
+                    config = this._getLegacyFallback(config);
+                }
+            } else {
+                // Direct preset name
+                config = VFXPresets.getPreset(config, options.color);
+            }
+        }
+        
+        // If still no config, use default hit effect
+        if (!config) {
+            config = VFXPresets.smallHit(options.color || 0xFFFFFF);
+        }
+        
+        // Handle different effect types
+        if (config.type === 'particles' || config.particles) {
+            return this._playParticles(config.particles || config.config || config, x, y, options);
+        } else if (config.type === 'flash') {
+            return this._playFlash(config.config || config, options);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Play particle effect
+     */
+    _playParticles(config, x, y, options = {}) {
+        // Check if scene is still active
+        if (!this.scene || !this.scene.sys?.isActive()) return null;
+        
+        // Get or create emitter
+        let emitter = this._getEmitterFromPool();
+        
+        if (!emitter) {
+            // Create new emitter if pool is empty
+            emitter = this.scene.add.particles(x, y, 'particle', config);
+        } else {
+            // Reuse from pool
+            emitter.setPosition(x, y);
+            emitter.setConfig(config);
+            emitter.start();
+        }
+        
+        // Track active emitter
+        const emitterId = `emitter_${Date.now()}_${Math.random()}`;
+        this.activeEmitters.set(emitterId, emitter);
+        
+        // Auto-cleanup after lifespan
+        const lifespan = config.lifespan || 1000;
+        if (this.scene.time) {  // Check if time system exists
+            this.scene.time.delayedCall(lifespan + 100, () => {
+                this._returnEmitterToPool(emitterId);
+            });
+        }
+        
+        return emitter;
+    }
+    
+    /**
+     * Play flash effect
+     */
+    _playFlash(config, options = {}) {
+        const camera = this.scene.cameras.main;
+        const duration = config.duration || 100;
+        const alpha = config.alpha || 0.8;
+        const color = config.color || 0xFFFFFF;
+        
+        camera.flash(duration, 
+            (color >> 16) & 0xFF, // R
+            (color >> 8) & 0xFF,  // G
+            color & 0xFF,         // B
+            alpha
+        );
+        
+        return { type: 'flash', duration };
+    }
+    
+    /**
+     * Attach power-up effect to entity
+     */
+    attachEffect(entity, effectType, config = {}) {
+        if (!entity || !effectType) return;
+        
+        const entityId = entity.id || 'entity';
+        const effectKey = `${entityId}_${effectType}`;
+        
+        // Check if already active
+        if (this.powerUpEffects.has(effectKey)) {
+            const existingEffect = this.powerUpEffects.get(effectKey);
+            
+            // If effect has updateConfig method, update it instead of creating new one
+            if (existingEffect && existingEffect.updateConfig) {
+                existingEffect.updateConfig(config);
+                console.log(`[VFX] Updated existing ${effectType} effect configuration`);
+                return existingEffect;
+            }
+            
+            // Otherwise detach old effect and create new one
+            this.detachEffect(entity, effectType);
+        }
+        
+        // Create effect based on type
+        let effect = null;
+        
+        switch (effectType) {
+            case 'shield':
+                effect = new ShieldEffect(this.scene, effectType, config);
+                effect.attach(entity);
+                break;
+                
+            case 'radiotherapy':
+                effect = new RadiotherapyEffect(this.scene, effectType, config);
+                effect.attach(entity);
+                break;
+                
+            case 'flamethrower':
+                effect = new FlamethrowerEffect(this.scene, effectType, config);
+                effect.attach(entity);
+                break;
+                
+            default:
+                // Generic particle effect that follows entity
+                const particleConfig = config.particles || VFXPresets.aura(config.color);
+                effect = this._createFollowingEffect(entity, particleConfig);
+                break;
+        }
+        
+        if (effect) {
+            this.powerUpEffects.set(effectKey, effect);
+        }
+        
+        return effect;
+    }
+    
+    /**
+     * Detach power-up effect from entity
+     */
+    detachEffect(entity, effectType) {
+        const entityId = entity.id || 'entity';
+        const effectKey = `${entityId}_${effectType}`;
+        
+        const effect = this.powerUpEffects.get(effectKey);
+        if (effect) {
+            if (effect.stop) {
+                effect.stop();
+            } else if (effect.destroy) {
+                effect.destroy();
+            }
+            this.powerUpEffects.delete(effectKey);
+        }
+    }
+    
+    /**
+     * Detach ALL effects for a specific entity
+     * Used when entity is destroyed to clean up all attached VFX
+     */
+    detachAllEffectsForEntity(entity) {
+        if (!entity) return 0;
+        
+        const entityId = entity.id || 'entity';
+        let removedCount = 0;
+        
+        // Find and remove all effects for this entity
+        const keysToRemove = [];
+        for (const [key, effect] of this.powerUpEffects) {
+            if (key.startsWith(`${entityId}_`)) {
+                // Stop/destroy the effect
+                if (effect) {
+                    if (effect.stop) {
+                        effect.stop();
+                    } else if (effect.destroy) {
+                        effect.destroy();
+                    }
+                }
+                keysToRemove.push(key);
+                removedCount++;
+            }
+        }
+        
+        // Remove from map
+        keysToRemove.forEach(key => this.powerUpEffects.delete(key));
+        
+        if (removedCount > 0) {
+            console.debug(`[VFX] Cleaned up ${removedCount} effects for entity ${entityId}`);
+        }
+        
+        return removedCount;
+    }
+    
+    /**
+     * Create a particle effect that follows an entity
+     */
+    _createFollowingEffect(entity, config) {
+        const emitter = this.scene.add.particles(entity.x, entity.y, 'particle', {
+            ...config.config || config,
+            follow: entity
+        });
+        
+        return {
+            emitter,
+            stop: () => {
+                emitter.stop();
+                if (this.scene && this.scene.time) {  // Check if scene and time exist
+                    this.scene.time.delayedCall(1000, () => {
+                        if (emitter && !emitter.destroyed) {
+                            emitter.destroy();
+                        }
+                    });
+                } else if (emitter && !emitter.destroyed) {
+                    // If no time system, destroy immediately
+                    emitter.destroy();
+                }
+            },
+            destroy: () => emitter.destroy()
+        };
+    }
+    
+    /**
+     * Get legacy fallback config based on effect ID pattern
+     */
+    _getLegacyFallback(effectId) {
+        // Map common legacy IDs to presets
+        if (effectId.includes('hit')) {
+            if (effectId.includes('heavy') || effectId.includes('hard')) {
+                return VFXPresets.mediumHit();
+            }
+            return VFXPresets.smallHit();
+        }
+        if (effectId.includes('explosion')) {
+            if (effectId.includes('large')) return VFXPresets.explosion('large');
+            if (effectId.includes('small')) return VFXPresets.explosion('small');
+            return VFXPresets.explosion('medium');
+        }
+        if (effectId.includes('death')) {
+            if (effectId.includes('boss')) return VFXPresets.deathBurst('large');
+            if (effectId.includes('small')) return VFXPresets.deathBurst('small');
+            return VFXPresets.deathBurst('medium');
+        }
+        if (effectId.includes('spawn')) {
+            return VFXPresets.spawn();
+        }
+        if (effectId.includes('trail')) {
+            return VFXPresets.trail();
+        }
+        if (effectId.includes('pickup')) {
+            return VFXPresets.pickup();
+        }
+        if (effectId.includes('shield')) {
+            return VFXPresets.shieldHit();
+        }
+        if (effectId.includes('muzzle')) {
+            return VFXPresets.muzzleFlash();
+        }
+        
+        // Default fallback
+        return VFXPresets.smallHit();
+    }
+    
+    /**
+     * Get emitter from pool
+     */
+    _getEmitterFromPool() {
+        if (this.emitterPool.length > 0) {
+            return this.emitterPool.pop();
+        }
+        return null;
+    }
+    
+    /**
+     * Return emitter to pool
+     */
+    _returnEmitterToPool(emitterId) {
+        const emitter = this.activeEmitters.get(emitterId);
+        if (emitter) {
+            emitter.stop();
+            this.activeEmitters.delete(emitterId);
+            
+            if (this.emitterPool.length < 10) {
+                this.emitterPool.push(emitter);
+            } else {
+                emitter.destroy();
+            }
+        }
+    }
+    
+    /**
+     * Create basic particle textures
+     */
+    _createBasicTextures() {
+        // Check if texture already exists
+        if (this.scene.textures.exists('particle')) return;
+        
+        // Create simple white circle for particles
+        const graphics = this.scene.add.graphics();
+        graphics.fillStyle(0xFFFFFF);
+        graphics.fillCircle(4, 4, 4);
+        graphics.generateTexture('particle', 8, 8);
+        graphics.destroy();
+    }
+    
+    /**
+     * Update loop
+     */
+    update(time, delta) {
+        // Update power-up effects
+        for (const effect of this.powerUpEffects.values()) {
+            if (effect && effect.update) {
+                effect.update(time, delta);
+            }
+        }
+    }
+    
+    /**
+     * Shutdown the system
+     */
+    shutdown() {
+        // Stop all effects
+        for (const [id, emitter] of this.activeEmitters) {
+            emitter.stop();
+            emitter.destroy();
+        }
+        this.activeEmitters.clear();
+        
+        // Clear power-up effects
+        for (const effect of this.powerUpEffects.values()) {
+            if (effect.destroy) effect.destroy();
+        }
+        this.powerUpEffects.clear();
+        
+        // Clear pool
+        for (const emitter of this.emitterPool) {
+            emitter.destroy();
+        }
+        this.emitterPool = [];
+    }
+    
+    /**
+     * Destroy the system
+     */
+    destroy() {
+        this.shutdown();
+        this.scene = null;
+    }
+    
+    // Compatibility aliases
+    playHitSpark(x, y, type = 'default') {
+        const color = type === 'heavy' ? 0xFFDD00 : 0xFFFFFF;
+        return this.play(VFXPresets.smallHit(color), x, y);
+    }
+    
+    playExplosion(x, y, size = 'medium') {
+        return this.play(VFXPresets.explosion(size), x, y);
+    }
+    
+    playDeathBurst(x, y, color = 0xFF2222) {
+        return this.play(VFXPresets.deathBurst('medium', color), x, y);
+    }
+}
+
+export default SimplifiedVFXSystem;

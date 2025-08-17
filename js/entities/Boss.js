@@ -347,14 +347,22 @@ export class Boss extends Enemy {
         const phaseSFXKey = `phase${phaseNumber}`;
         
         // Update VFX mapping for current phase
-        if (this.blueprintVFX[phaseVFXKey]) {
+        if (this.blueprintVFX && this.blueprintVFX[phaseVFXKey]) {
+            // Ensure objects exist before assigning
+            if (!this.vfx) this.vfx = {};
+            if (!this._vfx) this._vfx = {};
+            
             this.vfx.phase = this.blueprintVFX[phaseVFXKey];
             this._vfx.phase = this.blueprintVFX[phaseVFXKey]; // Also update Enemy's VFX mapping
             console.log(`[Boss] Updated VFX mapping for phase ${phaseNumber}: ${this.vfx.phase}`);
         }
         
         // Update SFX mapping for current phase
-        if (this.blueprintSFX[phaseSFXKey]) {
+        if (this.blueprintSFX && this.blueprintSFX[phaseSFXKey]) {
+            // Ensure objects exist before assigning
+            if (!this.sfx) this.sfx = {};
+            if (!this._sfx) this._sfx = {};
+            
             this.sfx.phase = this.blueprintSFX[phaseSFXKey];
             this._sfx.phase = this.blueprintSFX[phaseSFXKey]; // Also update Enemy's SFX mapping
             console.log(`[Boss] Updated SFX mapping for phase ${phaseNumber}: ${this.sfx.phase}`);
@@ -577,10 +585,10 @@ export class Boss extends Enemy {
             
             // Play ability effects
             if (ability.vfxId) {
-                this.scene.newVFXSystem?.play(ability.vfxId, this.x, this.y);
+                this.scene.vfxSystem?.play(ability.vfxId, this.x, this.y);
             }
             if (ability.sfxId) {
-                this.scene.newSFXSystem?.play(ability.sfxId);
+                this.scene.audioSystem?.play(ability.sfxId);
             }
             
             // Execute based on specific ability ID first, then fall back to type
@@ -781,8 +789,8 @@ export class Boss extends Enemy {
         console.log(`[Boss] _executePulse: radius=${radius}, damage=${damage}, player pos=(${player.x.toFixed(1)}, ${player.y.toFixed(1)}), boss pos=(${this.x.toFixed(1)}, ${this.y.toFixed(1)}), player hp=${player.hp}/${player.maxHp}`);
         
         // VFX for pulse
-        if (this.scene.newVFXSystem) {
-            this.scene.newVFXSystem.play('boss.pulse', {
+        if (this.scene.vfxSystem) {
+            this.scene.vfxSystem.play('boss.pulse', {
                 x: this.x,
                 y: this.y,
                 radius: radius
@@ -841,8 +849,8 @@ export class Boss extends Enemy {
         const duration = params.durationMs || 500;
         
         // VFX for dash
-        if (this.scene.newVFXSystem) {
-            this.scene.newVFXSystem.play('vfx.boss.dash.onkogen', this.x, this.y);
+        if (this.scene.vfxSystem) {
+            this.scene.vfxSystem.play('vfx.boss.dash.onkogen', this.x, this.y);
         }
         
         // Temporarily boost speed for dash
@@ -892,8 +900,8 @@ export class Boss extends Enemy {
         this.setTint(0xFF0000);
         
         // VFX for enrage
-        if (this.scene.newVFXSystem) {
-            const auraEffect = this.scene.newVFXSystem.play('vfx.boss.enrage.aura', this.x, this.y, {
+        if (this.scene.vfxSystem) {
+            const auraEffect = this.scene.vfxSystem.play('vfx.boss.enrage.aura', this.x, this.y, {
                 follow: this,
                 duration: duration
             });
@@ -901,10 +909,10 @@ export class Boss extends Enemy {
         }
         
         // SFX from blueprint
-        if (this.scene.newSFXSystem) {
+        if (this.scene.audioSystem) {
             const enrageSFX = this.blueprintSFX?.enrage || this.sfx?.phase;
             if (enrageSFX) {
-                this.scene.newSFXSystem.play(enrageSFX);
+                this.scene.audioSystem.play(enrageSFX);
             } else {
                 console.warn('[Boss] Missing enrage sound in boss blueprint');
             }
@@ -1036,8 +1044,8 @@ export class Boss extends Enemy {
         
         // Victory effect through VFX system
         try {
-            if (this.scene.newVFXSystem) {
-                this.scene.newVFXSystem.play('boss.victory', this.x, this.y);
+            if (this.scene.vfxSystem) {
+                this.scene.vfxSystem.play('boss.victory', this.x, this.y);
             }
         } catch (error) {
             console.warn('[Boss] Failed to play victory VFX:', error.message);
@@ -1069,8 +1077,11 @@ export class Boss extends Enemy {
         console.log('[Boss] Die sequence completed, calling super.destroy()');
         
         // Switch back to game music when boss dies
-        if (this.scene.musicManager) {
-            this.scene.musicManager.switchCategory('game');
+        if (this.scene.audioSystem) {
+            this.scene.audioSystem.switchMusicCategory('game', {
+                fadeOut: 500,
+                fadeIn: 1000
+            });
             console.log('[Boss] Switched back to game music');
         }
         

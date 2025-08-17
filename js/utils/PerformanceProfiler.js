@@ -22,7 +22,7 @@ export class PerformanceProfiler {
             'CollisionSystem',
             'SpawnSystem',
             'AudioSystem',
-            'AnalyticsSystem'
+            'AnalyticsManager'
         ];
         
         systems.forEach(system => {

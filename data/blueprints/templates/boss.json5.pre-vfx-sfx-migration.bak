@@ -1,0 +1,297 @@
+// Boss Blueprint Template
+// Copy this file and modify for new boss creation
+// See Dev_Guidelines.md for detailed instructions
+
+{
+  // ==========================================
+  // METADATA SECTION
+  // ==========================================
+  id: "boss.template_boss", // Unique identifier, format: "boss.name"
+  type: "boss",
+  
+  meta: {
+    displayName: "Template Boss", // Display name shown in UI
+    description: "Description of the boss",
+    rarity: "legendary", // common, uncommon, rare, epic, legendary, mythic
+    tier: 1, // Boss tier/difficulty level
+    tags: ["boss", "template"], // Tags for filtering/searching
+  },
+  
+  // ==========================================
+  // VISUAL CONFIGURATION
+  // ==========================================
+  visuals: {
+    textureKey: "boss.template", // Sprite texture key
+    scale: 2.0, // Size multiplier
+    tint: 0xFF0000, // Color tint (hex)
+    size: { w: 64, h: 64 }, // Collision box size
+    healthBarOffset: { x: 0, y: -50 }, // Health bar position
+    animations: {
+      idle: { frames: [0, 1, 2, 3], fps: 8 },
+      attack: { frames: [4, 5, 6, 7], fps: 12 },
+      death: { frames: [8, 9, 10, 11], fps: 10 }
+    }
+  },
+  
+  // ==========================================
+  // STATS & LEVELS
+  // ==========================================
+  stats: {
+    // Base stats (Phase 1)
+    maxHp: 5000,
+    moveSpeed: 80,
+    contactDamage: 50,
+    defense: 10, // Damage reduction
+    
+    // Attack configuration
+    attackRate: 1.5, // Attacks per second
+    attackRange: 300,
+    projectileSpeed: 250,
+    projectileDamage: 30,
+    
+    // Special properties
+    immunities: ["poison", "slow"], // Status effect immunities
+    resistances: { fire: 0.5, ice: 0.2 }, // Damage type resistances
+  },
+  
+  // ==========================================
+  // PHASE CONFIGURATION
+  // ==========================================
+  phases: [
+    {
+      phase: 1,
+      healthThreshold: 1.0, // 100% HP
+      stats: {
+        // Override base stats for this phase
+        moveSpeed: 80,
+        attackRate: 1.5
+      },
+      abilities: ["basic_shot", "charge"], // Available abilities
+      behavior: "aggressive", // AI behavior mode
+    },
+    {
+      phase: 2,
+      healthThreshold: 0.66, // 66% HP
+      stats: {
+        moveSpeed: 100,
+        attackRate: 2.0,
+        defense: 15
+      },
+      abilities: ["basic_shot", "charge", "aoe_blast"],
+      behavior: "defensive",
+      // Phase transition effects
+      onEnter: {
+        vfx: "vfx.boss.enrage",
+        sfx: "sfx.boss.phase_change",
+        text: "The boss becomes enraged!"
+      }
+    },
+    {
+      phase: 3,
+      healthThreshold: 0.33, // 33% HP
+      stats: {
+        moveSpeed: 120,
+        attackRate: 3.0,
+        defense: 20
+      },
+      abilities: ["basic_shot", "charge", "aoe_blast", "summon_minions"],
+      behavior: "berserk",
+      onEnter: {
+        vfx: "vfx.boss.final_phase",
+        sfx: "sfx.boss.roar",
+        text: "FINAL PHASE!"
+      }
+    }
+  ],
+  
+  // ==========================================
+  // ATTACK PATTERNS & ABILITIES
+  // ==========================================
+  abilities: [
+    {
+      id: "basic_shot",
+      type: "projectile",
+      cooldown: 1000, // ms
+      damage: 30,
+      pattern: "single", // single, burst, fan, circle
+      projectileCount: 1,
+      projectileSpeed: 300,
+      vfx: "vfx.projectile.boss_shot",
+      sfx: "sfx.boss.shoot"
+    },
+    {
+      id: "charge",
+      type: "movement",
+      cooldown: 5000,
+      damage: 100,
+      chargeSpeed: 500,
+      chargeDuration: 1000,
+      telegraphTime: 500, // Warning time before charge
+      vfx: "vfx.boss.charge_trail",
+      sfx: "sfx.boss.charge"
+    },
+    {
+      id: "aoe_blast",
+      type: "area",
+      cooldown: 8000,
+      damage: 75,
+      radius: 200,
+      delay: 1000, // Cast time
+      vfx: "vfx.explosion.large",
+      sfx: "sfx.boss.aoe_blast"
+    },
+    {
+      id: "summon_minions",
+      type: "summon",
+      cooldown: 15000,
+      summonCount: 3,
+      summonType: "enemy.minion",
+      formation: "circle", // circle, line, random
+      vfx: "vfx.summon.portal",
+      sfx: "sfx.boss.summon"
+    }
+  ],
+  
+  // ==========================================
+  // AI CONFIGURATION
+  // ==========================================
+  ai: {
+    behavior: "boss_ai", // AI type
+    aggroRange: 500,
+    leashRange: 800, // Max distance from spawn point
+    targetPriority: ["player", "summon", "projectile"],
+    
+    // Attack pattern selection
+    attackPatterns: [
+      { abilities: ["basic_shot"], weight: 0.5 },
+      { abilities: ["charge"], weight: 0.2 },
+      { abilities: ["basic_shot", "aoe_blast"], weight: 0.2 },
+      { abilities: ["summon_minions", "basic_shot"], weight: 0.1 }
+    ],
+    
+    // Movement patterns
+    movementPattern: "orbit", // orbit, zigzag, random, chase
+    movementParams: {
+      orbitRadius: 200,
+      orbitSpeed: 1.0
+    }
+  },
+  
+  // ==========================================
+  // VFX (Visual Effects)
+  // ==========================================
+  vfx: {
+    spawn: "vfx.boss.spawn.epic", // Spawn effect
+    idle: "vfx.boss.aura.red", // Continuous aura effect
+    hit: "vfx.hit.heavy", // When boss takes damage
+    death: "vfx.boss.death.explosion", // Death animation
+    
+    // Phase-specific effects
+    phase2: "vfx.boss.enrage_aura",
+    phase3: "vfx.boss.berserk_flames",
+    
+    // Attack effects (referenced in abilities)
+    chargeWarning: "vfx.telegraph.line",
+    aoeWarning: "vfx.telegraph.circle"
+  },
+  
+  // ==========================================
+  // SFX (Sound Effects)
+  // ==========================================
+  sfx: {
+    spawn: "sfx.boss.spawn.dramatic", // Spawn sound
+    idle: ["sfx.boss.growl.1", "sfx.boss.growl.2"], // Random idle sounds
+    hit: "sfx.boss.hit.heavy", // When hit
+    death: "sfx.boss.death.epic", // Death sound
+    
+    // Attack sounds (referenced in abilities)
+    shoot: {
+      id: "sfx.boss.shoot.heavy",
+      volume: 0.8,
+      detuneRange: [-100, 100] // Random pitch variation
+    },
+    
+    // Phase transition sounds
+    phaseChange: "sfx.boss.roar",
+    enrage: "sfx.boss.enrage",
+    
+    // Voice lines (optional)
+    voiceLines: {
+      spawn: "sfx.voice.boss.intro",
+      phase2: "sfx.voice.boss.taunt1",
+      phase3: "sfx.voice.boss.desperate",
+      death: "sfx.voice.boss.defeat"
+    }
+  },
+  
+  // ==========================================
+  // LOOT & REWARDS
+  // ==========================================
+  loot: {
+    // Guaranteed drops
+    guaranteed: [
+      { id: "drop.xp_large", count: 10 },
+      { id: "drop.health_large", count: 2 }
+    ],
+    
+    // Random drop table
+    lootTableId: "lootTable.boss.tier1",
+    
+    // Special drops with conditions
+    conditionalDrops: [
+      {
+        condition: "no_damage", // Player took no damage
+        drops: [{ id: "drop.legendary_item", chance: 1.0 }]
+      },
+      {
+        condition: "speed_kill", // Killed within 60 seconds
+        drops: [{ id: "drop.bonus_xp", count: 5 }]
+      }
+    ],
+    
+    // XP reward
+    xp: 500,
+    
+    // Currency/points
+    score: 1000,
+    coins: 100
+  },
+  
+  // ==========================================
+  // SPECIAL MECHANICS (Optional)
+  // ==========================================
+  mechanics: {
+    // Shield that must be broken first
+    shield: {
+      hp: 1000,
+      regenRate: 10, // HP per second
+      vfx: "vfx.shield.blue",
+      sfx: "sfx.shield.hit"
+    },
+    
+    // Weak points for extra damage
+    weakPoints: [
+      {
+        location: "eye",
+        damageMultiplier: 2.0,
+        size: { w: 20, h: 20 },
+        offset: { x: 0, y: -20 }
+      }
+    ],
+    
+    // Environmental interactions
+    environmental: {
+      destructibleCover: true,
+      arenaMechanics: ["lava_floor", "falling_debris"]
+    },
+    
+    // Special conditions
+    immunityWindows: [
+      {
+        trigger: "phase_change",
+        duration: 2000,
+        vfx: "vfx.immunity.bubble"
+      }
+    ]
+  }
+}

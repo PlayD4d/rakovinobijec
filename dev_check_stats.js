@@ -20,10 +20,12 @@ window.DEV.checkStats = function(enemyId = 'enemy.micro_shooter') {
         return;
     }
     
-    // Spawn enemy near player
+    // PR7: Spawn enemy near player using ConfigResolver default values
     const player = scene.player;
-    const x = player ? player.x + 100 : 400;
-    const y = player ? player.y : 300;
+    const defaultX = window.ConfigResolver?.get('spawning.defaultPosition.x', { defaultValue: 400 }) || 400;
+    const defaultY = window.ConfigResolver?.get('spawning.defaultPosition.y', { defaultValue: 300 }) || 300;
+    const x = player ? player.x + 100 : defaultX;
+    const y = player ? player.y : defaultY;
     
     const enemy = scene.createEnemyFromBlueprint(enemyId, { x, y });
     

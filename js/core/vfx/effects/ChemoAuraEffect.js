@@ -49,17 +49,17 @@ export class ChemoAuraEffect {
         }
         
         // Play activation VFX
-        if (this.scene.newVFXSystem) {
-            this.scene.newVFXSystem.play('vfx.chemo.activate', entity.x, entity.y);
+        if (this.scene.vfxSystem) {
+            this.scene.vfxSystem.play('vfx.chemo.activate', entity.x, entity.y);
         }
         
         // Play activation SFX from powerup blueprint
-        if (this.scene.newSFXSystem) {
+        if (this.scene.audioSystem) {
             // Try to get sound from powerup blueprint (chemo_reservoir)
             const powerupBlueprint = this.scene.blueprintLoader?.getBlueprint('powerup.chemo_reservoir');
             const activateSFX = powerupBlueprint?.sfx?.activate;
             if (activateSFX) {
-                this.scene.newSFXSystem.play(activateSFX);
+                this.scene.audioSystem.play(activateSFX);
             } else {
                 console.warn('[ChemoAuraEffect] Missing activate sound in chemo_reservoir powerup blueprint');
             }
@@ -88,8 +88,8 @@ export class ChemoAuraEffect {
         }
         
         // Stop ambient sound
-        if (this.scene.newSFXSystem) {
-            this.scene.newSFXSystem.stopLoop('sfx.chemo.ambient');
+        if (this.scene.audioSystem) {
+            this.scene.audioSystem.stopLoop('sfx.chemo.ambient');
         }
     }
     
@@ -194,7 +194,7 @@ export class ChemoAuraEffect {
      * @private
      */
     _emitToxicParticle() {
-        if (!this.scene.newVFXSystem || !this.entity) return;
+        if (!this.scene.vfxSystem || !this.entity) return;
         
         const particleAngle = Math.random() * Math.PI * 2;
         const particleRadius = this.radius * (0.8 + Math.random() * 0.4);
@@ -202,7 +202,7 @@ export class ChemoAuraEffect {
         const particleX = this.entity.x + Math.cos(particleAngle) * particleRadius;
         const particleY = this.entity.y + Math.sin(particleAngle) * particleRadius;
         
-        this.scene.newVFXSystem.play('vfx.toxic.particle', particleX, particleY);
+        this.scene.vfxSystem.play('vfx.toxic.particle', particleX, particleY);
     }
     
     /**
@@ -230,8 +230,8 @@ export class ChemoAuraEffect {
                 }
                 
                 // Apply poison VFX
-                if (this.scene.newVFXSystem) {
-                    this.scene.newVFXSystem.play('vfx.poison.small', enemy.x, enemy.y);
+                if (this.scene.vfxSystem) {
+                    this.scene.vfxSystem.play('vfx.poison.small', enemy.x, enemy.y);
                 }
             }
         }
@@ -278,8 +278,8 @@ export class ChemoAuraEffect {
         }
         
         // PR7: Check if VFXSystem provides graphics creation
-        if (this.scene.newVFXSystem && this.scene.newVFXSystem._createGraphics) {
-            return this.scene.newVFXSystem._createGraphics();
+        if (this.scene.vfxSystem && this.scene.vfxSystem._createGraphics) {
+            return this.scene.vfxSystem._createGraphics();
         }
         
         // PR7: Fallback with warning
