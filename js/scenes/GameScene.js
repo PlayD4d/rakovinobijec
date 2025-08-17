@@ -408,11 +408,7 @@ export class GameScene extends Phaser.Scene {
         // Setup input FIRST - before player creation
         this.setupInput();
         
-        // Generate placeholder enemy textures BEFORE spawning
-        this.generateEnemyPlaceholderTextures();
         
-        // Generate item textures for drops
-        this.generateItemTextures();
         
         // Initialize data-driven systems first (before player creation)
         // PR7: Fail fast - if critical systems fail, stop game initialization
@@ -770,9 +766,6 @@ export class GameScene extends Phaser.Scene {
                 
                 // Generate texture if needed
                 const textureKey = playerBlueprint.visuals?.textureKey || 'player';
-                if (!this.textures.exists(textureKey)) {
-                    this.generatePlayerTexture();
-                }
                 
                 // Ensure display section exists for compatibility
                 if (!playerBlueprint.display) {
@@ -792,9 +785,6 @@ export class GameScene extends Phaser.Scene {
         console.error('[GameScene] CRITICAL: Player blueprint not found! Using emergency fallback');
         
         // Generate player texture if it doesn't exist
-        if (!this.textures.exists('player')) {
-            this.generatePlayerTexture();
-        }
         
         // Emergency fallback - uses ConfigResolver instead of GameConfig
         const CR = window.ConfigResolver;
@@ -854,314 +844,9 @@ export class GameScene extends Phaser.Scene {
         };
     }
     
-    /**
-     * Generate player texture programmatically
-     */
-    generatePlayerTexture() {
-        // PR7: Use values from player blueprint - správná metoda je .get(), ne .getBlueprint()
-        const playerBlueprint = this.blueprintLoader?.get('player');
-        const size = playerBlueprint?.visuals?.size?.w || 24;
-        const color = playerBlueprint?.visuals?.tint || 0x4169E1;
-        const graphics = this.add.graphics();
-        
-        // Draw player as a blue square with white cross
-        graphics.fillStyle(color, 1);
-        graphics.fillRect(2, 2, size - 4, size - 4);
-        
-        // Draw white cross
-        graphics.fillStyle(0xffffff, 1);
-        const crossThickness = 3;
-        const crossLength = size - 8;
-        
-        // Horizontal bar of cross
-        graphics.fillRect((size - crossLength) / 2, (size - crossThickness) / 2, crossLength, crossThickness);
-        
-        // Vertical bar of cross
-        graphics.fillRect((size - crossThickness) / 2, (size - crossLength) / 2, crossThickness, crossLength);
-        
-        // Generate texture
-        graphics.generateTexture('player', size, size);
-        graphics.destroy();
-        
-        console.log('✅ Generated player texture (blue square with white cross)');
-    }
     
-    /**
-     * Generate enemy texture programmatically
-     */
-    generateEnemyTexture(textureKey, color, size = 20, blueprint = null) {
-        if (this.textures.exists(textureKey)) return;
-        
-        const graphics = this.add.graphics();
-        
-        // Check entity type from textureKey
-        const isUnique = textureKey.includes('unique');
-        const isBoss = textureKey.includes('boss');
-        const isMiniboss = textureKey.includes('miniboss');
-        
-        // Get shape from blueprint or determine default
-        let shape = 'circle';
-        if (blueprint) {
-            shape = ShapeRenderer.getShapeFromBlueprint(blueprint, 'circle');
-        } else if (isBoss) {
-            shape = 'star';
-        } else if (isUnique || isMiniboss) {
-            shape = 'diamond';
-        }
-        
-        // Determine border color and width based on type
-        let strokeColor = 0x000000;
-        let strokeWidth = 2;
-        if (isBoss) {
-            strokeColor = 0xFFD700; // Gold border for bosses
-            strokeWidth = 3;
-        } else if (isUnique) {
-            strokeColor = 0xFF00FF; // Purple border for unique
-            strokeWidth = 3;
-        } else if (isMiniboss) {
-            strokeColor = 0xFF8800; // Orange border for miniboss
-            strokeWidth = 3;
-        }
-        
-        // Draw the shape using ShapeRenderer
-        ShapeRenderer.drawShape(graphics, shape, size/2, size/2, size/2 - 2, {
-            fillColor: color,
-            fillAlpha: 1.0,
-            strokeColor: strokeColor,
-            strokeWidth: strokeWidth,
-            strokeAlpha: 1.0
-        });
-        
-        // Add visual indicator based on type
-        if (isBoss) {
-            // Boss: Star pattern - use circle for now (PR7: no hardcoded graphics)
-            graphics.fillStyle(0xFFFFFF, 1.0);
-            graphics.fillCircle(size/2, size/2, size/4);
-        } else if (isUnique) {
-            // Unique: Diamond pattern
-            graphics.fillStyle(0xFFFFFF, 1.0);
-            graphics.fillTriangle(size/2, size/2 - 4, size/2 - 4, size/2 + 4, size/2 + 4, size/2 + 4);
-        } else if (isMiniboss) {
-            // Miniboss: Cross pattern
-            graphics.fillStyle(0xFFFFFF, 1.0);
-            graphics.fillRect(size/2 - 1, size/2 - 6, 2, 12);
-            graphics.fillRect(size/2 - 6, size/2 - 1, 12, 2);
-        } else {
-            // Regular: Simple dot
-            graphics.fillStyle(0xFFFFFF, 1.0);
-            graphics.fillCircle(size/2, size/2, 2);
-        }
-        
-        // Generate texture
-        graphics.generateTexture(textureKey, size, size);
-        graphics.destroy();
-        
-        console.log(`✅ Generated enemy texture: ${textureKey} (${size}px, color: 0x${color.toString(16)}, shape: ${shape}, type: ${isBoss ? 'boss' : isUnique ? 'unique' : isMiniboss ? 'miniboss' : 'regular'})`);
-    }
     
-    /**
-     * Generate placeholder enemy textures for HOTFIX V3
-     */
-    generateEnemyPlaceholderTextures() {
-        console.log('[GameScene] Generating enemy placeholder textures...');
-        
-        // Create 'enemy.necrotic' texture (green square with white center, 16×16)
-        if (!this.textures.exists('enemy.necrotic')) {
-            const graphics = this.add.graphics();
-            const size = 16;
-            
-            // Green square
-            graphics.fillStyle(0x00AA00, 1);
-            graphics.fillRect(0, 0, size, size);
-            
-            // White center
-            graphics.fillStyle(0xffffff, 1);
-            graphics.fillRect(size/4, size/4, size/2, size/2);
-            
-            graphics.generateTexture('enemy.necrotic', size, size);
-            graphics.destroy();
-            
-            console.log('✅ Generated enemy.necrotic texture (16×16, green with white center)');
-        }
-        
-        // Create 'enemy.swarm' texture (dark green square with white dot, 12×12)
-        if (!this.textures.exists('enemy.swarm')) {
-            const graphics = this.add.graphics();
-            const size = 12;
-            
-            // Dark green square
-            graphics.fillStyle(0x006600, 1);
-            graphics.fillRect(0, 0, size, size);
-            
-            // White dot in center
-            graphics.fillStyle(0xffffff, 1);
-            graphics.fillCircle(size/2, size/2, 2);
-            
-            graphics.generateTexture('enemy.swarm', size, size);
-            graphics.destroy();
-            
-            console.log('✅ Generated enemy.swarm texture (12×12, dark green with white dot)');
-        }
-        
-        console.log('[GameScene] ✅ Enemy placeholder textures generated');
-    }
     
-    /**
-     * Generate item textures programmatically
-     */
-    generateItemTextures() {
-        console.log('[GameScene] Generating item textures...');
-        
-        // XP Orb - Small (cyan hexagon, 12px)
-        if (!this.textures.exists('item_xp_small')) {
-            const graphics = this.add.graphics();
-            const size = 12;
-            // Use ShapeRenderer for hexagon
-            ShapeRenderer.drawShape(graphics, 'hexagon', size/2, size/2, size/2 - 1, {
-                fillColor: 0x00E8FC,
-                fillAlpha: 1.0
-            });
-            // Add white star in center
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 2);
-            graphics.generateTexture('item_xp_small', size, size);
-            graphics.destroy();
-        }
-        
-        // XP Orb - Medium (blue hexagon, 16px)
-        if (!this.textures.exists('item_xp_medium')) {
-            const graphics = this.add.graphics();
-            const size = 16;
-            // Use ShapeRenderer for hexagon
-            ShapeRenderer.drawShape(graphics, 'hexagon', size/2, size/2, size/2 - 1, {
-                fillColor: 0x0080FF,
-                fillAlpha: 1.0
-            });
-            // Add white star in center
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 3);
-            graphics.generateTexture('item_xp_medium', size, size);
-            graphics.destroy();
-        }
-        
-        // XP Orb - Large (dark blue hexagon, 20px)
-        if (!this.textures.exists('item_xp_large')) {
-            const graphics = this.add.graphics();
-            const size = 20;
-            // Use ShapeRenderer for hexagon
-            ShapeRenderer.drawShape(graphics, 'hexagon', size/2, size/2, size/2 - 1, {
-                fillColor: 0x0040CC,
-                fillAlpha: 1.0
-            });
-            // Add white star in center
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 4);
-            graphics.generateTexture('item_xp_large', size, size);
-            graphics.destroy();
-        }
-        
-        // Health Small (red circle with white cross, 16px)
-        if (!this.textures.exists('item_health_small')) {
-            const graphics = this.add.graphics();
-            const size = 16;
-            // Red circle background
-            graphics.fillStyle(0xFF0000, 1);
-            graphics.fillCircle(size/2, size/2, size/2);
-            // White cross
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillRect(size/2 - 1, size/4, 2, size/2); // Vertical
-            graphics.fillRect(size/4, size/2 - 1, size/2, 2); // Horizontal
-            graphics.generateTexture('item_health_small', size, size);
-            graphics.destroy();
-        }
-        
-        // Heal Orb (larger red circle with cross, 20px)
-        if (!this.textures.exists('item_heal_orb')) {
-            const graphics = this.add.graphics();
-            const size = 20;
-            // Red circle with gradient effect
-            graphics.fillStyle(0xFF3333, 1);
-            graphics.fillCircle(size/2, size/2, size/2);
-            graphics.fillStyle(0xFF0000, 0.8);
-            graphics.fillCircle(size/2, size/2, size/2 - 2);
-            // White cross
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillRect(size/2 - 2, size/4, 4, size/2);
-            graphics.fillRect(size/4, size/2 - 2, size/2, 4);
-            graphics.generateTexture('item_heal_orb', size, size);
-            graphics.destroy();
-        }
-        
-        // Protein Cache (green capsule, 18px)
-        if (!this.textures.exists('item_protein_cache')) {
-            const graphics = this.add.graphics();
-            const size = 18;
-            // Green capsule shape
-            graphics.fillStyle(0x00FF00, 1);
-            graphics.fillRoundedRect(size/4, 0, size/2, size, 4);
-            // White P letter
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 3);
-            graphics.generateTexture('item_protein_cache', size, size);
-            graphics.destroy();
-        }
-        
-        // Energy Cell (yellow lightning bolt, 16px)
-        if (!this.textures.exists('item_energy_cell')) {
-            const graphics = this.add.graphics();
-            const size = 16;
-            // Yellow lightning bolt - use triangles to approximate
-            graphics.fillStyle(0xFFFF00, 1);
-            // Top triangle
-            graphics.fillTriangle(
-                size * 0.6, 0,
-                size * 0.7, size * 0.4,
-                size * 0.5, size * 0.4
-            );
-            // Bottom triangle
-            graphics.fillTriangle(
-                size * 0.5, size * 0.4,
-                size * 0.4, size,
-                size * 0.3, size * 0.6
-            );
-            graphics.generateTexture('item_energy_cell', size, size);
-            graphics.destroy();
-        }
-        
-        // Metotrexat (purple circle with M, 18px)
-        if (!this.textures.exists('item_metotrexat')) {
-            const graphics = this.add.graphics();
-            const size = 18;
-            // Purple pulsing circle
-            graphics.fillStyle(0x9C27B0, 1);
-            graphics.fillCircle(size/2, size/2, size/2);
-            graphics.fillStyle(0xE91E63, 0.5);
-            graphics.fillCircle(size/2, size/2, size/2 - 2);
-            // White M
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 4);
-            graphics.generateTexture('item_metotrexat', size, size);
-            graphics.destroy();
-        }
-        
-        // Research Point (blue diamond, 14px)
-        if (!this.textures.exists('item_research_point')) {
-            const graphics = this.add.graphics();
-            const size = 14;
-            // Use ShapeRenderer for diamond
-            ShapeRenderer.drawShape(graphics, 'diamond', size/2, size/2, size/2, {
-                fillColor: 0x2196F3,
-                fillAlpha: 1.0
-            });
-            // White center dot
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 2);
-            graphics.generateTexture('item_research_point', size, size);
-            graphics.destroy();
-        }
-        
-        console.log('[GameScene] ✅ Item textures generated');
-    }
     
     /**
      * Show critical error overlay - PR7 fail fast
@@ -1593,7 +1278,6 @@ export class GameScene extends Phaser.Scene {
             textureKey, color: '0x' + color.toString(16), size
         });
         
-        this.generateEnemyTexture(textureKey, color, size, blueprint);
         
         if (blueprint.type === 'boss') {
             // Create boss with properly generated texture
@@ -1790,15 +1474,6 @@ export class GameScene extends Phaser.Scene {
     
         
         // Generate Metotrexat texture if not exists
-        if (!this.textures.exists('metotrexat_orb')) {
-            const graphics = this.add.graphics();
-            graphics.fillStyle(0xff00ff, 1); // Magenta
-            graphics.fillCircle(8, 8, 8);
-            graphics.fillStyle(0xffffff, 1); // White M
-            graphics.fillText('M', 4, 11, { fontSize: '10px' });
-            graphics.generateTexture('metotrexat_orb', 16, 16);
-            graphics.destroy();
-        }
         
         metotrexat.setTexture('metotrexat_orb');
         metotrexat.setScale(1);

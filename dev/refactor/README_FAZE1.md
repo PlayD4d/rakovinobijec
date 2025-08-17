@@ -88,10 +88,24 @@ DEPTH_LAYERS = {
 - Vytvořen tento dokument
 - Přidán guard skript
 
-### Commit 1: [TODO]
-### Commit 2: [TODO]
-### Commit 3: [TODO]
-### Commit 4: [TODO]
+### Commit 1: Extrakce kolizí
+- setupCollisions.js vytvořen
+- LOC: 3302 → 3121 (-181 řádků)
+
+### Commit 2: UI supremacy
+- bringToTop() a setTopOnly() v GameUIScene
+- LOC: 3121 (beze změny)
+
+### Commit 3: Spawny přes SimpleLootSystem
+- Odstraněny spawn metody
+- LOC: 3121 → 2839 (-282 řádků)
+
+### Commit 4: Odstranění texture generation
+- Texture generation přesunuto do SimpleLootSystem
+- Odstraněny 4 metody: generatePlayerTexture, generateEnemyTexture, generateEnemyPlaceholderTextures, generateItemTextures
+- LOC: 2839 → 2514 (-325 řádků)
+
+### Commit 5: [TODO]
 ### Commit 5: [TODO]
 ### Commit 6: [TODO]
 ### Commit 7: [TODO]
