@@ -45,6 +45,7 @@ import { ProjectileSystem } from '../core/systems/ProjectileSystem.js';
 // PowerUpVFXManager sloučen do SimplifiedVFXSystem
 import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
 import { setupCollisions } from '../handlers/setupCollisions.js';
+import { UpdateManager } from '../managers/UpdateManager.js';
 
 export class GameScene extends Phaser.Scene {
     constructor() {
@@ -546,6 +547,9 @@ export class GameScene extends Phaser.Scene {
         // Setup collisions
         this.setupCollisions();
         
+        // Initialize UpdateManager for centralized update orchestration
+        this.initializeUpdateManager();
+        
         // Start game
         await this.startGame();
         
@@ -935,6 +939,15 @@ export class GameScene extends Phaser.Scene {
         setupCollisions(this);
     }
     
+    /**
+     * Initialize UpdateManager and register all update tasks
+     */
+    initializeUpdateManager() {
+        this.updateManager = new UpdateManager(this);
+        // All update tasks are registered in UpdateManager.registerGameSceneTasks()
+        this.updateManager.registerGameSceneTasks(this);
+    }
+    
     // Collision handlers moved to setupCollisions.js
     
     /**
@@ -1137,113 +1150,9 @@ export class GameScene extends Phaser.Scene {
     update(time, delta) {
         if (this.isGameOver) return;
         
-        // PR7: Only update game timer when not paused
-        if (!this.isPaused) {
-            // Update scene timer for UI
-            this.sceneTimeSec += delta / 1000;
-            this.gameStats.time = Math.floor(this.sceneTimeSec);
-            
-            // Update UI timer text (only when second changes)
-            const currentSec = Math.floor(this.sceneTimeSec);
-            if (this._lastTimeUi !== currentSec) {
-                this._lastTimeUi = currentSec;
-                const minutes = Math.floor(currentSec / 60);
-                const seconds = currentSec % 60;
-                const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                if (this.unifiedHUD && this.unifiedHUD.timeText) {
-                    this.unifiedHUD.timeText.setText(timeStr);
-                }
-            }
-            
-            // Debug: Time tracking (less frequent) - commented out to reduce console spam
-            // if (currentSec % 5 === 0 && this.sceneTimeSec % 5 < 0.1) {
-            //     console.log('[Tick]', currentSec, 'scene running');
-            // }
-        }
-        
-        // SAFETY CHECK: Ensure player stays active if alive
-        if (this.player && this.player.hp > 0 && !this.player.active) {
-            console.warn('[GameScene] ⚠️ Player was inactive but has HP - reactivating!');
-            console.log(`[GameScene] Player state: HP=${this.player.hp}, active=${this.player.active}, visible=${this.player.visible}`);
-            this.player.setActive(true);
-            this.player.setVisible(true);
-            if (this.player.body) {
-                this.player.body.enable = true;
-            }
-        }
-        
-        // Update player - PR7: Player uses preUpdate() internally
-        // Player's preUpdate checks isPaused flag internally
-        
-        // Update ArmorShieldEffect for all armored enemies
-        if (this.armorShieldEffect && !this.isPaused) {
-            this.armorShieldEffect.update(time, delta);
-        }
-        
-        // Update player's shield effect
-        if (this.playerShieldEffect && !this.isPaused) {
-            this.playerShieldEffect.update(time, delta);
-        }
-        
-        // PowerUp system update is handled in PowerUpSystem update loop
-        
-        // Update enemies
-        if (!this.isPaused && this.enemiesGroup) {
-            this.enemiesGroup.getChildren().forEach(enemy => {
-                if (enemy.active && enemy.update) {
-                    enemy.update(time, delta);
-                }
-            });
-        }
-        
-        // Update bosses
-        if (!this.isPaused && this.bossGroup) {
-            this.bossGroup.getChildren().forEach(boss => {
-                if (boss.active && boss.update) {
-                    boss.update(time, delta);
-                }
-            });
-        }
-        
-        // Update spawn director
-        if (this.spawnDirector && !this.isPaused) {
-            this.spawnDirector.update(delta);
-        }
-        
-        // Update core systems
-        if (this.projectileSystem && !this.isPaused) {
-            this.projectileSystem.update(time, delta);
-        }
-        
-        // Update Loot System (for XP magnet effect)
-        if (this.lootSystem && !this.isPaused) {
-            this.lootSystem.update(time, delta);
-        }
-        
-        // Update Unified VFX System (includes power-up effects)
-        if (this.vfxSystem && !this.isPaused) {
-            this.vfxSystem.update(time, delta);
-        }
-        
-        // Update PowerUp System (for radiotherapy and other per-frame effects)
-        if (this.powerUpSystem && !this.isPaused) {
-            this.powerUpSystem.update(time, delta);
-        }
-        
-        // Update debug overlay (visibility is checked inside update method)
-        if (this.debugOverlay) {
-            this.debugOverlay.update(time, delta);
-        }
-        
-        // Update HUD
-        if (this.unifiedHUD) {
-            this.unifiedHUD.update();
-            
-            // Update game level display (stage/mission level, not XP level)
-            if (this.unifiedHUD.levelText) {
-                this.unifiedHUD.levelText.setText(`Level: ${this.gameStats.level} | Stage: ${this.currentLevel}`);
-            }
+        // Delegate all update logic to UpdateManager
+        if (this.updateManager) {
+            this.updateManager.update(time, delta);
         }
     }
     

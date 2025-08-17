@@ -108,7 +108,18 @@ DEPTH_LAYERS = {
 ### Commit 5: Centralizace depth layers
 - Přidány LOOT, BOSSES, EFFECTS do DEPTH_LAYERS
 - Nahrazeny všechny numerické setDepth() konstantami
-- LOC: 2514 → 2518 (+4 řádky pro lepší strukturu)
+- LOC: 2514 → 2517 (+3 řádky pro lepší strukturu)
+
+### Commit 6: Step 6 - Přesun tweens do systémů
+- Přidány animatePickup() a animateAttraction() do SimpleLootSystem
+- Odstraněn nefunkční metotrexat spawn kód (34 řádků)
+- LOC: 2517 → 2467 (-50)
+
+### Commit 7: Step 8A - UpdateManager
+- Vytvořen UpdateManager pro centralizovanou orchestraci update()
+- Update metoda zkrácena z ~110 řádků na 7 řádků
+- Registrace tasků přesunuta do UpdateManager
+- LOC: 2467 → 2376 (-91)
 ### Commit 6: [TODO]
 ### Commit 7: [TODO]
 ### Commit 8: [TODO]
