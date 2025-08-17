@@ -44,6 +44,7 @@ import { ProjectileSystem } from '../core/systems/ProjectileSystem.js';
 // Modifiers are applied directly in Player.js
 // PowerUpVFXManager sloučen do SimplifiedVFXSystem
 import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
+import { setupCollisions } from '../handlers/setupCollisions.js';
 
 export class GameScene extends Phaser.Scene {
     constructor() {
@@ -1242,65 +1243,11 @@ export class GameScene extends Phaser.Scene {
     }
     
     setupCollisions() {
-        // Player bullets vs enemies
-        if (this.projectileSystem?.playerBullets) {
-            this.physics.add.overlap(
-                this.projectileSystem.playerBullets,
-                this.enemies,
-                (bullet, enemy) => this.handlePlayerBulletEnemyHit(bullet, enemy)
-            );
-        }
-        
-        // Enemy bullets vs player - PR7: Player is Sprite directly
-        if (this.projectileSystem?.enemyBullets) {
-            this.physics.add.overlap(
-                this.projectileSystem.enemyBullets,
-                this.player,
-                (bullet, player) => this.handleEnemyBulletPlayerHit(bullet, player)
-            );
-        }
-        
-        // Player vs loot - PR7: Player is Sprite directly
-        if (this.lootSystem) {
-            this.physics.add.overlap(
-                this.player,
-                this.lootSystem.lootGroup,
-                (player, loot) => this.lootSystem.handlePickup(player, loot)
-            );
-        }
-        
-        // Player vs enemies - PR7: Player is Sprite directly
-        this.physics.add.overlap(
-            this.player,
-            this.enemies,
-            (player, enemy) => this.handlePlayerEnemyCollision(player, enemy)
-        );
-        
-        console.log('✅ All collision detection setup complete');
+        // Delegate all collision setup to centralized handler
+        setupCollisions(this);
     }
     
-    // Note: handlePlayerBulletEnemyHit is implemented below with full piercing support
-    
-    /**
-     * Handle enemy bullet hitting player
-     */
-    handleEnemyBulletPlayerHit(bullet, player) {
-        if (!bullet.active || !player.active) return;
-        
-        // Check if player can take damage
-        if (player.canTakeDamage && !player.canTakeDamage()) return;
-        
-        // Get damage from bullet
-        const damage = bullet.damage || 5;
-        
-        // Apply damage to player
-        if (player.takeDamage) {
-            player.takeDamage(damage);
-        }
-        
-        // Destroy bullet
-        bullet.kill();
-    }
+    // Collision handlers moved to setupCollisions.js
     
     /**
      * Handle player collecting loot (DEPRECATED - now handled by SimpleLootSystem)
@@ -1389,23 +1336,6 @@ export class GameScene extends Phaser.Scene {
         loot.destroy();
     }
     
-    /**
-     * Handle player touching enemy (contact damage)
-     */
-    handlePlayerEnemyCollision(player, enemy) {
-        if (!enemy.active || !player.active) return;
-        
-        // Check if player can take damage
-        if (player.canTakeDamage && !player.canTakeDamage()) return;
-        
-        // Get contact damage from enemy
-        const damage = enemy.contactDamage || enemy.damage || 5;
-        
-        // Apply damage to player
-        if (player.takeDamage) {
-            player.takeDamage(damage);
-        }
-    }
     
     /**
      * Add XP to player
@@ -1629,118 +1559,7 @@ export class GameScene extends Phaser.Scene {
         }
     }
     
-    // Collision handlers
-    handlePlayerBulletEnemyHit(bullet, enemy) {
-        if (enemy.type === 'xp' || enemy.type === 'health' || enemy.type === 'metotrexat') {
-            return;
-        }
-        
-        if (!enemy.takeDamage || typeof enemy.takeDamage !== 'function') {
-            return;
-        }
-        
-        // Apply damage with piercing reduction
-        let damage = bullet.damage || this.player?.baseStats?.projectileDamage || 10;
-        
-        // Apply damage reduction for piercing bullets
-        if (bullet.piercing && bullet.hitCount > 0 && bullet.damageReduction) {
-            const reductionFactor = Math.pow(1 - bullet.damageReduction, bullet.hitCount);
-            damage = damage * reductionFactor;
-            
-            // Debug: Log damage reduction occasionally
-            if (Math.random() < 0.05) {
-                console.log(`[GameScene] 🏹 PIERCING DAMAGE - Hit #${bullet.hitCount + 1}, reduction: ${(bullet.damageReduction * 100).toFixed(1)}%, final damage: ${damage.toFixed(1)}`);
-            }
-        }
-        
-        enemy.takeDamage(damage);
-        
-        // Check if enemy died
-        if (enemy.hp <= 0 && enemy.active) {
-            this.handleEnemyDeath(enemy);
-        }
-        
-        // Handle explosive bullets from chemo_reservoir power-up
-        if (this.player.chemoAuraActive && this.player.chemoAuraConfig?.enableExplosions) {
-            const explosionRadius = this.player.getExplosionRadius ? this.player.getExplosionRadius() : 35;
-            let explosionDamage = this.player.getExplosionDamage ? this.player.getExplosionDamage() : damage * 0.5;
-            
-            // Ensure explosionDamage is a number
-            explosionDamage = Number(explosionDamage) || (damage * 0.5);
-            
-            console.log(`[GameScene] 💥 CHEMO EXPLOSION - Radius: ${explosionRadius}, Damage: ${explosionDamage.toFixed(1)}`);
-            
-            // Create explosion effect
-            if (this.projectileSystem && this.projectileSystem.createExplosion) {
-                this.projectileSystem.createExplosion(
-                    bullet.x, bullet.y, 
-                    explosionDamage, 
-                    explosionRadius, 
-                    1  // Default level
-                );
-            }
-            
-            // Play explosion VFX
-            if (this.vfxSystem) {
-                this.vfxSystem.play('vfx.explosion.small', bullet.x, bullet.y);
-            }
-            
-            // Play explosion SFX  
-            if (this.audioSystem) {
-                this.audioSystem.play('sound/explosion_small.mp3');
-            }
-        }
-        
-        // Handle piercing
-        if (!bullet.piercing || bullet.hitCount >= bullet.maxPiercing) {
-            bullet.destroy();
-        } else {
-            bullet.hitCount = (bullet.hitCount || 0) + 1;
-        }
-        
-        // VFX/SFX - HOTFIX V3: Silent fail mode
-        try {
-            if (enemy._vfx?.hit && this.vfxSystem) {
-                this.vfxSystem.play(enemy._vfx.hit, enemy.x, enemy.y);
-            }
-        } catch (error) {
-            console.debug('[VFX] Failed to play hit effect, continuing:', error.message);
-        }
-        
-        try {
-            if (enemy._sfx?.hit && this.audioSystem) {
-                this.audioSystem.play(enemy._sfx.hit);
-            }
-        } catch (error) {
-            console.debug('[SFX] Failed to play hit sound, continuing:', error.message);
-        }
-    }
-    
-    handleEnemyBulletPlayerHit(bullet, player) {
-        const damage = bullet.damage || 10;
-        this.player.takeDamage(damage);
-        
-        if (this.player.hp <= 0 && !this.isGameOver) {
-            this.gameOver();
-        }
-        
-        bullet.destroy();
-    }
-    
-    // Removed duplicate handlePlayerLootCollision - using the one at line 1004
-    
-    handlePlayerEnemyCollision(player, enemy) {
-        if (enemy.type === 'xp' || enemy.type === 'health' || enemy.type === 'metotrexat') {
-            return;
-        }
-        
-        const damage = enemy.damage || 10;
-        this.player.takeDamage(damage);
-        
-        if (this.player.hp <= 0 && !this.isGameOver) {
-            this.gameOver();
-        }
-    }
+    // All collision handlers have been moved to setupCollisions.js
     
     /**
      * Create enemy from blueprint - called by SpawnDirector
