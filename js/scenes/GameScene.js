@@ -1474,61 +1474,22 @@ export class GameScene extends Phaser.Scene {
         }
     }
     
-    
-        
-        // Generate Metotrexat texture if not exists
-        
-        metotrexat.setTexture('metotrexat_orb');
-        metotrexat.setScale(1);
-        metotrexat.setDepth(this.DEPTH_LAYERS.LOOT);
-        metotrexat.body.setCircle(8);
-        
-        // Store type
-        metotrexat.isMetotrexat = true;
-        
-        // Pulsing effect
-        this.tweens.add({
-            targets: metotrexat,
-            scale: 1.2,
-            duration: 500,
-            yoyo: true,
-            repeat: -1
-        });
-        
-        // Collision with player
-        this.physics.add.overlap(this.player, metotrexat, (player, orb) => {
-            this.handleMetotrexatPickup();
-            orb.destroy();
-        });
-        
-        // Auto-cleanup after 10 seconds
-        this.time.delayedCall(10000, () => {
-            if (metotrexat && metotrexat.active) {
-                metotrexat.destroy();
-            }
-        });
-    }
-    
     /**
      * Attract XP orb to player (for XP magnet power-up)
      */
     attractXPOrb(orb) {
         if (!orb || !orb.active || !this.player || !this.player.active) return;
         
-        const attractTween = this.tweens.add({
-            targets: orb,
-            x: this.player.x,
-            y: this.player.y,
-            duration: 800,
-            ease: 'Power2',
-            onComplete: () => {
+        // Use SimpleLootSystem for animation
+        if (this.lootSystem) {
+            this.lootSystem.animateAttraction(orb, this.player, () => {
                 if (orb && orb.active) {
                     this.addXP(orb.xpAmount);
                     orb.destroy();
                     // Auto-collected XP
                 }
-            }
-        });
+            });
+        }
     }
     
     addXP(amount) {
@@ -1861,15 +1822,9 @@ export class GameScene extends Phaser.Scene {
         this.levelTransitionText.setText(`LEVEL ${this.currentLevel}`);
         this.levelTransitionSubText.setText('Připrav se na další výzvu!');
         
-        // Show with fade in
-        this.levelTransitionContainer.setAlpha(0);
+        // Show immediately (tweens will be handled by GameUIScene in Step 8C)
+        this.levelTransitionContainer.setAlpha(1);
         this.levelTransitionContainer.setVisible(true);
-        
-        this.tweens.add({
-            targets: this.levelTransitionContainer,
-            alpha: 1,
-            duration: 500
-        });
         
         // Heal player a bit as reward
         if (this.player && this.player.active) {
@@ -1882,14 +1837,9 @@ export class GameScene extends Phaser.Scene {
     hideLevelTransition() {
         if (!this.levelTransitionContainer) return;
         
-        this.tweens.add({
-            targets: this.levelTransitionContainer,
-            alpha: 0,
-            duration: 500,
-            onComplete: () => {
-                this.levelTransitionContainer.setVisible(false);
-            }
-        });
+        // Hide immediately (tweens will be handled by GameUIScene in Step 8C)
+        this.levelTransitionContainer.setAlpha(0);
+        this.levelTransitionContainer.setVisible(false);
     }
     
     clearAllEnemies() {

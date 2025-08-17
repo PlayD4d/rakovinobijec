@@ -464,6 +464,50 @@ export class SimpleLootSystem {
         console.log('[SimpleLootSystem] Item textures generated');
     }
     
+    /**
+     * Animate pickup item with pulsing effect
+     * Used for special items like metotrexat
+     */
+    animatePickup(item) {
+        if (!this.scene.tweens || !item || !item.active) return null;
+        
+        return this.scene.tweens.add({
+            targets: item,
+            scale: 1.2,
+            duration: 500,
+            yoyo: true,
+            repeat: -1
+        });
+    }
+    
+    /**
+     * Animate item attraction to target (XP magnet effect)
+     * Handles pause fallback - immediately moves item if time is paused
+     */
+    animateAttraction(item, target, onComplete) {
+        if (!item || !item.active || !target) return null;
+        
+        // If time is paused, immediately move to target
+        if (this.scene.time?.paused) {
+            item.x = target.x;
+            item.y = target.y;
+            if (onComplete) onComplete();
+            return null;
+        }
+        
+        // Normal tween animation
+        return this.scene.tweens.add({
+            targets: item,
+            x: target.x,
+            y: target.y,
+            duration: 800,
+            ease: 'Power2',
+            onComplete: () => {
+                if (onComplete) onComplete();
+            }
+        });
+    }
+    
     shutdown() {
         // Stop all tweens on loot objects
         if (this.scene && this.scene.tweens && this.lootGroup) {
