@@ -1,16 +1,227 @@
 {
-  "timestamp": "2025-08-17T09:57:32.002Z",
+  "timestamp": "2025-08-17T11:00:20.239Z",
   "summary": {
     "totalKeys": 89,
-    "missingKeys": 0,
+    "missingKeys": 30,
     "todoKeys": 0,
     "coverage": {
       "totalKeys": 89,
-      "missingKeys": 0,
+      "missingKeys": 30,
       "todoKeys": 0,
-      "coverage": "100.0%"
+      "coverage": "66.3%"
     }
   },
-  "missingTranslations": [],
+  "missingTranslations": [
+    {
+      "key": "enemy.fungal_parasite.name",
+      "locale": "cs",
+      "entityId": "enemy.fungal_parasite",
+      "entityType": "enemy",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "enemy.fungal_parasite.desc",
+      "locale": "cs",
+      "entityId": "enemy.fungal_parasite",
+      "entityType": "enemy",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "enemy.support_bacteria.name",
+      "locale": "cs",
+      "entityId": "enemy.support_bacteria",
+      "entityType": "enemy",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "enemy.support_bacteria.desc",
+      "locale": "cs",
+      "entityId": "enemy.support_bacteria",
+      "entityType": "enemy",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "elite.artillery_fungus.name",
+      "locale": "cs",
+      "entityId": "elite.artillery_fungus",
+      "entityType": "elite",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "elite.artillery_fungus.desc",
+      "locale": "cs",
+      "entityId": "elite.artillery_fungus",
+      "entityType": "elite",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "elite.micro_shooter.name",
+      "locale": "cs",
+      "entityId": "elite.micro_shooter",
+      "entityType": "elite",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "elite.micro_shooter.name",
+      "locale": "en",
+      "entityId": "elite.micro_shooter",
+      "entityType": "elite",
+      "suggested": "TODO – add translation"
+    },
+    {
+      "key": "elite.micro_shooter.desc",
+      "locale": "cs",
+      "entityId": "elite.micro_shooter",
+      "entityType": "elite",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "elite.micro_shooter.desc",
+      "locale": "en",
+      "entityId": "elite.micro_shooter",
+      "entityType": "elite",
+      "suggested": "TODO – add translation"
+    },
+    {
+      "key": "elite.speed_virus.name",
+      "locale": "cs",
+      "entityId": "elite.speed_virus",
+      "entityType": "elite",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "elite.speed_virus.desc",
+      "locale": "cs",
+      "entityId": "elite.speed_virus",
+      "entityType": "elite",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "elite.tank_cell.name",
+      "locale": "cs",
+      "entityId": "elite.tank_cell",
+      "entityType": "elite",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "elite.tank_cell.desc",
+      "locale": "cs",
+      "entityId": "elite.tank_cell",
+      "entityType": "elite",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "unique.golden_cell.name",
+      "locale": "cs",
+      "entityId": "unique.golden_cell",
+      "entityType": "unique",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "unique.golden_cell.desc",
+      "locale": "cs",
+      "entityId": "unique.golden_cell",
+      "entityType": "unique",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "unique.rainbow_virus.name",
+      "locale": "cs",
+      "entityId": "unique.rainbow_virus",
+      "entityType": "unique",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "unique.rainbow_virus.desc",
+      "locale": "cs",
+      "entityId": "unique.rainbow_virus",
+      "entityType": "unique",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "projectile.cytotoxin_enhanced.name",
+      "locale": "cs",
+      "entityId": "projectile.cytotoxin_enhanced",
+      "entityType": "projectile",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "projectile.cytotoxin_enhanced.name",
+      "locale": "en",
+      "entityId": "projectile.cytotoxin_enhanced",
+      "entityType": "projectile",
+      "suggested": "TODO – add translation"
+    },
+    {
+      "key": "projectile.cytotoxin_enhanced.desc",
+      "locale": "cs",
+      "entityId": "projectile.cytotoxin_enhanced",
+      "entityType": "projectile",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "projectile.cytotoxin_enhanced.desc",
+      "locale": "en",
+      "entityId": "projectile.cytotoxin_enhanced",
+      "entityType": "projectile",
+      "suggested": "TODO – add translation"
+    },
+    {
+      "key": "projectile.cytotoxin_small.name",
+      "locale": "cs",
+      "entityId": "projectile.cytotoxin_small",
+      "entityType": "projectile",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "projectile.cytotoxin_small.name",
+      "locale": "en",
+      "entityId": "projectile.cytotoxin_small",
+      "entityType": "projectile",
+      "suggested": "TODO – add translation"
+    },
+    {
+      "key": "projectile.cytotoxin_small.desc",
+      "locale": "cs",
+      "entityId": "projectile.cytotoxin_small",
+      "entityType": "projectile",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "projectile.cytotoxin_small.desc",
+      "locale": "en",
+      "entityId": "projectile.cytotoxin_small",
+      "entityType": "projectile",
+      "suggested": "TODO – add translation"
+    },
+    {
+      "key": "projectile.player_basic.name",
+      "locale": "cs",
+      "entityId": "projectile.player_basic",
+      "entityType": "projectile",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "projectile.player_basic.name",
+      "locale": "en",
+      "entityId": "projectile.player_basic",
+      "entityType": "projectile",
+      "suggested": "TODO – add translation"
+    },
+    {
+      "key": "projectile.player_basic.desc",
+      "locale": "cs",
+      "entityId": "projectile.player_basic",
+      "entityType": "projectile",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "projectile.player_basic.desc",
+      "locale": "en",
+      "entityId": "projectile.player_basic",
+      "entityType": "projectile",
+      "suggested": "TODO – add translation"
+    }
+  ],
   "todoTranslations": []
 }

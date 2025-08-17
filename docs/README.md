@@ -19,11 +19,27 @@
 
 ## 📋 Speciální dokumenty
 
-### 🔧 [Dev_Guidelines.md](../Dev_Guidelines.md)
-Pravidla PR7 compliance a kodingové standardy
+### 🏛️ [ARCHITECTURE.md](./ARCHITECTURE.md) **NOVÉ!**
+**Kompletní architektonický přehled** - Patterns a principy:
+- Capability-based Design Pattern
+- Thin Composer Pattern  
+- Resource Management (DisposableRegistry)
+- Guard Rules a jejich implementace
+- Migrace legacy kódu
 
-### 📝 [Refactor_TODO.md](../Refactor_TODO.md)
-Seznam refactoring úkolů a plánovaných změn
+### 📝 [CODE_STANDARDS.md](./CODE_STANDARDS.md) **NOVÉ!**
+**Kódové standardy a konvence**:
+- Limity velikosti souborů (max 500 LOC)
+- Naming conventions
+- Import struktura a komentáře
+- Best practices a anti-patterns
+- Code review checklist
+
+### 🔧 [Dev_Guidelines.md](../Dev_Guidelines.md) **AKTUALIZOVÁNO!**
+Pravidla PR7 compliance a architektonické vzory:
+- Nové sekce o Capability-based design
+- Anti-patterns to avoid
+- Guard rules checking
 
 ### 📊 [README.md](../README.md)
 Hlavní README projektu s přehledem a instalací
@@ -55,23 +71,51 @@ js/
 
 ---
 
+## ⚠️ Důležitá architektonická pravidla
+
+### 🚫 Co NIKDY nedělat
+- **Soubory > 500 LOC** - rozdělte na komponenty
+- **Phaser API v behaviors** - použijte capability interface
+- **Cyklické závislosti** - A→B→A = problém
+- **Hardcoded hodnoty** - vše do blueprintů
+- **Direct scene manipulation** - použijte systémy
+
+### ✅ Co VŽDY dodržovat
+- **Capability-based design** - oddělte Phaser od logiky
+- **Thin Composer pattern** - hlavní třída jen orchestruje
+- **Pure functions** - behaviors bez side-effects
+- **Guard rules** - spusťte `./dev/refactor/check_enemy_guards.sh`
+- **DisposableRegistry** - pro timery a eventy
+
+→ Detaily v [ARCHITECTURE.md](./ARCHITECTURE.md) a [CODE_STANDARDS.md](./CODE_STANDARDS.md)
+
+---
+
 ## 🎯 Quick Start
 
 **1. Začínáte s vývojem?**
 → Čtěte [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)
+→ Prostudujte [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 **2. Přidáváte nový obsah?**
 → Použijte templates v `data/blueprints/templates/`
+→ Dodržte [CODE_STANDARDS.md](./CODE_STANDARDS.md)
 → F9 pro hot-reload změn
 
-**3. Testujete změny?**
-→ F7 Boss Playground pro bosse
-→ F8 SFX Soundboard pro zvuky
-→ DEV console commands pro debug
+**3. Refaktorujete velký soubor?**
+→ Postupujte podle [ARCHITECTURE.md](./ARCHITECTURE.md#refaktoring-velkých-souborů)
+→ Použijte capability-based design
+→ Ověřte guard rules
 
 **4. Před commitem:**
 ```bash
+# Data validace
 npm run audit:data:strict
+
+# Guard rules check
+./dev/refactor/check_enemy_guards.sh
+
+# Všechny testy
 npm run verify:all
 ```
 

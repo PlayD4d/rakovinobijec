@@ -23,6 +23,10 @@ Rakovinobijec je 2D top-down survival hra, kde hráč bojuje proti rakovinným b
 - **Žádné legacy kódy** - pouze moderní systémy
 - **VFX/SFX systémy** - data-driven přes registry nebo direct file paths
 - **GraphicsFactory** - centralizované vytváření grafických objektů s poolingem
+- **Capability-based design** - oddělení Phaser API od business logiky
+- **Thin Composer pattern** - minimální hlavní třídy, delegace na komponenty
+- **Pure functions** - behaviors bez side-effects
+- **Max 500 LOC** - žádné monolitické soubory
 
 ### Adresářová struktura
 ```
@@ -59,6 +63,185 @@ Blueprint je JSON5 soubor, který definuje entitu ve hře. Každý nepřítel, b
 - **Power-up**: `powerup.nazev_powerup`
 - **Projektil**: `projectile.nazev_projektil`
 - **Loot**: `drop.nazev_drop`
+
+---
+
+## 🏛️ Architektonické vzory
+
+### Capability-based Design (Enemy systém)
+
+Oddělujeme Phaser API od business logiky pomocí capability interface:
+
+```javascript
+// 1. Core třída (EnemyCore.js) - Phaser integrace
+class EnemyCore extends Phaser.Physics.Arcade.Sprite {
+    // Capability methods - abstrakce Phaser API
+    getPos() { return { x: this.x, y: this.y }; }
+    setVelocity(vx, vy) { this.body.setVelocity(vx, vy); }
+    shoot(pattern, opts) { /* ProjectileSystem */ }
+    playSfx(id) { /* AudioSystem */ }
+    spawnVfx(id, pos) { /* VFXSystem */ }
+}
+
+// 2. Behavior - pure function, žádné Phaser API
+export function chase(cap, cfg, dt) {
+    const pos = cap.getPos();        // Použití capability
+    const player = cap.scene?.player;
+    
+    // Výpočet bez side-effects
+    const dx = player.x - pos.x;
+    const dy = player.y - pos.y;
+    
+    // Aplikace přes capability
+    cap.setVelocity(vx, vy);
+    
+    return nextState;  // Vrací další stav
+}
+
+// 3. Router (EnemyBehaviors.js) - state machine
+class EnemyBehaviors {
+    update(time, delta) {
+        const behavior = BEHAVIORS[this.state];
+        const nextState = behavior(this.capability, cfg, dt);
+        if (nextState) this.transitionTo(nextState);
+    }
+}
+
+// 4. Composer (Enemy.js) - thin orchestrator
+class Enemy extends EnemyCore {
+    constructor(scene, blueprint, opts) {
+        super(scene, blueprint, opts);
+        this.behaviors = new EnemyBehaviors(this);
+    }
+    update(time, delta) {
+        this.behaviors.update(time, delta);
+    }
+}
+```
+
+### Thin Composer Pattern
+
+Hlavní třídy jsou pouze orchestrátory:
+
+```javascript
+// ŠPATNĚ - monolitický soubor (900+ LOC)
+class Enemy {
+    constructor() { /* 100 řádků */ }
+    update() { /* 50 řádků AI logiky */ }
+    takeDamage() { /* 30 řádků */ }
+    shootProjectile() { /* 40 řádků */ }
+    // ... dalších 20 metod
+}
+
+// SPRÁVNĚ - thin composer
+class Enemy extends EnemyCore {
+    constructor(scene, blueprint, opts) {
+        super(scene, blueprint, opts);        // Core
+        this.behaviors = new EnemyBehaviors(this); // AI
+    }
+    
+    update(time, delta) {
+        this.behaviors.update(time, delta);   // Delegace
+    }
+}
+```
+
+### DisposableRegistry Pattern
+
+Správa zdrojů a prevence memory leaks:
+
+```javascript
+class EnemyCore {
+    constructor(scene) {
+        // Registrace pro automatický cleanup
+        if (scene.disposableRegistry) {
+            this.disposables = scene.disposableRegistry.create(this);
+        }
+    }
+    
+    schedule(fn, ms) {
+        const timer = this.scene.time.delayedCall(ms, fn);
+        // Automatické sledování pro cleanup
+        if (this.disposables?.trackTimer) {
+            this.disposables.trackTimer(timer);
+        }
+        return timer;
+    }
+    
+    cleanup() {
+        // Automatický cleanup všech timerů
+        if (this.disposables) {
+            this.disposables.disposeAll();
+        }
+    }
+}
+```
+
+---
+
+## 🔧 Refaktoring velkých souborů
+
+### Kdy refaktorovat?
+- Soubor má **více než 500 LOC**
+- Třída má **více než 10 metod**
+- Mixing Phaser API s business logikou
+- Cyklické závislosti
+
+### Postup refaktoringu (příklad Enemy)
+
+#### 1. Analýza a rozdělení
+```bash
+# Analyzujte velikost
+wc -l js/entities/Enemy.js  # 912 řádků - nutný refaktor!
+
+# Identifikujte komponenty
+- Core/Phaser funkcionalita → EnemyCore.js
+- AI behaviors → EnemyBehaviors.js + behaviors/*.js
+- Hlavní interface → Enemy.js (thin composer)
+```
+
+#### 2. Vytvoření capability interface
+```javascript
+// EnemyCore.js - všechna Phaser API zde
+class EnemyCore extends Phaser.Physics.Arcade.Sprite {
+    // Capability methods pro behaviors
+    getPos() { return { x: this.x, y: this.y }; }
+    setVelocity(vx, vy) { this.body.setVelocity(vx, vy); }
+    // ... další capabilities
+}
+```
+
+#### 3. Extrakce behaviors jako pure functions
+```javascript
+// behaviors/chase.js - žádné Phaser API!
+export function chase(cap, cfg, dt) {
+    // Pure function - pouze výpočty
+    const pos = cap.getPos();
+    // ... logika
+    return nextState;
+}
+```
+
+#### 4. Guard rules check
+```bash
+# Spusťte guard script
+./dev/refactor/check_enemy_guards.sh
+
+# Ověřte:
+✅ No Phaser API in behaviors
+✅ No circular dependencies
+✅ Pure functions only
+```
+
+#### 5. Memory leak test
+```javascript
+// V konzoli
+for(let i = 0; i < 100; i++) {
+    DEV.spawnEnemy("enemy.viral_swarm");
+}
+DEV.killAll();
+// Check memory v DevTools
+```
 
 ---
 

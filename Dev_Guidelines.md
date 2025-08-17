@@ -17,12 +17,95 @@
 - **VFX/SFX Registry**: Handles visual/audio effects.
 - **GraphicsFactory**: Centralized graphics object creation with pooling.
 
+## Architectural Patterns
+
+### Capability-based Design
+Používáme pro oddělení Phaser API od business logiky:
+- **Core třída** poskytuje capability interface (viz `EnemyCore.js`)
+- **Behaviors** jsou pure functions bez side-effects
+- **Žádné přímé volání** Phaser API v behaviors
+- **Komunikace** pouze přes capability methods
+
+Příklad capability interface:
+```javascript
+// EnemyCore poskytuje capabilities
+class EnemyCore {
+    getPos() { return { x: this.x, y: this.y }; }
+    setVelocity(vx, vy) { this.body.setVelocity(vx, vy); }
+    shoot(pattern, opts) { /* delegate to ProjectileSystem */ }
+}
+
+// Behavior je pure function
+export function chase(cap, cfg, dt) {
+    const pos = cap.getPos();  // Použití capability
+    cap.setVelocity(vx, vy);   // Žádné přímé Phaser API
+    return nextState;           // Vrací další stav
+}
+```
+
+### Thin Composer Pattern
+Hlavní třída je pouze tenký orchestrátor:
+- **Minimální vlastní logika** - pouze compose komponenty
+- **Deleguje na specializované moduly** - každý má jednu zodpovědnost
+- **Čistý public interface** - skrývá interní složitost
+
+Příklad:
+```javascript
+// Enemy.js - thin composer
+class Enemy extends EnemyCore {
+    constructor(scene, blueprint, opts) {
+        super(scene, blueprint, opts);           // Core funkcionalita
+        this.behaviors = new EnemyBehaviors(this); // AI behaviors
+    }
+    
+    update(time, delta) {
+        this.behaviors.update(time, delta);      // Delegace
+    }
+}
+```
+
+### DisposableRegistry Pattern
+Pro správu životního cyklu zdrojů:
+- **Automatický cleanup** timerů a event listenerů
+- **Prevence memory leaks**
+- **Centralizovaná správa** disposable zdrojů
+
+## Anti-patterns to Avoid
+
+### ❌ Monolitické soubory
+- Soubory větší než **500 LOC** jsou red flag
+- Rozdělte na logické komponenty
+- Použijte Thin Composer pattern
+
+### ❌ Cyklické závislosti
+- A importuje B, B importuje A = problém
+- Použijte capability interface místo přímých importů
+- Dependency injection přes constructor
+
+### ❌ Phaser API v business logice
+- Behaviors nesmí volat `scene.add.*`, `this.scene.*`
+- Veškerá Phaser interakce pouze v Core třídách
+- Business logika musí být framework-agnostic
+
+### ❌ Mutable globální state
+- Žádné globální proměnné
+- State pouze v příslušných třídách
+- Komunikace přes events nebo DI
+
+### ❌ Těsně provázané systémy
+- Systémy komunikují pouze přes definované interface
+- Žádné přímé reference mezi nesouvisejícími moduly
+- Loose coupling, high cohesion
+
 ## Prohibited
 - Hardcoded gameplay constants in code.
 - Legacy imports from `/js/data/enemies/`, `/js/data/bosses/`, `/js/data/player/`, `/js/data/powerups/`.
 - Any feature flag branches for old systems.
 - Direct Phaser API calls for VFX/SFX from gameplay logic.
 - Direct `scene.add.graphics()` calls – use GraphicsFactory instead.
+- Files larger than 500 LOC without approved exception.
+- Circular dependencies between modules.
+- Phaser API calls in pure functions/behaviors.
 
 ## Content Creation
 
@@ -250,6 +333,34 @@ vfxRegistry.register('vfx.custom.effect', {
 - `window.__framework.healthcheck()` → potvrďte `modernSystemsActive: true`, `spawnedFromLegacy: 0`,
   `spawnedFromSpawnTables > 0`.
 - `window.__framework.smokeTest()` → základní simulace včetně detekce legacy volání.
+
+### 8) Guard Rules Check
+
+Pro ověření architektonických pravidel používejte guard scripty:
+
+**Check Enemy behaviors:**
+```bash
+./dev/refactor/check_enemy_guards.sh
+```
+
+Ověřuje:
+- ✅ Žádné Phaser API v behaviors
+- ✅ Žádné přímé scene manipulace
+- ✅ Žádné cyklické závislosti
+- ✅ Pure functions only
+- ✅ Všechny capability methods implementovány
+
+**Manuální kontrola:**
+```bash
+# Phaser API v behaviors
+grep -r "Phaser\." js/entities/ai/behaviors/
+
+# Scene manipulace
+grep -r "scene\.\(add\|physics\|sound\)" js/entities/ai/behaviors/
+
+# Cyklické závislosti
+grep -r "import.*Enemy" js/entities/ai/behaviors/
+```
 
 ---
 **Nejčastější chyby & řešení**
