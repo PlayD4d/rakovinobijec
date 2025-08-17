@@ -1,29 +1,22 @@
 {
-  // Enhanced cytotoxin projectile for elite enemies
   id: 'projectile.cytotoxin_enhanced',
   type: 'projectile',
-  
-  // Enhanced stats (unified format)
   stats: {
-    damage: 12,           // Higher damage than basic
-    speed: 320,           // Faster than regular
-    range: 900,           // Longer range
-    size: 10,             // Larger projectile
-    pierce: 0,            // No piercing
-    lifetime: 3.0,        // Longer lifespan
-    critChance: 0.15,     // 15% crit chance
-    critMultiplier: 2.0,  // 2x damage on crit
+    damage: 12,
+    speed: 320,
+    range: 900,
+    size: 10,
+    pierce: 0,
+    lifetime: 3,
+    critChance: 0.15,
+    critMultiplier: 2,
   },
-  
-  // Graphics configuration for shape rendering
   graphics: {
-    shape: 'star',        // Star shape for enhanced projectiles
-    tint: 0xFF9800,       // Orange color
-    size: 10,             // Size in pixels
-    scale: 1.2
+    shape: 'star',
+    tint: 16750592,
+    size: 10,
+    scale: 1.2,
   },
-  
-  // Enhanced mechanics
   mechanics: {
     onHit: 'none',
     pierceDecay: 0,
@@ -32,34 +25,27 @@
       vfx: 'trail.small',
       fadeTime: 400,
     },
-    homing: true,         // Light homing ability
-    homingStrength: 0.5,  // Moderate tracking
+    homing: true,
+    homingStrength: 0.5,
     bounce: false,
-    // DOT effect
     dot: {
       enabled: true,
-      damage: 2,          // 2 damage per tick
-      duration: 3000,     // 3 seconds
-      tickInterval: 500,  // Every 0.5 seconds
-    }
+      damage: 2,
+      duration: 3000,
+      tickInterval: 500,
+    },
   },
-  
-  // VFX effects
   vfx: {
-    spawn: 'effect',
-    trail: 'trail.small',
-    hit: 'hit.small',
-    expire: 'hit.small',
+    spawn: 'vfx.effect',
+    trail: 'vfx.trail.small',
+    hit: 'vfx.hit.small',
+    expire: 'vfx.hit.small',
   },
-  
-  // SFX sounds
   sfx: {
     spawn: 'sound/laser.mp3',
     hit: 'sound/laser.mp3',
     expire: 'sound/projectile_hit.mp3',
   },
-  
-  // Display info
   display: {
     key: 'projectile.cytotoxin_enhanced.name',
     descKey: 'projectile.cytotoxin_enhanced.desc',
@@ -82,5 +68,5 @@
     ],
     devNameFallback: 'Vylepšený cytotoxin',
     devDescFallback: 'Silnější verze cytotoxického projektilu s DOT efektem',
-  }
+  },
 }

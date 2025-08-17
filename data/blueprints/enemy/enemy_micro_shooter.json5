@@ -5,7 +5,7 @@
     hp: 20,
     damage: 5,
     speed: 95,
-    size: 14,  // Increased from 10 to be more visible
+    size: 14,
     armor: 0,
     xp: 2,
   },
@@ -25,7 +25,7 @@
   graphics: {
     sprite: 'enemy_micro_shooter',
     tint: 16733986,
-    scale: 1.0,
+    scale: 1,
     animation: {
       idle: 'shooter_idle',
       move: 'shooter_move',
@@ -43,15 +43,17 @@
       shootInterval: 2400,
     },
   },
-  // Direct drop system - consumables only (XP comes from stats.xp)
   drops: [
-    { itemId: 'item.health_small', chance: 0.07 }  // 7% chance for health
+    {
+      itemId: 'item.health_small',
+      chance: 0.07,
+    },
   ],
   vfx: {
-    spawn: 'spawn',
-    hit: 'enemy.hit',
-    death: 'death.medium',
-    shoot: 'enemy.shoot',
+    spawn: 'vfx.spawn',
+    hit: 'vfx.enemy.hit',
+    death: 'vfx.death.medium',
+    shoot: 'vfx.enemy.shoot',
   },
   sfx: {
     spawn: 'sound/npc_spawn.mp3',

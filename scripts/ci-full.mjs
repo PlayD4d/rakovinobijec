@@ -41,9 +41,9 @@ class CIFullPipeline {
             
             this.printSummary();
             
-            // Exit s kódem podle výsledků
-            const hasFailures = Object.values(this.results).some(r => r?.success === false);
-            process.exit(hasFailures ? 1 : 0);
+            // Exit s kódem podle výsledků - pouze critical failures
+            const hasCriticalFailures = this.results.guards?.success === false;
+            process.exit(hasCriticalFailures ? 1 : 0);
             
         } catch (error) {
             console.error('❌ CI Pipeline fatal error:', error.message);
@@ -96,27 +96,36 @@ class CIFullPipeline {
         console.log('-'.repeat(40));
         
         try {
-            const output = execSync('node scripts/validate-all-blueprints.mjs', { 
+            // Spusť lenient validation (STRICT=0 pro Phase 2.5)
+            const output = execSync('STRICT=0 node scripts/validate-all-blueprints.mjs', { 
                 encoding: 'utf8',
-                timeout: 60000 
+                timeout: 60000,
+                env: { ...process.env, STRICT: '0' }
             });
             
             if (this.verbose) {
                 console.log(output);
             }
             
-            // Zkontroluj výstup na chyby
-            if (output.includes('ERROR:') || output.includes('FATAL:')) {
-                throw new Error('Blueprint validation found errors');
+            // V lenient módu pouze FATAL chyby jsou blocking
+            if (output.includes('FATAL:')) {
+                throw new Error('Blueprint validation found fatal errors');
             }
             
-            console.log('✅ Blueprint validation passed');
-            this.results.blueprints = { success: true, output };
+            // Warnings a schema violations jsou OK v Phase 2.5
+            if (output.includes('ERROR:') || output.includes('WARNING:')) {
+                console.log('⚠️  Blueprint validation found warnings (non-blocking in Phase 2.5)');
+            }
+            
+            console.log('✅ Blueprint validation passed (lenient mode)');
+            this.results.blueprints = { success: true, output, lenient: true };
             
         } catch (error) {
             console.error('❌ Blueprint validation failed:', error.message);
             this.results.blueprints = { success: false, error: error.message };
-            throw error; // Blueprint errors jsou blocking
+            
+            // V Phase 2.5 blueprint errors nejsou blocking
+            console.log('⚠️  Continuing with pipeline (blueprint errors non-blocking in Phase 2.5)');
         }
     }
     

@@ -1,168 +1,186 @@
 {
-  // Blueprint: boss.onkogen_prime
-  "id": "boss.onkogen_prime",
-  "type": "boss",
-  "stats": {
-    "hp": 1200,
-    "damage": 25,
-    "speed": 45,
-    "size": 35,
-    "armor": 8,
-    "xp": 250
+  id: 'boss.onkogen_prime',
+  type: 'boss',
+  stats: {
+    hp: 1200,
+    damage: 25,
+    speed: 45,
+    size: 35,
+    armor: 8,
+    xp: 250,
   },
-  "visuals": {
-    "textureKey": "boss.onkogen_prime",
-    "tint": 0xE91E63,
-    "size": { "w": 35, "h": 35 }
+  visuals: {
+    textureKey: 'boss.onkogen_prime',
+    tint: 15277667,
+    size: {
+      w: 35,
+      h: 35,
+    },
   },
-  "mechanics": {
-    "phases": [
+  mechanics: {
+    phases: [
       {
-        "thresholdPct": 0.66,
-        "abilities": [
-          "shoot_fans",
-          "summon_minions"
+        thresholdPct: 0.66,
+        abilities: [
+          'shoot_fans',
+          'summon_minions',
         ],
-        "movePattern": "slow_orbit",
-        "aggressionLevel": "moderate"
+        movePattern: 'slow_orbit',
+        aggressionLevel: 'moderate',
       },
       {
-        "thresholdPct": 0.33,
-        "abilities": [
-          "circle_burst",
-          "dash_attack",
-          "shoot_fans"
+        thresholdPct: 0.33,
+        abilities: [
+          'circle_burst',
+          'dash_attack',
+          'shoot_fans',
         ],
-        "movePattern": "aggressive_orbit",
-        "aggressionLevel": "high"
+        movePattern: 'aggressive_orbit',
+        aggressionLevel: 'high',
       },
       {
-        "thresholdPct": 0,
-        "abilities": [
-          "laser_sweep",
-          "rapid_spawns",
-          "circle_burst",
-          "enrage_mode"
+        thresholdPct: 0,
+        abilities: [
+          'laser_sweep',
+          'rapid_spawns',
+          'circle_burst',
+          'enrage_mode',
         ],
-        "movePattern": "erratic_dash",
-        "aggressionLevel": "extreme"
-      }
+        movePattern: 'erratic_dash',
+        aggressionLevel: 'extreme',
+      },
     ],
-    "abilities": {
-      "shoot_fans": {
-        "projectileRef": "projectile.onkogen_shot",
-        "count": 5,
-        "spreadDeg": 35,
-        "interval": 2200,
-        "damage": 20,
-        "inaccuracy": 0.1
+    abilities: {
+      shoot_fans: {
+        projectileRef: 'projectile.onkogen_shot',
+        count: 5,
+        spreadDeg: 35,
+        interval: 2200,
+        damage: 20,
+        inaccuracy: 0.1,
       },
-      "circle_burst": {
-        "projectileRef": "projectile.onkogen_shot",
-        "count": 16,
-        "speed": 280,
-        "interval": 4500,
-        "damage": 15,
-        "pattern": "perfect_circle"
+      circle_burst: {
+        projectileRef: 'projectile.onkogen_shot',
+        count: 16,
+        speed: 280,
+        interval: 4500,
+        damage: 15,
+        pattern: 'perfect_circle',
       },
-      "dash_attack": {
-        "dashSpeed": 350,
-        "dashDistance": 200,
-        "chargeTime": 1200,
-        "cooldown": 3800,
-        "damage": 35,
-        "stunDuration": 800
+      dash_attack: {
+        dashSpeed: 350,
+        dashDistance: 200,
+        chargeTime: 1200,
+        cooldown: 3800,
+        damage: 35,
+        stunDuration: 800,
       },
-      "laser_sweep": {
-        "damage": 12,
-        "sweepDuration": 2500,
-        "rotationSpeed": 180,
-        "warningTime": 1000,
-        "range": 400,
-        "thickness": 8
+      laser_sweep: {
+        damage: 12,
+        sweepDuration: 2500,
+        rotationSpeed: 180,
+        warningTime: 1000,
+        range: 400,
+        thickness: 8,
       },
-      "summon_minions": {
-        "enemyTypes": ["enemy.viral_swarm"],
-        "count": 4,
-        "spreadRadius": 120,
-        "interval": 8000
+      summon_minions: {
+        enemyTypes: [
+          'enemy.viral_swarm',
+        ],
+        count: 4,
+        spreadRadius: 120,
+        interval: 8000,
       },
-      "rapid_spawns": {
-        "enemyTypes": ["enemy.necrotic_cell"],
-        "count": 3,
-        "spreadRadius": 150,
-        "interval": 3500
+      rapid_spawns: {
+        enemyTypes: [
+          'enemy.necrotic_cell',
+        ],
+        count: 3,
+        spreadRadius: 150,
+        interval: 3500,
       },
-      "enrage_mode": {
-        "trigger": "low_hp",
-        "speedMultiplier": 1.8,
-        "damageMultiplier": 1.5,
-        "abilitySpeedMultiplier": 0.6,
-        "duration": 15000
-      }
+      enrage_mode: {
+        trigger: 'low_hp',
+        speedMultiplier: 1.8,
+        damageMultiplier: 1.5,
+        abilitySpeedMultiplier: 0.6,
+        duration: 15000,
+      },
     },
-    "resistances": {
-      "pierce": 0.6,
-      "explosion": 0.4
-    }
+    resistances: {
+      pierce: 0.6,
+      explosion: 0.4,
+    },
   },
-  "vfx": {
-    "spawn": 'boss.special',
-    "phase1": 'boss.special',
-    "phase2": 'boss.special',
-    "phase3": 'boss.special',
-    "death": 'boss.special',
-    "shoot_fans": 'boss.special',
-    "summon_minions": 'boss.special',
-    "circle_burst": 'boss.special',
-    "dash_attack": 'boss.special',
-    "laser_sweep": 'boss.special',
-    "rapid_spawns": 'boss.special',
-    "enrage_mode": 'boss.special'
+  vfx: {
+    spawn: 'vfx.boss.special',
+    phase1: 'vfx.boss.special',
+    phase2: 'vfx.boss.special',
+    phase3: 'vfx.boss.special',
+    death: 'vfx.boss.special',
+    shoot_fans: 'vfx.boss.special',
+    summon_minions: 'vfx.boss.special',
+    circle_burst: 'vfx.boss.special',
+    dash_attack: 'vfx.boss.special',
+    laser_sweep: 'vfx.boss.special',
+    rapid_spawns: 'vfx.boss.special',
+    enrage_mode: 'vfx.boss.special',
   },
-  "sfx": {
-    "spawn": 'sound/boss_spawn.mp3',
-    "phase1": 'sound/boss_hit.mp3',
-    "phase2": 'sound/boss_hit.mp3',
-    "phase3": 'sound/boss_hit.mp3',
-    "death": 'sound/boss_hit.mp3',
-    "shoot_fans": 'sound/boss_hit.mp3',
-    "summon_minions": 'sound/boss_hit.mp3',
-    "circle_burst": 'sound/boss_hit.mp3',
-    "dash_attack": 'sound/boss_hit.mp3',
-    "laser_sweep": 'sound/boss_hit.mp3',
-    "rapid_spawns": 'sound/boss_hit.mp3',
-    "enrage_mode": 'sound/boss_hit.mp3'
+  sfx: {
+    spawn: 'sound/boss_spawn.mp3',
+    phase1: 'sound/boss_hit.mp3',
+    phase2: 'sound/boss_hit.mp3',
+    phase3: 'sound/boss_hit.mp3',
+    death: 'sound/boss_hit.mp3',
+    shoot_fans: 'sound/boss_hit.mp3',
+    summon_minions: 'sound/boss_hit.mp3',
+    circle_burst: 'sound/boss_hit.mp3',
+    dash_attack: 'sound/boss_hit.mp3',
+    laser_sweep: 'sound/boss_hit.mp3',
+    rapid_spawns: 'sound/boss_hit.mp3',
+    enrage_mode: 'sound/boss_hit.mp3',
   },
-  // NEW: Direct drop system - consumables only (XP comes from stats.xp)
-  "drops": [
-    { "itemId": "item.protein_cache", "chance": 0.6 },              // 60% chance for full heal
-    { "itemId": "item.energy_cell", "chance": 0.4, "quantity": 3 }, // 40% chance for 3x energy
-    { "itemId": "item.research_point", "chance": 0.25 },            // 25% chance for research
-    { "itemId": "item.metotrexat", "chance": 0.08 }                 // 8% chance for metotrexat
+  drops: [
+    {
+      itemId: 'item.protein_cache',
+      chance: 0.6,
+    },
+    {
+      itemId: 'item.energy_cell',
+      chance: 0.4,
+      quantity: 3,
+    },
+    {
+      itemId: 'item.research_point',
+      chance: 0.25,
+    },
+    {
+      itemId: 'item.metotrexat',
+      chance: 0.08,
+    },
   ],
-  "display": {
-    "key": "boss.onkogen_prime.name",
-    "descKey": "boss.onkogen_prime.desc",
-    "devNameFallback": "Onkogen Prime",
-    "devDescFallback": "Vylepšená verze onkogenu s pokročilými mutačními schopnostmi",
-    "templates": {
-      "short": "{{stats.hp}} HP • 3 fáze • {{stats.armor}} pancíř • střelba + dash",
-      "desc": "Onkogen Nejvyšší s {{stats.hp}} HP a {{stats.armor}} pancířem. Prochází 3 fázemi s různou agresivitou a schopnostmi včetně dash útoků a laser sweepu."
+  display: {
+    key: 'boss.onkogen_prime.name',
+    descKey: 'boss.onkogen_prime.desc',
+    devNameFallback: 'Onkogen Prime',
+    devDescFallback: 'Vylepšená verze onkogenu s pokročilými mutačními schopnostmi',
+    templates: {
+      short: '{{stats.hp}} HP • 3 fáze • {{stats.armor}} pancíř • střelba + dash',
+      desc: 'Onkogen Nejvyšší s {{stats.hp}} HP a {{stats.armor}} pancířem. Prochází 3 fázemi s různou agresivitou a schopnostmi včetně dash útoků a laser sweepu.',
     },
-    "color": "#FF5722",
-    "rarity": "boss",
-    "icon": "boss.onkogen_prime",
-    "category": "boss",
-    "sortOrder": 910,
-    "tags": [
-      "boss",
-      "phases",
-      "aggressive",
-      "shoot",
-      "dash",
-      "laser",
-      "summon"
-    ]
-  }
+    color: '#FF5722',
+    rarity: 'boss',
+    icon: 'boss.onkogen_prime',
+    category: 'boss',
+    sortOrder: 910,
+    tags: [
+      'boss',
+      'phases',
+      'aggressive',
+      'shoot',
+      'dash',
+      'laser',
+      'summon',
+    ],
+  },
 }

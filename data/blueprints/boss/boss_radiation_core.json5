@@ -1,197 +1,213 @@
 {
-  // Blueprint: boss.radiation_core
-  "id": "boss.radiation_core",
-  "type": "boss",
-  "stats": {
-    "hp": 750,  // Reduced for first boss
-    "damage": 10,
-    "speed": 30,
-    "size": 60,
-    "armor": 5,  // Reduced armor for better player damage
-    "xp": 300
+  id: 'boss.radiation_core',
+  type: 'boss',
+  stats: {
+    hp: 750,
+    damage: 10,
+    speed: 30,
+    size: 60,
+    armor: 5,
+    xp: 300,
   },
-  "visuals": {
-    "textureKey": "boss.radiation_core",
-    "tint": 0x4CAF50,
-    "size": { "w": 40, "h": 40 }
+  visuals: {
+    textureKey: 'boss.radiation_core',
+    tint: 5025616,
+    size: {
+      w: 40,
+      h: 40,
+    },
   },
-  "mechanics": {
-    "phases": [
+  mechanics: {
+    phases: [
       {
-        "thresholdPct": 1.0,
-        "abilities": [
-          "radiation_pulse",
-          "toxic_pools"
+        thresholdPct: 1,
+        abilities: [
+          'radiation_pulse',
+          'toxic_pools',
         ],
-        "movePattern": "seek_player"
+        movePattern: 'seek_player',
       },
       {
-        "thresholdPct": 0.7,
-        "abilities": [
-          "beam_sweep",
-          "toxic_pools",
-          "summon_irradiated"
+        thresholdPct: 0.7,
+        abilities: [
+          'beam_sweep',
+          'toxic_pools',
+          'summon_irradiated',
         ],
-        "movePattern": "seek_player"
+        movePattern: 'seek_player',
       },
       {
-        "thresholdPct": 0.35,
-        "abilities": [
-          "radiation_storm",
-          "rapid_beams",
-          "massive_summon",
-          "core_overload"
+        thresholdPct: 0.35,
+        abilities: [
+          'radiation_storm',
+          'rapid_beams',
+          'massive_summon',
+          'core_overload',
         ],
-        "movePattern": "seek_player"
-      }
+        movePattern: 'seek_player',
+      },
     ],
-    "abilities": {
-      "radiation_pulse": {
-        "damage": 5,  // Reduced damage for first boss
-        "radius": 140,  // Reduced radius to give player space
-        "expandSpeed": 150,
-        "interval": 4500,  // Less frequent
-        "pulseCount": 2,   // Fewer pulses
-        "pulsInterval": 800,
-        "warningTime": 2000  // More warning time
+    abilities: {
+      radiation_pulse: {
+        damage: 5,
+        radius: 140,
+        expandSpeed: 150,
+        interval: 4500,
+        pulseCount: 2,
+        pulsInterval: 800,
+        warningTime: 2000,
       },
-      "toxic_pools": {
-        "count": 2,  // Reduced minion count
-        "enemyTypes": ["enemy.acidic_blob"],
-        "spreadRadius": 120,
-        "interval": 10000  // Less frequent spawning
-      },
-      "beam_sweep": {
-        "beamCount": 3,  // Reduced beam count
-        "damage": 10,     // Reduced damage for first boss
-        "sweepSpeed": 60, // Slower sweep for easier dodging
-        "beamWidth": 12,
-        "sweepAngle": 120,  // Smaller sweep angle
-        "interval": 5000,    // Less frequent
-        "chargeTime": 2500,  // Much more warning time
-        "range": 300         // Slightly reduced range
-      },
-      "summon_irradiated": {
-        "count": 2,  // Reduced minion count
-        "enemyTypes": [
-          "enemy.viral_swarm_alpha",
-          "enemy.acidic_blob"
+      toxic_pools: {
+        count: 2,
+        enemyTypes: [
+          'enemy.acidic_blob',
         ],
-        "spreadRadius": 180,
-        "interval": 15000  // Much less frequent
+        spreadRadius: 120,
+        interval: 10000,
       },
-      "radiation_storm": {
-        "damage": 3,  // Reduced damage
-        "radius": 250,  // Smaller area
-        "stormDuration": 5000,  // Shorter duration
-        "interval": 10000,  // Less frequent
-        "tickInterval": 400,  // Less frequent ticks
-        "intensityRamp": 1.1,
-        "maxIntensity": 2  // Lower max intensity
+      beam_sweep: {
+        beamCount: 3,
+        damage: 10,
+        sweepSpeed: 60,
+        beamWidth: 12,
+        sweepAngle: 120,
+        interval: 5000,
+        chargeTime: 2500,
+        range: 300,
       },
-      "rapid_beams": {
-        "beamCount": 6,  // Reduced beam count
-        "damage": 8,      // Reduced damage
-        "fireRate": 0.3,  // Slower fire rate
-        "duration": 3000, // Shorter duration
-        "interval": 7000, // Less frequent
-        "trackingSpeed": 80,  // Slower tracking
-        "range": 350      // Reduced range
-      },
-      "massive_summon": {
-        "count": 3,  // Reduced from 6 to 3
-        "enemyTypes": [
-          "enemy.necrotic_cell",
-          "enemy.viral_swarm",
-          "enemy.acidic_blob"
+      summon_irradiated: {
+        count: 2,
+        enemyTypes: [
+          'enemy.viral_swarm_alpha',
+          'enemy.acidic_blob',
         ],
-        "spreadRadius": 220,
-        "interval": 18000  // Less frequent
+        spreadRadius: 180,
+        interval: 15000,
       },
-      "core_overload": {
-        "trigger": "critical_hp",
-        "damage": 20,  // Reduced damage
-        "radius": 200,  // Smaller radius
-        "chargeTime": 5000,  // More warning time
-        "explosionCount": 3,  // Fewer explosions
-        "explosionInterval": 1000,  // Slower explosions
-        "selfDamage": 50
-      }
+      radiation_storm: {
+        damage: 3,
+        radius: 250,
+        stormDuration: 5000,
+        interval: 10000,
+        tickInterval: 400,
+        intensityRamp: 1.1,
+        maxIntensity: 2,
+      },
+      rapid_beams: {
+        beamCount: 6,
+        damage: 8,
+        fireRate: 0.3,
+        duration: 3000,
+        interval: 7000,
+        trackingSpeed: 80,
+        range: 350,
+      },
+      massive_summon: {
+        count: 3,
+        enemyTypes: [
+          'enemy.necrotic_cell',
+          'enemy.viral_swarm',
+          'enemy.acidic_blob',
+        ],
+        spreadRadius: 220,
+        interval: 18000,
+      },
+      core_overload: {
+        trigger: 'critical_hp',
+        damage: 20,
+        radius: 200,
+        chargeTime: 5000,
+        explosionCount: 3,
+        explosionInterval: 1000,
+        selfDamage: 50,
+      },
     },
-    "resistances": {
-      "radiation": 1,
-      "explosion": 0.2
+    resistances: {
+      radiation: 1,
+      explosion: 0.2,
     },
-    "passiveAuras": [
+    passiveAuras: [
       {
-        "type": "radiation_field",
-        "radius": 80,  // Reduced to give player more space
-        "damage": 1,    // Reduced damage for first boss
-        "tickInterval": 1500,  // Less frequent ticks
-        "slowEffect": 0.10     // Reduced slow effect
-      }
-    ]
+        type: 'radiation_field',
+        radius: 80,
+        damage: 1,
+        tickInterval: 1500,
+        slowEffect: 0.1,
+      },
+    ],
   },
-  "vfx": {
-    "spawn": 'boss.special',
-    "phase1": 'boss.special',
-    "phase2": 'boss.special',
-    "phase3": 'boss.special', 
-    "death": 'boss.special',
-    "radiation_pulse": 'boss.special',
-    "toxic_pools": 'boss.special',
-    "beam_sweep": 'boss.special',
-    "summon_irradiated": 'boss.special',
-    "radiation_storm": 'boss.special',
-    "rapid_beams": 'boss.special',
-    "massive_summon": 'boss.special',
-    "core_overload": 'boss.special',
-    "aura": 'boss.special'
+  vfx: {
+    spawn: 'vfx.boss.special',
+    phase1: 'vfx.boss.special',
+    phase2: 'vfx.boss.special',
+    phase3: 'vfx.boss.special',
+    death: 'vfx.boss.special',
+    radiation_pulse: 'vfx.boss.special',
+    toxic_pools: 'vfx.boss.special',
+    beam_sweep: 'vfx.boss.special',
+    summon_irradiated: 'vfx.boss.special',
+    radiation_storm: 'vfx.boss.special',
+    rapid_beams: 'vfx.boss.special',
+    massive_summon: 'vfx.boss.special',
+    core_overload: 'vfx.boss.special',
+    aura: 'vfx.boss.special',
   },
-  "sfx": {
-    "spawn": 'sound/boss_spawn.mp3',
-    "phase1": 'sound/boss_hit.mp3',
-    "phase2": 'sound/boss_hit.mp3',
-    "phase3": 'sound/boss_hit.mp3',
-    "death": 'sound/boss_hit.mp3',
-    "radiation_pulse": 'sound/boss_hit.mp3',
-    "toxic_pools": 'sound/boss_hit.mp3',
-    "beam_sweep": 'sound/boss_hit.mp3',
-    "summon_irradiated": 'sound/boss_hit.mp3',
-    "radiation_storm": 'sound/boss_hit.mp3',
-    "rapid_beams": 'sound/boss_hit.mp3',
-    "massive_summon": 'sound/boss_hit.mp3',
-    "core_overload": 'sound/boss_hit.mp3'
+  sfx: {
+    spawn: 'sound/boss_spawn.mp3',
+    phase1: 'sound/boss_hit.mp3',
+    phase2: 'sound/boss_hit.mp3',
+    phase3: 'sound/boss_hit.mp3',
+    death: 'sound/boss_hit.mp3',
+    radiation_pulse: 'sound/boss_hit.mp3',
+    toxic_pools: 'sound/boss_hit.mp3',
+    beam_sweep: 'sound/boss_hit.mp3',
+    summon_irradiated: 'sound/boss_hit.mp3',
+    radiation_storm: 'sound/boss_hit.mp3',
+    rapid_beams: 'sound/boss_hit.mp3',
+    massive_summon: 'sound/boss_hit.mp3',
+    core_overload: 'sound/boss_hit.mp3',
   },
-  // NEW: Direct drop system - consumables only (XP comes from stats.xp)
-  "drops": [
-    { "itemId": "item.protein_cache", "chance": 0.5 },              // 50% chance for full heal
-    { "itemId": "item.energy_cell", "chance": 0.3, "quantity": 2 }, // 30% chance for 2x energy
-    { "itemId": "item.research_point", "chance": 0.15 },            // 15% chance for research
-    { "itemId": "item.metotrexat", "chance": 0.05 }                 // 5% chance for metotrexat
-  ],
-  "display": {
-    "key": "boss.radiation_core.name",
-    "descKey": "boss.radiation_core.desc",
-    "devNameFallback": "Radiační jádro",
-    "devDescFallback": "Koncentrovaný zdroj radiace způsobující masivní poškození",
-    "templates": {
-      "short": "{{stats.hp}} HP • 3 fáze • {{stats.armor}} pancíř • radiace + zóny",
-      "desc": "Radiační jádro s {{stats.hp}} HP a {{stats.armor}} pancířem. Kontroluje oblast pomocí radiačních pulsů, toxických bazénů a paprsků. Má pasivní radiační auru."
+  drops: [
+    {
+      itemId: 'item.protein_cache',
+      chance: 0.5,
     },
-    "color": "#4CAF50",
-    "rarity": "boss",
-    "icon": "boss.radiation_core",
-    "category": "boss",
-    "sortOrder": 920,
-    "tags": [
-      "boss",
-      "radiation",
-      "zones",
-      "beams",
-      "summon",
-      "area-control",
-      "dot"
-    ]
-  }
+    {
+      itemId: 'item.energy_cell',
+      chance: 0.3,
+      quantity: 2,
+    },
+    {
+      itemId: 'item.research_point',
+      chance: 0.15,
+    },
+    {
+      itemId: 'item.metotrexat',
+      chance: 0.05,
+    },
+  ],
+  display: {
+    key: 'boss.radiation_core.name',
+    descKey: 'boss.radiation_core.desc',
+    devNameFallback: 'Radiační jádro',
+    devDescFallback: 'Koncentrovaný zdroj radiace způsobující masivní poškození',
+    templates: {
+      short: '{{stats.hp}} HP • 3 fáze • {{stats.armor}} pancíř • radiace + zóny',
+      desc: 'Radiační jádro s {{stats.hp}} HP a {{stats.armor}} pancířem. Kontroluje oblast pomocí radiačních pulsů, toxických bazénů a paprsků. Má pasivní radiační auru.',
+    },
+    color: '#4CAF50',
+    rarity: 'boss',
+    icon: 'boss.radiation_core',
+    category: 'boss',
+    sortOrder: 920,
+    tags: [
+      'boss',
+      'radiation',
+      'zones',
+      'beams',
+      'summon',
+      'area-control',
+      'dot',
+    ],
+  },
 }

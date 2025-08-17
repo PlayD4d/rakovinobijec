@@ -1,29 +1,22 @@
 {
-  // Small cytotoxin projectile for basic enemies
   id: 'projectile.cytotoxin_small',
   type: 'projectile',
-  
-  // Small projectile stats
   stats: {
-    damage: 5,            // Low damage for basic enemies
-    speed: 200,           // Slower than enhanced
-    range: 400,           // Short range
-    size: 6,              // Small projectile
-    pierce: 0,            // No piercing
-    lifetime: 2.0,        // Short lifespan
-    critChance: 0.05,     // Low crit chance
-    critMultiplier: 1.5,  // Modest crit multiplier
+    damage: 5,
+    speed: 200,
+    range: 400,
+    size: 6,
+    pierce: 0,
+    lifetime: 2,
+    critChance: 0.05,
+    critMultiplier: 1.5,
   },
-  
-  // Graphics configuration for shape rendering
   graphics: {
-    shape: 'diamond',     // Diamond shape for small projectiles
-    tint: 0x4CAF50,       // Green color
-    size: 6,              // Size in pixels
-    scale: 1.0
+    shape: 'diamond',
+    tint: 5025616,
+    size: 6,
+    scale: 1,
   },
-  
-  // Basic mechanics
   mechanics: {
     onHit: 'none',
     pierceDecay: 0,
@@ -32,26 +25,20 @@
       vfx: 'trail.small',
       fadeTime: 200,
     },
-    homing: false,        // No homing for basic version
+    homing: false,
     bounce: false,
   },
-  
-  // VFX effects
   vfx: {
-    spawn: 'effect',
-    trail: 'trail.small',
-    hit: 'hit.small',
-    expire: 'hit.small',
+    spawn: 'vfx.effect',
+    trail: 'vfx.trail.small',
+    hit: 'vfx.hit.small',
+    expire: 'vfx.hit.small',
   },
-  
-  // SFX sounds
   sfx: {
     spawn: 'sound/laser.mp3',
     hit: 'sound/laser.mp3',
     expire: 'sound/projectile_hit.mp3',
   },
-  
-  // Display info
   display: {
     key: 'projectile.cytotoxin_small.name',
     descKey: 'projectile.cytotoxin_small.desc',

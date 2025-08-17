@@ -1,130 +1,147 @@
 {
-  // Blueprint: Pity System Configuration
-  "id": "system.pity",
-  "type": "system",
-  "version": "1.0.0",
-  
-  // Pity system prevents bad RNG streaks by guaranteeing drops after dry spells
-  "pityRules": {
-    
-    // XP Orb Pity - ensures regular XP income
-    "xp_drops": {
-      "enabled": true,
-      "maxDryStreak": 8,  // Max 8 kills without XP drop
-      "guaranteedDrop": "drop.xp.small",
-      "resetOnDrop": ["drop.xp.small", "drop.xp.medium", "drop.xp.large"],
-      "description": "Guarantees XP drop every 8 kills maximum"
-    },
-    
-    // Health Drop Pity - critical for survival
-    "health_drops": {
-      "enabled": true,
-      "maxDryStreak": 15,  // Max 15 kills without health
-      "guaranteedDrop": "drop.leukocyte_pack",
-      "resetOnDrop": ["drop.leukocyte_pack", "drop.health"],
-      "condition": "player_health_below_50",
-      "description": "Guarantees health when player < 50% HP after 15 kills"
-    },
-    
-    // Power-up Pity - prevents upgrade stagnation  
-    "powerup_drops": {
-      "enabled": true,
-      "maxDryStreak": {
-        "level1": 120,  // 2 minutes at normal pace
-        "level2": 100,
-        "level3": 80
-      },
-      "guaranteedCategories": [
-        {
-          "category": "damage_boost",
-          "weight": 40,
-          "items": ["powerup.damage_boost", "powerup.piercing_arrows"]
-        },
-        {
-          "category": "utility", 
-          "weight": 35,
-          "items": ["powerup.shield", "powerup.metabolic_haste"]
-        },
-        {
-          "category": "special",
-          "weight": 25,
-          "items": ["powerup.flamethrower", "powerup.chemo_reservoir"]
-        }
+  id: 'system.pity',
+  type: 'powerup',
+  version: '1.0.0',
+  pityRules: {
+    xp_drops: {
+      enabled: true,
+      maxDryStreak: 8,
+      guaranteedDrop: 'drop.xp.small',
+      resetOnDrop: [
+        'drop.xp.small',
+        'drop.xp.medium',
+        'drop.xp.large',
       ],
-      "description": "Ensures power-up progression doesn't stall"
+      description: 'Guarantees XP drop every 8 kills maximum',
     },
-    
-    // Elite Spawn Pity - guarantees mini-boss encounters
-    "elite_spawns": {
-      "enabled": true,
-      "maxDryStreak": 180000,  // Max 3 minutes without elite
-      "guaranteedSpawn": "enemy.viral_swarm_alpha",
-      "resetOnSpawn": ["elite", "unique", "boss"],
-      "description": "Forces elite spawn if none appear for 3+ minutes"
+    health_drops: {
+      enabled: true,
+      maxDryStreak: 15,
+      guaranteedDrop: 'drop.leukocyte_pack',
+      resetOnDrop: [
+        'drop.leukocyte_pack',
+        'drop.health',
+      ],
+      condition: 'player_health_below_50',
+      description: 'Guarantees health when player < 50% HP after 15 kills',
     },
-    
-    // Unique Enemy Pity - prevents missing named enemies entirely
-    "unique_spawns": {
-      "enabled": true,
-      "maxDryStreak": {
-        "level1": 300000,  // 5 minutes - rare but guaranteed
-        "level2": 240000,  // 4 minutes  
-        "level3": 180000   // 3 minutes - more frequent in hardest level
+    powerup_drops: {
+      enabled: true,
+      maxDryStreak: {
+        level1: 120,
+        level2: 100,
+        level3: 80,
       },
-      "guaranteedPool": {
-        "level1": ["unique.necrocyte_sentinel", "unique.phage_overlord"],
-        "level2": ["unique.mutagen_splicer", "unique.chromoblast", "unique.necrocyte_sentinel"],
-        "level3": ["unique.radiomorph_titan", "unique.cytokine_warcaller", "unique.psionic_leukocyte"]
+      guaranteedCategories: [
+        {
+          category: 'damage_boost',
+          weight: 40,
+          items: [
+            'powerup.damage_boost',
+            'powerup.piercing_arrows',
+          ],
+        },
+        {
+          category: 'utility',
+          weight: 35,
+          items: [
+            'powerup.shield',
+            'powerup.metabolic_haste',
+          ],
+        },
+        {
+          category: 'special',
+          weight: 25,
+          items: [
+            'powerup.flamethrower',
+            'powerup.chemo_reservoir',
+          ],
+        },
+      ],
+      description: "Ensures power-up progression doesn't stall",
+    },
+    elite_spawns: {
+      enabled: true,
+      maxDryStreak: 180000,
+      guaranteedSpawn: 'enemy.viral_swarm_alpha',
+      resetOnSpawn: [
+        'elite',
+        'unique',
+        'boss',
+      ],
+      description: 'Forces elite spawn if none appear for 3+ minutes',
+    },
+    unique_spawns: {
+      enabled: true,
+      maxDryStreak: {
+        level1: 300000,
+        level2: 240000,
+        level3: 180000,
       },
-      "description": "Ensures players experience unique enemies each run"
+      guaranteedPool: {
+        level1: [
+          'unique.necrocyte_sentinel',
+          'unique.phage_overlord',
+        ],
+        level2: [
+          'unique.mutagen_splicer',
+          'unique.chromoblast',
+          'unique.necrocyte_sentinel',
+        ],
+        level3: [
+          'unique.radiomorph_titan',
+          'unique.cytokine_warcaller',
+          'unique.psionic_leukocyte',
+        ],
+      },
+      description: 'Ensures players experience unique enemies each run',
     },
-    
-    // Special Drop Pity - Metotrexat guarantee
-    "special_drops": {
-      "enabled": true,
-      "maxDryStreak": 200,  // Max 200 kills without special drop
-      "guaranteedDrop": "drop.metotrexat",
-      "resetOnDrop": ["drop.metotrexat", "drop.protein_cache", "drop.adrenal_surge"],
-      "description": "Guarantees special drop (Metotrexat) to prevent frustration"
-    }
-  },
-  
-  // Pity counters persistence
-  "persistence": {
-    "trackAcrossLevels": false,  // Reset between levels
-    "trackAcrossRuns": false,    // Reset between game sessions
-    "saveToLocalStorage": true,  // Save progress during session
-    "debugMode": false           // Log pity activations in console
-  },
-  
-  // Balancing parameters
-  "balance": {
-    "pityDropQuality": {
-      "xp_drops": 1.0,      // Normal quality
-      "health_drops": 1.2,  // 20% better healing when pity activated
-      "powerup_drops": 1.0, // Normal power-up strength
-      "special_drops": 1.0  // Normal special drop value
+    special_drops: {
+      enabled: true,
+      maxDryStreak: 200,
+      guaranteedDrop: 'drop.metotrexat',
+      resetOnDrop: [
+        'drop.metotrexat',
+        'drop.protein_cache',
+        'drop.adrenal_surge',
+      ],
+      description: 'Guarantees special drop (Metotrexat) to prevent frustration',
     },
-    
-    // Anti-abuse measures
-    "cooldowns": {
-      "samePityType": 30000,  // 30s cooldown between same pity activations
-      "anyPityType": 10000    // 10s cooldown between any pity activations
-    }
   },
-  
-  // Integration with loot tables
-  "lootTableIntegration": {
-    "overrideNormalRolls": true,   // Pity bypasses normal RNG
-    "stackWithLootModifiers": true, // Works with loot multipliers
-    "respectedByElites": false,     // Elites don't trigger normal pity
-    "respectedByBosses": false      // Bosses don't trigger normal pity
+  persistence: {
+    trackAcrossLevels: false,
+    trackAcrossRuns: false,
+    saveToLocalStorage: true,
+    debugMode: false,
   },
-  
-  "display": {
-    "key": "system.pity.name", 
-    "descKey": "system.pity.desc",
-    "category": "system",
-    "tags": ["system", "balance", "pity", "rng", "progression"]
-  }
+  balance: {
+    pityDropQuality: {
+      xp_drops: 1,
+      health_drops: 1.2,
+      powerup_drops: 1,
+      special_drops: 1,
+    },
+    cooldowns: {
+      samePityType: 30000,
+      anyPityType: 10000,
+    },
+  },
+  lootTableIntegration: {
+    overrideNormalRolls: true,
+    stackWithLootModifiers: true,
+    respectedByElites: false,
+    respectedByBosses: false,
+  },
+  display: {
+    key: 'system.pity.name',
+    descKey: 'system.pity.desc',
+    category: 'system',
+    tags: [
+      'system',
+      'balance',
+      'pity',
+      'rng',
+      'progression',
+    ],
+  },
 }

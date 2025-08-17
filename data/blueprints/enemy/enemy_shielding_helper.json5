@@ -22,18 +22,16 @@
     dropChance: 1,
     healthDropChance: 0.15,
   },
-  // PR7 Compliant: graphics field for visual configuration
   graphics: {
     sprite: 'enemy_shielding_helper',
-    tint: 0x3F51B5,
-    scale: 1.0,
+    tint: 4149685,
+    scale: 1,
     animation: {
       idle: 'helper_idle',
       move: 'helper_float',
-      buff: 'helper_shield'
-    }
+      buff: 'helper_shield',
+    },
   },
-  // PR7 Compliant: ai field for behavior configuration
   ai: {
     behavior: 'patrol',
     params: {
@@ -41,17 +39,19 @@
       movePattern: 'orbit_enemies',
       targetPriority: 'allies',
       supportType: 'shield',
-      buffRadius: 120
-    }
+      buffRadius: 120,
+    },
   },
-  // Direct drop system - consumables only (XP comes from stats.xp)
   drops: [
-    { itemId: 'item.health_small', chance: 0.09 }  // 9% chance for health
+    {
+      itemId: 'item.health_small',
+      chance: 0.09,
+    },
   ],
   vfx: {
-    spawn: 'spawn',
-    hit: 'enemy.hit',
-    death: 'death.medium',
+    spawn: 'vfx.spawn',
+    hit: 'vfx.enemy.hit',
+    death: 'vfx.death.medium',
   },
   sfx: {
     spawn: 'sound/npc_spawn.mp3',
@@ -70,7 +70,12 @@
     icon: 'enemy.shielding_helper',
     category: 'enemy',
     sortOrder: 180,
-    tags: ['enemy', 'support', 'shield', 'buff'],
+    tags: [
+      'enemy',
+      'support',
+      'shield',
+      'buff',
+    ],
     devNameFallback: 'Štítový pomocník',
     devDescFallback: 'Vytváří štíty pro okolní nepřátele',
   },

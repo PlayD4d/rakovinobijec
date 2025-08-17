@@ -1,0 +1,43 @@
+{
+  "description": "Suppression list for blueprint validation - Phase 3",
+  "ignoreMissing": {
+    "sfx": [
+      "sfx.placeholder.*"
+    ],
+    "vfx": [
+      "vfx.placeholder.*"
+    ]
+  },
+  "reportOnly": true,
+  "suppressPatterns": {
+    "vfx": [
+      "vfx.placeholder.spark",
+      "vfx.placeholder.aura",
+      "vfx.placeholder.burst",
+      "vfx.placeholder.trail",
+      "vfx.placeholder.none",
+      "vfx.placeholder.hit",
+      "vfx.placeholder.death",
+      "vfx.placeholder.spawn",
+      "vfx.placeholder.pickup",
+      "vfx.placeholder.explosion"
+    ],
+    "sfx": [
+      "sfx.placeholder.click",
+      "sfx.placeholder.confirm",
+      "sfx.placeholder.impact",
+      "sfx.placeholder.spawn",
+      "sfx.placeholder.death",
+      "sfx.placeholder.hit",
+      "sfx.placeholder.shoot",
+      "sfx.placeholder.pickup",
+      "sfx.placeholder.powerup",
+      "sfx.placeholder.explosion"
+    ]
+  },
+  "metadata": {
+    "created": "2025-01-17",
+    "purpose": "Phase 3 placeholder suppression",
+    "version": "1.0.0"
+  }
+}

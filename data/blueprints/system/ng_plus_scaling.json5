@@ -1,229 +1,250 @@
 {
-  // Blueprint: NG+ (New Game Plus) Scaling Configuration
-  "id": "system.ng_plus",
-  "type": "system", 
-  "version": "1.0.0",
-  
-  // NG+ scaling provides endless replayability with progressive difficulty
-  "scalingTiers": [
+  id: 'system.ng_plus',
+  type: 'powerup',
+  version: '1.0.0',
+  scalingTiers: [
     {
-      "tier": 0,
-      "name": "First Playthrough", 
-      "multipliers": {
-        "enemyHp": 1.0,
-        "enemyDamage": 1.0,
-        "enemySpeed": 1.0,
-        "spawnRate": 1.0,
-        "eliteFreq": 1.0,
-        "bossHp": 1.0,
-        "xpGain": 1.0,
-        "lootQuality": 1.0
+      tier: 0,
+      name: 'First Playthrough',
+      multipliers: {
+        enemyHp: 1,
+        enemyDamage: 1,
+        enemySpeed: 1,
+        spawnRate: 1,
+        eliteFreq: 1,
+        bossHp: 1,
+        xpGain: 1,
+        lootQuality: 1,
       },
-      "unlockedFeatures": [],
-      "description": "Base difficulty for learning the game"
+      unlockedFeatures: [],
+      description: 'Base difficulty for learning the game',
     },
-    
     {
-      "tier": 1,
-      "name": "NG+ Veteran",
-      "multipliers": {
-        "enemyHp": 1.25,
-        "enemyDamage": 1.15,
-        "enemySpeed": 1.05,
-        "spawnRate": 1.2,
-        "eliteFreq": 1.3,
-        "bossHp": 1.4,
-        "xpGain": 1.1,
-        "lootQuality": 1.1
+      tier: 1,
+      name: 'NG+ Veteran',
+      multipliers: {
+        enemyHp: 1.25,
+        enemyDamage: 1.15,
+        enemySpeed: 1.05,
+        spawnRate: 1.2,
+        eliteFreq: 1.3,
+        bossHp: 1.4,
+        xpGain: 1.1,
+        lootQuality: 1.1,
       },
-      "unlockedFeatures": ["dual_boss_chance", "elite_variants"],
-      "description": "Moderate challenge with improved rewards"
-    },
-    
-    {
-      "tier": 2,
-      "name": "NG++ Expert",
-      "multipliers": {
-        "enemyHp": 1.6,
-        "enemyDamage": 1.35,
-        "enemySpeed": 1.1,
-        "spawnRate": 1.5,
-        "eliteFreq": 1.6,
-        "bossHp": 1.8,
-        "xpGain": 1.25,
-        "lootQuality": 1.25
-      },
-      "unlockedFeatures": ["unique_everywhere", "boss_modifiers", "chaos_waves"],
-      "description": "High difficulty with significant rewards"
-    },
-    
-    {
-      "tier": 3,
-      "name": "NG+++ Master",
-      "multipliers": {
-        "enemyHp": 2.0,
-        "enemyDamage": 1.6,
-        "enemySpeed": 1.2,
-        "spawnRate": 1.8,
-        "eliteFreq": 2.0,
-        "bossHp": 2.5,
-        "xpGain": 1.5,
-        "lootQuality": 1.5
-      },
-      "unlockedFeatures": ["triple_boss", "mega_swarms", "adaptive_ai"],
-      "description": "Extreme challenge for veterans"
-    },
-    
-    {
-      "tier": 4,
-      "name": "NG++++ Nightmare",
-      "multipliers": {
-        "enemyHp": 2.5,
-        "enemyDamage": 2.0,
-        "enemySpeed": 1.3,
-        "spawnRate": 2.2,
-        "eliteFreq": 2.5,
-        "bossHp": 3.0,
-        "xpGain": 2.0,
-        "lootQuality": 2.0
-      },
-      "unlockedFeatures": ["nightmare_mode", "boss_hordes", "reality_distortion"],
-      "description": "Ultimate challenge for the most dedicated players"
-    }
-  ],
-  
-  // Infinite scaling beyond tier 4
-  "infiniteScaling": {
-    "enabled": true,
-    "startTier": 5,
-    "perTierIncrease": {
-      "enemyHp": 0.15,      // +15% HP per tier
-      "enemyDamage": 0.12,  // +12% damage per tier
-      "enemySpeed": 0.03,   // +3% speed per tier
-      "spawnRate": 0.08,    // +8% spawn rate per tier
-      "eliteFreq": 0.1,     // +10% elite frequency per tier
-      "bossHp": 0.2,        // +20% boss HP per tier
-      "xpGain": 0.15,       // +15% XP gain per tier
-      "lootQuality": 0.1    // +10% loot quality per tier
-    },
-    "capMultipliers": {
-      "enemyHp": 10.0,      // Max 10x HP
-      "enemyDamage": 5.0,   // Max 5x damage
-      "enemySpeed": 2.0,    // Max 2x speed
-      "spawnRate": 8.0,     // Max 8x spawn rate
-      "eliteFreq": 10.0,    // Max 10x elite frequency
-      "bossHp": 15.0,       // Max 15x boss HP
-      "xpGain": 10.0,       // Max 10x XP
-      "lootQuality": 5.0    // Max 5x loot quality
-    },
-    "description": "Endless scaling for infinite replayability"
-  },
-  
-  // Special NG+ features
-  "features": {
-    "dual_boss_chance": {
-      "enabled": true,
-      "baseChance": 0.3,
-      "perTierIncrease": 0.1,
-      "maxChance": 0.8,
-      "description": "Chance for levels to spawn two bosses simultaneously"
-    },
-    
-    "elite_variants": {
-      "enabled": true,
-      "newVariants": ["enemy.viral_swarm_omega", "enemy.micro_shooter_prime"],
-      "spawnChance": 0.2,
-      "description": "Introduces enhanced elite enemy variants"
-    },
-    
-    "unique_everywhere": {
-      "enabled": true,
-      "spawnChanceMultiplier": 2.0,
-      "cooldownReduction": 0.6,
-      "description": "Unique enemies spawn more frequently across all levels"
-    },
-    
-    "boss_modifiers": {
-      "enabled": true,
-      "possibleModifiers": [
-        "regeneration", "speed_burst", "damage_aura", 
-        "spawn_minions", "phase_shift", "armor_plates"
+      unlockedFeatures: [
+        'dual_boss_chance',
+        'elite_variants',
       ],
-      "modifierChance": 0.4,
-      "maxModifiers": 2,
-      "description": "Bosses can gain random combat modifiers"
+      description: 'Moderate challenge with improved rewards',
     },
-    
-    "chaos_waves": {
-      "enabled": true,
-      "chancePerWave": 0.15,
-      "effectTypes": ["double_spawn", "mixed_types", "rapid_fire"],
-      "description": "Random wave modifications for unpredictability"
+    {
+      tier: 2,
+      name: 'NG++ Expert',
+      multipliers: {
+        enemyHp: 1.6,
+        enemyDamage: 1.35,
+        enemySpeed: 1.1,
+        spawnRate: 1.5,
+        eliteFreq: 1.6,
+        bossHp: 1.8,
+        xpGain: 1.25,
+        lootQuality: 1.25,
+      },
+      unlockedFeatures: [
+        'unique_everywhere',
+        'boss_modifiers',
+        'chaos_waves',
+      ],
+      description: 'High difficulty with significant rewards',
     },
-    
-    "triple_boss": {
-      "enabled": true,
-      "triggerChance": 0.1,
-      "bossSelection": "random_three",
-      "description": "Rare chance for three-boss encounters"
+    {
+      tier: 3,
+      name: 'NG+++ Master',
+      multipliers: {
+        enemyHp: 2,
+        enemyDamage: 1.6,
+        enemySpeed: 1.2,
+        spawnRate: 1.8,
+        eliteFreq: 2,
+        bossHp: 2.5,
+        xpGain: 1.5,
+        lootQuality: 1.5,
+      },
+      unlockedFeatures: [
+        'triple_boss',
+        'mega_swarms',
+        'adaptive_ai',
+      ],
+      description: 'Extreme challenge for veterans',
     },
-    
-    "mega_swarms": {
-      "enabled": true,
-      "groupSizeMultiplier": 3.0,
-      "spawnChance": 0.2,
-      "description": "Occasionally spawn massive enemy groups"
+    {
+      tier: 4,
+      name: 'NG++++ Nightmare',
+      multipliers: {
+        enemyHp: 2.5,
+        enemyDamage: 2,
+        enemySpeed: 1.3,
+        spawnRate: 2.2,
+        eliteFreq: 2.5,
+        bossHp: 3,
+        xpGain: 2,
+        lootQuality: 2,
+      },
+      unlockedFeatures: [
+        'nightmare_mode',
+        'boss_hordes',
+        'reality_distortion',
+      ],
+      description: 'Ultimate challenge for the most dedicated players',
     },
-    
-    "adaptive_ai": {
-      "enabled": true,
-      "difficultyAdjustment": true,
-      "playerPatternDetection": true,
-      "description": "AI adapts to player strategies and skill level"
-    }
+  ],
+  infiniteScaling: {
+    enabled: true,
+    startTier: 5,
+    perTierIncrease: {
+      enemyHp: 0.15,
+      enemyDamage: 0.12,
+      enemySpeed: 0.03,
+      spawnRate: 0.08,
+      eliteFreq: 0.1,
+      bossHp: 0.2,
+      xpGain: 0.15,
+      lootQuality: 0.1,
+    },
+    capMultipliers: {
+      enemyHp: 10,
+      enemyDamage: 5,
+      enemySpeed: 2,
+      spawnRate: 8,
+      eliteFreq: 10,
+      bossHp: 15,
+      xpGain: 10,
+      lootQuality: 5,
+    },
+    description: 'Endless scaling for infinite replayability',
   },
-  
-  // Integration with ConfigResolver
-  "configResolverPriority": {
-    "enabled": true,
-    "priority": 100,  // High priority to override base values
-    "applyToBlueprints": true,
-    "applyToSpawnTables": true,
-    "applyToLootTables": true,
-    "description": "NG+ scaling integrates via ConfigResolver system"
-  },
-  
-  // Progression tracking
-  "progression": {
-    "trackStatistics": {
-      "totalPlaythroughs": true,
-      "highestTierReached": true,
-      "totalTimeSpent": true,
-      "totalEnemiesKilled": true,
-      "bossesDefeated": true,
-      "uniqueEncounters": true
+  features: {
+    dual_boss_chance: {
+      enabled: true,
+      baseChance: 0.3,
+      perTierIncrease: 0.1,
+      maxChance: 0.8,
+      description: 'Chance for levels to spawn two bosses simultaneously',
     },
-    
-    "unlockConditions": {
-      "tier1": { "completedRuns": 1 },
-      "tier2": { "completedRuns": 3, "bossesKilled": 5 },
-      "tier3": { "completedRuns": 7, "uniquesKilled": 15 },
-      "tier4": { "completedRuns": 15, "totalTime": 7200000 }  // 2 hours
+    elite_variants: {
+      enabled: true,
+      newVariants: [
+        'enemy.viral_swarm_omega',
+        'enemy.micro_shooter_prime',
+      ],
+      spawnChance: 0.2,
+      description: 'Introduces enhanced elite enemy variants',
     },
-    
-    "rewards": {
-      "tierUnlockBonus": {
-        "xp": 1000,
-        "achievements": true,
-        "cosmetics": ["title", "particle_effect"]
-      }
-    }
+    unique_everywhere: {
+      enabled: true,
+      spawnChanceMultiplier: 2,
+      cooldownReduction: 0.6,
+      description: 'Unique enemies spawn more frequently across all levels',
+    },
+    boss_modifiers: {
+      enabled: true,
+      possibleModifiers: [
+        'regeneration',
+        'speed_burst',
+        'damage_aura',
+        'spawn_minions',
+        'phase_shift',
+        'armor_plates',
+      ],
+      modifierChance: 0.4,
+      maxModifiers: 2,
+      description: 'Bosses can gain random combat modifiers',
+    },
+    chaos_waves: {
+      enabled: true,
+      chancePerWave: 0.15,
+      effectTypes: [
+        'double_spawn',
+        'mixed_types',
+        'rapid_fire',
+      ],
+      description: 'Random wave modifications for unpredictability',
+    },
+    triple_boss: {
+      enabled: true,
+      triggerChance: 0.1,
+      bossSelection: 'random_three',
+      description: 'Rare chance for three-boss encounters',
+    },
+    mega_swarms: {
+      enabled: true,
+      groupSizeMultiplier: 3,
+      spawnChance: 0.2,
+      description: 'Occasionally spawn massive enemy groups',
+    },
+    adaptive_ai: {
+      enabled: true,
+      difficultyAdjustment: true,
+      playerPatternDetection: true,
+      description: 'AI adapts to player strategies and skill level',
+    },
   },
-  
-  "display": {
-    "key": "system.ng_plus.name",
-    "descKey": "system.ng_plus.desc", 
-    "category": "system",
-    "tags": ["system", "progression", "ng+", "scaling", "replayability"]
-  }
+  configResolverPriority: {
+    enabled: true,
+    priority: 100,
+    applyToBlueprints: true,
+    applyToSpawnTables: true,
+    applyToLootTables: true,
+    description: 'NG+ scaling integrates via ConfigResolver system',
+  },
+  progression: {
+    trackStatistics: {
+      totalPlaythroughs: true,
+      highestTierReached: true,
+      totalTimeSpent: true,
+      totalEnemiesKilled: true,
+      bossesDefeated: true,
+      uniqueEncounters: true,
+    },
+    unlockConditions: {
+      tier1: {
+        completedRuns: 1,
+      },
+      tier2: {
+        completedRuns: 3,
+        bossesKilled: 5,
+      },
+      tier3: {
+        completedRuns: 7,
+        uniquesKilled: 15,
+      },
+      tier4: {
+        completedRuns: 15,
+        totalTime: 7200000,
+      },
+    },
+    rewards: {
+      tierUnlockBonus: {
+        xp: 1000,
+        achievements: true,
+        cosmetics: [
+          'title',
+          'particle_effect',
+        ],
+      },
+    },
+  },
+  display: {
+    key: 'system.ng_plus.name',
+    descKey: 'system.ng_plus.desc',
+    category: 'system',
+    tags: [
+      'system',
+      'progression',
+      'ng+',
+      'scaling',
+      'replayability',
+    ],
+  },
 }

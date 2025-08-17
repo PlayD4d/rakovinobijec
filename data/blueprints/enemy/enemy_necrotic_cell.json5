@@ -1,90 +1,81 @@
 {
-  // Blueprint: enemy.necrotic_cell
-  "id": "enemy.necrotic_cell",
-  "type": "enemy",
-  "stats": {
-    "hp": 20,
-    "damage": 5,
-    "speed": 35,
-    "size": 18,
-    "armor": 2,
-    "xp": 5
+  id: 'enemy.necrotic_cell',
+  type: 'enemy',
+  stats: {
+    hp: 20,
+    damage: 5,
+    speed: 35,
+    size: 18,
+    armor: 2,
+    xp: 5,
   },
-  "mechanics": {
-    "movementType": "slow_tank",
-    "contactDamage": 8,
-    "aggroRange": 250,
-    "wanderRadius": 60,
-    "necroticTouch": true,
-    "dropChance": 1.0,
-    "healthDropChance": 0.15
+  mechanics: {
+    movementType: 'slow_tank',
+    contactDamage: 8,
+    aggroRange: 250,
+    wanderRadius: 60,
+    necroticTouch: true,
+    dropChance: 1,
+    healthDropChance: 0.15,
   },
-  "vfx": {
-    "spawn": {
-      "type": "energy",
-      "texture": "spark",
-      "quantity": 8,
-      "lifespan": 400,
-      "speed": { "min": 50, "max": 120 },
-      "scale": { "start": 0.3, "end": 0 },
-      "tint": 0x8d8e65
+  vfx: {
+    spawn: 'vfx.placeholder.spawn',
+    hit: 'vfx.hit.small',
+    death: 'vfx.death.medium',
+    aura: 'vfx.effect',
+    decay: 'vfx.effect',
+  },
+  sfx: {
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/npc_death.mp3',
+    decay: 'sound/decay.mp3',
+  },
+  graphics: {
+    sprite: 'enemy_necrotic_cell',
+    tint: 9277029,
+    scale: 1,
+    shape: 'diamond',
+    animation: {
+      idle: 'necrotic_idle',
+      move: 'necrotic_move',
     },
-    "hit": "hit.small",
-    "death": 'death.medium',
-    "aura": 'effect', 
-    "decay": 'effect'
   },
-  "sfx": {
-    "spawn": "sound/npc_spawn.mp3",
-    "hit": "sound/npc_hit.mp3",
-    "death": "sound/npc_death.mp3",
-    "decay": "sound/decay.mp3"
+  ai: {
+    behavior: 'chase',
+    params: {
+      aggroRange: 250,
+      wanderRadius: 60,
+      movePattern: 'slow_tank',
+      targetPriority: 'nearest',
+    },
   },
-  // PR7 Compliant: graphics field for visual configuration
-  "graphics": {
-    "sprite": "enemy_necrotic_cell",
-    "tint": 0x8d8e65,
-    "scale": 1.0,
-    "shape": "diamond",  // Uses diamond shape for placeholder texture
-    "animation": {
-      "idle": "necrotic_idle",
-      "move": "necrotic_move"
-    }
-  },
-  // PR7 Compliant: ai field for behavior configuration
-  "ai": {
-    "behavior": "chase",
-    "params": {
-      "aggroRange": 250,
-      "wanderRadius": 60,
-      "movePattern": "slow_tank",
-      "targetPriority": "nearest"
-    }
-  },
-  // NEW: Direct drop system - consumables only (XP comes from stats.xp)
-  "drops": [
-    { "itemId": "item.health_small", "chance": 0.15 }  // 15% chance for health
+  drops: [
+    {
+      itemId: 'item.health_small',
+      chance: 0.15,
+    },
   ],
-  "display": {
-    "key": "enemy.necrotic_cell.name",
-    "descKey": "enemy.necrotic_cell.desc",
-    "devNameFallback": "Nekrotická buňka",
-    "devDescFallback": "Pomalá ale odolná nekrotická buňka",
-    "templates": {
-      "short": "{{stats.hp}} HP • pomalá • nekrotická",
-      "desc": "Nekrotická buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Pomalá ale odolná."
+  display: {
+    key: 'enemy.necrotic_cell.name',
+    descKey: 'enemy.necrotic_cell.desc',
+    devNameFallback: 'Nekrotická buňka',
+    devDescFallback: 'Pomalá ale odolná nekrotická buňka',
+    templates: {
+      short: '{{stats.hp}} HP • pomalá • nekrotická',
+      desc: 'Nekrotická buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Pomalá ale odolná.',
     },
-    "color": "#8d8e65ff",
-    "rarity": "common",
-    "icon": "enemy.necrotic_cell",
-    "category": "enemy",
-    "sortOrder": 120,
-    "tags": [
-      "enemy",
-      "necrotic",
-      "slow",
-      "tank",
-      "decay"
-    ]
-  }
+    color: '#8d8e65ff',
+    rarity: 'common',
+    icon: 'enemy.necrotic_cell',
+    category: 'enemy',
+    sortOrder: 120,
+    tags: [
+      'enemy',
+      'necrotic',
+      'slow',
+      'tank',
+      'decay',
+    ],
+  },
 }

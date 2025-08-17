@@ -1,83 +1,88 @@
 {
-  // Blueprint: unique.golden_cell
-  "id": "unique.golden_cell",
-  "type": "enemy",
-  "meta": {
-    "category": "unique",
-    "tier": "legendary",
-    "spawnWeight": 2
+  id: 'unique.golden_cell',
+  type: 'enemy',
+  meta: {
+    category: 'unique',
+    tier: 'legendary',
+    spawnWeight: 2,
   },
-  "stats": {
-    "hp": 250,
-    "damage": 18,
-    "speed": 50,
-    "size": 28,
-    "armor": 10,
-    "xp": 100
+  stats: {
+    hp: 250,
+    damage: 18,
+    speed: 50,
+    size: 28,
+    armor: 10,
+    xp: 100,
   },
-  "visuals": {
-    "textureKey": "unique.golden_cell",
-    "tint": 0xFFD700,
-    "size": { "w": 28, "h": 28 }
-  },
-  "mechanics": {
-    "movementType": "golden_drift",
-    "contactDamage": 18,
-    "aggroRange": 300,
-    "wanderRadius": 100,
-    "goldAura": true,
-    "goldAuraRadius": 150,
-    "goldAuraBonus": 2.0,
-    "dropChance": 1.0,
-    "guaranteedDrops": ["drop.xp_large", "drop.heal_orb"],
-    "uniqueAbilities": {
-      "goldenPulse": {
-        "interval": 5000,
-        "damage": 25,
-        "radius": 200,
-        "knockback": 150
-      },
-      "summonGoldenMinions": {
-        "interval": 8000,
-        "count": 3,
-        "minionType": "enemy.aberrant_cell",
-        "goldenBuff": true
-      }
-    }
-  },
-  "vfx": {
-    "spawn": 'spawn',
-    "hit": 'hit.small',
-    "death": 'death.large',
-    "pulse": 'special',
-    "aura": 'special'
-  },
-  "sfx": {
-    "spawn": 'sound/npc_spawn.mp3',
-    "hit": 'sound/hit_hard.mp3',
-    "death": 'sound/elite_death.mp3',
-    "pulse": 'sound/powerup.mp3'
-  },
-  "display": {
-    "key": "unique.golden_cell.name",
-    "descKey": "unique.golden_cell.desc",
-    "devNameFallback": "Zlatá buňka",
-    "devDescFallback": "Vzácná zlatá buňka poskytující velké odměny",
-    "templates": {
-      "short": "{{stats.hp}} HP • {{stats.armor}} pancíř • zlatá aura",
-      "desc": "Vzácná zlatá buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Má zlatou auru zvyšující odměny {{mechanics.goldAuraBonus}}x a garantuje cenné dropy."
+  visuals: {
+    textureKey: 'unique.golden_cell',
+    tint: 16766720,
+    size: {
+      w: 28,
+      h: 28,
     },
-    "color": "#FFD700",
-    "rarity": "legendary",
-    "icon": "unique.golden_cell",
-    "category": "unique",
-    "sortOrder": 710,
-    "tags": [
-      "unique",
-      "golden",
-      "legendary",
-      "high-reward",
-      "aura"
-    ]
-  }
+  },
+  mechanics: {
+    movementType: 'golden_drift',
+    contactDamage: 18,
+    aggroRange: 300,
+    wanderRadius: 100,
+    goldAura: true,
+    goldAuraRadius: 150,
+    goldAuraBonus: 2,
+    dropChance: 1,
+    guaranteedDrops: [
+      'drop.xp_large',
+      'drop.heal_orb',
+    ],
+    uniqueAbilities: {
+      goldenPulse: {
+        interval: 5000,
+        damage: 25,
+        radius: 200,
+        knockback: 150,
+      },
+      summonGoldenMinions: {
+        interval: 8000,
+        count: 3,
+        minionType: 'enemy.aberrant_cell',
+        goldenBuff: true,
+      },
+    },
+  },
+  vfx: {
+    spawn: 'vfx.spawn',
+    hit: 'vfx.hit.small',
+    death: 'vfx.death.large',
+    pulse: 'vfx.special',
+    aura: 'vfx.special',
+  },
+  sfx: {
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/hit_hard.mp3',
+    death: 'sound/elite_death.mp3',
+    pulse: 'sound/powerup.mp3',
+  },
+  display: {
+    key: 'unique.golden_cell.name',
+    descKey: 'unique.golden_cell.desc',
+    devNameFallback: 'Zlatá buňka',
+    devDescFallback: 'Vzácná zlatá buňka poskytující velké odměny',
+    templates: {
+      short: '{{stats.hp}} HP • {{stats.armor}} pancíř • zlatá aura',
+      desc: 'Vzácná zlatá buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Má zlatou auru zvyšující odměny {{mechanics.goldAuraBonus}}x a garantuje cenné dropy.',
+    },
+    color: '#FFD700',
+    rarity: 'legendary',
+    icon: 'unique.golden_cell',
+    category: 'unique',
+    sortOrder: 710,
+    tags: [
+      'unique',
+      'golden',
+      'legendary',
+      'high-reward',
+      'aura',
+    ],
+  },
 }

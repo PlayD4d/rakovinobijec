@@ -122,6 +122,17 @@ async function validateBlueprints() {
     let totalWarnings = 0;
     let validFiles = 0;
     
+    // Detailed tracking
+    const perFileIssues = [];
+    const topOffenders = new Map();
+    const detailedReport = {
+        timestamp: new Date().toISOString(),
+        summary: {},
+        perFileIssues: [],
+        topOffenders: [],
+        vfxPatternViolations: []
+    };
+    
     for (const file of blueprintFiles) {
         const fullPath = path.join(rootDir, file);
         const relativePath = path.relative(rootDir, fullPath);
@@ -138,12 +149,50 @@ async function validateBlueprints() {
             
             if (!valid) {
                 console.log(`❌ ${relativePath}`);
+                const fileIssues = {
+                    file: relativePath,
+                    errors: []
+                };
+                
                 validate.errors.forEach(err => {
                     console.log(`   ${err.instancePath || '/'}: ${err.message}`);
                     if (err.params) {
                         console.log(`     params: ${JSON.stringify(err.params)}`);
                     }
+                    
+                    // Track detailed issues
+                    const issue = {
+                        path: err.instancePath || '/',
+                        message: err.message,
+                        params: err.params
+                    };
+                    
+                    // Track VFX pattern violations specifically
+                    if (err.message.includes('pattern') && err.instancePath.includes('vfx')) {
+                        const pathParts = err.instancePath.split('/');
+                        const vfxKey = pathParts[pathParts.length - 1];
+                        const vfxValue = pathParts.reduce((obj, part) => {
+                            if (part && obj) return obj[part];
+                            return obj;
+                        }, blueprint);
+                        
+                        detailedReport.vfxPatternViolations.push({
+                            file: relativePath,
+                            path: err.instancePath,
+                            key: vfxKey,
+                            value: vfxValue,
+                            shouldBe: `vfx.${vfxValue}`
+                        });
+                        
+                        // Count offenders
+                        const offenderKey = vfxValue || 'unknown';
+                        topOffenders.set(offenderKey, (topOffenders.get(offenderKey) || 0) + 1);
+                    }
+                    
+                    fileIssues.errors.push(issue);
                 });
+                
+                perFileIssues.push(fileIssues);
                 totalErrors++;
             } else {
                 // Check references
@@ -165,6 +214,30 @@ async function validateBlueprints() {
         }
     }
     
+    // Prepare detailed report
+    detailedReport.summary = {
+        totalFiles: blueprintFiles.length,
+        validFiles: validFiles,
+        totalErrors: totalErrors,
+        totalWarnings: totalWarnings,
+        timestamp: new Date().toISOString()
+    };
+    
+    detailedReport.perFileIssues = perFileIssues;
+    
+    // Sort and prepare top offenders
+    const sortedOffenders = Array.from(topOffenders.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 20)
+        .map(([value, count]) => ({ value, count, suggestedFix: `vfx.${value}` }));
+    detailedReport.topOffenders = sortedOffenders;
+    
+    // Save detailed report
+    const reportPath = path.join(rootDir, 'dev/audit2/blueprints-report.detailed.json');
+    fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+    fs.writeFileSync(reportPath, JSON.stringify(detailedReport, null, 2));
+    console.log(`\n📝 Detailed report saved to: ${reportPath}`);
+    
     // Summary
     console.log('\n================================================');
     console.log('📊 Validation Summary:');
@@ -176,6 +249,13 @@ async function validateBlueprints() {
     
     if (totalWarnings > 0) {
         console.log(`   ⚠️  Reference warnings: ${totalWarnings}`);
+    }
+    
+    if (sortedOffenders.length > 0) {
+        console.log('\n📊 Top VFX Pattern Violations:');
+        sortedOffenders.slice(0, 5).forEach(({ value, count }) => {
+            console.log(`   ${value}: ${count}x → should be: vfx.${value}`);
+        });
     }
     
     if (totalErrors === 0 && totalWarnings === 0) {

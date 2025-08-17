@@ -25,7 +25,7 @@
   graphics: {
     sprite: 'enemy_micro_shooter',
     tint: 16733986,
-    scale: 1.0,
+    scale: 1,
     animation: {
       idle: 'shooter_idle',
       move: 'shooter_move',
@@ -43,62 +43,24 @@
       shootInterval: 2400,
     },
   },
-  // Direct drop system - consumables only (XP comes from stats.xp)
   drops: [
-    { itemId: 'item.health_small', chance: 0.07 }  // 7% chance for health
+    {
+      itemId: 'item.health_small',
+      chance: 0.07,
+    },
   ],
-  
-  // SIMPLIFIED VFX - inline configuration instead of registry IDs
   vfx: {
-    spawn: {
-      particles: {
-        quantity: 10,
-        speed: { min: 40, max: 100 },
-        scale: { start: 0, end: 0.3 },
-        lifespan: 400,
-        tint: 0x00BCD4, // Cyan color for micro shooter
-        alpha: { start: 0, end: 1 }
-      }
-    },
-    hit: {
-      particles: {
-        quantity: 6,
-        speed: { min: 50, max: 120 },
-        scale: { start: 0.2, end: 0 },
-        lifespan: 150,
-        tint: 0x00BCD4
-      }
-    },
-    death: {
-      particles: {
-        quantity: 15,
-        speed: { min: 60, max: 140 },
-        scale: { start: 0.4, end: 0 },
-        lifespan: 500,
-        tint: 0x00BCD4,
-        gravityY: 30
-      }
-    },
-    muzzleFlash: {
-      particles: {
-        quantity: 3,
-        speed: { min: 20, max: 50 },
-        scale: { start: 0.3, end: 0 },
-        lifespan: 80,
-        tint: 0x00FFFF,
-        blendMode: 'ADD'
-      }
-    }
+    spawn: 'vfx.placeholder.spawn',
+    hit: 'vfx.placeholder.hit',
+    death: 'vfx.placeholder.death',
+    muzzleFlash: 'vfx.placeholder.muzzleFlash',
   },
-  
-  // SIMPLIFIED SFX - direct file paths only
   sfx: {
     spawn: 'sound/npc_spawn.mp3',
     hit: 'sound/npc_hit.mp3',
     death: 'sound/npc_death.mp3',
-    shoot: 'sound/npc_shoot.mp3'
+    shoot: 'sound/npc_shoot.mp3',
   },
-  
   display: {
     key: 'enemy.micro_shooter.name',
     descKey: 'enemy.micro_shooter.desc',

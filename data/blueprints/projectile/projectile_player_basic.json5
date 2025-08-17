@@ -27,10 +27,10 @@
     bounce: false,
   },
   vfx: {
-    spawn: 'effect',
-    trail: 'trail.small',
-    hit: 'hit.small',
-    expire: 'hit.small',
+    spawn: 'vfx.effect',
+    trail: 'vfx.trail.small',
+    hit: 'vfx.hit.small',
+    expire: 'vfx.hit.small',
   },
   sfx: {
     spawn: 'sound/laser.mp3',

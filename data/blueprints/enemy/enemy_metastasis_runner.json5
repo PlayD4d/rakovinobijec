@@ -21,30 +21,30 @@
     healthDropChance: 0.1,
   },
   vfx: {
-    spawn: 'spawn',
-    hit: 'enemy.hit',
-    death: 'death.medium',
+    spawn: 'vfx.spawn',
+    hit: 'vfx.enemy.hit',
+    death: 'vfx.death.medium',
   },
   sfx: {
     spawn: 'sound/npc_spawn.mp3',
     hit: 'sound/npc_hit.mp3',
     death: 'sound/npc_death.mp3',
   },
-  // Direct drop system - consumables only (XP comes from stats.xp)
   drops: [
-    { itemId: 'item.health_small', chance: 0.05 }  // 5% chance for health
+    {
+      itemId: 'item.health_small',
+      chance: 0.05,
+    },
   ],
-  // PR7 Compliant: graphics field for visual configuration
   graphics: {
     sprite: 'enemy_metastasis_runner',
-    tint: 0x673AB7,
+    tint: 6765239,
     scale: 0.7,
     animation: {
       idle: 'runner_idle',
-      move: 'runner_sprint'
-    }
+      move: 'runner_sprint',
+    },
   },
-  // PR7 Compliant: ai field for behavior configuration
   ai: {
     behavior: 'chase',
     params: {
@@ -52,8 +52,8 @@
       wanderRadius: 100,
       movePattern: 'hit_and_run',
       targetPriority: 'player',
-      dashEnabled: true
-    }
+      dashEnabled: true,
+    },
   },
   display: {
     key: 'enemy.metastasis_runner.name',

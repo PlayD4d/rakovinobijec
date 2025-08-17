@@ -96,21 +96,19 @@ export class EnemyManager {
      * Create a regular enemy entity
      */
     createRegularEnemy(blueprint, blueprintId, x, y, textureKey, color, size, options) {
-        const enemyConfig = {
-            ...blueprint.stats,
-            ...blueprint.mechanics,
+        // Prepare blueprint with all necessary data
+        const enhancedBlueprint = {
+            ...blueprint,
+            id: blueprintId,
             texture: textureKey,
             color: color,
-            sfx: blueprint.sfx,
-            vfx: blueprint.vfx,
-            ai: blueprint.ai,
-            drops: blueprint.drops,
             isElite: options.elite || blueprint.type === 'elite',
             isUnique: blueprint.type === 'unique',
             isMiniboss: blueprint.type === 'miniboss'
         };
         
-        const enemy = new Enemy(this.scene, x, y, blueprintId, enemyConfig);
+        // Create enemy with new constructor signature
+        const enemy = new Enemy(this.scene, enhancedBlueprint, { x, y });
         
         // Ensure texture
         if (!enemy.texture || enemy.texture.key !== textureKey) {

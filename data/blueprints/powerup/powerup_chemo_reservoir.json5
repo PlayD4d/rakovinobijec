@@ -38,11 +38,11 @@
     enableExplosions: true,
   },
   vfx: {
-    pickup: 'pickup',
-    levelup: 'powerup',
-    apply: 'powerup',
-    chemoCloud: 'explosion.small',
-    explosion: 'explosion.small',
+    pickup: 'vfx.pickup',
+    levelup: 'vfx.powerup',
+    apply: 'vfx.powerup',
+    chemoCloud: 'vfx.explosion.small',
+    explosion: 'vfx.explosion.small',
   },
   sfx: {
     pickup: 'sound/pickup.mp3',

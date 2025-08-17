@@ -49,9 +49,9 @@
     fillAlpha: 0.7,
   },
   vfx: {
-    pickup: 'pickup',
-    levelUp: 'powerup',
-    impact: 'hit.small',
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+    impact: 'vfx.hit.small',
   },
   sfx: {
     pickup: 'sound/pickup.mp3',

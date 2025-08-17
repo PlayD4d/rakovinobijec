@@ -1,54 +1,48 @@
 {
-  // XP Magnet Power-up - PR7 Compliant
-  id: "powerup.xp_magnet",
-  type: "powerup",
-  
-  // Basic stats
+  id: 'powerup.xp_magnet',
+  type: 'powerup',
   stats: {
     maxLevel: 5,
-    rarity: "common",
-    category: "utility"
+    rarity: 'common',
+    category: 'utility',
   },
-  
-  // Mechanics - 25% increase per level
   mechanics: {
-    effectType: "xp_collection",
-    baseRadius: 100,      // Base collection radius
+    effectType: 'xp_collection',
+    baseRadius: 100,
     modifiersPerLevel: [
       {
-        path: "xpMagnetRadius",
-        type: "multiply",
-        value: 1.25,       // +25% per level (multiplicative)
-        description: "Zvětšuje dosah přitahování XP orbů o 25%"
-      }
-    ]
+        path: 'xpMagnetRadius',
+        type: 'multiply',
+        value: 1.25,
+        description: 'Zvětšuje dosah přitahování XP orbů o 25%',
+      },
+    ],
   },
-  
-  // Display information
   display: {
-    key: "powerup.xp_magnet.name",
-    descKey: "powerup.xp_magnet.desc",
-    devNameFallback: "XP Magnet",
-    devDescFallback: "Zvyšuje dosah přitahování XP orbů o 25% za level",
+    key: 'powerup.xp_magnet.name',
+    descKey: 'powerup.xp_magnet.desc',
+    devNameFallback: 'XP Magnet',
+    devDescFallback: 'Zvyšuje dosah přitahování XP orbů o 25% za level',
     templates: {
-      name: "XP Magnet",
-      short: "+{{value}}% dosah",
-      desc: "Zvětšuje oblast přitahování XP orbů o {{value}}% za úroveň",
-      levelUp: "XP Magnet (úroveň {{nextLevel}}): +{{totalValue}}% dosah"
+      name: 'XP Magnet',
+      short: '+{{value}}% dosah',
+      desc: 'Zvětšuje oblast přitahování XP orbů o {{value}}% za úroveň',
+      levelUp: 'XP Magnet (úroveň {{nextLevel}}): +{{totalValue}}% dosah',
     },
-    icon: "icon_xp_magnet",
-    color: "#00FFFF",      // Cyan color for XP/utility
-    tags: ["utility", "xp", "collection"]
+    icon: 'icon_xp_magnet',
+    color: '#00FFFF',
+    tags: [
+      'utility',
+      'xp',
+      'collection',
+    ],
   },
-  
-  // Visual/Audio effects
   vfx: {
-    apply: 'powerup',
-    aura: 'effect'
+    apply: 'vfx.powerup',
+    aura: 'vfx.effect',
   },
-  
   sfx: {
     apply: 'sound/powerup.mp3',
-    collect: 'sound/hit_soft.mp3'
-  }
+    collect: 'sound/hit_soft.mp3',
+  },
 }

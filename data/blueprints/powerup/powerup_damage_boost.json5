@@ -1,53 +1,52 @@
 {
-  // Blueprint: powerup.damage_boost
-  "id": "powerup.damage_boost",
-  "type": "powerup",
-  "stats": {
-    "maxLevel": 10
+  id: 'powerup.damage_boost',
+  type: 'powerup',
+  stats: {
+    maxLevel: 10,
   },
-  "mechanics": {
-    "modifiersPerLevel": [
+  mechanics: {
+    modifiersPerLevel: [
       {
-        "path": "projectileDamage",
-        "type": "add",
-        "value": 5,
-        "description": "Increases projectile damage"
-      }
+        path: 'projectileDamage',
+        type: 'add',
+        value: 5,
+        description: 'Increases projectile damage',
+      },
     ],
-    "stackable": true,
-    "persistent": true,
-    "applyOnPickup": true,
-    "effectType": "damage_boost"
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'damage_boost',
   },
-  "vfx": {
-    "pickup": "pickup",
-    "levelUp": 'powerup'
+  vfx: {
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
   },
-  "sfx": {
-    "pickup": "sound/pickup.mp3",
-    "apply": 'sound/powerup.mp3',
-    "levelUp": 'sound/powerup.mp3'
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
   },
-  "display": {
-    "key": "powerup.damage_boost.name",
-    "descKey": "powerup.damage_boost.desc",
-    "devNameFallback": "💪 Zvýšené poškození",
-    "devDescFallback": "Zvyšuje poškození všech útoků",
-    "icon": "powerup_damage_boost",
-    "color": "#FF4444",
-    "rarity": "common",
-    "category": "offense",
-    "sortOrder": 210,
-    "tags": [
-      "powerup",
-      "damage",
-      "offense",
-      "passive"
+  display: {
+    key: 'powerup.damage_boost.name',
+    descKey: 'powerup.damage_boost.desc',
+    devNameFallback: '💪 Zvýšené poškození',
+    devDescFallback: 'Zvyšuje poškození všech útoků',
+    icon: 'powerup_damage_boost',
+    color: '#FF4444',
+    rarity: 'common',
+    category: 'offense',
+    sortOrder: 210,
+    tags: [
+      'powerup',
+      'damage',
+      'offense',
+      'passive',
     ],
-    "templates": {
-      "short": "+{{mechanics.modifiersPerLevel.0.value}} poškození za level",
-      "long": "Zvyšuje poškození všech projektilů o {{mechanics.modifiersPerLevel.0.value}} za úroveň. Aktuálně max level {{stats.maxLevel}}."
+    templates: {
+      short: '+{{mechanics.modifiersPerLevel.0.value}} poškození za level',
+      long: 'Zvyšuje poškození všech projektilů o {{mechanics.modifiersPerLevel.0.value}} za úroveň. Aktuálně max level {{stats.maxLevel}}.',
     },
-    "srKey": "sr.powerup.damage_boost"
-  }
+    srKey: 'sr.powerup.damage_boost',
+  },
 }

@@ -1,120 +1,95 @@
 {
-  // Elite blueprint: elite.micro_shooter
   id: 'elite.micro_shooter',
   type: 'elite',
-  baseEnemyId: 'enemy.micro_shooter',  // Reference to base enemy type
-  
-  // Elite stat multipliers (applied to base enemy stats)
+  baseEnemyId: 'enemy.micro_shooter',
   multipliers: {
-    hp: 2.0,          // 2x health (20 -> 40)
-    damage: 1.6,      // 1.6x damage (5 -> 8)
-    speed: 1.15,      // 15% faster (95 -> 110)
-    size: 1.2,        // 20% larger (10 -> 12)
-    armor: 2,         // +2 armor (0 -> 2)
-    xp: 2.5,          // 2.5x XP (2 -> 5)
+    hp: 2,
+    damage: 1.6,
+    speed: 1.15,
+    size: 1.2,
+    armor: 2,
+    xp: 2.5,
   },
-  
-  // Elite specific stats (override base if needed)
   stats: {
     hp: 40,
     damage: 8,
     speed: 110,
-    size: 16,  // Increased from 12 to be more visible
+    size: 16,
     armor: 2,
     xp: 5,
   },
-  
-  // Elite mechanics enhancements
   mechanics: {
     movementType: 'kite_player',
     contactDamage: 8,
-    aggroRange: 500,        // Increased from 450
-    kiteDistance: 320,       // Increased from 280
+    aggroRange: 500,
+    kiteDistance: 320,
     canShoot: true,
-    shootInterval: 1800,     // Faster shooting (was 2400)
-    projectileDamage: 12,    // Stronger projectiles (was 8)
-    projectileCount: 2,      // Fires 2 projectiles at once
-    burstFire: true,         // Burst fire mode
-    inaccuracyRange: 0.2,    // More accurate (was 0.4)
-    dropChance: 1.5,         // Better drop chance
-    healthDropChance: 0.15,  // Higher health drop chance
-    
-    // Elite-specific mechanics
+    shootInterval: 1800,
+    projectileDamage: 12,
+    projectileCount: 2,
+    burstFire: true,
+    inaccuracyRange: 0.2,
+    dropChance: 1.5,
+    healthDropChance: 0.15,
     eliteAura: {
       type: 'damage_boost',
       radius: 100,
-      boost: 0.2,           // 20% damage boost to nearby enemies
+      boost: 0.2,
     },
     onDeathSpawn: {
-      enabled: false,       // Could spawn minions on death
+      enabled: false,
     },
     regeneration: {
-      enabled: false,       // Could have health regen
+      enabled: false,
     },
   },
-  
-  // Enhanced projectile
   projectileRef: 'projectile.cytotoxin_enhanced',
-  
-  // Elite visual configuration
   graphics: {
     sprite: 'elite_micro_shooter',
-    tint: 0xFF9800,          // Orange tint for elite
-    scale: 1.2,              // Slightly larger
-    glowEffect: true,        // Elite glow
+    tint: 16750592,
+    scale: 1.2,
+    glowEffect: true,
     animation: {
       idle: 'elite_shooter_idle',
       move: 'elite_shooter_move',
-      attack: 'elite_shooter_attack'
+      attack: 'elite_shooter_attack',
     },
     eliteIndicator: {
-      type: 'star',          // Star or crown above enemy
-      color: 0xFFD700,       // Gold color
-      scale: 1.0,
-    }
+      type: 'star',
+      color: 16766720,
+      scale: 1,
+    },
   },
-  
-  // Elite AI behavior
   ai: {
     behavior: 'elite_shooter',
     params: {
       aggroRange: 500,
       attackRange: 320,
-      movePattern: 'smart_kite',    // Smarter movement
-      targetPriority: 'player',      // Always targets player
+      movePattern: 'smart_kite',
+      targetPriority: 'player',
       projectileType: 'projectile.cytotoxin_enhanced',
       shootInterval: 1800,
       burstFire: true,
       burstCount: 2,
       burstDelay: 200,
-      
-      // Elite AI features
-      dodgeChance: 0.2,              // 20% chance to dodge
-      retreatThreshold: 0.3,         // Retreats at 30% HP
-      callForHelp: true,              // Alerts nearby enemies
-    }
+      dodgeChance: 0.2,
+      retreatThreshold: 0.3,
+      callForHelp: true,
+    },
   },
-  
-  // Elite loot table
   lootTable: 'lootTable.elite.tier1',
-  
-  // Elite VFX
   vfx: {
-    spawn: 'elite.special',
-    hit: 'enemy.hit',
-    death: 'elite.special',
-    shoot: 'enemy.shoot',
+    spawn: 'vfx.elite.special',
+    hit: 'vfx.enemy.hit',
+    death: 'vfx.elite.special',
+    shoot: 'vfx.enemy.shoot',
   },
-  
-  // Elite SFX
   sfx: {
     spawn: 'sound/npc_spawn.mp3',
     hit: 'sound/npc_hit.mp3',
     death: 'sound/elite_death.mp3',
     shoot: 'sound/elite_shoot.mp3',
   },
-  
-  // Display configuration
   display: {
     key: 'elite.micro_shooter.name',
     descKey: 'elite.micro_shooter.desc',
@@ -140,13 +115,11 @@
     devNameFallback: 'Elitní mikro střelec',
     devDescFallback: 'Elitní verze mikro střelce s dvojitou střelbou a pancířem',
   },
-  
-  // Elite spawn configuration
   spawnConditions: {
-    minLevel: 2,           // Appears from level 2
-    minGameTime: 30000,    // After 30 seconds
-    maxCount: 2,           // Max 2 at once
-    cooldown: 15000,       // 15 second cooldown between spawns
-    weight: 0.15,          // 15% spawn chance when eligible
-  }
+    minLevel: 2,
+    minGameTime: 30000,
+    maxCount: 2,
+    cooldown: 15000,
+    weight: 0.15,
+  },
 }

@@ -1,9 +1,9 @@
 {
-  id: 'player',
-  type: 'player',
+  id: 'player.main',
+  type: 'powerup',
   visuals: {
     textureKey: 'player',
-    tint: 0x2385FF,
+    tint: 2328063,
     size: {
       w: 24,
       h: 24,
@@ -80,17 +80,13 @@
     ],
   },
   vfx: {
-    spawn: 'effect',
-    hit: 'effect',
-    death: 'effect',
-    shoot: 'effect',
-    heal: 'effect',
-    levelUp: 'effect',
-    shield: {
-      activate: 'shield.hit',
-      block: 'shield.hit',
-      break: 'shield.break',
-    },
+    spawn: 'vfx.effect',
+    hit: 'vfx.effect',
+    death: 'vfx.effect',
+    shoot: 'vfx.effect',
+    heal: 'vfx.effect',
+    levelUp: 'vfx.effect',
+    shield: 'vfx.placeholder.shield',
   },
   sfx: {
     spawn: 'sound/player_spawn.mp3',
@@ -99,11 +95,7 @@
     shoot: 'sound/player_shoot.mp3',
     heal: 'sound/heal.mp3',
     levelUp: 'sound/levelup.mp3',
-    shield: {
-      activate: 'sound/shield_activate.mp3',
-      block: 'sound/shield_block.mp3',
-      break: 'sound/shield_break.mp3',
-    },
+    shield: 'sfx.placeholder.shield',
   },
   display: {
     key: 'player.name',

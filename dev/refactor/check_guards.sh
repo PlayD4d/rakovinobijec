@@ -40,8 +40,9 @@ fi
 
 # Kontrola generateTexture a graphics primitives
 echo -n "❌ generateTexture/add.graphics .... "
-COUNT=$(grep -c "generateTexture\|\.add\.graphics\|\.add\.circle\|\.add\.rectangle\|\.add\.text\|\.add\.container\|\.add\.sprite\|\.add\.image" "$GAME_SCENE" 2>/dev/null || echo "0")
-if [ "$COUNT" -gt 0 ]; then
+COUNT=$(grep -c "generateTexture\|\.add\.graphics\|\.add\.circle\|\.add\.rectangle\|\.add\.text\|\.add\.container\|\.add\.sprite\|\.add\.image" "$GAME_SCENE" 2>/dev/null | tail -1)
+COUNT=${COUNT:-0}
+if (( COUNT > 0 )); then
     echo "FOUND! ($COUNT výskytů)"
     grep -n "generateTexture\|\.add\.graphics\|\.add\.circle\|\.add\.rectangle\|\.add\.text\|\.add\.container\|\.add\.sprite\|\.add\.image" "$GAME_SCENE" | head -5
     ERRORS=$((ERRORS + 1))

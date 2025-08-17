@@ -1,20 +1,15 @@
 {
-  // Elite blueprint: elite.speed_virus
   id: 'elite.speed_virus',
   type: 'elite',
-  baseEnemyId: 'enemy.viral_swarm',  // Base enemy to enhance
-  
-  // Elite stat multipliers (applied to base enemy stats)
+  baseEnemyId: 'enemy.viral_swarm',
   multipliers: {
-    hp: 3.5,          // 3.5x health (25 -> 90)
-    damage: 1.6,      // 1.6x damage (5 -> 8)
-    speed: 1.7,       // 1.7x speed (50 -> 85) - much faster
-    size: 1.2,        // 20% larger (15 -> 18)
-    armor: 2,         // +2 armor (0 -> 2)
-    xp: 3.0,          // 3x XP (6 -> 18)
+    hp: 3.5,
+    damage: 1.6,
+    speed: 1.7,
+    size: 1.2,
+    armor: 2,
+    xp: 3,
   },
-  
-  // Elite specific stats (override base if needed)
   stats: {
     hp: 90,
     damage: 8,
@@ -23,110 +18,86 @@
     armor: 2,
     xp: 18,
   },
-  
-  // Elite mechanics enhancements
   mechanics: {
     movementType: 'hyper_agile',
     contactDamage: 8,
     aggroRange: 250,
     wanderRadius: 80,
-    dropChance: 1.0,
+    dropChance: 1,
     healthDropChance: 0.2,
-    
-    // Elite-specific mechanics
     dash: {
       enabled: true,
-      speed: 180,            // Dash speed
-      distance: 120,         // Dash distance
-      cooldown: 2000,        // 2 second cooldown
-      damageOnImpact: 12,    // Damage if dashing through player
-      invulnerable: true,    // Invulnerable during dash
+      speed: 180,
+      distance: 120,
+      cooldown: 2000,
+      damageOnImpact: 12,
+      invulnerable: true,
     },
-    
     evasion: {
-      chance: 0.3,           // 30% chance to dodge attacks
-      visualEffect: true,    // Show dodge effect
-      counterAttack: true,   // Counter after dodge
+      chance: 0.3,
+      visualEffect: true,
+      counterAttack: true,
     },
-    
     afterimage: {
       enabled: true,
-      count: 3,              // Number of afterimages
-      duration: 1000,        // How long they last
-      confuse: true,         // Can confuse targeting
+      count: 3,
+      duration: 1000,
+      confuse: true,
     },
-    
     speedBoost: {
-      onLowHealth: true,     // Boost when below 30% HP
+      onLowHealth: true,
       threshold: 0.3,
-      multiplier: 1.5,       // 50% speed increase
+      multiplier: 1.5,
     },
-    
-    hitAndRun: true,         // Attack and retreat pattern
+    hitAndRun: true,
   },
-  
-  // Elite visual configuration
   graphics: {
     sprite: 'elite_speed_virus',
-    tint: 0xE91E63,          // Pink/magenta tint
-    scale: 1.2,              // Slightly larger
-    glowEffect: true,        // Elite glow
-    trailEffect: true,       // Speed trail
+    tint: 15277667,
+    scale: 1.2,
+    glowEffect: true,
+    trailEffect: true,
     animation: {
       idle: 'elite_speed_idle',
       move: 'elite_speed_move',
       attack: 'elite_speed_attack',
-      dash: 'elite_speed_dash'
+      dash: 'elite_speed_dash',
     },
     eliteIndicator: {
-      type: 'wings',         // Wing icon for speed
-      color: 0xE91E63,       // Pink color
+      type: 'wings',
+      color: 15277667,
       scale: 0.8,
-    }
+    },
   },
-  
-  // Elite AI behavior
   ai: {
     behavior: 'elite_speedster',
     params: {
       aggroRange: 250,
       movePattern: 'hit_and_run',
-      targetPriority: 'weakest',    // Targets low HP enemies
-      
-      // Elite AI features
-      flanking: true,               // Tries to attack from sides/behind
-      groupCoordination: true,       // Coordinates with other speed viruses
-      retreatThreshold: 0.3,         // Retreats at 30% HP
-      retreatSpeed: 150,             // Fast retreat
-      
+      targetPriority: 'weakest',
+      flanking: true,
+      groupCoordination: true,
+      retreatThreshold: 0.3,
+      retreatSpeed: 150,
       dashTactics: {
-        predictive: true,           // Predicts player movement
-        throughAttack: true,         // Dashes through player
-        escapeUse: true,             // Uses dash to escape
+        predictive: true,
+        throughAttack: true,
+        escapeUse: true,
       },
-      
-      callForHelp: false,           // Too fast to need help
-    }
+      callForHelp: false,
+    },
   },
-  
-  // Elite loot table
   lootTable: 'lootTable.elite.tier2',
-  
-  // Elite VFX
   vfx: {
-    spawn: 'elite.special',
-    hit: 'enemy.hit',
-    death: 'elite.special',
+    spawn: 'vfx.elite.special',
+    hit: 'vfx.enemy.hit',
+    death: 'vfx.elite.special',
   },
-  
-  // Elite SFX
   sfx: {
     spawn: 'sound/npc_spawn.mp3',
     hit: 'sound/hit_hard.mp3',
     death: 'sound/elite_death.mp3',
   },
-  
-  // Display configuration
   display: {
     key: 'elite.speed_virus.name',
     descKey: 'elite.speed_virus.desc',
@@ -153,13 +124,11 @@
     devNameFallback: 'Elitní rychlý virus',
     devDescFallback: 'Extrémně rychlý elitní virus s dash a evasion schopnostmi',
   },
-  
-  // Elite spawn configuration
   spawnConditions: {
-    minLevel: 2,           // Appears from level 2
-    minGameTime: 30000,    // After 30 seconds
-    maxCount: 3,           // Max 3 at once (they're fast but fragile)
-    cooldown: 12000,       // 12 second cooldown between spawns
-    weight: 0.12,          // 12% spawn chance when eligible
-  }
+    minLevel: 2,
+    minGameTime: 30000,
+    maxCount: 3,
+    cooldown: 12000,
+    weight: 0.12,
+  },
 }

@@ -10,38 +10,38 @@
         path: 'attackIntervalMs',
         type: 'mul',
         value: -0.12,
-        description: 'Reduces attack interval by 12% per level'
+        description: 'Reduces attack interval by 12% per level',
       },
       {
         path: 'moveSpeed',
         type: 'mul',
         value: 0.08,
-        description: 'Increases movement speed by 8% per level'
+        description: 'Increases movement speed by 8% per level',
       },
       {
         path: 'dodgeChance',
         type: 'add',
         value: 0.015,
-        description: 'Adds 1.5% dodge chance per level'
+        description: 'Adds 1.5% dodge chance per level',
       },
       {
         path: 'projectileCount',
         type: 'add',
         value: 0.5,
-        description: 'Adds 0.5 projectiles per level (rounds down)'
+        description: 'Adds 0.5 projectiles per level (rounds down)',
       },
     ],
     stackable: true,
     persistent: true,
     applyOnPickup: true,
     attackSpeedCap: 5,
-    effectType: 'metabolic_haste' // PR7: Explicit effect type
+    effectType: 'metabolic_haste',
   },
   vfx: {
-    pickup: 'pickup',
-    levelup: 'powerup',
-    apply: 'powerup',
-    dodge: 'hit.medium',
+    pickup: 'vfx.pickup',
+    levelup: 'vfx.powerup',
+    apply: 'vfx.powerup',
+    dodge: 'vfx.hit.medium',
   },
   sfx: {
     pickup: 'sound/pickup.mp3',

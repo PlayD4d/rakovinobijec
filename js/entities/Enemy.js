@@ -3,37 +3,46 @@
  * Provides the main Enemy API while delegating to specialized components
  */
 
-import { EnemyCore } from './EnemyCore.js';
+import { EnemyCore } from './core/EnemyCore.js';
 import { EnemyBehaviors } from './EnemyBehaviors.js';
 
 export class Enemy extends EnemyCore {
-    constructor(scene, x, y, type, config) {
+    constructor(scene, blueprint, spawnOpts) {
         // Initialize core functionality
-        super(scene, x, y, type, config);
+        super(scene, blueprint, spawnOpts);
         
         // Initialize AI behaviors
         this.behaviors = new EnemyBehaviors(this);
         
         // Emit spawn event
-        this.scene.events.emit('enemy:spawn', { enemy: this, type: type });
+        if (this.scene.events) {
+            this.scene.events.emit('enemy:spawn', { 
+                enemy: this, 
+                type: blueprint.type,
+                id: blueprint.id 
+            });
+        }
         
         // Spawn effects
-        this._playVfx(this.vfx.spawn, this.x, this.y);
-        this._playSfx(this.sfx.spawn);
+        this.spawnVfx('spawn');
+        this.playSfx('spawn');
         
-        console.debug(`[Enemy] Created ${type} with ${this.behaviors.behavior} AI`);
+        console.debug(`[Enemy] Created ${blueprint.id} with ${this.behaviors.behaviorType} AI`);
     }
     
     /**
      * Main update method - called by Phaser
      */
     update(time, delta) {
-        if (this.isDead) return;
+        if (!this.active || this.hp <= 0) return;
         
         // Update AI behaviors
-        this.behaviors.update(time, delta);
+        if (this.behaviors) {
+            this.behaviors.update(time, delta);
+        }
         
-        // Core state updates are handled in preUpdate
+        // Update core systems
+        super.update(delta / 1000);
     }
     
     /**

@@ -5,7 +5,7 @@
     maxLevel: 10,
   },
   mechanics: {
-    modifiersPerLevel: [],  // Shield uses ability system, not modifiers
+    modifiersPerLevel: [],
     stackable: true,
     persistent: true,
     applyOnPickup: true,
@@ -18,9 +18,9 @@
     regenReductionPerLevel: 500,
   },
   vfx: {
-    pickup: 'pickup',
-    levelUp: 'powerup',
-    hit: 'hit.small',
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+    hit: 'vfx.hit.small',
   },
   sfx: {
     pickup: 'sound/pickup.mp3',

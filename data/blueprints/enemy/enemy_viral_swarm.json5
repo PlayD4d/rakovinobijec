@@ -19,19 +19,21 @@
     healthDropChance: 0.08,
   },
   vfx: {
-    spawn: 'spawn',
-    hit: 'enemy.hit',
-    death: 'death.small',
-    trail: 'trail.toxic',
+    spawn: 'vfx.spawn',
+    hit: 'vfx.enemy.hit',
+    death: 'vfx.death.small',
+    trail: 'vfx.trail.toxic',
   },
   sfx: {
     spawn: 'sound/npc_spawn.mp3',
     hit: 'sound/npc_hit.mp3',
     death: 'sound/npc_death.mp3',
   },
-  // Direct drop system - consumables only (XP comes from stats.xp)
   drops: [
-    { itemId: 'item.health_small', chance: 0.05 }  // 5% chance for health
+    {
+      itemId: 'item.health_small',
+      chance: 0.05,
+    },
   ],
   graphics: {
     sprite: 'enemy_viral_swarm',
