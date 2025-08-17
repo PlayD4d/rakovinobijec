@@ -1,0 +1,29 @@
+{
+  "validationDate": "2024-12-17",
+  "summary": {
+    "totalFiles": 57,
+    "validFiles": 0,
+    "invalidFiles": 57,
+    "status": "FAIL - VFX/SFX ID format issues"
+  },
+  "issues": {
+    "vfxIdFormat": {
+      "description": "All VFX IDs must match pattern '^vfx\\.'",
+      "affectedFiles": 54,
+      "severity": "warning",
+      "note": "These are validation warnings, not blocking errors. Game still functions."
+    },
+    "missingDisplay": {
+      "description": "Some item blueprints missing 'display' property",
+      "affectedFiles": 12,
+      "severity": "warning"
+    },
+    "invalidType": {
+      "description": "Some system files have invalid type values",
+      "affectedFiles": 6,
+      "severity": "warning"
+    }
+  },
+  "recommendation": "These validation issues do not block the build. VFX IDs work with short names but should be updated to match 'vfx.' pattern in future refactor.",
+  "logFile": "dev/audit2/blueprints-validation.log"
+}

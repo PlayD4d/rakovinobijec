@@ -24,7 +24,17 @@
     "compare:runs": "node scripts/compare-telemetry.mjs",
     "validate:telemetry": "node scripts/validate-telemetry-analyzer.mjs",
     "rebuild:index": "node scripts/rebuild-registry-index.mjs",
-    "postinstall": "simple-git-hooks"
+    "postinstall": "simple-git-hooks",
+    "guard:check": "bash dev/refactor/check_guards.sh",
+    "guard:check-all": "bash dev/refactor/check_all_guards.sh",
+    "guard:phaser": "bash dev/refactor/check_phaser_api.sh",
+    "test:golden-path": "node scripts/golden-path-test.mjs",
+    "test:leak": "node scripts/leak-test.mjs",
+    "validate:blueprints": "node scripts/validate-all-blueprints.mjs",
+    "ci:full": "node scripts/ci-full.mjs",
+    "ci:full:verbose": "node scripts/ci-full.mjs --verbose",
+    "ci:quick": "npm run guard:check && npm run smoke:test",
+    "check:orphans": "node scripts/check-orphans.mjs"
   },
   "keywords": [
     "game",

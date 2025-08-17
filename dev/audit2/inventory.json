@@ -1,0 +1,1266 @@
+[
+  {
+    "path": "js/config.js",
+    "category": "root",
+    "loc": 499,
+    "imports": [],
+    "exports": [
+      "calculateGameSize",
+      "GameConfig"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/FrameworkDebugAPI.js",
+    "category": "core-other",
+    "loc": 641,
+    "imports": [
+      "js/utils/SmokeTest.js"
+    ],
+    "exports": [
+      "FrameworkDebugAPI"
+    ],
+    "violationCount": 0,
+    "todoCount": 2
+  },
+  {
+    "path": "js/core/GameConstants.js",
+    "category": "core-other",
+    "loc": 114,
+    "imports": [],
+    "exports": [
+      "GameConstants",
+      "COLLISION_RADIUS",
+      "DISTANCES",
+      "TIMINGS"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/TelemetryLogger.js",
+    "category": "core-other",
+    "loc": 499,
+    "imports": [],
+    "exports": [
+      "TelemetryLogger"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/audio/AudioAssets.js",
+    "category": "core-audio",
+    "loc": 7,
+    "imports": [],
+    "exports": [
+      "buildSfxManifest"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/audio/SimplifiedAudioSystem.js",
+    "category": "core-audio",
+    "loc": 582,
+    "imports": [],
+    "exports": [
+      "SimplifiedAudioSystem",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/blueprints/DisplayResolver.js",
+    "category": "core-data",
+    "loc": 193,
+    "imports": [],
+    "exports": [
+      "DisplayResolver",
+      "displayResolver",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/data/BlueprintLoader.js",
+    "category": "core-data",
+    "loc": 481,
+    "imports": [
+      "js/core/validation/BlueprintValidator.js"
+    ],
+    "exports": [
+      "BlueprintLoader"
+    ],
+    "violationCount": 0,
+    "todoCount": 2
+  },
+  {
+    "path": "js/core/debug/Phase5Debug.js",
+    "category": "core-other",
+    "loc": 752,
+    "imports": [],
+    "exports": [
+      "Phase5Debug",
+      "default"
+    ],
+    "violationCount": 3,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/dev/HotReload.js",
+    "category": "core-other",
+    "loc": 290,
+    "imports": [
+      "js/core/registry/EnemyRegistry.js",
+      "js/core/registry/DropRegistry.js"
+    ],
+    "exports": [
+      "HotReload"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/drops/effects.js",
+    "category": "core-other",
+    "loc": 48,
+    "imports": [],
+    "exports": [
+      "DropEffects"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/events/EventBus.js",
+    "category": "core-other",
+    "loc": 64,
+    "imports": [
+      "js/core/events/EventWhitelist.js"
+    ],
+    "exports": [
+      "EventBus"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/events/EventWhitelist.js",
+    "category": "core-other",
+    "loc": 122,
+    "imports": [],
+    "exports": [
+      "EventWhitelist",
+      "EventSchemas",
+      "isEventAllowed",
+      "validateEventPayload"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/graphics/GraphicsFactory.js",
+    "category": "core-other",
+    "loc": 89,
+    "imports": [],
+    "exports": [
+      "GraphicsFactory",
+      "default"
+    ],
+    "violationCount": 1,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/input/KeyboardManager.js",
+    "category": "core-other",
+    "loc": 254,
+    "imports": [],
+    "exports": [
+      "KeyboardManager"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/logging/GameLogger.js",
+    "category": "core-other",
+    "loc": 407,
+    "imports": [],
+    "exports": [
+      "GameLogger",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/logging/SessionLogger.js",
+    "category": "core-other",
+    "loc": 245,
+    "imports": [],
+    "exports": [
+      "SessionLogger",
+      "initSessionLogger",
+      "getSessionLogger",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/projectiles/EnemyProjectile.js",
+    "category": "core-other",
+    "loc": 194,
+    "imports": [
+      "js/core/GameConstants.js"
+    ],
+    "exports": [
+      "EnemyProjectile"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/projectiles/PlayerProjectile.js",
+    "category": "core-other",
+    "loc": 98,
+    "imports": [],
+    "exports": [
+      "PlayerProjectile"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/spawn/SpawnDirector.js",
+    "category": "core-other",
+    "loc": 837,
+    "imports": [],
+    "exports": [
+      "SpawnDirector"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/systems/ProjectileSystem.js",
+    "category": "core-systems",
+    "loc": 583,
+    "imports": [
+      "js/core/projectiles/PlayerProjectile.js",
+      "js/core/projectiles/EnemyProjectile.js",
+      "js/core/utils/ShapeRenderer.js",
+      "js/config.js"
+    ],
+    "exports": [
+      "ProjectileSystem"
+    ],
+    "violationCount": 4,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/systems/SimpleLootSystem.js",
+    "category": "core-systems",
+    "loc": 529,
+    "imports": [],
+    "exports": [
+      "SimpleLootSystem"
+    ],
+    "violationCount": 7,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/systems/powerup/PowerUpAbilities.js",
+    "category": "core-systems",
+    "loc": 362,
+    "imports": [],
+    "exports": [
+      "PowerUpAbilities"
+    ],
+    "violationCount": 4,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/systems/powerup/PowerUpEffects.js",
+    "category": "core-systems",
+    "loc": 201,
+    "imports": [],
+    "exports": [
+      "PowerUpEffects"
+    ],
+    "violationCount": 3,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/systems/powerup/PowerUpModifiers.js",
+    "category": "core-systems",
+    "loc": 108,
+    "imports": [],
+    "exports": [
+      "PowerUpModifiers"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/systems/powerup/PowerUpSystem.js",
+    "category": "core-systems",
+    "loc": 376,
+    "imports": [
+      "js/core/systems/powerup/PowerUpModifiers.js",
+      "js/core/systems/powerup/PowerUpAbilities.js",
+      "js/core/systems/powerup/PowerUpEffects.js",
+      "js/ui/PowerUpSelectionModal.js"
+    ],
+    "exports": [
+      "PowerUpSystem",
+      "default"
+    ],
+    "violationCount": 1,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/utils/ConfigResolver.js",
+    "category": "core-utils",
+    "loc": 280,
+    "imports": [
+      "js/config.js"
+    ],
+    "exports": [
+      "ConfigResolver",
+      "configResolver",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/utils/ShapeRenderer.js",
+    "category": "core-utils",
+    "loc": 213,
+    "imports": [],
+    "exports": [
+      "ShapeRenderer",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/utils/SoftRefresh.js",
+    "category": "core-utils",
+    "loc": 508,
+    "imports": [],
+    "exports": [
+      "SoftRefresh",
+      "extendBlueprintLoader",
+      "extendSpawnDirector"
+    ],
+    "violationCount": 2,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/utils/bossActions.js",
+    "category": "core-utils",
+    "loc": 74,
+    "imports": [],
+    "exports": [
+      "performShootFan",
+      "performShootCircle",
+      "performTrackingShot",
+      "performPlaceZone"
+    ],
+    "violationCount": 2,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/utils/devConsole.js",
+    "category": "core-utils",
+    "loc": 1086,
+    "imports": [
+      "js/config.js"
+    ],
+    "exports": [
+      "installDevConsole"
+    ],
+    "violationCount": 0,
+    "todoCount": 2
+  },
+  {
+    "path": "js/core/validation/BlueprintValidator.js",
+    "category": "core-other",
+    "loc": 596,
+    "imports": [],
+    "exports": [
+      "BlueprintValidator",
+      "ValidationError"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/vfx/ArmorVisualizer.js",
+    "category": "core-vfx",
+    "loc": 220,
+    "imports": [],
+    "exports": [
+      "ArmorVisualizer",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/vfx/SimplifiedVFXSystem.js",
+    "category": "core-vfx",
+    "loc": 430,
+    "imports": [
+      "js/core/vfx/VFXPresets.js",
+      "js/core/vfx/effects/RadiotherapyEffect.js",
+      "js/core/vfx/effects/FlamethrowerEffect.js",
+      "js/core/vfx/effects/ShieldEffect.js"
+    ],
+    "exports": [
+      "SimplifiedVFXSystem",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/vfx/VFXPresets.js",
+    "category": "core-vfx",
+    "loc": 789,
+    "imports": [],
+    "exports": [
+      "VFXPresets",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/vfx/effects/ArmorShieldEffect.js",
+    "category": "core-vfx",
+    "loc": 334,
+    "imports": [],
+    "exports": [
+      "ArmorShieldEffect",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/vfx/effects/BossBeamEffect.js",
+    "category": "core-vfx",
+    "loc": 154,
+    "imports": [],
+    "exports": [
+      "BossBeamEffect",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/vfx/effects/ChemoAuraEffect.js",
+    "category": "core-vfx",
+    "loc": 296,
+    "imports": [],
+    "exports": [
+      "ChemoAuraEffect"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/vfx/effects/FlamethrowerEffect.js",
+    "category": "core-vfx",
+    "loc": 379,
+    "imports": [],
+    "exports": [
+      "FlamethrowerEffect"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/vfx/effects/RadiotherapyEffect.js",
+    "category": "core-vfx",
+    "loc": 447,
+    "imports": [],
+    "exports": [
+      "RadiotherapyEffect",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/core/vfx/effects/ShieldEffect.js",
+    "category": "core-vfx",
+    "loc": 240,
+    "imports": [],
+    "exports": [
+      "ShieldEffect"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/entities/Boss.js",
+    "category": "entities",
+    "loc": 1097,
+    "imports": [
+      "js/entities/Enemy.js",
+      "js/entities/BossAbilitiesV2.js"
+    ],
+    "exports": [
+      "Boss",
+      "default"
+    ],
+    "violationCount": 1,
+    "todoCount": 0
+  },
+  {
+    "path": "js/entities/BossAbilitiesV2.js",
+    "category": "entities",
+    "loc": 434,
+    "imports": [
+      "js/core/vfx/effects/BossBeamEffect.js",
+      "js/core/logging/SessionLogger.js"
+    ],
+    "exports": [
+      "BossAbilitiesV2",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/entities/Enemy.js",
+    "category": "entities",
+    "loc": 913,
+    "imports": [],
+    "exports": [
+      "Enemy"
+    ],
+    "violationCount": 7,
+    "todoCount": 0
+  },
+  {
+    "path": "js/entities/Player.js",
+    "category": "entities",
+    "loc": 680,
+    "imports": [],
+    "exports": [
+      "Player",
+      "default"
+    ],
+    "violationCount": 2,
+    "todoCount": 0
+  },
+  {
+    "path": "js/handlers/setupCollisions.js",
+    "category": "other",
+    "loc": 239,
+    "imports": [],
+    "exports": [
+      "setupCollisions",
+      "collisionHandlers"
+    ],
+    "violationCount": 6,
+    "todoCount": 0
+  },
+  {
+    "path": "js/integration/SpawnDirectorIntegration.js",
+    "category": "integration",
+    "loc": 188,
+    "imports": [
+      "js/entities/Boss.js",
+      "js/entities/Enemy.js"
+    ],
+    "exports": [
+      "SpawnDirectorIntegration"
+    ],
+    "violationCount": 4,
+    "todoCount": 0
+  },
+  {
+    "path": "js/main.js",
+    "category": "root",
+    "loc": 98,
+    "imports": [
+      "js/scenes/GameScene.js",
+      "js/scenes/GameUIScene.js",
+      "js/scenes/MainMenu.js",
+      "js/scenes/DevPlayground.js",
+      "js/config.js",
+      "js/core/utils/ConfigResolver.js"
+    ],
+    "exports": [],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/managers/AnalyticsManager.js",
+    "category": "managers",
+    "loc": 1017,
+    "imports": [
+      "js/utils/version.js"
+    ],
+    "exports": [
+      "AnalyticsManager"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/managers/BootstrapManager.js",
+    "category": "managers",
+    "loc": 276,
+    "imports": [],
+    "exports": [
+      "BootstrapManager",
+      "default"
+    ],
+    "violationCount": 2,
+    "todoCount": 0
+  },
+  {
+    "path": "js/managers/EnemyManager.js",
+    "category": "managers",
+    "loc": 232,
+    "imports": [
+      "js/entities/Enemy.js",
+      "js/entities/Boss.js"
+    ],
+    "exports": [
+      "EnemyManager",
+      "default"
+    ],
+    "violationCount": 2,
+    "todoCount": 0
+  },
+  {
+    "path": "js/managers/GlobalHighScoreManager.js",
+    "category": "managers",
+    "loc": 216,
+    "imports": [
+      "js/utils/supabaseClient.js",
+      "js/utils/version.js"
+    ],
+    "exports": [
+      "GlobalHighScoreManager"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/managers/HighScoreManager.js",
+    "category": "managers",
+    "loc": 136,
+    "imports": [],
+    "exports": [
+      "HighScoreManager"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/managers/MobileControlsManager.js",
+    "category": "managers",
+    "loc": 226,
+    "imports": [],
+    "exports": [
+      "MobileControlsManager"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/managers/PlayerFactory.js",
+    "category": "managers",
+    "loc": 92,
+    "imports": [],
+    "exports": [
+      "PlayerFactory",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/managers/SystemsInitializer.js",
+    "category": "managers",
+    "loc": 273,
+    "imports": [
+      "js/managers/EnemyManager.js",
+      "js/managers/PlayerFactory.js",
+      "js/core/audio/SimplifiedAudioSystem.js"
+    ],
+    "exports": [
+      "SystemsInitializer",
+      "default"
+    ],
+    "violationCount": 2,
+    "todoCount": 0
+  },
+  {
+    "path": "js/managers/TransitionManager.js",
+    "category": "managers",
+    "loc": 640,
+    "imports": [
+      "js/ui/HighScoreModal.js"
+    ],
+    "exports": [
+      "TransitionManager",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/managers/UpdateManager.js",
+    "category": "managers",
+    "loc": 346,
+    "imports": [],
+    "exports": [
+      "UpdateManager",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/scenes/DevPlayground.js",
+    "category": "scenes",
+    "loc": 1015,
+    "imports": [
+      "js/entities/Enemy.js",
+      "js/entities/Boss.js"
+    ],
+    "exports": [
+      "DevPlayground"
+    ],
+    "violationCount": 35,
+    "todoCount": 0
+  },
+  {
+    "path": "js/scenes/GameScene.js",
+    "category": "scenes",
+    "loc": 1117,
+    "imports": [
+      "js/entities/Player.js",
+      "js/entities/Enemy.js",
+      "js/entities/Boss.js",
+      "js/ui/UnifiedHUD.js",
+      "js/managers/MobileControlsManager.js",
+      "js/managers/HighScoreManager.js",
+      "js/managers/GlobalHighScoreManager.js",
+      "js/managers/AnalyticsManager.js",
+      "js/utils/supabaseClient.js",
+      "js/ui/UITheme.js",
+      "js/ui/HighScoreModal.js",
+      "js/core/systems/SimpleLootSystem.js",
+      "js/core/systems/powerup/PowerUpSystem.js",
+      "js/core/utils/ShapeRenderer.js",
+      "js/core/utils/devConsole.js",
+      "js/core/events/EventBus.js",
+      "js/core/input/KeyboardManager.js",
+      "js/core/vfx/SimplifiedVFXSystem.js",
+      "js/core/logging/SessionLogger.js",
+      "js/core/blueprints/DisplayResolver.js",
+      "js/core/TelemetryLogger.js",
+      "js/utils/DebugOverlay.js",
+      "js/core/debug/Phase5Debug.js",
+      "js/utils/SmokeTest.js",
+      "js/core/data/BlueprintLoader.js",
+      "js/core/spawn/SpawnDirector.js",
+      "js/core/FrameworkDebugAPI.js",
+      "js/core/systems/ProjectileSystem.js",
+      "js/core/graphics/GraphicsFactory.js",
+      "js/handlers/setupCollisions.js",
+      "js/managers/UpdateManager.js",
+      "js/managers/TransitionManager.js",
+      "js/managers/BootstrapManager.js",
+      "js/managers/SystemsInitializer.js",
+      "js/utils/DisposableRegistry.js",
+      "js/managers/EnemyManager.js"
+    ],
+    "exports": [
+      "GameScene"
+    ],
+    "violationCount": 3,
+    "todoCount": 0
+  },
+  {
+    "path": "js/scenes/GameUIScene.js",
+    "category": "scenes",
+    "loc": 191,
+    "imports": [
+      "js/ui/lite/PauseUI.js",
+      "js/ui/lite/PowerUpUI.js",
+      "js/ui/lite/GameOverUI.js"
+    ],
+    "exports": [
+      "GameUIScene"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/scenes/MainMenu.js",
+    "category": "scenes",
+    "loc": 276,
+    "imports": [
+      "js/config.js",
+      "js/managers/HighScoreManager.js",
+      "js/managers/GlobalHighScoreManager.js",
+      "js/core/vfx/SimplifiedVFXSystem.js",
+      "js/core/graphics/GraphicsFactory.js",
+      "js/core/events/EventBus.js",
+      "js/core/input/KeyboardManager.js",
+      "js/ui/lite/MainMenuUI.js",
+      "js/utils/version.js",
+      "js/core/audio/SimplifiedAudioSystem.js"
+    ],
+    "exports": [
+      "MainMenu",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/tests/ConfigResolver.test.js",
+    "category": "tests",
+    "loc": 300,
+    "imports": [
+      "js/core/utils/ConfigResolver.js"
+    ],
+    "exports": [
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/tests/PR5-Final-SmokeTest.js",
+    "category": "tests",
+    "loc": 290,
+    "imports": [
+      "js/core/utils/ConfigResolver.js",
+      "js/ui/SettingsManager.js",
+      "js/core/validation/BlueprintValidator.js"
+    ],
+    "exports": [
+      "runFinalSmokeTest",
+      "runGameplayCompatibilityTest",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/tests/boss_pr7_smoketest.js",
+    "category": "tests",
+    "loc": 143,
+    "imports": [
+      "js/entities/Boss.js"
+    ],
+    "exports": [
+      "runBossPR7SmokeTest"
+    ],
+    "violationCount": 3,
+    "todoCount": 0
+  },
+  {
+    "path": "js/tests/enemy_pr7_smoketest.js",
+    "category": "tests",
+    "loc": 160,
+    "imports": [
+      "js/entities/Enemy.js"
+    ],
+    "exports": [
+      "runEnemyPR7SmokeTest"
+    ],
+    "violationCount": 3,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/BaseUIComponent.js",
+    "category": "ui",
+    "loc": 426,
+    "imports": [
+      "js/ui/UITheme.js",
+      "js/ui/UiConstants.js"
+    ],
+    "exports": [
+      "BaseUIComponent",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/DetailsPanel.js",
+    "category": "ui",
+    "loc": 210,
+    "imports": [
+      "js/core/blueprints/DisplayResolver.js"
+    ],
+    "exports": [
+      "DetailsPanel",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/DevPlaygroundUI.js",
+    "category": "ui",
+    "loc": 673,
+    "imports": [],
+    "exports": [
+      "DevPlaygroundUI"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/HighScoreModal.js",
+    "category": "ui",
+    "loc": 402,
+    "imports": [
+      "js/ui/BaseUIComponent.js",
+      "js/ui/UITheme.js",
+      "js/ui/UiConstants.js"
+    ],
+    "exports": [
+      "HighScoreModal",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/HighScoresModal.js",
+    "category": "ui",
+    "loc": 395,
+    "imports": [
+      "js/ui/BaseUIComponent.js",
+      "js/ui/UITheme.js",
+      "js/ui/UiConstants.js"
+    ],
+    "exports": [
+      "HighScoresModal",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/PowerUpSelectionModal.js",
+    "category": "ui",
+    "loc": 838,
+    "imports": [
+      "js/ui/BaseUIComponent.js",
+      "js/ui/UITheme.js",
+      "js/ui/UiConstants.js"
+    ],
+    "exports": [
+      "PowerUpSelectionModal",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/SFXSoundboard.js",
+    "category": "ui",
+    "loc": 617,
+    "imports": [],
+    "exports": [
+      "SFXSoundboard"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/SettingsManager.js",
+    "category": "ui",
+    "loc": 358,
+    "imports": [],
+    "exports": [
+      "SettingsManager",
+      "settingsManager"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/SettingsModal.js",
+    "category": "ui",
+    "loc": 1363,
+    "imports": [
+      "js/ui/BaseUIComponent.js",
+      "js/ui/UITheme.js",
+      "js/ui/UiConstants.js",
+      "js/ui/SettingsManager.js"
+    ],
+    "exports": [
+      "SettingsModal",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 2
+  },
+  {
+    "path": "js/ui/Tooltip.js",
+    "category": "ui",
+    "loc": 116,
+    "imports": [
+      "js/core/blueprints/DisplayResolver.js"
+    ],
+    "exports": [
+      "Tooltip",
+      "tooltip",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/UIEventContract.js",
+    "category": "ui",
+    "loc": 300,
+    "imports": [],
+    "exports": [
+      "UI_EVENTS",
+      "UIEventContract",
+      "createUIEventContract",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/UITheme.js",
+    "category": "ui",
+    "loc": 196,
+    "imports": [],
+    "exports": [
+      "UI_THEME",
+      "UIThemeUtils",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/UiConstants.js",
+    "category": "ui",
+    "loc": 142,
+    "imports": [
+      "js/ui/UITheme.js"
+    ],
+    "exports": [
+      "UI_DEPTH",
+      "RESPONSIVE",
+      "UI_COMPONENTS",
+      "isMobile",
+      "getFontScale"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/UnifiedHUD.js",
+    "category": "ui",
+    "loc": 446,
+    "imports": [
+      "js/ui/BaseUIComponent.js",
+      "js/ui/UITheme.js",
+      "js/ui/UiConstants.js"
+    ],
+    "exports": [
+      "UnifiedHUD",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/ValueChip.js",
+    "category": "ui",
+    "loc": 118,
+    "imports": [
+      "js/core/blueprints/DisplayResolver.js"
+    ],
+    "exports": [
+      "ValueChip",
+      "createValueChip",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/lite/GameOverUI.js",
+    "category": "ui",
+    "loc": 143,
+    "imports": [
+      "js/ui/lite/SimpleModal.js",
+      "js/ui/lite/SimpleButton.js"
+    ],
+    "exports": [
+      "GameOverUI"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/lite/MainMenuUI.js",
+    "category": "ui",
+    "loc": 125,
+    "imports": [
+      "js/ui/lite/SimpleButton.js"
+    ],
+    "exports": [
+      "MainMenuUI"
+    ],
+    "violationCount": 0,
+    "todoCount": 2
+  },
+  {
+    "path": "js/ui/lite/PauseUI.js",
+    "category": "ui",
+    "loc": 114,
+    "imports": [
+      "js/ui/lite/SimpleModal.js",
+      "js/ui/lite/SimpleButton.js"
+    ],
+    "exports": [
+      "PauseUI"
+    ],
+    "violationCount": 0,
+    "todoCount": 1
+  },
+  {
+    "path": "js/ui/lite/PowerUpUI.js",
+    "category": "ui",
+    "loc": 338,
+    "imports": [
+      "js/ui/lite/SimpleModal.js",
+      "js/ui/UITheme.js"
+    ],
+    "exports": [
+      "PowerUpUI"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/lite/SimpleButton.js",
+    "category": "ui",
+    "loc": 114,
+    "imports": [
+      "js/ui/UITheme.js"
+    ],
+    "exports": [
+      "SimpleButton"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/ui/lite/SimpleModal.js",
+    "category": "ui",
+    "loc": 158,
+    "imports": [
+      "js/ui/UITheme.js"
+    ],
+    "exports": [
+      "SimpleModal"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/utils/DebugOverlay.js",
+    "category": "utils",
+    "loc": 354,
+    "imports": [
+      "js/utils/PerformanceProfiler.js"
+    ],
+    "exports": [
+      "DebugOverlay"
+    ],
+    "violationCount": 3,
+    "todoCount": 0
+  },
+  {
+    "path": "js/utils/DisposableRegistry.js",
+    "category": "utils",
+    "loc": 126,
+    "imports": [],
+    "exports": [
+      "DisposableRegistry",
+      "default"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/utils/PerformanceProfiler.js",
+    "category": "utils",
+    "loc": 197,
+    "imports": [],
+    "exports": [
+      "PerformanceProfiler"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/utils/SmokeTest.js",
+    "category": "utils",
+    "loc": 490,
+    "imports": [],
+    "exports": [
+      "SmokeTest"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/utils/supabaseClient.js",
+    "category": "utils",
+    "loc": 31,
+    "imports": [],
+    "exports": [
+      "SupabaseClient"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  },
+  {
+    "path": "js/utils/version.js",
+    "category": "utils",
+    "loc": 35,
+    "imports": [],
+    "exports": [
+      "DEFAULT_GAME_VERSION",
+      "getGameVersion",
+      "getCachedVersion"
+    ],
+    "violationCount": 0,
+    "todoCount": 0
+  }
+]

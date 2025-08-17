@@ -40,10 +40,10 @@ fi
 
 # Kontrola generateTexture a graphics primitives
 echo -n "❌ generateTexture/add.graphics .... "
-COUNT=$(grep -c "generateTexture\|\.add\.graphics\|\.add\.circle\|\.add\.rectangle" "$GAME_SCENE" 2>/dev/null || echo "0")
+COUNT=$(grep -c "generateTexture\|\.add\.graphics\|\.add\.circle\|\.add\.rectangle\|\.add\.text\|\.add\.container\|\.add\.sprite\|\.add\.image" "$GAME_SCENE" 2>/dev/null || echo "0")
 if [ "$COUNT" -gt 0 ]; then
     echo "FOUND! ($COUNT výskytů)"
-    grep -n "generateTexture\|\.add\.graphics\|\.add\.circle\|\.add\.rectangle" "$GAME_SCENE" | head -5
+    grep -n "generateTexture\|\.add\.graphics\|\.add\.circle\|\.add\.rectangle\|\.add\.text\|\.add\.container\|\.add\.sprite\|\.add\.image" "$GAME_SCENE" | head -5
     ERRORS=$((ERRORS + 1))
 else
     echo "✅ OK"
@@ -64,6 +64,36 @@ echo -n "❌ physics.add.overlap/collide .... "
 if rg -q "physics\.add\.(overlap|collide)" "$GAME_SCENE" 2>/dev/null; then
     echo "FOUND!"
     rg -n "physics\.add\.(overlap|collide)" "$GAME_SCENE" | head -5
+    ERRORS=$((ERRORS + 1))
+else
+    echo "✅ OK"
+fi
+
+# Kontrola this.sound.play
+echo -n "❌ this.sound.play ................ "
+if rg -q "this\.sound\.play" "$GAME_SCENE" 2>/dev/null; then
+    echo "FOUND!"
+    rg -n "this\.sound\.play" "$GAME_SCENE" | head -5
+    ERRORS=$((ERRORS + 1))
+else
+    echo "✅ OK"
+fi
+
+# Kontrola particles.createEmitter
+echo -n "❌ particles.createEmitter ........ "
+if rg -q "particles\.createEmitter" "$GAME_SCENE" 2>/dev/null; then
+    echo "FOUND!"
+    rg -n "particles\.createEmitter" "$GAME_SCENE" | head -5
+    ERRORS=$((ERRORS + 1))
+else
+    echo "✅ OK"
+fi
+
+# Kontrola scene.(add|physics.add|tweens.add)
+echo -n "❌ scene.(add|physics|tweens) ..... "
+if rg -q "scene\.(add|physics\.add|tweens\.add)" "$GAME_SCENE" 2>/dev/null; then
+    echo "FOUND!"
+    rg -n "scene\.(add|physics\.add|tweens\.add)" "$GAME_SCENE" | head -5
     ERRORS=$((ERRORS + 1))
 else
     echo "✅ OK"

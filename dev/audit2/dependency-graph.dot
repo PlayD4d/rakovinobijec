@@ -1,0 +1,333 @@
+digraph Dependencies {
+  rankdir=LR;
+  node [shape=box];
+
+  subgraph cluster_root {
+    label="root";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=white];
+    "js/config.js" [label="config.js\n(499 LOC)"];
+    "js/main.js" [label="main.js\n(98 LOC)"];
+  }
+
+  subgraph cluster_core_other {
+    label="core-other";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=white];
+    "js/core/FrameworkDebugAPI.js" [label="FrameworkDebugAPI.js\n(641 LOC)"];
+    "js/core/GameConstants.js" [label="GameConstants.js\n(114 LOC)"];
+    "js/core/TelemetryLogger.js" [label="TelemetryLogger.js\n(499 LOC)"];
+    "js/core/debug/Phase5Debug.js" [label="Phase5Debug.js\n(752 LOC)"];
+    "js/core/dev/HotReload.js" [label="HotReload.js\n(290 LOC)"];
+    "js/core/drops/effects.js" [label="effects.js\n(48 LOC)"];
+    "js/core/events/EventBus.js" [label="EventBus.js\n(64 LOC)"];
+    "js/core/events/EventWhitelist.js" [label="EventWhitelist.js\n(122 LOC)"];
+    "js/core/graphics/GraphicsFactory.js" [label="GraphicsFactory.js\n(89 LOC)"];
+    "js/core/input/KeyboardManager.js" [label="KeyboardManager.js\n(254 LOC)"];
+    "js/core/logging/GameLogger.js" [label="GameLogger.js\n(407 LOC)"];
+    "js/core/logging/SessionLogger.js" [label="SessionLogger.js\n(245 LOC)"];
+    "js/core/projectiles/EnemyProjectile.js" [label="EnemyProjectile.js\n(194 LOC)"];
+    "js/core/projectiles/PlayerProjectile.js" [label="PlayerProjectile.js\n(98 LOC)"];
+    "js/core/spawn/SpawnDirector.js" [label="SpawnDirector.js\n(837 LOC)"];
+    "js/core/validation/BlueprintValidator.js" [label="BlueprintValidator.js\n(596 LOC)"];
+  }
+
+  subgraph cluster_core_audio {
+    label="core-audio";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=peachpuff];
+    "js/core/audio/AudioAssets.js" [label="AudioAssets.js\n(7 LOC)"];
+    "js/core/audio/SimplifiedAudioSystem.js" [label="SimplifiedAudioSystem.js\n(582 LOC)"];
+  }
+
+  subgraph cluster_core_data {
+    label="core-data";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=lightcyan];
+    "js/core/blueprints/DisplayResolver.js" [label="DisplayResolver.js\n(193 LOC)"];
+    "js/core/data/BlueprintLoader.js" [label="BlueprintLoader.js\n(481 LOC)"];
+  }
+
+  subgraph cluster_core_systems {
+    label="core-systems";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=lightgray];
+    "js/core/systems/ProjectileSystem.js" [label="ProjectileSystem.js\n(583 LOC)"];
+    "js/core/systems/SimpleLootSystem.js" [label="SimpleLootSystem.js\n(529 LOC)"];
+    "js/core/systems/powerup/PowerUpAbilities.js" [label="PowerUpAbilities.js\n(362 LOC)"];
+    "js/core/systems/powerup/PowerUpEffects.js" [label="PowerUpEffects.js\n(201 LOC)"];
+    "js/core/systems/powerup/PowerUpModifiers.js" [label="PowerUpModifiers.js\n(108 LOC)"];
+    "js/core/systems/powerup/PowerUpSystem.js" [label="PowerUpSystem.js\n(376 LOC)"];
+  }
+
+  subgraph cluster_core_utils {
+    label="core-utils";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=wheat];
+    "js/core/utils/ConfigResolver.js" [label="ConfigResolver.js\n(280 LOC)"];
+    "js/core/utils/ShapeRenderer.js" [label="ShapeRenderer.js\n(213 LOC)"];
+    "js/core/utils/SoftRefresh.js" [label="SoftRefresh.js\n(508 LOC)"];
+    "js/core/utils/bossActions.js" [label="bossActions.js\n(74 LOC)"];
+    "js/core/utils/devConsole.js" [label="devConsole.js\n(1086 LOC)"];
+  }
+
+  subgraph cluster_core_vfx {
+    label="core-vfx";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=plum];
+    "js/core/vfx/ArmorVisualizer.js" [label="ArmorVisualizer.js\n(220 LOC)"];
+    "js/core/vfx/SimplifiedVFXSystem.js" [label="SimplifiedVFXSystem.js\n(430 LOC)"];
+    "js/core/vfx/VFXPresets.js" [label="VFXPresets.js\n(789 LOC)"];
+    "js/core/vfx/effects/ArmorShieldEffect.js" [label="ArmorShieldEffect.js\n(334 LOC)"];
+    "js/core/vfx/effects/BossBeamEffect.js" [label="BossBeamEffect.js\n(154 LOC)"];
+    "js/core/vfx/effects/ChemoAuraEffect.js" [label="ChemoAuraEffect.js\n(296 LOC)"];
+    "js/core/vfx/effects/FlamethrowerEffect.js" [label="FlamethrowerEffect.js\n(379 LOC)"];
+    "js/core/vfx/effects/RadiotherapyEffect.js" [label="RadiotherapyEffect.js\n(447 LOC)"];
+    "js/core/vfx/effects/ShieldEffect.js" [label="ShieldEffect.js\n(240 LOC)"];
+  }
+
+  subgraph cluster_entities {
+    label="entities";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=lightyellow];
+    "js/entities/Boss.js" [label="Boss.js\n(1097 LOC)"];
+    "js/entities/BossAbilitiesV2.js" [label="BossAbilitiesV2.js\n(434 LOC)"];
+    "js/entities/Enemy.js" [label="Enemy.js\n(913 LOC)"];
+    "js/entities/Player.js" [label="Player.js\n(680 LOC)"];
+  }
+
+  subgraph cluster_other {
+    label="other";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=white];
+    "js/handlers/setupCollisions.js" [label="setupCollisions.js\n(239 LOC)"];
+  }
+
+  subgraph cluster_integration {
+    label="integration";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=white];
+    "js/integration/SpawnDirectorIntegration.js" [label="SpawnDirectorIntegration.js\n(188 LOC)"];
+  }
+
+  subgraph cluster_managers {
+    label="managers";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=lightgreen];
+    "js/managers/AnalyticsManager.js" [label="AnalyticsManager.js\n(1017 LOC)"];
+    "js/managers/BootstrapManager.js" [label="BootstrapManager.js\n(276 LOC)"];
+    "js/managers/EnemyManager.js" [label="EnemyManager.js\n(232 LOC)"];
+    "js/managers/GlobalHighScoreManager.js" [label="GlobalHighScoreManager.js\n(216 LOC)"];
+    "js/managers/HighScoreManager.js" [label="HighScoreManager.js\n(136 LOC)"];
+    "js/managers/MobileControlsManager.js" [label="MobileControlsManager.js\n(226 LOC)"];
+    "js/managers/PlayerFactory.js" [label="PlayerFactory.js\n(92 LOC)"];
+    "js/managers/SystemsInitializer.js" [label="SystemsInitializer.js\n(273 LOC)"];
+    "js/managers/TransitionManager.js" [label="TransitionManager.js\n(640 LOC)"];
+    "js/managers/UpdateManager.js" [label="UpdateManager.js\n(346 LOC)"];
+  }
+
+  subgraph cluster_scenes {
+    label="scenes";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=lightblue];
+    "js/scenes/DevPlayground.js" [label="DevPlayground.js\n(1015 LOC)"];
+    "js/scenes/GameScene.js" [label="GameScene.js\n(1117 LOC)"];
+    "js/scenes/GameUIScene.js" [label="GameUIScene.js\n(191 LOC)"];
+    "js/scenes/MainMenu.js" [label="MainMenu.js\n(276 LOC)"];
+  }
+
+  subgraph cluster_tests {
+    label="tests";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=lightcoral];
+    "js/tests/ConfigResolver.test.js" [label="ConfigResolver.test.js\n(300 LOC)"];
+    "js/tests/PR5-Final-SmokeTest.js" [label="PR5-Final-SmokeTest.js\n(290 LOC)"];
+    "js/tests/boss_pr7_smoketest.js" [label="boss_pr7_smoketest.js\n(143 LOC)"];
+    "js/tests/enemy_pr7_smoketest.js" [label="enemy_pr7_smoketest.js\n(160 LOC)"];
+  }
+
+  subgraph cluster_ui {
+    label="ui";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=lightpink];
+    "js/ui/BaseUIComponent.js" [label="BaseUIComponent.js\n(426 LOC)"];
+    "js/ui/DetailsPanel.js" [label="DetailsPanel.js\n(210 LOC)"];
+    "js/ui/DevPlaygroundUI.js" [label="DevPlaygroundUI.js\n(673 LOC)"];
+    "js/ui/HighScoreModal.js" [label="HighScoreModal.js\n(402 LOC)"];
+    "js/ui/HighScoresModal.js" [label="HighScoresModal.js\n(395 LOC)"];
+    "js/ui/PowerUpSelectionModal.js" [label="PowerUpSelectionModal.js\n(838 LOC)"];
+    "js/ui/SFXSoundboard.js" [label="SFXSoundboard.js\n(617 LOC)"];
+    "js/ui/SettingsManager.js" [label="SettingsManager.js\n(358 LOC)"];
+    "js/ui/SettingsModal.js" [label="SettingsModal.js\n(1363 LOC)"];
+    "js/ui/Tooltip.js" [label="Tooltip.js\n(116 LOC)"];
+    "js/ui/UIEventContract.js" [label="UIEventContract.js\n(300 LOC)"];
+    "js/ui/UITheme.js" [label="UITheme.js\n(196 LOC)"];
+    "js/ui/UiConstants.js" [label="UiConstants.js\n(142 LOC)"];
+    "js/ui/UnifiedHUD.js" [label="UnifiedHUD.js\n(446 LOC)"];
+    "js/ui/ValueChip.js" [label="ValueChip.js\n(118 LOC)"];
+    "js/ui/lite/GameOverUI.js" [label="GameOverUI.js\n(143 LOC)"];
+    "js/ui/lite/MainMenuUI.js" [label="MainMenuUI.js\n(125 LOC)"];
+    "js/ui/lite/PauseUI.js" [label="PauseUI.js\n(114 LOC)"];
+    "js/ui/lite/PowerUpUI.js" [label="PowerUpUI.js\n(338 LOC)"];
+    "js/ui/lite/SimpleButton.js" [label="SimpleButton.js\n(114 LOC)"];
+    "js/ui/lite/SimpleModal.js" [label="SimpleModal.js\n(158 LOC)"];
+  }
+
+  subgraph cluster_utils {
+    label="utils";
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=lavender];
+    "js/utils/DebugOverlay.js" [label="DebugOverlay.js\n(354 LOC)"];
+    "js/utils/DisposableRegistry.js" [label="DisposableRegistry.js\n(126 LOC)"];
+    "js/utils/PerformanceProfiler.js" [label="PerformanceProfiler.js\n(197 LOC)"];
+    "js/utils/SmokeTest.js" [label="SmokeTest.js\n(490 LOC)"];
+    "js/utils/supabaseClient.js" [label="supabaseClient.js\n(31 LOC)"];
+    "js/utils/version.js" [label="version.js\n(35 LOC)"];
+  }
+
+  "js/core/FrameworkDebugAPI.js" -> "js/utils/SmokeTest.js";
+  "js/core/data/BlueprintLoader.js" -> "js/core/validation/BlueprintValidator.js";
+  "js/core/dev/HotReload.js" -> "js/core/registry/EnemyRegistry.js";
+  "js/core/dev/HotReload.js" -> "js/core/registry/DropRegistry.js";
+  "js/core/events/EventBus.js" -> "js/core/events/EventWhitelist.js";
+  "js/core/projectiles/EnemyProjectile.js" -> "js/core/GameConstants.js";
+  "js/core/systems/ProjectileSystem.js" -> "js/core/projectiles/PlayerProjectile.js";
+  "js/core/systems/ProjectileSystem.js" -> "js/core/projectiles/EnemyProjectile.js";
+  "js/core/systems/ProjectileSystem.js" -> "js/core/utils/ShapeRenderer.js";
+  "js/core/systems/ProjectileSystem.js" -> "js/config.js";
+  "js/core/systems/powerup/PowerUpSystem.js" -> "js/core/systems/powerup/PowerUpModifiers.js";
+  "js/core/systems/powerup/PowerUpSystem.js" -> "js/core/systems/powerup/PowerUpAbilities.js";
+  "js/core/systems/powerup/PowerUpSystem.js" -> "js/core/systems/powerup/PowerUpEffects.js";
+  "js/core/systems/powerup/PowerUpSystem.js" -> "js/ui/PowerUpSelectionModal.js";
+  "js/core/utils/ConfigResolver.js" -> "js/config.js";
+  "js/core/utils/devConsole.js" -> "js/config.js";
+  "js/core/vfx/SimplifiedVFXSystem.js" -> "js/core/vfx/VFXPresets.js";
+  "js/core/vfx/SimplifiedVFXSystem.js" -> "js/core/vfx/effects/RadiotherapyEffect.js";
+  "js/core/vfx/SimplifiedVFXSystem.js" -> "js/core/vfx/effects/FlamethrowerEffect.js";
+  "js/core/vfx/SimplifiedVFXSystem.js" -> "js/core/vfx/effects/ShieldEffect.js";
+  "js/entities/Boss.js" -> "js/entities/Enemy.js";
+  "js/entities/Boss.js" -> "js/entities/BossAbilitiesV2.js";
+  "js/entities/BossAbilitiesV2.js" -> "js/core/vfx/effects/BossBeamEffect.js";
+  "js/entities/BossAbilitiesV2.js" -> "js/core/logging/SessionLogger.js";
+  "js/integration/SpawnDirectorIntegration.js" -> "js/entities/Boss.js";
+  "js/integration/SpawnDirectorIntegration.js" -> "js/entities/Enemy.js";
+  "js/main.js" -> "js/scenes/GameScene.js";
+  "js/main.js" -> "js/scenes/GameUIScene.js";
+  "js/main.js" -> "js/scenes/MainMenu.js";
+  "js/main.js" -> "js/scenes/DevPlayground.js";
+  "js/main.js" -> "js/config.js";
+  "js/main.js" -> "js/core/utils/ConfigResolver.js";
+  "js/managers/AnalyticsManager.js" -> "js/utils/version.js";
+  "js/managers/EnemyManager.js" -> "js/entities/Enemy.js";
+  "js/managers/EnemyManager.js" -> "js/entities/Boss.js";
+  "js/managers/GlobalHighScoreManager.js" -> "js/utils/supabaseClient.js";
+  "js/managers/GlobalHighScoreManager.js" -> "js/utils/version.js";
+  "js/managers/SystemsInitializer.js" -> "js/managers/EnemyManager.js";
+  "js/managers/SystemsInitializer.js" -> "js/managers/PlayerFactory.js";
+  "js/managers/SystemsInitializer.js" -> "js/core/audio/SimplifiedAudioSystem.js";
+  "js/managers/TransitionManager.js" -> "js/ui/HighScoreModal.js";
+  "js/scenes/DevPlayground.js" -> "js/entities/Enemy.js";
+  "js/scenes/DevPlayground.js" -> "js/entities/Boss.js";
+  "js/scenes/GameScene.js" -> "js/entities/Player.js";
+  "js/scenes/GameScene.js" -> "js/entities/Enemy.js";
+  "js/scenes/GameScene.js" -> "js/entities/Boss.js";
+  "js/scenes/GameScene.js" -> "js/ui/UnifiedHUD.js";
+  "js/scenes/GameScene.js" -> "js/managers/MobileControlsManager.js";
+  "js/scenes/GameScene.js" -> "js/managers/HighScoreManager.js";
+  "js/scenes/GameScene.js" -> "js/managers/GlobalHighScoreManager.js";
+  "js/scenes/GameScene.js" -> "js/managers/AnalyticsManager.js";
+  "js/scenes/GameScene.js" -> "js/utils/supabaseClient.js";
+  "js/scenes/GameScene.js" -> "js/ui/UITheme.js";
+  "js/scenes/GameScene.js" -> "js/ui/HighScoreModal.js";
+  "js/scenes/GameScene.js" -> "js/core/systems/SimpleLootSystem.js";
+  "js/scenes/GameScene.js" -> "js/core/systems/powerup/PowerUpSystem.js";
+  "js/scenes/GameScene.js" -> "js/core/utils/ShapeRenderer.js";
+  "js/scenes/GameScene.js" -> "js/core/utils/devConsole.js";
+  "js/scenes/GameScene.js" -> "js/core/events/EventBus.js";
+  "js/scenes/GameScene.js" -> "js/core/input/KeyboardManager.js";
+  "js/scenes/GameScene.js" -> "js/core/vfx/SimplifiedVFXSystem.js";
+  "js/scenes/GameScene.js" -> "js/core/logging/SessionLogger.js";
+  "js/scenes/GameScene.js" -> "js/core/blueprints/DisplayResolver.js";
+  "js/scenes/GameScene.js" -> "js/core/TelemetryLogger.js";
+  "js/scenes/GameScene.js" -> "js/utils/DebugOverlay.js";
+  "js/scenes/GameScene.js" -> "js/core/debug/Phase5Debug.js";
+  "js/scenes/GameScene.js" -> "js/utils/SmokeTest.js";
+  "js/scenes/GameScene.js" -> "js/core/data/BlueprintLoader.js";
+  "js/scenes/GameScene.js" -> "js/core/spawn/SpawnDirector.js";
+  "js/scenes/GameScene.js" -> "js/core/FrameworkDebugAPI.js";
+  "js/scenes/GameScene.js" -> "js/core/systems/ProjectileSystem.js";
+  "js/scenes/GameScene.js" -> "js/core/graphics/GraphicsFactory.js";
+  "js/scenes/GameScene.js" -> "js/handlers/setupCollisions.js";
+  "js/scenes/GameScene.js" -> "js/managers/UpdateManager.js";
+  "js/scenes/GameScene.js" -> "js/managers/TransitionManager.js";
+  "js/scenes/GameScene.js" -> "js/managers/BootstrapManager.js";
+  "js/scenes/GameScene.js" -> "js/managers/SystemsInitializer.js";
+  "js/scenes/GameScene.js" -> "js/utils/DisposableRegistry.js";
+  "js/scenes/GameScene.js" -> "js/managers/EnemyManager.js";
+  "js/scenes/GameUIScene.js" -> "js/ui/lite/PauseUI.js";
+  "js/scenes/GameUIScene.js" -> "js/ui/lite/PowerUpUI.js";
+  "js/scenes/GameUIScene.js" -> "js/ui/lite/GameOverUI.js";
+  "js/scenes/MainMenu.js" -> "js/config.js";
+  "js/scenes/MainMenu.js" -> "js/managers/HighScoreManager.js";
+  "js/scenes/MainMenu.js" -> "js/managers/GlobalHighScoreManager.js";
+  "js/scenes/MainMenu.js" -> "js/core/vfx/SimplifiedVFXSystem.js";
+  "js/scenes/MainMenu.js" -> "js/core/graphics/GraphicsFactory.js";
+  "js/scenes/MainMenu.js" -> "js/core/events/EventBus.js";
+  "js/scenes/MainMenu.js" -> "js/core/input/KeyboardManager.js";
+  "js/scenes/MainMenu.js" -> "js/ui/lite/MainMenuUI.js";
+  "js/scenes/MainMenu.js" -> "js/utils/version.js";
+  "js/scenes/MainMenu.js" -> "js/core/audio/SimplifiedAudioSystem.js";
+  "js/tests/ConfigResolver.test.js" -> "js/core/utils/ConfigResolver.js";
+  "js/tests/PR5-Final-SmokeTest.js" -> "js/core/utils/ConfigResolver.js";
+  "js/tests/PR5-Final-SmokeTest.js" -> "js/ui/SettingsManager.js";
+  "js/tests/PR5-Final-SmokeTest.js" -> "js/core/validation/BlueprintValidator.js";
+  "js/tests/boss_pr7_smoketest.js" -> "js/entities/Boss.js";
+  "js/tests/enemy_pr7_smoketest.js" -> "js/entities/Enemy.js";
+  "js/ui/BaseUIComponent.js" -> "js/ui/UITheme.js";
+  "js/ui/BaseUIComponent.js" -> "js/ui/UiConstants.js";
+  "js/ui/DetailsPanel.js" -> "js/core/blueprints/DisplayResolver.js";
+  "js/ui/HighScoreModal.js" -> "js/ui/BaseUIComponent.js";
+  "js/ui/HighScoreModal.js" -> "js/ui/UITheme.js";
+  "js/ui/HighScoreModal.js" -> "js/ui/UiConstants.js";
+  "js/ui/HighScoresModal.js" -> "js/ui/BaseUIComponent.js";
+  "js/ui/HighScoresModal.js" -> "js/ui/UITheme.js";
+  "js/ui/HighScoresModal.js" -> "js/ui/UiConstants.js";
+  "js/ui/PowerUpSelectionModal.js" -> "js/ui/BaseUIComponent.js";
+  "js/ui/PowerUpSelectionModal.js" -> "js/ui/UITheme.js";
+  "js/ui/PowerUpSelectionModal.js" -> "js/ui/UiConstants.js";
+  "js/ui/SettingsModal.js" -> "js/ui/BaseUIComponent.js";
+  "js/ui/SettingsModal.js" -> "js/ui/UITheme.js";
+  "js/ui/SettingsModal.js" -> "js/ui/UiConstants.js";
+  "js/ui/SettingsModal.js" -> "js/ui/SettingsManager.js";
+  "js/ui/Tooltip.js" -> "js/core/blueprints/DisplayResolver.js";
+  "js/ui/UiConstants.js" -> "js/ui/UITheme.js";
+  "js/ui/UnifiedHUD.js" -> "js/ui/BaseUIComponent.js";
+  "js/ui/UnifiedHUD.js" -> "js/ui/UITheme.js";
+  "js/ui/UnifiedHUD.js" -> "js/ui/UiConstants.js";
+  "js/ui/ValueChip.js" -> "js/core/blueprints/DisplayResolver.js";
+  "js/ui/lite/GameOverUI.js" -> "js/ui/lite/SimpleModal.js";
+  "js/ui/lite/GameOverUI.js" -> "js/ui/lite/SimpleButton.js";
+  "js/ui/lite/MainMenuUI.js" -> "js/ui/lite/SimpleButton.js";
+  "js/ui/lite/PauseUI.js" -> "js/ui/lite/SimpleModal.js";
+  "js/ui/lite/PauseUI.js" -> "js/ui/lite/SimpleButton.js";
+  "js/ui/lite/PowerUpUI.js" -> "js/ui/lite/SimpleModal.js";
+  "js/ui/lite/PowerUpUI.js" -> "js/ui/UITheme.js";
+  "js/ui/lite/SimpleButton.js" -> "js/ui/UITheme.js";
+  "js/ui/lite/SimpleModal.js" -> "js/ui/UITheme.js";
+  "js/utils/DebugOverlay.js" -> "js/utils/PerformanceProfiler.js";
+}

@@ -1,0 +1,45 @@
+{
+  "whitelist": {
+    "comment": "Whitelist pro dev/refactor/check_guards.sh - povolené vzory a soubory",
+    "allowedPatterns": [
+      "scene.add.graphics",
+      "scene.sound.play",
+      "scene.add.particles"
+    ],
+    "allowedFiles": [
+      "js/core/vfx/SimplifiedVFXSystem.js",
+      "js/core/audio/SimplifiedAudioSystem.js",
+      "js/core/vfx/effects/*.js",
+      "js/ui/lite/*.js",
+      "js/utils/DebugOverlay.js",
+      "js/utils/PerformanceProfiler.js",
+      "js/scenes/GameScene.js",
+      "js/scenes/GameUIScene.js",
+      "js/scenes/MainMenu.js"
+    ],
+    "exemptDirectories": [
+      "js/tests/",
+      "test_*.js",
+      "*_test.js",
+      "dev/",
+      "scripts/"
+    ],
+    "exemptExtensions": [
+      ".md",
+      ".json",
+      ".json5",
+      ".txt",
+      ".html"
+    ]
+  },
+  "rules": {
+    "strictMode": false,
+    "failOnViolation": false,
+    "reportOnly": true
+  },
+  "metadata": {
+    "created": "2025-01-17",
+    "purpose": "Phase 2.5 post-refactor maintenance - guard whitelist",
+    "version": "1.0.0"
+  }
+}

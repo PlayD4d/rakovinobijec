@@ -366,13 +366,17 @@ export function installDevConsole(scene) {
         const posX = x || scene.cameras.main.width / 2;
         const posY = y || scene.cameras.main.height / 2;
         
-        // Use createEnemyFromBlueprint if available
-        if (scene.createEnemyFromBlueprint) {
+        // Use EnemyManager if available
+        if (scene.enemyManager) {
+          const enemy = scene.enemyManager.spawnEnemy(blueprintId, { x: posX, y: posY });
+          console.log(`✅ Spawned enemy: ${blueprintId} at (${posX}, ${posY})`);
+          return enemy;
+        } else if (scene.createEnemyFromBlueprint) {
           const enemy = scene.createEnemyFromBlueprint(blueprintId, { x: posX, y: posY });
           console.log(`✅ Spawned enemy: ${blueprintId} at (${posX}, ${posY})`);
           return enemy;
         } else {
-          console.warn('createEnemyFromBlueprint not available');
+          console.warn('Enemy spawning not available');
         }
       } catch (e) {
         console.error('[DEV] spawnEnemy failed:', e);
@@ -412,8 +416,15 @@ export function installDevConsole(scene) {
         const posX = x || scene.cameras.main.width / 2;
         const posY = y || scene.cameras.main.height / 2 - 100;
         
-        // Use createEnemyFromBlueprint for bosses too
-        if (scene.createEnemyFromBlueprint) {
+        // Use EnemyManager for bosses too
+        if (scene.enemyManager) {
+          const boss = scene.enemyManager.spawnBoss(blueprintId, { 
+            x: posX, 
+            y: posY
+          });
+          console.log(`✅ Spawned boss: ${blueprintId} at (${posX}, ${posY})`);
+          return boss;
+        } else if (scene.createEnemyFromBlueprint) {
           const boss = scene.createEnemyFromBlueprint(blueprintId, { 
             x: posX, 
             y: posY,
@@ -422,7 +433,7 @@ export function installDevConsole(scene) {
           console.log(`✅ Spawned boss: ${blueprintId} at (${posX}, ${posY})`);
           return boss;
         } else {
-          console.warn('createEnemyFromBlueprint not available');
+          console.warn('Boss spawning not available');
         }
       } catch (e) {
         console.error('[DEV] spawnBoss failed:', e);
@@ -494,6 +505,151 @@ export function installDevConsole(scene) {
         }
       } catch (e) {
         console.error('[DEV] giveXP failed:', e);
+      }
+    };
+    
+    /**
+     * Pause the game
+     * Example: DEV.pause()
+     */
+    window.DEV.pause = () => {
+      try {
+        const gameScene = scene.scene.get('GameScene');
+        const uiScene = scene.scene.get('GameUIScene');
+        if (uiScene) {
+          scene.game.events.emit('game-pause-request');
+          console.log('✅ Game paused');
+        }
+      } catch (e) {
+        console.error('[DEV] pause failed:', e);
+      }
+    };
+    
+    /**
+     * Resume the game
+     * Example: DEV.resume()
+     */
+    window.DEV.resume = () => {
+      try {
+        const uiScene = scene.scene.get('GameUIScene');
+        if (uiScene?.pauseUI) {
+          uiScene.pauseUI.hide();
+          console.log('✅ Game resumed');
+        }
+      } catch (e) {
+        console.error('[DEV] resume failed:', e);
+      }
+    };
+    
+    /**
+     * Select power-up by index
+     * Example: DEV.selectPowerUp(0)
+     */
+    window.DEV.selectPowerUp = (index = 0) => {
+      try {
+        const uiScene = scene.scene.get('GameUIScene');
+        if (uiScene?.powerUpUI) {
+          const options = uiScene.powerUpUI.currentOptions;
+          if (options && options[index]) {
+            uiScene.handlePowerUpSelection(options[index]);
+            console.log(`✅ Selected power-up: ${options[index].id}`);
+          }
+        }
+      } catch (e) {
+        console.error('[DEV] selectPowerUp failed:', e);
+      }
+    };
+    
+    /**
+     * Trigger victory
+     * Example: DEV.victory()
+     */
+    window.DEV.victory = () => {
+      try {
+        if (scene.transitionManager) {
+          scene.transitionManager.showVictory();
+          console.log('✅ Victory triggered');
+        }
+      } catch (e) {
+        console.error('[DEV] victory failed:', e);
+      }
+    };
+    
+    /**
+     * Trigger game over
+     * Example: DEV.gameOver()
+     */
+    window.DEV.gameOver = () => {
+      try {
+        if (scene.transitionManager) {
+          scene.transitionManager.gameOver();
+          console.log('✅ Game over triggered');
+        }
+      } catch (e) {
+        console.error('[DEV] gameOver failed:', e);
+      }
+    };
+    
+    /**
+     * Go to main menu
+     * Example: DEV.gotoMainMenu()
+     */
+    window.DEV.gotoMainMenu = () => {
+      try {
+        scene.scene.stop('GameScene');
+        scene.scene.stop('GameUIScene');
+        scene.scene.start('MainMenu');
+        console.log('✅ Returned to main menu');
+      } catch (e) {
+        console.error('[DEV] gotoMainMenu failed:', e);
+      }
+    };
+    
+    /**
+     * Start game
+     * Example: DEV.startGame()
+     */
+    window.DEV.startGame = () => {
+      try {
+        const mainMenu = scene.scene.get('MainMenu');
+        if (mainMenu) {
+          mainMenu.scene.stop();
+          mainMenu.scene.start('GameScene');
+          mainMenu.scene.launch('GameUIScene');
+          console.log('✅ Game started');
+        }
+      } catch (e) {
+        console.error('[DEV] startGame failed:', e);
+      }
+    };
+    
+    /**
+     * Force level transition
+     * Example: DEV.forceLevelTransition()
+     */
+    window.DEV.forceLevelTransition = () => {
+      try {
+        if (scene.transitionManager) {
+          scene.transitionManager.transitionToNextLevel();
+          console.log('✅ Level transition triggered');
+        }
+      } catch (e) {
+        console.error('[DEV] forceLevelTransition failed:', e);
+      }
+    };
+    
+    /**
+     * Kill all enemies instantly
+     * Example: DEV.killAll()
+     */
+    window.DEV.killAll = () => {
+      try {
+        if (scene.enemyManager) {
+          scene.enemyManager.killAll();
+          console.log('✅ All enemies killed');
+        }
+      } catch (e) {
+        console.error('[DEV] killAll failed:', e);
       }
     };
     

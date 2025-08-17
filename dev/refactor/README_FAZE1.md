@@ -120,11 +120,42 @@ DEPTH_LAYERS = {
 - Update metoda zkrácena z ~110 řádků na 7 řádků
 - Registrace tasků přesunuta do UpdateManager
 - LOC: 2467 → 2376 (-91)
-### Commit 6: [TODO]
-### Commit 7: [TODO]
-### Commit 8: [TODO]
+
+### Commit 8: Step 8C - TransitionManager
+- Vytvořen TransitionManager pro game flow control
+- Přesunuty metody: gameOver, transitionToNextLevel, showVictory, clearAllEnemies
+- Odstraněny UI metody: showLevelTransition, hideLevelTransition
+- Re-entrancy guards pro všechny přechody
+- Event-based komunikace s UI scénou
+- LOC: 2376 → 2121 (-255)
+
+### Commit 9: Step 8E - BootstrapManager
+- Vytvořen BootstrapManager pro inicializaci
+- create() zkráceno z 229 na 14 řádků
+- Odstraněny duplicitní metody (addXP)
+- Odstraněna deprecated metoda handlePlayerLootCollision_OLD (82 řádků)
+- Systematická inicializace ve fázích
+- LOC: 2121 → 1791 (-330)
+
+### Commit 10: Step 8D + SystemsInitializer
+- Vytvořen SystemsInitializer pro inicializaci systémů
+- initializeDataDrivenSystems() zkráceno ze 186 na 14 řádků
+- Odstraněny debug metody (handleDebugEnemySpawn, handleDebugBossSpawn, handleDebugSFXSoundboard, handleDebugVFXTest)
+- Odstraněna setupKeyboardEvents() metoda (22 řádků)
+- LOC: 1791 → 1545 (-246)
+
+### Commit 11: Finální optimalizace - DisposableRegistry, EnemyManager, PlayerFactory
+- Vytvořen DisposableRegistry pro unified resource cleanup
+- shutdown() zkráceno ze 152 na 35 řádků
+- Vytvořen EnemyManager - createEnemyFromBlueprint delegováno (118 → 11 řádků)
+- Vytvořen PlayerFactory - createPlayerBlueprint delegováno (88 → 7 řádků)
+- Odstraněna getColorFromBlueprint metoda (28 řádků)
+- showCriticalError delegováno na UI scénu (35 → 10 řádků)
+- LOC: 1545 → 1116 (-429)
 
 ## Výsledky
-- **Finální LOC:** [TODO]
-- **Redukce:** [TODO] LOC (-XX%)
-- **Testy:** [TODO]
+- **Finální LOC:** 1116
+- **Redukce:** 2187 LOC (-66.2%)
+- **Cíl splněn:** ✅ (1116 < 1200)
+- **Guardy:** ✅ Všechny prošly
+- **Testy:** Čeká na smoke test
