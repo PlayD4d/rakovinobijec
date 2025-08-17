@@ -384,9 +384,12 @@ export class GameScene extends Phaser.Scene {
         
         this.DEPTH_LAYERS = {
             BACKGROUND: 0,
+            LOOT: 500,          // XP orbs and health pickups
             ENEMIES: 1000,
+            BOSSES: 1100,       // Bosses slightly above enemies
             PLAYER: 2000,
             PROJECTILES: 3000,
+            EFFECTS: 4000,      // VFX effects
             UI_BASE: 10000,
             UI_MODAL: 20000
         };
@@ -1298,7 +1301,7 @@ export class GameScene extends Phaser.Scene {
             this.currentBoss = entity;
             
             // Set boss depth
-            entity.setDepth(this.DEPTH_LAYERS.ENEMIES + 100);
+            entity.setDepth(this.DEPTH_LAYERS.BOSSES);
             
             // Ensure boss uses the generated texture
             entity.setTexture(textureKey);
@@ -1477,7 +1480,7 @@ export class GameScene extends Phaser.Scene {
         
         metotrexat.setTexture('metotrexat_orb');
         metotrexat.setScale(1);
-        metotrexat.setDepth(15);
+        metotrexat.setDepth(this.DEPTH_LAYERS.LOOT);
         metotrexat.body.setCircle(8);
         
         // Store type
@@ -1830,7 +1833,7 @@ export class GameScene extends Phaser.Scene {
         
         if (!this.levelTransitionContainer) {
             this.levelTransitionContainer = this.add.container(width / 2, height / 2);
-            this.levelTransitionContainer.setDepth(1000);
+            this.levelTransitionContainer.setDepth(this.DEPTH_LAYERS.UI_MODAL);
             
             // Background overlay
             const overlay = this.add.rectangle(0, 0, width * 2, height * 2, 0x000000, 0.7);
@@ -1943,7 +1946,7 @@ export class GameScene extends Phaser.Scene {
         const { width, height } = this.scale.gameSize;
         
         const victoryContainer = this.add.container(width / 2, height / 2);
-        victoryContainer.setDepth(1000);
+        victoryContainer.setDepth(this.DEPTH_LAYERS.UI_MODAL);
         
         // Background
         const bg = this.add.rectangle(0, 0, width * 2, height * 2, 0x000000, 0.8);

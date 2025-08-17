@@ -105,8 +105,10 @@ DEPTH_LAYERS = {
 - Odstraněny 4 metody: generatePlayerTexture, generateEnemyTexture, generateEnemyPlaceholderTextures, generateItemTextures
 - LOC: 2839 → 2514 (-325 řádků)
 
-### Commit 5: [TODO]
-### Commit 5: [TODO]
+### Commit 5: Centralizace depth layers
+- Přidány LOOT, BOSSES, EFFECTS do DEPTH_LAYERS
+- Nahrazeny všechny numerické setDepth() konstantami
+- LOC: 2514 → 2518 (+4 řádky pro lepší strukturu)
 ### Commit 6: [TODO]
 ### Commit 7: [TODO]
 ### Commit 8: [TODO]
