@@ -72,6 +72,12 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         if (!gameScene) return;
         
+        // UI Supremacy - ensure UI is on top
+        this.scene.bringToTop();
+        
+        // Block input to game scene
+        this.input.setTopOnly(true);
+        
         // Pause the game scene (only if it's running)
         if (gameScene.scene.isActive()) {
             gameScene.scene.pause();
@@ -88,6 +94,10 @@ export class GameUIScene extends Phaser.Scene {
         
         // Resume the game scene
         this.pauseUI.hide();
+        
+        // Release input lock
+        this.input.setTopOnly(false);
+        
         gameScene.scene.resume();
         console.log('[GameUIScene] Game resumed');
     }
@@ -113,10 +123,18 @@ export class GameUIScene extends Phaser.Scene {
             return;
         }
         
+        // UI Supremacy - ensure UI is on top
+        this.scene.bringToTop();
+        
+        // Block input to game scene
+        this.input.setTopOnly(true);
+        
         // Pause game while selecting (only if it's running)
         console.log('[GameUIScene] Pausing GameScene for power-up selection');
         if (gameScene.scene.isActive()) {
             gameScene.scene.pause();
+            // Also pause time to prevent tweens from running
+            gameScene.time.pause();
         } else {
             console.warn('[GameUIScene] Cannot pause for power-up - GameScene not active');
         }
@@ -137,12 +155,18 @@ export class GameUIScene extends Phaser.Scene {
         console.log('[GameUIScene] Hiding PowerUpUI modal');
         this.powerUpUI.hide();
         
+        // Release input lock
+        this.input.setTopOnly(false);
+        
         // Apply power-up in game scene
         console.log('[GameUIScene] Emitting powerup-selected event');
         this.game.events.emit('powerup-selected', selection);
         
-        // Resume game
+        // Resume game and time
         console.log('[GameUIScene] Resuming GameScene');
+        if (gameScene.time) {
+            gameScene.time.resume();
+        }
         gameScene.scene.resume();
     }
     
