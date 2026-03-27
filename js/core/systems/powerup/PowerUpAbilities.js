@@ -237,13 +237,9 @@ export class PowerUpAbilities {
         }
 
         // Update chemo cloud position
-        if (this._chemoZone && player?.active) {
+        if (this._chemoZone?.body && player?.active) {
             this._chemoZone.setPosition(player.x, player.y);
-            // Update tick timer for damage throttle
-            const now = this.scene.time?.now || 0;
-            if (now - (this._chemoLastTick || 0) >= 500) {
-                this._chemoLastTick = now;
-            }
+            this._chemoZone.body.updateFromGameObject();
         }
 
         // Update shield regeneration
@@ -371,9 +367,9 @@ export class PowerUpAbilities {
         const damage = config.chemoCloudDamage || 4;
 
         // Invisible physics zone for broadphase
-        this._chemoZone = this.scene.add.zone(player.x, player.y, radius * 2, radius * 2);
-        this.scene.physics.add.existing(this._chemoZone, false);
-        this._chemoZone.body.setCircle(radius);
+        this._chemoZone = this.scene.add.zone(player.x, player.y, 1, 1);
+        this.scene.physics.add.existing(this._chemoZone, true);
+        this._chemoZone.body.setCircle(radius, -radius, -radius);
 
         // Overlap — applies damage every frame but we throttle via timer
         this._chemoLastTick = 0;
@@ -419,9 +415,9 @@ export class PowerUpAbilities {
         if (!this._auraZone && this.scene.physics) {
             const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
             if (enemiesGroup) {
-                this._auraZone = this.scene.add.zone(player.x, player.y, player.auraRadius * 2, player.auraRadius * 2);
-                this.scene.physics.add.existing(this._auraZone, false);
-                this._auraZone.body.setCircle(player.auraRadius);
+                this._auraZone = this.scene.add.zone(player.x, player.y, 1, 1);
+                this.scene.physics.add.existing(this._auraZone, true);
+                this._auraZone.body.setCircle(player.auraRadius, -player.auraRadius, -player.auraRadius);
                 this._auraOverlap = this.scene.physics.add.overlap(
                     this._auraZone,
                     enemiesGroup,
@@ -434,8 +430,9 @@ export class PowerUpAbilities {
         }
 
         // Follow player
-        if (this._auraZone) {
+        if (this._auraZone?.body) {
             this._auraZone.setPosition(player.x, player.y);
+            this._auraZone.body.updateFromGameObject();
         }
     }
 

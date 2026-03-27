@@ -398,15 +398,14 @@ export class SimplifiedVFXSystem {
      * Stop all active effects without destroying the system (for level transitions)
      */
     stopAllEffects() {
+        // Stop transient particle emitters (explosions, hits, etc.)
         for (const [id, emitter] of this.activeEmitters) {
             emitter.stop();
         }
         this.activeEmitters.clear();
 
-        for (const effect of this.powerUpEffects.values()) {
-            if (effect.detach) effect.detach();
-        }
-        this.powerUpEffects.clear();
+        // Preserve persistent power-up effects (radiotherapy, flamethrower, shield)
+        // They survive level transitions — player keeps their power-ups
     }
 
     /**

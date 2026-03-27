@@ -246,9 +246,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         if (this.scene.powerUpSystem?.processDamage) {
             amount = this.scene.powerUpSystem.processDamage(this, amount, time);
             
-            // If shield absorbed all damage, return 0 with i-frames
+            // If shield absorbed all damage, short parry window (not full iFrames)
             if (amount <= 0) {
-                this._iFramesMsLeft = this.baseStats.iFramesMs;
+                this._iFramesMsLeft = 150; // 150ms parry — allows rapid hits to deplete shield
                 return 0;
             }
         }

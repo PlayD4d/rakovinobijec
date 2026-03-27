@@ -145,6 +145,7 @@ export class RadiotherapyEffect {
         }
         if (this._damageZone?.body) {
             this._damageZone.setPosition(ex, ey);
+            this._damageZone.body.updateFromGameObject(); // refresh static body position
         }
 
         // Rotate beams
@@ -173,10 +174,9 @@ export class RadiotherapyEffect {
         if (!enemiesGroup || !this.scene.physics) return;
 
         // Invisible circle zone — Phaser handles broadphase overlap
-        this._damageZone = this.scene.add.zone(this.entity.x, this.entity.y, this.beamRange * 2, this.beamRange * 2);
-        this.scene.physics.add.existing(this._damageZone, false);
-        this._damageZone.body.setCircle(this.beamRange);
-        this._damageZone.body.setOffset(0, 0); // center the circle
+        this._damageZone = this.scene.add.zone(this.entity.x, this.entity.y, 1, 1);
+        this.scene.physics.add.existing(this._damageZone, true); // static body
+        this._damageZone.body.setCircle(this.beamRange, -this.beamRange, -this.beamRange);
 
         // Register overlap — Phaser calls _onEnemyOverlap only for nearby enemies
         this._overlapCollider = this.scene.physics.add.overlap(
@@ -199,8 +199,7 @@ export class RadiotherapyEffect {
 
     _resizeDamageZone() {
         if (this._damageZone?.body) {
-            this._damageZone.setSize(this.beamRange * 2, this.beamRange * 2);
-            this._damageZone.body.setCircle(this.beamRange);
+            this._damageZone.body.setCircle(this.beamRange, -this.beamRange, -this.beamRange);
         }
     }
 

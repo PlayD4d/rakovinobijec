@@ -282,11 +282,7 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
     }
     
     enemy.takeDamage(damage);
-    
-    // Check if enemy died
-    if (enemy.hp <= 0 && enemy.active && scene.handleEnemyDeath) {
-        scene.handleEnemyDeath(enemy);
-    }
+    // Note: if enemy dies, EnemyCore.die() calls handleEnemyDeath automatically
     
     // Handle explosive bullets from chemo_reservoir power-up
     if (scene.player?.chemoAuraActive && scene.player.chemoAuraConfig?.enableExplosions) {

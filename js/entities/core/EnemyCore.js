@@ -321,9 +321,10 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         this.spawnVfx('death');
         this.playSfx('death');
 
-        // Emit death event for any listeners
-        if (this.scene?.events) {
-            this.scene.events.emit('enemyDeath', this, killer);
+        // Process death (XP, loot, stats) — handles ALL kill sources
+        // (projectiles, radiotherapy, flamethrower, chemo, aura, contact)
+        if (this.scene?.handleEnemyDeath) {
+            this.scene.handleEnemyDeath(this);
         }
     }
     
