@@ -15,7 +15,7 @@
     aggroRange: 450,
     kiteDistance: 280,
     canShoot: true,
-    shootInterval: 2400,
+    shootInterval: 3500,
     projectileDamage: 8,
     inaccuracyRange: 0.4,
     dropChance: 1,
@@ -24,7 +24,7 @@
   projectileRef: 'projectile.cytotoxin_small',
   graphics: {
     sprite: 'enemy_micro_shooter',
-    tint: 16733986,
+    tint: 0xFF5722,
     scale: 1,
     animation: {
       idle: 'shooter_idle',
@@ -40,7 +40,7 @@
       movePattern: 'kite_player',
       targetPriority: 'nearest',
       projectileType: 'projectile.cytotoxin_small',
-      shootInterval: 2400,
+      shootInterval: 3500,
     },
   },
   drops: [

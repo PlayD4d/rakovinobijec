@@ -101,11 +101,11 @@ export class EnemyBehaviors {
         const legacyMechanics = blueprint.mechanics || {};
         const combinedParams = {
             ...aiConfig.params,
-            // Map legacy mechanics to new AI params
             detectRange: legacyMechanics.aggroRange || aiConfig.params?.detectRange,
             speed: blueprint.stats?.speed || aiConfig.params?.speed,
-            attackRange: legacyMechanics.aggroRange * 0.8 || aiConfig.params?.attackRange, // 80% of aggro range
-            ...aiConfig.params // Allow explicit overrides
+            attackRange: legacyMechanics.aggroRange * 0.8 || aiConfig.params?.attackRange,
+            canShoot: legacyMechanics.canShoot || aiConfig.params?.canShoot || false,
+            ...aiConfig.params
         };
         this.config = this.mergeConfig(combinedParams);
         

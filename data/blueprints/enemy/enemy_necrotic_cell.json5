@@ -32,7 +32,7 @@
   },
   graphics: {
     sprite: 'enemy_necrotic_cell',
-    tint: 9277029,
+    tint: 0x4CAF50,
     scale: 1,
     shape: 'diamond',
     animation: {

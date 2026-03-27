@@ -19,8 +19,8 @@
   },
   mechanics: {
     attack: {
-      intervalMs: 1000,
-      damageBase: 10,
+      intervalMs: 600,
+      damageBase: 15,
       critChance: 0.05,
       critMultiplier: 2,
     },
@@ -29,7 +29,7 @@
       count: 1,
       spreadDeg: 15,
       stats: {
-        damage: 10,
+        damage: 15,
         speed: 300,
         range: 600,
         piercing: false,

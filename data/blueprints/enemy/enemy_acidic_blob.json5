@@ -27,7 +27,7 @@
   },
   graphics: {
     sprite: 'enemy_acidic_blob',
-    tint: 9159498,
+    tint: 0xCDDC39,
     scale: 1.1,
     animation: {
       idle: 'blob_idle',

@@ -1,15 +1,14 @@
 /**
  * chase.js - Chase behavior for enemies
  *
- * Default behavior: always move toward player (Vampire Survivors style).
- * No loseRange by default — enemies chase forever unless explicitly configured.
+ * Default: always move toward player (Vampire Survivors style).
+ * Only switches to 'shoot' if the enemy has canShoot capability AND is in attackRange.
+ * Contact-only enemies chase forever.
  */
 
 export function chase(cap, cfg, dt, mem, setState) {
     const speed = cfg?.speed || cap.speed || 100;
-    const attackRange = cfg?.attackRange || 160;
 
-    // Get player
     const player = cap.scene?.player;
     if (!player?.active) return;
 
@@ -18,19 +17,20 @@ export function chase(cap, cfg, dt, mem, setState) {
     const dy = player.y - pos.y;
     const distSq = dx * dx + dy * dy;
 
-    // If close enough to attack and enemy can shoot, switch to shoot state
-    if (cfg?.attackRange && distSq <= attackRange * attackRange) {
-        cap.setVelocity(0, 0);
-        setState('shoot', { stickyMs: 300 });
-        return;
+    // Switch to shoot ONLY if enemy can shoot and is in range
+    const canShoot = cfg?.canShoot === true;
+    if (canShoot && cfg?.attackRange) {
+        if (distSq <= cfg.attackRange * cfg.attackRange) {
+            cap.setVelocity(0, 0);
+            setState('shoot', { stickyMs: 300 });
+            return;
+        }
     }
 
-    // Move toward player
+    // Move toward player — always
     const dist = Math.sqrt(distSq);
     if (dist > 1) {
-        const vx = (dx / dist) * speed;
-        const vy = (dy / dist) * speed;
-        cap.setVelocity(vx, vy);
+        cap.setVelocity((dx / dist) * speed, (dy / dist) * speed);
         cap.faceTo(player.x, player.y);
     }
 }

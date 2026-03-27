@@ -27,6 +27,7 @@
     "powerup.piercing_arrows": "blueprints/powerup/powerup_piercing_arrows.json5",
     "powerup.metabolic_haste": "blueprints/powerup/powerup_metabolic_haste.json5",
     "powerup.flamethrower": "blueprints/powerup/powerup_flamethrower.json5",
+    "powerup.multi_shot": "blueprints/powerup/powerup_multi_shot.json5",
     "powerup.damage_boost": "blueprints/powerup/powerup_damage_boost.json5",
     "powerup.chemo_reservoir": "blueprints/powerup/powerup_chemo_reservoir.json5",
     "player": "blueprints/player/player.json5",

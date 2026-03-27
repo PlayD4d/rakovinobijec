@@ -1,0 +1,52 @@
+{
+  id: 'powerup.multi_shot',
+  type: 'powerup',
+  stats: {
+    maxLevel: 4,
+  },
+  mechanics: {
+    modifiersPerLevel: [
+      {
+        path: 'projectileCount',
+        type: 'add',
+        value: 1,
+        description: 'Adds 1 extra projectile per level',
+      },
+    ],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'multi_shot',
+  },
+  vfx: {
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
+  },
+  display: {
+    key: 'powerup.multi_shot.name',
+    descKey: 'powerup.multi_shot.desc',
+    devNameFallback: 'Vícenásobný výstřel',
+    devDescFallback: 'Přidává extra projektily při útoku',
+    icon: 'powerup_multi_shot',
+    color: '#2196F3',
+    rarity: 'rare',
+    category: 'offense',
+    sortOrder: 215,
+    tags: [
+      'powerup',
+      'projectile',
+      'offense',
+      'multi-shot',
+    ],
+    templates: {
+      short: '+{{value}} projektil za level',
+      desc: 'Přidává {{value}} extra projektil za úroveň. Max level {{stats.maxLevel}}.',
+    },
+    srKey: 'sr.powerup.multi_shot',
+  },
+}

@@ -501,6 +501,7 @@ export class PowerUpSystem {
             explosionRadius: (v) => `+${v}px radius exploze`,
             explosionDamage: (v) => `+${v} DMG exploze`,
             projectilePiercing: (v) => `průstřel ${v}`,
+            projectileCount: (v) => `+${v} projektil${v > 1 ? 'y' : ''}`,
         };
 
         for (const mod of mods) {
