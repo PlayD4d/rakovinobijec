@@ -24,12 +24,6 @@
         value: 0.015,
         description: 'Adds 1.5% dodge chance per level',
       },
-      {
-        path: 'projectileCount',
-        type: 'add',
-        value: 0.5,
-        description: 'Adds 0.5 projectiles per level (rounds down)',
-      },
     ],
     stackable: true,
     persistent: true,

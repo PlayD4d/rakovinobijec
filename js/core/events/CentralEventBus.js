@@ -3,7 +3,6 @@
  * Provides namespaced events and type-safe communication
  */
 
-import { UI_EVENTS } from '../../ui/UIEventContract.js';
 import { DebugLogger } from '../debug/DebugLogger.js';
 
 export class CentralEventBus {
@@ -265,8 +264,5 @@ export class CentralEventBus {
 
 // Global instance
 export const centralEventBus = new CentralEventBus();
-
-// Export UI events for convenience
-export { UI_EVENTS };
 
 export default centralEventBus;

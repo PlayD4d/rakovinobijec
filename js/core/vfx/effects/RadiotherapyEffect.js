@@ -374,14 +374,12 @@ export class RadiotherapyEffect {
                     // Add to damaged set BEFORE applying damage to prevent duplicates
                     this.damagedEnemies.add(enemy);
                     
-                    const result = enemy.takeDamage(this.damage, 'radiotherapy');
-                    if (result > 0) {
-                        enemiesHit++;
-                        
-                        // Visual hit effect
-                        if (this.scene.vfxSystem) {
-                            this.scene.vfxSystem.play('vfx.hit.radiation', enemy.x, enemy.y);
-                        }
+                    enemy.takeDamage(this.damage, 'radiotherapy');
+                    enemiesHit++;
+
+                    // Visual hit effect — throttled to avoid particle spam
+                    if (this.scene.vfxSystem && Math.random() < 0.3) {
+                        this.scene.vfxSystem.play('vfx.hit.radiation', enemy.x, enemy.y);
                     }
                     
                     break; // Enemy can only be hit by one beam per tick

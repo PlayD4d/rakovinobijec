@@ -36,14 +36,14 @@ const DEFAULT_AI = {
     // Per-state defaults
     idle: {
         minDwellMs: 500,
-        detectRange: 200,
+        detectRange: 350,
         wanderChance: 0.01
     },
     chase: {
         minDwellMs: 300,
         speed: 140,
         attackRange: 160,
-        loseRange: 400
+        loseRange: 700
     },
     shoot: {
         minDwellMs: 600,
@@ -168,6 +168,9 @@ export class EnemyBehaviors {
             }
             if (userConfig.attackRange !== undefined) {
                 merged[state].attackRange = userConfig.attackRange;
+            }
+            if (userConfig.loseRange !== undefined) {
+                merged[state].loseRange = userConfig.loseRange;
             }
         }
         
@@ -384,8 +387,7 @@ export class EnemyBehaviors {
             // Scheduling
             schedule: (fn, ms) => enemy.schedule(fn, ms),
 
-            // State
-            setState: (state) => self.transitionTo(state),
+            // State (read-only — setState is passed as 5th arg to behaviors with guards)
             getState: () => self.state,
 
             // References (mutable — refreshed before each frame via createCapability)
