@@ -292,12 +292,11 @@ export class SimpleLootSystem {
                 
                 // Check if this position overlaps with recent drops
                 let overlaps = false;
+                const minSpacingSq = this.minSpacing * this.minSpacing;
                 for (const drop of this.recentDrops) {
-                    const dist = Math.sqrt(
-                        Math.pow(testX - drop.x, 2) + 
-                        Math.pow(testY - drop.y, 2)
-                    );
-                    if (dist < this.minSpacing) {
+                    const dx = testX - drop.x;
+                    const dy = testY - drop.y;
+                    if (dx * dx + dy * dy < minSpacingSq) {
                         overlaps = true;
                         break;
                     }

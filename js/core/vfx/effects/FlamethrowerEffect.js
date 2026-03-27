@@ -28,13 +28,16 @@ export class FlamethrowerEffect {
         this.particleTimer = 0;
         this.particleInterval = 50; // ms between particles
         
-        // Damage zone (for collision detection)
-        this.damageZone = null;
-        
         // Damage configuration
         this.damage = config.damage || 3;
-        this.tickRate = config.tickRate || 0.1; // Damage every 100ms
+        this.tickRate = config.tickRate || 0.1;
         this.lastDamageTick = 0;
+
+        // Phaser physics zone for broadphase overlap
+        this._damageZone = null;
+        this._overlapCollider = null;
+        this._hitThisTick = new Set();
+        this._canDamage = false;
         
         DebugLogger.info('vfx', `[FlamethrowerEffect] Created - damage: ${this.damage}, tick rate: ${this.tickRate}s`);
     }
@@ -79,8 +82,8 @@ export class FlamethrowerEffect {
             this.graphics.setDepth(entity.depth + 1);
         }
         
-        // Create damage zone for collision detection
-        this._createDamageZone();
+        // Create Phaser physics overlap zone for broadphase damage detection
+        this._createPhysicsZone();
         
         // Play looping flamethrower sound - PR7: používáme audioSystem
         if (this.scene.audioSystem) {
@@ -109,10 +112,16 @@ export class FlamethrowerEffect {
             this.graphics = null;
         }
         
-        // Clean up damage zone (it's just a plain object, not a Phaser GameObject)
-        if (this.damageZone) {
-            this.damageZone = null;
+        // Clean up physics zone
+        if (this._overlapCollider) {
+            this.scene.physics.world.removeCollider(this._overlapCollider);
+            this._overlapCollider = null;
         }
+        if (this._damageZone) {
+            this._damageZone.destroy();
+            this._damageZone = null;
+        }
+        this._hitThisTick.clear();
         
         // Stop looping flame sound - PR7: používáme audioSystem
         if (this.loopId && this.scene.audioSystem) {
@@ -140,24 +149,22 @@ export class FlamethrowerEffect {
         // Draw flame cone
         this._drawFlame();
         
-        // Update damage zone position
-        this._updateDamageZone();
-        
+        // Move physics zone to follow entity
+        if (this._damageZone?.body) {
+            this._damageZone.setPosition(this.entity.x, this.entity.y);
+        }
+
         // Emit flame particles
         if (this.particleTimer >= this.particleInterval) {
             this._emitFlameParticle();
             this.particleTimer = 0;
         }
-        
-        // Apply damage to enemies in cone (with timing)
+
+        // Damage tick — open window for overlap callbacks
         if (time - this.lastDamageTick > this.tickRate * 1000) {
-            this._applyFlameDamage(time);
+            this._canDamage = true;
+            this._hitThisTick.clear();
             this.lastDamageTick = time;
-            
-            // Debug: Log damage ticks occasionally
-            if (Math.random() < 0.1) { // 10% chance to log
-                DebugLogger.info('vfx', `[FlamethrowerEffect] 🔥 DAMAGE TICK - ${this.damage} damage, tick rate: ${this.tickRate}s`);
-            }
         }
     }
     
@@ -228,99 +235,52 @@ export class FlamethrowerEffect {
     }
     
     /**
-     * Create damage zone for collision detection
+     * Create Phaser physics zone for broadphase overlap
      * @private
      */
-    _createDamageZone() {
-        // This is a placeholder - actual implementation would create
-        // a physics body for overlap detection
-        this.damageZone = {
-            x: 0,
-            y: 0,
-            radius: this.baseLength,
-            angle: 0
-        };
+    _createPhysicsZone() {
+        const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
+        if (!enemiesGroup || !this.scene.physics || !this.entity) return;
+
+        this._damageZone = this.scene.add.zone(this.entity.x, this.entity.y, this.baseLength * 2, this.baseLength * 2);
+        this.scene.physics.add.existing(this._damageZone, false);
+        this._damageZone.body.setCircle(this.baseLength);
+
+        this._overlapCollider = this.scene.physics.add.overlap(
+            this._damageZone,
+            enemiesGroup,
+            (zone, enemy) => this._onEnemyOverlap(enemy)
+        );
     }
-    
+
     /**
-     * Update damage zone position
+     * Phaser overlap callback — only cone narrowphase (cheap atan2 on few enemies)
      * @private
      */
-    _updateDamageZone() {
-        if (!this.damageZone || !this.entity) return;
-        
-        this.damageZone.x = this.entity.x;
-        this.damageZone.y = this.entity.y;
-        this.damageZone.angle = this.entity.rotation || 0;
-    }
-    
-    /**
-     * Apply flame damage to enemies in cone
-     * @private
-     */
-    _applyFlameDamage(time) {
-        if (!this.entity || !this.scene.enemiesGroup) return;
-        
-        const enemies = this.scene.enemiesGroup.getChildren();
-        let enemiesInRange = 0;
-        let enemiesHit = 0;
-        
-        for (const enemy of enemies) {
-            if (!enemy.active || enemy.hp <= 0) continue;
-            
-            // Check if enemy is in flame cone
-            if (this._isInFlameCone(enemy)) {
-                enemiesInRange++;
-                
-                // Apply damage through proper system
-                if (enemy.takeDamage && typeof enemy.takeDamage === 'function') {
-                    const result = enemy.takeDamage(this.damage, 'flamethrower');
-                    if (result > 0) {
-                        enemiesHit++;
-                        
-                        // Apply burn VFX
-                        if (this.scene.vfxSystem) {
-                            this.scene.vfxSystem.play('vfx.hit.fire', enemy.x, enemy.y);
-                        }
-                    }
-                } else if (Math.random() < 0.01) {
-                    DebugLogger.warn('enemy', `[FlamethrowerEffect] Enemy missing takeDamage method:`, enemy?.constructor?.name);
-                }
-            }
-        }
-        
-        // Debug: Log damage results occasionally
-        if (Math.random() < 0.05 && (enemiesInRange > 0 || enemiesHit > 0)) { // 5% chance when there are enemies
-            DebugLogger.info('vfx', `[FlamethrowerEffect] 🔥 DAMAGE RESULTS - In range: ${enemiesInRange}, Hit: ${enemiesHit}, Total enemies: ${enemies.length}`);
-        }
-    }
-    
-    /**
-     * Check if a target is in the flame cone
-     * @private
-     */
-    _isInFlameCone(target) {
-        if (!this.entity || !target) return false;
-        
-        // Calculate distance
-        const dx = target.x - this.entity.x;
-        const dy = target.y - this.entity.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        // Check if within range
-        if (distance > this.baseLength) return false;
-        
-        // Calculate angle to target
+    _onEnemyOverlap(enemy) {
+        if (!this._canDamage) return;
+        if (!enemy?.active || enemy.hp <= 0) return;
+        if (this._hitThisTick.has(enemy)) return;
+        if (typeof enemy.takeDamage !== 'function') return;
+
+        // Cone narrowphase
+        const dx = enemy.x - this.entity.x;
+        const dy = enemy.y - this.entity.y;
         const angleToTarget = Math.atan2(dy, dx);
         const entityRotation = this.entity.rotation || 0;
-        
-        // Normalize angle difference
+
         let angleDiff = angleToTarget - entityRotation;
-        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-        
-        // Check if within cone angle
-        return Math.abs(angleDiff) <= this.coneAngle;
+        if (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        if (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+        if (Math.abs(angleDiff) <= this.coneAngle) {
+            this._hitThisTick.add(enemy);
+            enemy.takeDamage(this.damage, 'flamethrower');
+
+            if (this.scene.vfxSystem && Math.random() < 0.3) {
+                this.scene.vfxSystem.play('vfx.hit.fire', enemy.x, enemy.y);
+            }
+        }
     }
     
     /**

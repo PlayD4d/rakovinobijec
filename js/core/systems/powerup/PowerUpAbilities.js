@@ -289,8 +289,8 @@ export class PowerUpAbilities {
         
         if (!closest) return;
         
-        // Start chain
-        this._chainToEnemy(closest, config.damage, config.jumps, config.jumpRange, []);
+        // Start chain (use Set for O(1) lookups instead of Array.includes)
+        this._chainToEnemy(closest, config.damage, config.jumps, config.jumpRange, new Set());
     }
     
     /**
@@ -299,7 +299,7 @@ export class PowerUpAbilities {
     _chainToEnemy(enemy, damage, jumpsLeft, jumpRange, hitList) {
         if (!enemy?.active || jumpsLeft <= 0) return;
         
-        hitList.push(enemy);
+        hitList.add(enemy);
         
         // Apply damage
         if (enemy.takeDamage) {
@@ -318,7 +318,7 @@ export class PowerUpAbilities {
             let minDist = jumpRange;
             
             for (const e of enemies) {
-                if (!e?.active || hitList.includes(e)) continue;
+                if (!e?.active || hitList.has(e)) continue;
                 const dist = Phaser.Math.Distance.Between(enemy.x, enemy.y, e.x, e.y);
                 if (dist < minDist) {
                     minDist = dist;
@@ -347,24 +347,51 @@ export class PowerUpAbilities {
     }
     
     /**
-     * Update aura damage (PR7: Visual handled by VFXSystem)
+     * Update aura damage using Phaser overlap zone (broadphase)
      */
     _updateAura(player, delta) {
-        if (!player.aura) return;
-        
-        // Apply damage to enemies in range (logic only)
-        const enemies = this.scene.enemiesGroup?.getChildren() || [];
-        const tickDamage = player.auraDamage * 0.1; // 10 ticks per second
-        
-        for (const enemy of enemies) {
-            if (!enemy?.active) continue;
-            
-            const dist = Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y);
-            if (dist <= player.auraRadius) {
-                if (enemy.takeDamage) {
-                    enemy.takeDamage(tickDamage, 'aura');
-                }
+        if (!player.aura) {
+            this._destroyAuraZone();
+            return;
+        }
+
+        const tickDamage = player.auraDamage * 0.1;
+
+        // Lazy-create physics zone on first call
+        if (!this._auraZone && this.scene.physics) {
+            const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
+            if (enemiesGroup) {
+                this._auraZone = this.scene.add.zone(player.x, player.y, player.auraRadius * 2, player.auraRadius * 2);
+                this.scene.physics.add.existing(this._auraZone, false);
+                this._auraZone.body.setCircle(player.auraRadius);
+                this._auraOverlap = this.scene.physics.add.overlap(
+                    this._auraZone,
+                    enemiesGroup,
+                    (zone, enemy) => {
+                        if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
+                        enemy.takeDamage(tickDamage, 'aura');
+                    }
+                );
             }
+        }
+
+        // Follow player
+        if (this._auraZone) {
+            this._auraZone.setPosition(player.x, player.y);
+        }
+    }
+
+    /**
+     * Clean up aura physics zone
+     */
+    _destroyAuraZone() {
+        if (this._auraOverlap) {
+            this.scene.physics.world.removeCollider(this._auraOverlap);
+            this._auraOverlap = null;
+        }
+        if (this._auraZone) {
+            this._auraZone.destroy();
+            this._auraZone = null;
         }
     }
     
