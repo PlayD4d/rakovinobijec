@@ -276,12 +276,11 @@ export class Boss extends BossCore {
         }
         
         // Trigger boss decision after taking damage
-        if (damageDealt > 0) {
-            // 30% chance to use ability when damaged
+        if (damageDealt > 0 && this.hp > 0) {
             if (Math.random() < 0.3) {
-                this.scene.time.delayedCall(500, () => {
-                    const time = this.scene.time?.now || 0;
-                    this.makeBossDecision(time, 16);
+                this.scene?.time?.delayedCall(500, () => {
+                    if (!this.active || !this.scene) return;
+                    this.makeBossDecision(this.scene.time.now, 16);
                 });
             }
         }
