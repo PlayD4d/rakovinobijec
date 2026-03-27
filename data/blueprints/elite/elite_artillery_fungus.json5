@@ -1,6 +1,7 @@
 {
   id: 'elite.artillery_fungus',
-  type: 'elite',
+  type: 'enemy',
+  meta: { category: 'elite' },
   baseEnemyId: 'enemy.fungal_parasite',
   multipliers: {
     hp: 4,

@@ -2,7 +2,7 @@ import { Player } from '../entities/Player.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Boss } from '../entities/Boss.js';
 import { UnifiedHUD } from '../ui/UnifiedHUD.js';
-import { MobileControlsManager } from '../managers/MobileControlsManager.js';
+import { MobileControlsSystem } from '../core/systems/MobileControlsSystem.js';
 
 // LiteUI komponenty
 // GameUIScene zvládne všechny UI overlays
@@ -15,21 +15,19 @@ import { HighScoreModal } from '../ui/HighScoreModal.js';
 
 // Základní systémy - pouze moderní PR7 implementace
 import { SimpleLootSystem } from '../core/systems/SimpleLootSystem.js';
-import { PowerUpSystem } from '../core/systems/powerup/PowerUpSystem.js';
+// PowerUpSystem is imported and initialized by BootstrapManager
 import { ShapeRenderer } from '../core/utils/ShapeRenderer.js';
 import { installDevConsole } from '../core/utils/devConsole.js';
 import { EventBus } from '../core/events/EventBus.js';
-import { KeyboardManager } from '../core/input/KeyboardManager.js';
+// KeyboardManager is imported and initialized by BootstrapManager
 import { SimplifiedVFXSystem } from '../core/vfx/SimplifiedVFXSystem.js';
 // SimplifiedAudioSystem will be imported dynamically in initializeDataDrivenSystems()
-import { initSessionLogger, getSessionLogger } from '../core/logging/SessionLogger.js';
 // Registry removed - using simplified systems directly
 // AnalyticsSystem removed - functionality merged into AnalyticsManager
 import { displayResolver } from '../core/blueprints/DisplayResolver.js';
 // ConfigResolver je nyní inicializován globálně v main.js
 import { TelemetryLogger } from '../core/TelemetryLogger.js';
 import { DebugOverlay } from '../utils/DebugOverlay.js';
-import { Phase5Debug } from '../core/debug/Phase5Debug.js';
 import { SmokeTest } from '../utils/SmokeTest.js';
 // getMusicManager je nyní poskytován SimplifiedAudioSystem
 
@@ -48,7 +46,6 @@ import { setupCollisions } from '../handlers/setupCollisions.js';
 import { UpdateManager } from '../managers/UpdateManager.js';
 import { TransitionManager } from '../managers/TransitionManager.js';
 import { BootstrapManager } from '../managers/BootstrapManager.js';
-import { SystemsInitializer } from '../managers/SystemsInitializer.js';
 import { DisposableRegistry } from '../utils/DisposableRegistry.js';
 import { EnemyManager } from '../managers/EnemyManager.js';
 
@@ -61,34 +58,23 @@ export class GameScene extends Phaser.Scene {
         this.enemies = null; // Phaser physics group for all enemies
         this.currentBoss = null;
         
-        // UI - LiteUI components
+        // UI
         this.unifiedHUD = null;
-        this.pauseMenu = null; // Will be replaced with PauseUI
-        this.powerUpUI = null; // LiteUI PowerUpUI (handled by GameUIScene)
-        this.pauseUI = null; // LiteUI PauseUI (handled by GameUIScene)
         this.mobileControls = null;
-        
+
         // Core systems
         this.analyticsManager = null;
         this.musicManager = null;
-        
-        // Data-driven systémy (PR7 kompatibilní)
-        this.blueprints = null; // Zkratka pro blueprintLoader
-        this.blueprintLoader = null; // Načítá všechna data z /data/blueprints/
-        this.spawnDirector = null; // Řídí spawning nepřátel podle tabulek
-        this.frameworkDebug = null; // Debug API pro vývoj
-        this.projectileSystem = null; // Správa projektilů s zero-GC poolingem
-        this.lootSystem = null; // Systém dropů a odměn
-        this.powerUpSystem = null; // Systém vylepšení hráče
-        this.vfxSystem = null; // Unified VFX system (particles, power-ups, all effects)
-        this.audioSystem = null; // Unified audio system (SFX + Music)
-        
-        // Compatibility aliases (for legacy code)
+
+        // Data-driven systems (PR7)
+        this.blueprintLoader = null;
+        this.spawnDirector = null;
+        this.frameworkDebug = null;
+        this.projectileSystem = null;
         this.lootSystem = null;
         this.powerUpSystem = null;
         this.vfxSystem = null;
         this.audioSystem = null;
-        // Modifiers handled directly in Player.js
         
         // Herní statistiky
         // PR7: Get XP requirements from ConfigResolver
@@ -204,153 +190,44 @@ export class GameScene extends Phaser.Scene {
     }
     
     /**
-     * Hybrid audio loading systém
-     * In preload phase: Uses main_config fallback only (blueprints not loaded yet)
-     * Future enhancement: Cache blueprint audio paths for next session
+     * PR7 Audio Loading System
+     * Loads all audio from pre-generated manifest (build-time)
+     * No hardcoded lists, 100% data-driven from blueprints
      */
     _preloadAllAudio() {
-        const audioSources = new Set(); // Automatická deduplikace
+        // Load audio manifest generated from blueprints
+        this.load.json('audio_manifest', '/data/generated/audio_manifest.json');
         
-        // 1. MAIN SOURCE: Core audio from main_config
-        // (In preload phase, this is our only source since blueprints aren't loaded yet)
-        this._extractAudioFromScenes(audioSources);
-        
-        // 2. TRY BLUEPRINTS: Usually won't work in preload, but kept for future caching
-        this._scanBlueprintsForAudio(audioSources);
-        
-        // 3. Preload všech unikátních souborů
-        const totalFiles = audioSources.size;
-        let loadedCount = 0;
-        
-        audioSources.forEach(path => {
-            const key = path.replace(/[^a-zA-Z0-9]/g, '_');
-            
-            if (!this.cache.audio.has(key)) {
-                this.load.audio(key, path);
-                console.log(`[AudioPreload] Loading: ${path} -> ${key}`);
-                loadedCount++;
-            } else {
-                console.log(`[AudioPreload] Already cached: ${path}`);
-            }
-        });
-        
-        console.log(`[AudioPreload] Prepared ${loadedCount}/${totalFiles} audio files for loading`);
-    }
-    
-    /**
-     * Extrahuje audio soubory z main_config.json5 scenes konfigurace + fallback manifest
-     * Slouží jako fallback pro core hudbu a základní SFX
-     */
-    _extractAudioFromScenes(audioSet) {
-        const CR = window.ConfigResolver;
-        if (!CR) {
-            console.warn('[AudioPreload] ConfigResolver not available for scene audio');
-            return;
-        }
-        
-        // 1. Načíst hudbu ze scenes
-        const scenes = CR.get('audio.scenes', { defaultValue: {} });
-        
-        Object.entries(scenes).forEach(([sceneName, sceneConfig]) => {
-            // Jednoduchá hudba (backgroundMusic)
-            if (sceneConfig.backgroundMusic) {
-                audioSet.add(sceneConfig.backgroundMusic);
-                console.log(`[AudioPreload] Scene '${sceneName}' music: ${sceneConfig.backgroundMusic}`);
+        // Once manifest is loaded, use it to preload all audio
+        this.load.on('filecomplete-json-audio_manifest', (key, type, data) => {
+            if (!data || !data.audio) {
+                console.error('[AudioPreload] Invalid or missing audio manifest!');
+                return;
             }
             
-            // Array hudby (tracks)
-            if (sceneConfig.tracks && Array.isArray(sceneConfig.tracks)) {
-                sceneConfig.tracks.forEach(track => {
-                    audioSet.add(track);
-                    console.log(`[AudioPreload] Scene '${sceneName}' track: ${track}`);
-                });
-            }
-        });
-        
-        // 2. Načíst fallback SFX manifest (pokud blueprint scanning selže)
-        const fallbackManifest = CR.get('audio.fallbackManifest', { defaultValue: [] });
-        let fallbackCount = 0;
-        
-        fallbackManifest.forEach(path => {
-            if (path && typeof path === 'string') {
-                audioSet.add(path);
-                fallbackCount++;
-                console.log(`[AudioPreload] Fallback SFX: ${path}`);
-            }
-        });
-        
-        if (fallbackCount > 0) {
-            console.log(`[AudioPreload] Added ${fallbackCount} fallback SFX files from main_config`);
-        }
-    }
-    
-    /**
-     * Skenuje všechny blueprinty pro audio odkazy
-     * PRIORITY: Blueprint audio má přednost před main_config
-     * NOTE: In preload phase, blueprints won't be loaded yet, so this is mainly for future use
-     */
-    _scanBlueprintsForAudio(audioSet) {
-        // In preload phase, blueprints aren't loaded yet
-        // This function is kept for future use when we implement caching
-        if (!this.blueprintLoader || !this.blueprintLoader.loaded) {
-            console.log('[AudioPreload] Blueprints not loaded yet (expected in preload phase)');
-            return;
-        }
-        
-        try {
-            const blueprints = this.blueprintLoader.getAllBlueprints();
-            let blueprintCount = 0;
-            let audioCount = 0;
+            const audioFiles = data.audio;
+            let loadedCount = 0;
             
-            // getAllBlueprints() returns an object, so we need Object.values() to iterate
-            Object.values(blueprints).forEach(blueprint => {
-                blueprintCount++;
+            console.log(`[AudioPreload] Loading ${audioFiles.length} audio files from manifest v${data.version}`);
+            
+            // Preload all audio files from manifest
+            audioFiles.forEach(path => {
+                const key = path.replace(/[^a-zA-Z0-9]/g, '_');
                 
-                // SFX z blueprintů (sfx.hit, sfx.death, sfx.spawn, atd.)
-                if (blueprint.sfx && typeof blueprint.sfx === 'object') {
-                    Object.entries(blueprint.sfx).forEach(([event, path]) => {
-                        if (path && typeof path === 'string' && path.includes('.mp3')) {
-                            audioSet.add(path);
-                            audioCount++;
-                            console.log(`[AudioPreload] Blueprint SFX '${blueprint.id || 'unknown'}': ${event} -> ${path}`);
-                        }
-                    });
-                }
-                
-                // Hudba z boss fightů, spawn levelů atd.
-                if (blueprint.music) {
-                    if (typeof blueprint.music === 'string') {
-                        audioSet.add(blueprint.music);
-                        audioCount++;
-                        console.log(`[AudioPreload] Blueprint music '${blueprint.id || 'unknown'}': ${blueprint.music}`);
-                    } else if (Array.isArray(blueprint.music)) {
-                        blueprint.music.forEach(track => {
-                            if (track && typeof track === 'string') {
-                                audioSet.add(track);
-                                audioCount++;
-                                console.log(`[AudioPreload] Blueprint track '${blueprint.id || 'unknown'}': ${track}`);
-                            }
-                        });
-                    }
-                }
-                
-                // Audio odkazy v jiných sekcích (pro budoucí rozšíření)
-                if (blueprint.audio && typeof blueprint.audio === 'object') {
-                    Object.values(blueprint.audio).forEach(path => {
-                        if (path && typeof path === 'string' && (path.includes('.mp3') || path.includes('.ogg'))) {
-                            audioSet.add(path);
-                            audioCount++;
-                        }
-                    });
+                if (!this.cache.audio.has(key)) {
+                    this.load.audio(key, path);
+                    loadedCount++;
                 }
             });
             
-            console.log(`[AudioPreload] Scanned ${blueprintCount} blueprints, found ${audioCount} audio references`);
-            
-        } catch (error) {
-            console.error('[AudioPreload] Error scanning blueprints for audio:', error);
-        }
+            console.log(`[AudioPreload] ✅ Prepared ${loadedCount} audio files for loading`);
+        });
     }
+    
+    // REMOVED: _extractAudioFromScenes() - replaced by audio_manifest.json
+    // Old fallback system removed - all audio now loaded from generated manifest
+    
+    // REMOVED: _scanBlueprintsForAudio() - replaced by build-time generation
     
     async create() {
         // Initialize DisposableRegistry for cleanup
@@ -370,21 +247,50 @@ export class GameScene extends Phaser.Scene {
             console.error('❌ Bootstrap failed:', error);
             return; // Stop if bootstrap fails
         }
+        
+        // PowerUp selection is handled by BootstrapManager.registerEventListeners()
+        // Do NOT register a second listener here — it causes double application
     }
     
-    async initializeDataDrivenSystems() {
-        // Use SystemsInitializer for all system setup
-        const initializer = new SystemsInitializer(this);
-        await initializer.initializeSystems();
-        
-        // Additional scene-specific setup
-        this.currentLevel = 1;
-        this.maxLevel = 3;
-        
-        // Initialize debug and telemetry if in dev mode
-        if (window.DEV_MODE || window.location.search.includes('debug=true')) {
-            this.initializeDebugSystems();
-        }
+    setupResumeHandlers() {
+        // Setup resume handler for timer resets
+        this.events.on('resume', () => {
+            const now = this.time.now;
+            console.log('[GameScene] Resuming from pause - resetting timers');
+            
+            // Reset player timers
+            if (this.player && this.player.resetTimersAfterPause) {
+                this.player.resetTimersAfterPause();
+            }
+            
+            // Reset enemy behavior timers
+            if (this.enemiesGroup) {
+                this.enemiesGroup.getChildren().forEach(enemy => {
+                    if (enemy.behaviors && enemy.behaviors.resetTimersAfterPause) {
+                        enemy.behaviors.resetTimersAfterPause();
+                    }
+                });
+            }
+            
+            // Reset boss timers
+            if (this.bossGroup) {
+                this.bossGroup.getChildren().forEach(boss => {
+                    if (boss.behaviors && boss.behaviors.resetTimersAfterPause) {
+                        boss.behaviors.resetTimersAfterPause();
+                    }
+                });
+            }
+            
+            // Reset spawn director timers
+            if (this.spawnDirector && this.spawnDirector.resetTimersAfterPause) {
+                this.spawnDirector.resetTimersAfterPause();
+            }
+            
+            // Reset power-up system timers (chain lightning, etc.)
+            if (this.powerUpSystem && this.powerUpSystem.resetTimersAfterPause) {
+                this.powerUpSystem.resetTimersAfterPause();
+            }
+        });
     }
     
     initializeDebugSystems() {
@@ -392,26 +298,16 @@ export class GameScene extends Phaser.Scene {
             // Telemetry logger
             this.telemetryLogger = new TelemetryLogger(this);
             
-            // Debug overlay (F3 to toggle)
+            // Debug overlay (F3 to toggle via KeyboardManager)
             if (!this.debugOverlay) {
                 this.debugOverlay = new DebugOverlay(this);
             }
             
-            // Phase5 debug
-            this.phase5Debug = new Phase5Debug(this);
         } catch (error) {
             console.warn('Debug systems init failed:', error);
         }
     }
     
-    createPlayerBlueprint() {
-        // Delegate to PlayerFactory
-        if (this.playerFactory) {
-            return this.playerFactory.getPlayerBlueprint();
-        }
-        console.error('[GameScene] PlayerFactory not initialized');
-        return null;
-    }
     
     
     
@@ -462,7 +358,7 @@ export class GameScene extends Phaser.Scene {
                 settingsManager.get('controls.joystickPosition') : 'left';
             
             if (mobileEnabled) {
-                this.mobileControls = new MobileControlsManager(this, { side });
+                this.mobileControls = new MobileControlsSystem(this, { side });
                 this.mobileControls.enable();
             }
         } catch (_) {}
@@ -474,7 +370,7 @@ export class GameScene extends Phaser.Scene {
     
     setupCollisions() {
         // Delegate all collision setup to centralized handler
-        setupCollisions(this);
+        return setupCollisions(this);
     }
     
     /**
@@ -571,7 +467,23 @@ export class GameScene extends Phaser.Scene {
     
     async startGame() {
         this.levelStartTime = Date.now();
-        console.log('🎮 Game started!');
+        
+        // Start spawn director with first level spawn table
+        if (this.spawnDirector) {
+            // Load spawn table first
+            const loaded = await this.spawnDirector.loadSpawnTable('spawnTable.level1');
+            
+            if (loaded) {
+                // Start spawning
+                this.spawnDirector.start();
+                console.log('🎮 Game started! SpawnDirector activated with level1 spawn table');
+            } else {
+                console.error('⚠️ Failed to load spawn table - no enemies will spawn');
+            }
+        } else {
+            console.warn('⚠️ SpawnDirector not initialized - no enemies will spawn');
+            console.log('🎮 Game started!');
+        }
     }
     
     update(time, delta) {
@@ -666,26 +578,26 @@ export class GameScene extends Phaser.Scene {
     }
     
     handleMetotrexatPickup() {
-        console.log('🧪 METOTREXAT! Eliminating all enemies!');
-        
+        DebugLogger.info('general', '[GameScene] METOTREXAT! Eliminating all enemies!');
+
         // Flash effect
         this.cameras.main.flash(500, 255, 255, 0);
-        
+
         // Destroy all enemies
-        const enemies = this.enemies.getChildren();
+        const enemies = this.enemies?.getChildren() || [];
         enemies.forEach(enemy => {
             if (enemy.active && !(enemy instanceof Boss)) {
                 this.handleEnemyDeath(enemy);
             }
         });
-        
-        // Play sound from powerup blueprint
-        const powerupBlueprint = this.blueprintLoader?.getBlueprint(powerUp?.id);
-        const pickupSFX = powerupBlueprint?.sfx?.pickup;
-        if (pickupSFX && this.sfxSystem) {
-            this.sfxSystem.play(pickupSFX);
-        } else if (this.sfxSystem) {
-            console.warn('[GameScene] Missing pickup sound in powerup blueprint:', powerUp?.id);
+
+        // Play metotrexat SFX
+        if (this.audioSystem) {
+            const blueprint = this.blueprintLoader?.getBlueprint('powerup.metotrexat');
+            const pickupSFX = blueprint?.sfx?.pickup;
+            if (pickupSFX) {
+                this.audioSystem.play(pickupSFX);
+            }
         }
     }
     
@@ -800,55 +712,46 @@ export class GameScene extends Phaser.Scene {
      * Get power-up options for level-up selection
      */
     getPowerUpOptions() {
-        // Enhanced fallback options with medical theme
-        const defaultOptions = [
+        // Simple delegation to PowerUpSystem if available
+        if (this.powerUpSystem && typeof this.powerUpSystem.generatePowerUpOptions === 'function') {
+            const options = this.powerUpSystem.generatePowerUpOptions();
+            if (options && options.length > 0) {
+                return options;
+            }
+        }
+        
+        // Fallback options if system is not available
+        const fallbackOptions = [
             {
                 id: 'powerup.damage_boost',
                 name: '🧬 Cytotoxická terapie',
-                description: 'Zvyšuje účinnost léčby proti rakovinným buňkám. Více poškození všech útoků.',
-                stats: '+25% DMG',
+                description: 'Zvyšuje účinnost léčby proti rakovinným buňkám.',
+                stats: '+5 DMG',
                 rarity: 'common',
                 icon: '💉',
                 level: 0
             },
             {
-                id: 'powerup.speed_boost', 
+                id: 'powerup.metabolic_haste', 
                 name: '⚡ Metabolický boost',
-                description: 'Urychluje metabolismus pro rychlejší pohyb a reakce. Vyšší rychlost.',
-                stats: '+15% SPD',
+                description: 'Urychluje metabolismus pro rychlejší pohyb a reakce.',
+                stats: '+8% SPD',
                 rarity: 'common',
                 icon: '🏃‍♂️',
                 level: 0
             },
             {
-                id: 'powerup.max_hp',
-                name: '❤️ Imunitní posílení',
-                description: 'Posiluje imunitní systém pro lepší odolnost. Více životů.',
-                stats: '+20 HP',
+                id: 'powerup.shield',
+                name: '🛡️ Ochranný štít',
+                description: 'Vytváří ochranný štít, který blokuje poškození.',
+                stats: '3 hity',
                 rarity: 'uncommon',
                 icon: '🛡️',
                 level: 0
             }
         ];
         
-        // If we have a proper power-up system, get real options from it
-        if (this.powerUpSystem && typeof this.powerUpSystem._generatePowerUpOptions === 'function') {
-            const systemOptions = this.powerUpSystem._generatePowerUpOptions();
-            if (systemOptions && systemOptions.length > 0) {
-                // Map system options to LiteUI format
-                return systemOptions.map(opt => ({
-                    id: opt.id,
-                    name: opt.name || opt.id.replace('powerup.', '').replace(/_/g, ' '),
-                    description: opt.description || 'Vylepšení pro Marda',
-                    stats: opt.value ? `+${opt.value}` : opt.stats || '',
-                    rarity: opt.rarity || 'common',
-                    icon: opt.icon || '⚡',
-                    level: opt.level || 0
-                }));
-            }
-        }
-        
-        return defaultOptions;
+        return fallbackOptions;
     }
     
     
@@ -961,27 +864,129 @@ export class GameScene extends Phaser.Scene {
         return;
     }
     
+    // ========== PR7 Phaser API Interface Methods ==========
+    // These methods provide controlled access to Phaser API
+    // for managers to use instead of direct calls
+    
+    /**
+     * Pause physics world
+     */
+    pausePhysics() {
+        if (this.physics?.world) {
+            this.physics.world.pause();
+        }
+    }
+    
+    /**
+     * Resume physics world
+     */
+    resumePhysics() {
+        if (this.physics?.world) {
+            this.physics.world.resume();
+        }
+    }
+    
+    /**
+     * Pause time system
+     */
+    pauseTime() {
+        if (this.time) {
+            this.time.paused = true;
+        }
+    }
+    
+    /**
+     * Resume time system
+     */
+    resumeTime() {
+        if (this.time) {
+            this.time.paused = false;
+        }
+    }
+    
+    /**
+     * Set world bounds
+     */
+    setWorldBounds(x, y, width, height) {
+        if (this.physics?.world) {
+            this.physics.world.setBounds(x, y, width, height);
+        }
+    }
+    
+    /**
+     * Set UI layer (created by BootstrapManager)
+     */
+    setUILayer(layer) {
+        this.uiLayer = layer;
+    }
+    
+    /**
+     * Launch UI scene
+     */
+    launchUIScene(sceneKey) {
+        this.scene.launch(sceneKey);
+    }
+    
+    /**
+     * Add time event
+     */
+    addTimeEvent(config) {
+        return this.time.addEvent(config);
+    }
+    
+    /**
+     * Add delayed call
+     */
+    addDelayedCall(delay, callback, args, scope) {
+        return this.time.delayedCall(delay, callback, args, scope);
+    }
+    
+    /**
+     * Get main camera
+     */
+    getMainCamera() {
+        return this.cameras.main;
+    }
+    
+    /**
+     * Get scale manager
+     */
+    getScaleManager() {
+        return this.scale;
+    }
+    
+    /**
+     * Restart current scene
+     */
+    restartScene() {
+        this.scene.restart();
+    }
+    
+    // ========== End of PR7 Interface Methods ==========
+    
     /**
      * Find nearest enemy for auto-aim
      */
     findNearestEnemy() {
-        const enemies = this.enemies.getChildren();
+        if (!this.player || !this.enemies) return null;
+        const px = this.player.x;
+        const py = this.player.y;
         let closestEnemy = null;
-        let closestDist = Infinity;
-        
-        enemies.forEach(enemy => {
-            if (enemy.active) {
-                const dist = Phaser.Math.Distance.Between(
-                    this.player.x, this.player.y,
-                    enemy.x, enemy.y
-                );
-                if (dist < closestDist) {
-                    closestDist = dist;
-                    closestEnemy = enemy;
-                }
+        let closestDistSq = Infinity;
+
+        const enemies = this.enemies.getChildren();
+        for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
+            if (!enemy.active) continue;
+            const dx = px - enemy.x;
+            const dy = py - enemy.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < closestDistSq) {
+                closestDistSq = distSq;
+                closestEnemy = enemy;
             }
-        });
-        
+        }
+
         return closestEnemy;
     }
     
@@ -1065,41 +1070,94 @@ export class GameScene extends Phaser.Scene {
      * Clean up all resources to prevent errors during destroy
      */
     shutdown() {
-        // 1. Stop gameplay orchestration
-        this.spawnDirector?.stop?.();
-        this.projectileSystem?.clearAllProjectiles?.();
-        this.updateManager?.pause?.();
+        console.log('[GameScene] Starting shutdown sequence...');
         
-        // 2. Pause physics
-        this.physics?.pause?.();
-        
-        // 3. Kill all tweens
-        this.tweens?.killAll?.();
-        
-        // 4. Clean up timer events and registered disposables
-        this.time?.removeAllEvents?.();
-        this.disposables?.disposeAll?.();
-        
-        // 5. Shutdown all systems
-        const systems = [
-            this.powerUpSystem, this.lootSystem, this.projectileSystem,
-            this.vfxSystem, this.audioSystem, this.armorShieldEffect,
-            this.playerShieldEffect, this.keyboardManager, this.analyticsManager,
-            this.updateManager, this.transitionManager
-        ];
-        for (const s of systems) {
-            if (s?.shutdown) s.shutdown();
-            else if (s?.destroy) s.destroy();
+        try {
+            // 1. Stop spawning and clear active enemies first (high priority)
+            if (this.spawnDirector?.stop) {
+                this.spawnDirector.stop();
+            }
+            
+            // 2. Clear all projectiles
+            if (this.projectileSystem?.clearAllProjectiles) {
+                this.projectileSystem.clearAllProjectiles();
+            }
+            
+            // 3. Clear groups
+            try { this.enemiesGroup?.clear(true, true); } catch (_) {}
+            try { this.bossGroup?.clear(true, true); } catch (_) {}
+
+            // 4. Pause physics, kill tweens, remove timers
+            try { this.physics?.pause(); } catch (_) {}
+            try { this.tweens?.killAll(); } catch (_) {}
+            try { this.time?.removeAllEvents(); } catch (_) {}
+            
+            // 7. Dispose registered resources
+            if (this.disposables) {
+                try {
+                    this.disposables.disposeAll();
+                } catch (e) {
+                    console.warn('[GameScene] Error disposing resources:', e);
+                }
+            }
+            
+            // 8. Shutdown systems in reverse dependency order
+            const systemsToShutdown = [
+                { name: 'updateManager', ref: this.updateManager },
+                { name: 'transitionManager', ref: this.transitionManager },
+                { name: 'powerUpSystem', ref: this.powerUpSystem },
+                { name: 'lootSystem', ref: this.lootSystem },
+                { name: 'projectileSystem', ref: this.projectileSystem },
+                { name: 'vfxSystem', ref: this.vfxSystem },
+                { name: 'audioSystem', ref: this.audioSystem },
+                { name: 'keyboardManager', ref: this.keyboardManager },
+                { name: 'analyticsManager', ref: this.analyticsManager },
+                { name: 'armorShieldEffect', ref: this.armorShieldEffect },
+                { name: 'playerShieldEffect', ref: this.playerShieldEffect }
+            ];
+            
+            for (const system of systemsToShutdown) {
+                if (system.ref) {
+                    try {
+                        if (typeof system.ref.shutdown === 'function') {
+                            system.ref.shutdown();
+                        } else if (typeof system.ref.destroy === 'function') {
+                            system.ref.destroy();
+                        }
+                    } catch (e) {
+                        console.warn(`[GameScene] Error shutting down ${system.name}:`, e);
+                    }
+                }
+            }
+            
+            // 9. Clean up game-level event listeners (not auto-cleaned by Phaser)
+            if (this._bootstrapGameListeners) {
+                this._bootstrapGameListeners.forEach(({ event, fn }) => {
+                    this.game.events.off(event, fn);
+                });
+                this._bootstrapGameListeners = null;
+            }
+
+            // 10. Nullify references to prevent memory leaks
+            this.player = null;
+            this.spawnDirector = null;
+            this.projectileSystem = null;
+            this.lootSystem = null;
+            this.powerUpSystem = null;
+            this.vfxSystem = null;
+            this.audioSystem = null;
+            this.keyboardManager = null;
+            this.analyticsManager = null;
+            this.updateManager = null;
+            this.transitionManager = null;
+            this.enemiesGroup = null;
+            this.bossGroup = null;
+            
+            console.log('[GameScene] Shutdown sequence completed successfully');
+            
+        } catch (e) {
+            console.error('[GameScene] Critical error during shutdown:', e);
         }
-        
-        // 6. Clear groups
-        this.enemiesGroup?.clear?.(true, true);
-        this.bossGroup?.clear?.(true, true);
-        
-        // 7. Nullify references
-        this.player = this.spawnDirector = this.projectileSystem = 
-        this.lootSystem = this.powerUpSystem = this.vfxSystem = 
-        this.audioSystem = this.keyboardManager = this.analyticsManager = null;
     }
     
     /**

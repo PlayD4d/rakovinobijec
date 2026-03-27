@@ -2,6 +2,11 @@
   id: 'spawn_table.level3',
   type: 'enemy',
   level: 3,
+  music: {
+    ambient: 'music/synthwave_track1.mp3',
+    combat: 'music/synthwave_track1.mp3',
+    boss: 'music/synthwave_boss1.mp3',
+  },
   enemyWaves: [
     {
       enemyId: 'enemy.acidic_blob',
@@ -338,16 +343,16 @@
     },
   },
   difficulty: {
-    enemyHpMultiplier: 1.6,
-    enemyDamageMultiplier: 1.4,
-    enemySpeedMultiplier: 1.2,
-    spawnRateMultiplier: 1.8,
-    eliteFrequency: 1.5,
-    targetTTK: 1500,
+    enemyHpMultiplier: 1.45,
+    enemyDamageMultiplier: 1.3,
+    enemySpeedMultiplier: 1.15,
+    spawnRateMultiplier: 1.55,
+    eliteFrequency: 1.3,
+    targetTTK: 1800,
     progressiveScaling: {
-      hpGrowth: 0.003,
-      damageGrowth: 0.002,
-      spawnGrowth: 0.003,
+      hpGrowth: 0.0025,
+      damageGrowth: 0.0015,
+      spawnGrowth: 0.0025,
     },
   },
   meta: {

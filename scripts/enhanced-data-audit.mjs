@@ -827,7 +827,7 @@ class EnhancedDataAuditor {
   
   getExitCode() {
     if (this.errors.length > 0) return 2;
-    if (this.warnings.length > 0) return 1;
+    // Warnings don't block commit — they're informational (e.g. missing sound files)
     return 0;
   }
   

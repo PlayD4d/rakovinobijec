@@ -30,8 +30,8 @@ export class PowerUpUI {
       strokeThickness: 4
     }).setOrigin(0.5);
     
-    // Add glow effect
-    this.title.setPipeline('Light2D');
+    // Remove Light2D pipeline that was causing yellow overlay
+    // this.title.setPipeline('Light2D');
     this.modal.addChild(this.title);
     
     // Subtitle with better styling
@@ -55,15 +55,16 @@ export class PowerUpUI {
       strokeThickness: 1
     }).setOrigin(0.5);
     
-    // Add blinking animation - store reference for cleanup
+    // Blinking animation — created paused, started only on show()
     this.hintTween = scene.tweens.add({
       targets: this.hint,
       alpha: 0.5,
       duration: 800,
       yoyo: true,
-      repeat: -1
+      repeat: -1,
+      paused: true
     });
-    
+
     this.modal.addChild(this.hint);
   }
   
@@ -71,9 +72,6 @@ export class PowerUpUI {
    * Show power-up selection with 3 options
    */
   show(powerUps, onPick) {
-    console.log('[PowerUpUI] show() called with:', powerUps, 'callback:', !!onPick || !!this.onSelection);
-    
-    // Use provided callback or stored one
     const callback = onPick || this.onSelection;
     
     // Clear old cards
@@ -137,14 +135,14 @@ export class PowerUpUI {
         lineSpacing: 2
       }).setOrigin(0.5);
       
-      // Stats with better styling
+      // Stats with better styling - changed to white color for visibility
       const stats = this.scene.add.text(0, 80, pu.stats || '', {
         fontFamily: 'Courier New',
         fontSize: '14px',
-        color: rarityColor,
+        color: '#ffffff',  // Changed from rarityColor to white for visibility
         fontStyle: 'bold',
         stroke: '#000000',
-        strokeThickness: 1
+        strokeThickness: 2  // Increased stroke for better contrast
       }).setOrigin(0.5);
       
       // Add all elements to card (order matters for layering)
@@ -217,8 +215,12 @@ export class PowerUpUI {
       this.cards.push(card);
     });
     
-    // Show modal without animation (we're paused)
-    console.log('[PowerUpUI] Showing modal with', this.cards.length, 'cards');
+    // Resume hint animation
+    if (this.hintTween) {
+      this.hint.alpha = 1;
+      this.hintTween.resume();
+    }
+
     this.modal.show(false);
   }
   
@@ -226,6 +228,7 @@ export class PowerUpUI {
    * Hide modal
    */
   hide(onComplete) {
+    if (this.hintTween) this.hintTween.pause();
     this.modal.hide(false, 0, onComplete);
   }
   

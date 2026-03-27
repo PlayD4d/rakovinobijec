@@ -5,6 +5,8 @@
  * Zajišťuje vlny, elite okna, unikátní spawny a boss triggery
  */
 
+import { DebugLogger } from '../debug/DebugLogger.js';
+
 export class SpawnDirector {
     constructor(scene, options = {}) {
         this.scene = scene;
@@ -20,7 +22,8 @@ export class SpawnDirector {
         
         // Stav běhu aplikace
         this.running = false;
-        this.gameTime = 0; // milisekundy od startu
+        this.startTime = 0; // When spawning started (absolute time)
+        this.gameTime = 0; // Still needed for compatibility
         this.lastSpawnTime = 0;
         
         // Správa vln
@@ -42,23 +45,23 @@ export class SpawnDirector {
             spawnedTypes: new Set()
         };
         
-        console.log('[SpawnDirector] Initialized');
+        DebugLogger.info('spawn', 'Initialized');
     }
     
     /**
      * Načte spawn tabulku pro daný scénář
      */
     async loadSpawnTable(scenarioId) {
-        console.log(`[SpawnDirector] Loading spawn table: ${scenarioId}`);
+        DebugLogger.info('spawn', `Loading spawn table: ${scenarioId}`);
         
         if (!this.blueprints) {
-            console.error('[SpawnDirector] No blueprint loader available');
+            DebugLogger.error('spawn', 'No blueprint loader available');
             return false;
         }
         
         const table = this.blueprints.getSpawnTable(scenarioId);
         if (!table) {
-            console.error(`[SpawnDirector] Spawn table not found: ${scenarioId}`);
+            DebugLogger.error('spawn', `Spawn table not found: ${scenarioId}`);
             return false;
         }
         
@@ -72,15 +75,15 @@ export class SpawnDirector {
         
         // PR7: Validate boss triggers exist
         if (!table.bossTriggers) {
-            console.error(`[SpawnDirector] Missing bossTriggers in spawn table: ${scenarioId}`);
+            DebugLogger.error('spawn', `Missing bossTriggers in spawn table: ${scenarioId}`);
         } else {
-            console.log(`[SpawnDirector] Boss triggers found:`, table.bossTriggers);
+            DebugLogger.debug('spawn', `Boss triggers found:`, table.bossTriggers);
         }
         
-        console.log(`[SpawnDirector] ✅ Loaded spawn table: ${scenarioId}`);
-        console.log(`  Waves: ${table.enemyWaves?.length || 0}`);
-        console.log(`  Elites: ${table.eliteWindows?.length || 0}`);
-        console.log(`  Uniques: ${table.uniqueSpawns?.length || 0}`);
+        DebugLogger.info('spawn', `✅ Loaded spawn table: ${scenarioId}`);
+        DebugLogger.debug('spawn', `  Waves: ${table.enemyWaves?.length || 0}`);
+        DebugLogger.debug('spawn', `  Elites: ${table.eliteWindows?.length || 0}`);
+        DebugLogger.debug('spawn', `  Uniques: ${table.uniqueSpawns?.length || 0}`);
         
         return true;
     }
@@ -90,7 +93,7 @@ export class SpawnDirector {
      */
     start(options = {}) {
         if (!this.currentTable) {
-            console.error('[SpawnDirector] No spawn table loaded');
+            DebugLogger.error('spawn', 'No spawn table loaded');
             return;
         }
         
@@ -98,7 +101,8 @@ export class SpawnDirector {
         this.ngPlusLevel = options.ngPlusLevel || 0;
         
         this.running = true;
-        this.gameTime = 0;
+        this.startTime = this.scene.time.now; // Record absolute start time
+        this.gameTime = 0; // Reset for compatibility
         
         // PR7: Reset wave timers when starting new level
         if (this.currentTable.enemyWaves) {
@@ -128,7 +132,7 @@ export class SpawnDirector {
         this.stats.bossSpawnCount = 0;
         this.stats.spawnedTypes.clear();
         
-        console.log(`[SpawnDirector] Started scenario: ${this.scenarioId}, NG+${this.ngPlusLevel}`);
+        DebugLogger.info('spawn', `Started scenario: ${this.scenarioId}, NG+${this.ngPlusLevel}`);
     }
     
     /**
@@ -136,7 +140,7 @@ export class SpawnDirector {
      */
     stop() {
         this.running = false;
-        console.log('[SpawnDirector] Stopped');
+        DebugLogger.info('spawn', 'Stopped');
     }
     
     /**
@@ -145,16 +149,19 @@ export class SpawnDirector {
     update(delta) {
         if (!this.running || !this.currentTable) return;
         
-        this.gameTime += delta;
+        // Use absolute time instead of delta accumulation
+        const time = this.scene.time.now;
+        const gameTime = time - this.startTime;
+        this.gameTime = gameTime; // Update for compatibility
         
         // Debug: Show game time every 10 seconds
         if (Math.floor(this.gameTime / 10000) !== Math.floor((this.gameTime - delta) / 10000)) {
-            console.log(`[SpawnDirector] Game time: ${Math.floor(this.gameTime / 1000)}s`);
+            DebugLogger.verbose('spawn', `Game time: ${Math.floor(this.gameTime / 1000)}s`);
         }
         
         // Check for boss spawn
         if (this.shouldSpawnBoss()) {
-            console.log(`[SpawnDirector] Boss spawn condition met!`);
+            DebugLogger.info('spawn', `Boss spawn condition met!`);
             this.spawnBoss();
             return;
         }
@@ -179,57 +186,40 @@ export class SpawnDirector {
      */
     processEnemyWaves(delta) {
         if (!this.currentTable.enemyWaves) return;
-        
+
         const now = this.gameTime;
-        
-        // PR7: Check maximum enemy limit to prevent performance issues
-        const currentEnemyCount = this.scene.enemiesGroup ? this.scene.enemiesGroup.countActive() : 0;
         const maxEnemies = this.config?.get('spawn.maxEnemies', { defaultValue: 50 }) || 50;
-        
-        if (currentEnemyCount >= maxEnemies) {
-            // Skip spawning if too many enemies
-            if (Math.random() < 0.01) { // Log occasionally
-                console.warn(`[SpawnDirector] Max enemy limit reached (${currentEnemyCount}/${maxEnemies}), skipping spawn`);
-            }
-            return;
-        }
-        
-        // Find active waves for current time - PR7 compliant format only
-        const activeWaves = this.currentTable.enemyWaves.filter(wave => {
+
+        // Read enemy count ONCE per frame
+        let enemyCount = this.scene.enemiesGroup ? this.scene.enemiesGroup.countActive() : 0;
+        if (enemyCount >= maxEnemies) return;
+
+        // Iterate waves inline instead of allocating a filtered array
+        for (const wave of this.currentTable.enemyWaves) {
             const startTime = wave.startAt || 0;
             const endTime = wave.endAt || Infinity;
-            return now >= startTime && now <= endTime;
-        });
-        
-        // Spawn from active waves
-        for (const wave of activeWaves) {
+            if (now < startTime || now > endTime) continue;
+
             const timeSinceLastSpawn = now - (wave.lastSpawn || 0);
             const interval = wave.interval || wave.spawnRate || 2000;
-            
-            if (timeSinceLastSpawn >= interval) {
-                // Use weighted random selection or simple spawn
-                const weight = wave.weight || 100; // Default 100% chance
-                if (Math.random() * 100 < weight) {
-                    let count = wave.countRange ? this.randomInRange(wave.countRange) : 1;
-                    
-                    // PR7: Limit spawn count if close to max enemies
-                    const currentCount = this.scene.enemiesGroup ? this.scene.enemiesGroup.countActive() : 0;
-                    const maxEnemies = this.config?.get('spawn.maxEnemies', { defaultValue: 50 }) || 50;
-                    const remainingSlots = maxEnemies - currentCount;
-                    
-                    if (remainingSlots <= 0) {
-                        return; // No room for more enemies
-                    }
-                    
-                    count = Math.min(count, remainingSlots, 5); // Max 5 per spawn to prevent lag spikes
-                    
-                    for (let i = 0; i < count; i++) {
-                        this.spawnEnemy(wave.enemyId, { wave: true });
-                    }
-                    wave.lastSpawn = now;
-                    console.log(`[SpawnDirector] Spawned ${count} ${wave.enemyId} at time ${Math.floor(now/1000)}s`);
-                }
+            if (timeSinceLastSpawn < interval) continue;
+
+            const weight = wave.weight || 100;
+            if (Math.random() * 100 >= weight) continue;
+
+            const remainingSlots = maxEnemies - enemyCount;
+            if (remainingSlots <= 0) break;
+
+            let count = wave.countRange ? this.randomInRange(wave.countRange) : 1;
+            count = Math.min(count, remainingSlots, 5);
+
+            for (let i = 0; i < count; i++) {
+                this.spawnEnemy(wave.enemyId, { wave: true });
             }
+            wave.lastSpawn = now;
+            enemyCount += count;
+
+            DebugLogger.debug('spawn', `Spawned ${count} ${wave.enemyId} at time ${Math.floor(now/1000)}s`);
         }
     }
     
@@ -332,8 +322,8 @@ export class SpawnDirector {
             case 'time':
                 // Spawn boss after specific time
                 if (now >= trigger.value) {
-                    console.log(`[SpawnDirector] Boss trigger met: time ${trigger.value}ms (current: ${now}ms)`);
-                    console.log(`[SpawnDirector] Will spawn boss: ${trigger.bossId}`);
+                    DebugLogger.debug('spawn', `Boss trigger met: time ${trigger.value}ms (current: ${now}ms)`);
+                    DebugLogger.debug('spawn', `Will spawn boss: ${trigger.bossId}`);
                     return true;
                 }
                 break;
@@ -342,7 +332,7 @@ export class SpawnDirector {
                 // Spawn boss after certain number of kills
                 const kills = this.scene.gameStats?.enemiesKilled || 0;
                 if (kills >= trigger.value) {
-                    console.log(`[SpawnDirector] Boss trigger met: ${kills} kills`);
+                    DebugLogger.info('spawn', `Boss trigger met: ${kills} kills`);
                     return true;
                 }
                 break;
@@ -351,7 +341,7 @@ export class SpawnDirector {
                 // Spawn boss after specific wave number
                 const currentWave = Math.floor(now / 30000); // Wave every 30 seconds
                 if (currentWave >= trigger.value) {
-                    console.log(`[SpawnDirector] Boss trigger met: wave ${currentWave}`);
+                    DebugLogger.info('spawn', `Boss trigger met: wave ${currentWave}`);
                     return true;
                 }
                 break;
@@ -389,7 +379,7 @@ export class SpawnDirector {
     spawnBoss() {
         // PR7: Only support bossTriggers format
         if (!this.pendingBossTrigger) {
-            console.error('[SpawnDirector] No pending boss trigger');
+            DebugLogger.error('spawn', 'No pending boss trigger');
             return;
         }
         
@@ -402,7 +392,7 @@ export class SpawnDirector {
         trigger._triggered = true;
         this.pendingBossTrigger = null;
         
-        console.log(`[SpawnDirector] Boss spawn triggered: ${bossId}`);
+        DebugLogger.info('spawn', `Boss spawn triggered: ${bossId}`);
         
         // Clear existing enemies if requested
         if (clearEnemies && this.scene.enemiesGroup) {
@@ -430,7 +420,7 @@ export class SpawnDirector {
         
         const blueprint = this.blueprints.get(enemyId);
         if (!blueprint) {
-            console.warn(`[SpawnDirector] Blueprint not found: ${enemyId}`);
+            DebugLogger.warn('spawn', `Blueprint not found: ${enemyId}`);
             return;
         }
         
@@ -440,10 +430,25 @@ export class SpawnDirector {
         // Get spawn position
         const pos = this.getSpawnPosition();
         
-        // Create enemy entity
+        // Create enemy entity through EnemyManager
         try {
-            if (this.scene.createEnemyFromBlueprint) {
-                // Use new blueprint system
+            // Delegate to EnemyManager if available
+            if (this.scene.enemyManager) {
+                const enemy = params.boss ? 
+                    this.scene.enemyManager.spawnBoss(enemyId, pos) :
+                    this.scene.enemyManager.spawnEnemy(enemyId, pos);
+                
+                if (enemy) {
+                    // Track spawn
+                    this.stats.totalSpawned++;
+                    this.stats.spawnedTypes.add(enemyId);
+                    const count = this.stats.spawnedByType.get(enemyId) || 0;
+                    this.stats.spawnedByType.set(enemyId, count + 1);
+                }
+                
+                return enemy;
+            } else if (this.scene.createEnemyFromBlueprint) {
+                // Fallback to scene method if available
                 const enemy = this.scene.createEnemyFromBlueprint(enemyId, {
                     x: pos.x,
                     y: pos.y,
@@ -476,10 +481,10 @@ export class SpawnDirector {
                 return enemy;
             } else {
                 // No fallback - PR7 compliance requires createEnemyFromBlueprint
-                console.error('[SpawnDirector] createEnemyFromBlueprint not available - cannot spawn enemies');
+                DebugLogger.error('spawn', 'createEnemyFromBlueprint not available - cannot spawn enemies');
             }
         } catch (error) {
-            console.error(`[SpawnDirector] Failed to spawn ${enemyId}:`, error);
+            DebugLogger.error('spawn', `Failed to spawn ${enemyId}:`, error);
         }
     }
     
@@ -495,7 +500,7 @@ export class SpawnDirector {
         
         const blueprint = this.blueprints.get(enemyId);
         if (!blueprint) {
-            console.warn(`[SpawnDirector] Blueprint not found: ${enemyId}`);
+            DebugLogger.warn('spawn', `Blueprint not found: ${enemyId}`);
             return;
         }
         
@@ -527,7 +532,7 @@ export class SpawnDirector {
                 return enemy;
             }
         } catch (error) {
-            console.error(`[SpawnDirector] Failed to spawn ${enemyId} at position:`, error);
+            DebugLogger.error('spawn', `Failed to spawn ${enemyId} at position:`, error);
         }
     }
     
@@ -581,9 +586,9 @@ export class SpawnDirector {
      */
     getSpawnPosition() {
         const camera = this.scene.cameras.main;
-        const margin = 50;
+        const margin = 100;  // Increased from 50 to ensure spawns are off-screen
         const player = this.scene.player;
-        const MIN_PLAYER_DISTANCE = 100; // Minimum distance from player
+        const MIN_PLAYER_DISTANCE = 150; // Increased minimum distance from player
         
         // Get world bounds for clamping
         const worldBounds = this.scene.physics?.world?.bounds;
@@ -626,7 +631,7 @@ export class SpawnDirector {
             y += Phaser.Math.Between(-variance, variance);
             
             // Clamp position to world bounds with margin
-            const worldMargin = 24;
+            const worldMargin = 50;  // Increased from 24 to prevent edge spawns
             x = Math.max(minX + worldMargin, Math.min(maxX - worldMargin, x));
             y = Math.max(minY + worldMargin, Math.min(maxY - worldMargin, y));
             
@@ -645,7 +650,7 @@ export class SpawnDirector {
         
         // Only log in debug mode
         if (this.config?.get?.('debug.spawnLogging', { defaultValue: false })) {
-            console.log(`[SpawnDirector] Spawn position: (${Math.floor(x)}, ${Math.floor(y)}) attempts=${attempts}`);
+            DebugLogger.verbose('spawn', `Spawn position: (${Math.floor(x)}, ${Math.floor(y)}) attempts=${attempts}`);
         }
         
         return { x, y };
@@ -690,11 +695,11 @@ export class SpawnDirector {
         const CR = this.config || window.ConfigResolver;
         const progressionXp = CR.get('progression.xp');
         if (!progressionXp) {
-            console.warn('[SpawnDirector] No progression.xp config found');
+            DebugLogger.warn('spawn', 'No progression.xp config found');
             return;
         }
         
-        console.log('[SpawnDirector] Applying XP retuning based on xpPlan:', xpPlan);
+        DebugLogger.info('spawn', 'Applying XP retuning based on xpPlan:', xpPlan);
         
         // Get enemy XP values (priority: overrides -> blueprint -> global)
         const getEnemyXp = (enemyId) => {
@@ -736,7 +741,7 @@ export class SpawnDirector {
             wave._baseXpPerMinute = enemyXp * avgCount * spawnsPerMinute;
             wave._originalWeight = wave.weight;
             
-            console.log(`  Wave ${index} (${wave.enemyId}): ${wave._baseXpPerMinute.toFixed(1)} XP/min base`);
+            DebugLogger.debug('spawn', `  Wave ${index} (${wave.enemyId}): ${wave._baseXpPerMinute.toFixed(1)} XP/min base`);
         });
         
         // Adjust weights to match target XP/minute
@@ -769,7 +774,7 @@ export class SpawnDirector {
             // Calculate adjustment factor
             const adjustmentFactor = targetXpPerMin / totalBaseXp;
             
-            console.log(`  Minute ${minute}: Target ${targetXpPerMin} XP/min, Factor ${adjustmentFactor.toFixed(2)}`);
+            DebugLogger.debug('spawn', `  Minute ${minute}: Target ${targetXpPerMin} XP/min, Factor ${adjustmentFactor.toFixed(2)}`);
             
             // Apply adjustment to weights
             activeWaves.forEach(wave => {
@@ -805,12 +810,12 @@ export class SpawnDirector {
             table.bossTriggers?.forEach(trigger => {
                 if (trigger.bossId === xpPlan.boss.id) {
                     trigger._xpReward = clampedBossXp;
-                    console.log(`  Boss ${trigger.bossId}: ${clampedBossXp} XP (clamped from ${bossXp})`);
+                    DebugLogger.debug('spawn', `  Boss ${trigger.bossId}: ${clampedBossXp} XP (clamped from ${bossXp}`);
                 }
             });
         }
         
-        console.log('[SpawnDirector] XP retuning complete');
+        DebugLogger.info('spawn', 'XP retuning complete');
     }
     
     /**

@@ -7,7 +7,7 @@
     speed: 70,
     size: 20,
     armor: 0,
-    xp: 2,
+    xp: 4,
   },
   mechanics: {
     movementType: 'seek_player',

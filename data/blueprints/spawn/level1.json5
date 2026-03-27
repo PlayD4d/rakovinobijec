@@ -3,9 +3,9 @@
   type: 'enemy',
   level: 1,
   music: {
-    ambient: 'music/level_1.mp3',
-    combat: 'music/level_1.mp3',
-    boss: 'music/boss.mp3',
+    ambient: 'music/8bit_track1.mp3',
+    combat: 'music/8bit_track1.mp3',
+    boss: 'music/8bit_boss1.mp3',
   },
   enemyWaves: [
     {
@@ -59,7 +59,7 @@
   bossTriggers: [
     {
       condition: 'time',
-      value: 60000,
+      value: 90000,
       bossId: 'boss.radiation_core',
       spawnDelay: 2000,
       clearEnemies: false,
@@ -134,11 +134,11 @@
         },
         boss: {
           id: 'boss.radiation_core',
-          xp: 300,
+          xp: 350,
           capLevelsGranted: 1.5,
         },
         enemyXpOverrides: {
-          'enemy.micro_shooter': 2,
+          'enemy.micro_shooter': 5,
           'enemy.viral_swarm': 3,
           'enemy.necrotic_cell': 6,
         },

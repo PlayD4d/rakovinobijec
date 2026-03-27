@@ -68,8 +68,14 @@ export class SimpleButton extends Phaser.GameObjects.Container {
       }
     });
     
-    // Moved pointerdown handler above
+    // Pointerdown handler - must be before pointerup
+    this.on('pointerdown', () => {
+      // Visual feedback on click
+      this.bg.setFillStyle(config.activeColor, 1);
+      this.bg.setScale(0.98);
+    });
     
+    // Pointerup handler - trigger onClick
     this.on('pointerup', () => {
       this.bg.setFillStyle(config.hoverColor, 1);
       this.bg.setScale(1);
@@ -81,13 +87,6 @@ export class SimpleButton extends Phaser.GameObjects.Container {
       }
     });
     
-    // Also handle click event as backup
-    this.on('pointerdown', () => {
-      // Visual feedback on click
-      this.bg.setFillStyle(config.activeColor, 1);
-      this.bg.setScale(0.98);
-    });
-    
     // Přidat do scény
     scene.add.existing(this);
   }
@@ -97,11 +96,13 @@ export class SimpleButton extends Phaser.GameObjects.Container {
   }
   
   setEnabled(enabled) {
-    this.setInteractive(enabled);
-    this.setAlpha(enabled ? 1 : 0.5);
-    if (!enabled) {
+    if (enabled) {
+      this.setInteractive();
+    } else {
+      this.disableInteractive();
       this.bg.setFillStyle(this.config.bgColor, this.config.bgAlpha);
     }
+    this.setAlpha(enabled ? 1 : 0.5);
   }
   
   destroy() {

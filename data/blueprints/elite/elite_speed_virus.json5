@@ -1,6 +1,7 @@
 {
   id: 'elite.speed_virus',
-  type: 'elite',
+  type: 'enemy',
+  meta: { category: 'elite' },
   baseEnemyId: 'enemy.viral_swarm',
   multipliers: {
     hp: 3.5,

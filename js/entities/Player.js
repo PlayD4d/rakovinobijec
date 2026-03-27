@@ -1,3 +1,5 @@
+import { DebugLogger } from '../core/debug/DebugLogger.js';
+
 /**
  * Player.js - Třída hráče
  * 
@@ -63,7 +65,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             critChance: CR.get('mechanics.attack.critChance', { blueprint }),
             critMult: CR.get('mechanics.attack.critMultiplier', { blueprint }),
             iFramesMs: CR.get('mechanics.iFrames.ms', { blueprint }),
-            xpMagnetRadius: 100,  // Base XP collection radius (100 pixels)
+            xpMagnetRadius: CR.get('mechanics.xpMagnet.baseRadius', { blueprint }) || 100,  // From blueprint
             // New properties for powerups
             dodgeChance: 0,
             explosionRadius: 0,
@@ -95,7 +97,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.shieldLevel = 0;
         this.shieldBroken = false;
         this.shieldRegenMs = 10000;
-        this.shieldRegenTimer = 0;
+        this._shieldBrokenAt = -Infinity; // Use absolute time instead of accumulator
         
         // Power-up states (set by PowerUpSystem)
         this.xpMagnetLevel = 0;
@@ -111,8 +113,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.piercingMaxPierces = 0;
         this.piercingDamageReduction = 0;
         
-        // Shooting system
-        this.fireTimer = 0;
+        // Shooting system - use absolute time instead of delta accumulation
+        this._nextAttackAt = 0;
+        this._lastAttackTime = 0; // For compatibility
         // PR7: Use move speed from baseStats - already validated
         this.moveSpeed = this.baseStats.moveSpeed;
 
@@ -148,8 +151,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         
         // Debug: Check if player is unexpectedly inactive
         if (!this.active && this.hp > 0) {
-            console.error(`[Player DEBUG] Player inactive but HP > 0! hp=${this.hp}, active=${this.active}`);
-            console.trace('[Player DEBUG] Stack trace for inactive player:');
+            DebugLogger.error('general', `[Player DEBUG] Player inactive but HP > 0! hp=${this.hp}, active=${this.active}`);
+            DebugLogger.error('general', '[Player DEBUG] Stack trace for inactive player:', new Error().stack);
         }
         
         // Skip all updates if game is paused
@@ -158,19 +161,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             return;
         }
 
-        // Movement
-        this._updateMovement(delta);
-
-        // Timers
-        this.fireTimer += delta;
+        // Movement and shooting handled in update() via UpdateManager
+        // Only cooldown decrement here (needs to run in Phaser's preUpdate cycle)
         if (this._cooldownMs > 0) this._cooldownMs -= delta;
-        if (this._iFramesMsLeft > 0) this._iFramesMsLeft -= delta;
-
-        // Auto-shooting
-        this._updateShooting(delta);
-        
-        // Update active power-ups
-        this._updatePowerUps(time, delta);
     }
 
     // ================ Pohyb hráče ================
@@ -196,114 +189,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    // ================ Střelba ================
-
-    _updateShooting(dt) {
-        const stats = this._stats();
-        // PR7: Use attack interval from stats - already validated
-        const fireIntervalMs = stats.attackIntervalMs;
-        
-        // Check cooldown timer
-        if (this.fireTimer < fireIntervalMs) return;
-
-        const target = this._findTarget();
-        if (!target) {
-            // No target - don't spray bullets randomly
-            return;
-        }
-
-        // Fire at target with proper cooldown
-        this._shootAt(target, stats);
-        this.fireTimer = 0; // Reset timer
-    }
-
-    _shootAt(target, stats) {
-        // HOTFIX V4: Calculate exact angle to target
-        const baseAngle = Math.atan2(target.y - this.y, target.x - this.x);
-        const projectileCount = Math.max(1, Math.round(stats.projectileCount));
-        
-        // Only apply spread if multiple projectiles
-        if (projectileCount > 1) {
-            const spreadRad = (stats.spreadDeg * Math.PI) / 180;
-            
-            for (let i = 0; i < projectileCount; i++) {
-                // Distribute projectiles evenly around the base angle
-                const t = (i - (projectileCount - 1) / 2);
-                const angleOffset = (spreadRad / (projectileCount - 1)) * t;
-                const finalAngle = baseAngle + angleOffset;
-                
-                this.scene.projectileSystem.createPlayerProjectile({
-                    x: this.x,
-                    y: this.y,
-                    projectileBlueprintId: stats.projectileRef,
-                    damage: this._rollCrit(stats.projectileDamage, stats),
-                    speed: stats.projectileSpeed,
-                    range: stats.projectileRange,
-                    angleRad: finalAngle,
-                    owner: this
-                });
-            }
-        } else {
-            // Single projectile - shoot directly at target
-            this.scene.projectileSystem.createPlayerProjectile({
-                x: this.x,
-                y: this.y,
-                projectileBlueprintId: stats.projectileRef,
-                damage: this._rollCrit(stats.projectileDamage, stats),
-                speed: stats.projectileSpeed,
-                range: stats.projectileRange,
-                angleRad: baseAngle,
-                owner: this
-            });
-        }
-
-        // VFX effect removed - doesn't follow player properly
-        // this._playVfx(this.vfx.shoot, this.x, this.y);
-        this._playSfx(this.sfx.shoot);
-        this.scene.frameworkDebug?.onPlayerShoot?.(this, projectileCount);
-    }
+    // ================ Střelba (Consolidated) ================
 
     _findTarget() {
-        // Use enemiesGroup from SpawnDirector
-        const g = this.scene.enemiesGroup;
-        if (!g) return null;
-
-        let best = null;
-        let bestD2 = Infinity;
-        const cx = this.x, cy = this.y;
-
-        const list = g.getChildren?.() || [];
-        
-        for (let i = 0; i < list.length; i++) {
-            const e = list[i];
-            if (!e?.active) continue;
-            const dx = e.x - cx;
-            const dy = e.y - cy;
-            const d2 = dx * dx + dy * dy;
-            if (d2 < bestD2) { 
-                bestD2 = d2; 
-                best = e; 
-            }
+        // PR7: Delegate to TargetingSystem for proper separation of concerns
+        if (this.scene.targetingSystem?.findTarget) {
+            return this.scene.targetingSystem.findTarget(this);
         }
         
-        // Also check boss group
-        const bossGroup = this.scene.bossGroup;
-        if (bossGroup) {
-            const bosses = bossGroup.getChildren?.() || [];
-            for (let i = 0; i < bosses.length; i++) {
-                const b = bosses[i];
-                if (!b?.active) continue;
-                const dx = b.x - cx;
-                const dy = b.y - cy;
-                const d2 = dx * dx + dy * dy;
-                if (d2 < bestD2) { 
-                    bestD2 = d2; 
-                    best = b; 
-                }
-            }
-        }
-        
-        return best;
+        // Fallback if TargetingSystem not available
+        return null;
     }
 
     _rollCrit(baseDamage, stats) {
@@ -316,21 +211,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // ================ Boj ================
 
     takeDamage(amount, source) {
+        // Get current time for shield timing
+        const time = this.scene.time?.now || 0;
         
         // Check if player object is still valid
         if (!this.scene) {
-            console.error(`[Player DEBUG] takeDamage called but player has no scene!`);
+            DebugLogger.error('general', `[Player DEBUG] takeDamage called but player has no scene!`);
             return 0;
         }
         
         if (!this.active) {
-            console.warn(`[Player DEBUG] takeDamage called on inactive player! amount=${amount}, source=${source?.constructor?.name || source}`);
+            DebugLogger.warn('general', `[Player DEBUG] takeDamage called on inactive player! amount=${amount}, source=${source?.constructor?.name || source}`);
             return 0;
         }
         
         // IMPORTANT: Don't take damage during pause (e.g., during level-up power-up selection)
         if (this.scene.isPaused || this.scene.scene.isPaused()) {
-            console.log(`[Player] Ignoring damage during pause - amount: ${amount}`);
+            DebugLogger.info('general', `[Player] Ignoring damage during pause - amount: ${amount}`);
             return 0;
         }
         
@@ -338,27 +235,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             return 0;
         }
 
-        // Check shield directly on player (simplified PR7 approach)
-        if (this.shieldActive && this.shieldHits > 0 && !this.shieldBroken) {
-            // Shield blocks the hit
-            this.shieldHits--;
-            console.log(`[Player] 🛡️ SHIELD BLOCKED - Hits remaining: ${this.shieldHits}`);
+        // Process damage through PowerUpSystem (PR7: Shield logic moved to PowerUpAbilities)
+        if (this.scene.powerUpSystem?.processDamage) {
+            amount = this.scene.powerUpSystem.processDamage(this, amount, time);
             
-            // If shield depleted, start regeneration
-            if (this.shieldHits <= 0) {
-                this.shieldBroken = true;
-                this.shieldRegenTimer = 0;
-                console.log(`[Player] 🛡️ SHIELD BROKEN - Regenerating in ${this.shieldRegenMs}ms`);
-                
-                // Remove shield visual effect
-                if (this.scene.vfxSystem) {
-                    this.scene.vfxSystem.detachEffect(this, 'shield');
-                }
+            // If shield absorbed all damage, return 0 with i-frames
+            if (amount <= 0) {
+                this._iFramesMsLeft = this.baseStats.iFramesMs;
+                return 0;
             }
-            
-            // Play hit effects and return 0 damage
-            this._iFramesMsLeft = this.baseStats.iFramesMs;
-            return 0;
         }
 
         const dmg = Math.max(0, amount | 0);
@@ -381,8 +266,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             this.scene.unifiedHUD.setPlayerHealth(this.hp, this.maxHp);
         }
 
+        // CRITICAL DEBUG: Track HP and death conditions
+        DebugLogger.info('general', '[Player] takeDamage result:', {
+            damage: dmg,
+            oldHP: this.hp + dmg,
+            newHP: this.hp,
+            willDie: this.hp <= 0,
+            active: this.active,
+            source: source?.constructor?.name || source
+        });
+
         if (this.hp <= 0) {
+            DebugLogger.info('general', '[Player] HP reached 0, calling die()');
             this.die(source);
+        } else {
+            DebugLogger.info('general', '[Player] Player survived damage, HP remaining:', this.hp);
         }
         return dmg;
     }
@@ -413,16 +311,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     die(source) {
         if (!this.active) {
+            DebugLogger.info('general', '[Player] die() called but player already inactive - ignoring');
             return;
         }
         
-        console.log('[Player] die() called!');
-        console.log(`[Player] Death state: HP=${this.hp}, active=${this.active}, source=${source?.constructor?.name || source}`);
-        console.trace('[Player] Death stack trace:');  // This will show what called die()
+        DebugLogger.info('general', '[Player] die() called!');
+        DebugLogger.info('general', `[Player] Death state: HP=${this.hp}, active=${this.active}, source=${source?.constructor?.name || source}`);
+        DebugLogger.error('general', '[Player] Death stack trace:', new Error().stack);  // This will show what called die()
+        
+        // CRITICAL GUARD: Prevent death if player has HP
+        if (this.hp > 0) {
+            DebugLogger.warn('general', '[Player] PREVENTED DEATH - Player still has HP:', this.hp);
+            return;
+        }
         
         // IMPORTANT: Don't die during pause (e.g., during level-up power-up selection)
         if (this.scene.isPaused || this.scene.scene.isPaused()) {
-            console.warn(`[Player] Attempted to die during pause - ignoring! Source: ${source?.constructor?.name || source}`);
+            DebugLogger.warn('general', `[Player] Attempted to die during pause - ignoring! Source: ${source?.constructor?.name || source}`);
             // Heal player to 1 HP to prevent death during pause
             this.hp = 1;
             return;
@@ -451,7 +356,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
 
         // Don't destroy player immediately - let GameScene handle it after showing game over
-        console.log('[Player] Setting player to inactive state (active=false, visible=false)');
+        DebugLogger.info('general', '[Player] Setting player to inactive state (active=false, visible=false)');
         this.active = false;
         this.visible = false;
         this.body.enable = false; // Disable physics body to prevent further collisions
@@ -504,32 +409,160 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         return this.baseStats.xpMagnetRadius || 100;
     }
 
-    getExplosionRadius() {
-        const baseRadius = this.baseStats.explosionRadius || 0;
-        return this.applyModifiers(baseRadius, 'explosionRadius');
+    /**
+     * Get stat value with modifiers applied (PR7: Consolidated getter)
+     * @param {string} statName - Name of the stat
+     * @param {boolean} isInteger - Whether to return integer value
+     * @returns {number} Stat value with modifiers
+     */
+    _getStatWithModifiers(statName, isInteger = false) {
+        const baseValue = this.baseStats[statName] || 0;
+        const modifiedValue = this.applyModifiers(baseValue, statName);
+        return isInteger ? Math.floor(modifiedValue) : modifiedValue;
     }
     
-    getExplosionDamage() {
-        const baseDamage = this.baseStats.explosionDamage || 0;
-        return this.applyModifiers(baseDamage, 'explosionDamage');
-    }
-    
-    getDodgeChance() {
-        const baseChance = this.baseStats.dodgeChance || 0;
-        return this.applyModifiers(baseChance, 'dodgeChance');
-    }
-    
-    getProjectilePiercing() {
-        const basePiercing = this.baseStats.projectilePiercing || 0;
-        const piercing = this.applyModifiers(basePiercing, 'projectilePiercing');
-        return Math.floor(piercing); // Piercing should be integer
-    }
+    // Essential getter methods only (PR7: Minimal interface)
+    getExplosionRadius() { return this._getStatWithModifiers('explosionRadius'); }
+    getProjectilePiercing() { return this._getStatWithModifiers('projectilePiercing', true); }
 
     // ================ Systém vstupu ================
     
     setInputKeys(keys) {
         this.keys = keys;
-        console.log('[Player] Input keys set:', !!keys);
+        DebugLogger.info('general', '[Player] Input keys set:', !!keys);
+    }
+
+    // ================ Update metoda ================
+    
+    /**
+     * Main update loop for player
+     * @param {number} time - Game time
+     * @param {number} delta - Delta time in ms
+     */
+    update(time, delta) {
+        if (!this.active || this.hp <= 0) return;
+        
+        // Update iFrames
+        if (this._iFramesMsLeft > 0) {
+            this._iFramesMsLeft = Math.max(0, this._iFramesMsLeft - delta);
+            
+            // Visual feedback for iFrames
+            this.alpha = Math.sin(time * 0.02) * 0.3 + 0.7;
+        } else {
+            this.alpha = 1;
+        }
+        
+        // Handle movement (delegate to existing method)
+        this._updateMovement(delta);
+        
+        // Handle auto-attack
+        this._handleAutoAttack(time, delta);
+    }
+    
+    // _handleMovement() removed - using _updateMovement() instead (PR7: No duplication)
+    
+    /**
+     * Handle auto-attack logic
+     */
+    _handleAutoAttack(time, delta) {
+        // Initialize next attack time if not set
+        if (!this._nextAttackAt) {
+            this._nextAttackAt = time;
+        }
+        
+        const stats = this._stats();
+        const attackInterval = stats.attackIntervalMs;
+        
+        // CRITICAL FIX: Prevent timer drift by using absolute time comparison
+        // If we're way behind (e.g., after pause), reset the timer
+        if (time - this._nextAttackAt > attackInterval * 3) {
+            DebugLogger.info('player', '[Player] Attack timer reset - was too far behind');
+            this._nextAttackAt = time;
+        }
+        
+        // Check if we can attack using absolute time
+        if (time >= this._nextAttackAt) {
+            // Find nearest enemy
+            const target = this._findNearestEnemy();
+            
+            if (target) {
+                // Fire single shot
+                this._shootAtTarget(target);
+                
+                // Set next attack time based on current time to prevent drift
+                // Use Math.max to ensure we don't go backwards in time
+                this._nextAttackAt = Math.max(this._nextAttackAt + attackInterval, time + attackInterval);
+                
+                // Debug log attack interval
+                DebugLogger.info('player', `[Player] Attack fired. Interval: ${attackInterval}ms, Next at: ${this._nextAttackAt}`);
+            } else {
+                // No target - advance timer slightly to prevent rapid checking
+                this._nextAttackAt = time + 100;
+            }
+        }
+    }
+    
+    /**
+     * Find nearest enemy for auto-targeting (PR7: Delegate to TargetingSystem)
+     */
+    _findNearestEnemy() {
+        // PR7: Delegate to TargetingSystem for proper separation of concerns
+        if (this.scene.targetingSystem?.findNearestEnemy) {
+            return this.scene.targetingSystem.findNearestEnemy(this);
+        }
+        
+        // Fallback if TargetingSystem not available
+        return null;
+    }
+    
+    /**
+     * Shoot projectile at target (PR7: Unified shooting implementation)
+     */
+    _shootAtTarget(target) {
+        if (!this.scene.projectileSystem) return;
+        
+        // Calculate direction to target
+        const baseAngle = Math.atan2(target.y - this.y, target.x - this.x);
+        const stats = this._stats();
+        const projectileCount = Math.max(1, Math.round(stats.projectileCount));
+        
+        // Only apply spread if multiple projectiles
+        if (projectileCount > 1) {
+            const spreadRad = (stats.spreadDeg * Math.PI) / 180;
+            
+            for (let i = 0; i < projectileCount; i++) {
+                // Distribute projectiles evenly around the base angle
+                const t = (i - (projectileCount - 1) / 2);
+                const angleOffset = (spreadRad / (projectileCount - 1)) * t;
+                const finalAngle = baseAngle + angleOffset;
+                
+                this.scene.projectileSystem.createPlayerProjectile({
+                    x: this.x,
+                    y: this.y,
+                    projectileBlueprintId: stats.projectileRef,
+                    damage: this._rollCrit(stats.projectileDamage, stats),
+                    speed: stats.projectileSpeed,
+                    range: stats.projectileRange,
+                    angleRad: finalAngle,
+                    owner: this
+                });
+            }
+        } else {
+            // Single projectile - shoot directly at target
+            this.scene.projectileSystem.createPlayerProjectile({
+                x: this.x,
+                y: this.y,
+                projectileBlueprintId: stats.projectileRef,
+                damage: this._rollCrit(stats.projectileDamage, stats),
+                speed: stats.projectileSpeed,
+                range: stats.projectileRange,
+                angleRad: baseAngle,
+                owner: this
+            });
+        }
+
+        this._playSfx(this.sfx.shoot);
+        this.scene.frameworkDebug?.onPlayerShoot?.(this, projectileCount);
     }
 
     // ================ Pomocné metody ================
@@ -565,13 +598,42 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
      * Used for compatibility with existing code
      */
     _stats() {
+        // Cache stats — invalidated by time or modifier changes
+        const now = this.scene?.time?.now || Date.now();
+        if (this._statsCache && this._statsCacheTime && (now - this._statsCacheTime < 100)) {
+            return this._statsCache;
+        }
+        
         // Build stats object with all modifiers applied
         const stats = {};
+        let hasChanges = false;
         
         // Copy base stats
         for (const key in this.baseStats) {
-            stats[key] = this.applyModifiers(this.baseStats[key], key);
+            const baseValue = this.baseStats[key];
+            const modifiedValue = this.applyModifiers(baseValue, key);
+            stats[key] = modifiedValue;
+            
+            // Track if we have any changes
+            if (Math.abs(modifiedValue - baseValue) > 0.01) {
+                hasChanges = true;
+            }
         }
+        
+        // Only log once when modifiers change, not every frame
+        if (hasChanges && (!this._lastModifierLogTime || now - this._lastModifierLogTime > 1000)) {
+            DebugLogger.info('powerup', `[Player] Stats with modifiers:`, {
+                activeModifiers: this.activeModifiers?.length || 0,
+                attackInterval: stats.attackIntervalMs,
+                damage: stats.projectileDamage,
+                speed: stats.moveSpeed
+            });
+            this._lastModifierLogTime = now;
+        }
+        
+        // Cache the result
+        this._statsCache = stats;
+        this._statsCacheTime = now;
         
         return stats;
     }
@@ -583,7 +645,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.scene.vfxSystem?.play(id, x, y);
         // Restore active state if it was changed
         if (wasActive && !this.active) {
-            console.error(`[Player DEBUG] VFXSystem incorrectly deactivated player! Restoring.`);
+            DebugLogger.error('general', `[Player DEBUG] VFXSystem incorrectly deactivated player! Restoring.`);
             this.active = true;
         }
     }
@@ -595,7 +657,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.scene.audioSystem?.play(id);
         // Restore active state if it was changed
         if (wasActive && !this.active) {
-            console.error(`[Player DEBUG] SFXSystem incorrectly deactivated player! Restoring.`);
+            DebugLogger.error('general', `[Player DEBUG] SFXSystem incorrectly deactivated player! Restoring.`);
             this.active = true;
         }
     }
@@ -606,61 +668,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
      * Update active power-ups that need per-frame processing
      * Called from preUpdate - handles radiotherapy, flamethrower, etc.
      */
-    _updatePowerUps(time, delta) {
-        // Shield regeneration
-        if (this.shieldActive && this.shieldBroken) {
-            this.shieldRegenTimer += delta;
-            
-            if (this.shieldRegenTimer >= this.shieldRegenMs) {
-                // Regenerate shield
-                this.shieldHits = this.shieldLevel;
-                this.shieldBroken = false;
-                this.shieldRegenTimer = 0;
-                
-                console.log(`[Player] ✨ SHIELD REGENERATED - Hits: ${this.shieldHits}`);
-                
-                // Restore shield visual effect
-                if (this.scene.vfxSystem) {
-                    this.scene.vfxSystem.attachEffect(this, 'shield', {
-                        radius: 40 + (this.shieldLevel * 5),
-                        color: 0x00ffff,
-                        alpha: 0.3
-                    });
-                }
-            }
-        }
-        
-        // Radiotherapy - doesn't need update here since it's handled by VFX system
-        // Just verify the property is set correctly
-        if (this.radiotherapyActive && Math.random() < 0.001) {
-            console.log(`[Player] 🔬 Radiotherapy active: level ${this.radiotherapyLevel}`);
-        }
-        
-        // Flamethrower - doesn't need update here since it's handled by VFX system
-        if (this.flamethrowerActive && Math.random() < 0.001) {
-            console.log(`[Player] 🔥 Flamethrower active: level ${this.flamethrowerLevel}`);
-        }
-        
-        // Chemo Aura - could be handled here in future if needed
-        if (this.chemoAuraActive && Math.random() < 0.001) {
-            console.log(`[Player] 💚 Chemo Aura active`);
-        }
-        
-        // XP Magnet is handled by SimpleLootSystem
-        if (this.xpMagnetLevel > 0 && Math.random() < 0.001) {
-            console.log(`[Player] 🧲 XP Magnet active: level ${this.xpMagnetLevel}`);
-        }
-        
-        // Piercing is applied during projectile creation
-        if (this.piercingLevel > 0 && Math.random() < 0.001) {
-            console.log(`[Player] 🏹 Piercing active: level ${this.piercingLevel}, max pierces: ${this.piercingMaxPierces}`);
-        }
-        
-        // Shield status debug
-        if (this.shieldActive && Math.random() < 0.001) {
-            console.log(`[Player] 🛡️ Shield: level ${this.shieldLevel}, hits ${this.shieldHits}, broken: ${this.shieldBroken}, regen: ${this.shieldRegenTimer}/${this.shieldRegenMs}ms`);
-        }
-    }
+    // Power-up updates are now handled by PowerUpSystem.update(), not Player
+    // This keeps Player as a thin composer according to PR7 architecture
 
     _assertRequired(obj, keys) {
         for (let i = 0; i < keys.length; i++) {
@@ -671,6 +680,26 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
+    /**
+     * Reset timers after pause/resume (PR7: Thin composer - only shooting timer)
+     * Shield timers are handled by PowerUpSystem according to PR7 architecture
+     * Called by GameScene on resume event
+     */
+    resetTimersAfterPause() {
+        const now = this.scene.time?.now || 0;
+        const stats = this._stats();
+        
+        // Reset attack timer to prevent burst shooting after pause
+        // Use a small delay to prevent immediate shooting
+        this._nextAttackAt = now + Math.min(stats.attackIntervalMs, 500);
+        
+        // Clear stats cache to force recalculation
+        this._statsCache = null;
+        this._statsCacheTime = null;
+        
+        DebugLogger.info('player', '[Player] Timers reset after pause - next attack at:', this._nextAttackAt);
+    }
+    
     // PR7: Žádné legacy metody - vše je data-driven
     // Žádné applyPowerUp, žádná hardcodovaná logika power-upů
     // PowerUpSystem převádí na modifikátory a volá setActiveModifiers

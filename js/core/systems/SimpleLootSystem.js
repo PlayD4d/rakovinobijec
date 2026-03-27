@@ -5,6 +5,8 @@
  * Nahrazuje: LootSystem, LootBootstrap, LootDropManager, LootSystemIntegration
  */
 
+import { DebugLogger } from '../debug/DebugLogger.js';
+
 export class SimpleLootSystem {
     constructor(scene) {
         // PR7: PowerUpSystem integration for magnet effects
@@ -42,7 +44,7 @@ export class SimpleLootSystem {
         // Get blueprint - use get() method instead of getBlueprint()
         const blueprint = this.blueprintLoader?.get(dropId);
         if (!blueprint) {
-            console.warn(`[SimpleLootSystem] Blueprint not found: ${dropId}`);
+            DebugLogger.warn('loot', `Blueprint not found: ${dropId}`);
             return null;
         }
         
@@ -90,7 +92,7 @@ export class SimpleLootSystem {
             
             // DEBUG: Verify physics body exists
             if (Math.random() < 0.01) {
-                console.log(`[SimpleLootSystem] ✅ Created ${dropType} drop with physics body:`, {
+                DebugLogger.verbose('loot', ` ✅ Created ${dropType} drop with physics body:`, {
                     hasBody: !!drop.body,
                     bodyEnabled: drop.body?.enabled,
                     position: `(${Math.round(drop.x)}, ${Math.round(drop.y)})`,
@@ -98,7 +100,7 @@ export class SimpleLootSystem {
                 });
             }
         } else {
-            console.error(`[SimpleLootSystem] ❌ Drop created without physics body!`, dropId);
+            DebugLogger.error('loot', `❌ Drop created without physics body!`, dropId);
         }
         
         // Visual effects
@@ -106,14 +108,15 @@ export class SimpleLootSystem {
             this.scene.vfxSystem.play(blueprint.vfx.spawn, x, y);
         }
         
-        // Add gentle floating animation (don't interfere with magnet physics)
-        if (this.scene && this.scene.tweens) {
+        // Gentle scale pulse (no position tweens — those conflict with physics body)
+        if (this.scene?.tweens) {
             this.scene.tweens.add({
                 targets: drop,
-                y: y - 5, // Smaller float distance to avoid physics conflicts
-                duration: 2000, // Slower animation
+                scaleX: 1.15,
+                scaleY: 1.15,
+                duration: 600,
                 yoyo: true,
-                repeat: -1,
+                repeat: 2,
                 ease: 'Sine.easeInOut'
             });
         }
@@ -125,18 +128,31 @@ export class SimpleLootSystem {
      * Handle enemy death - create drops from blueprint
      */
     handleEnemyDeath(enemy) {
+        DebugLogger.debug('loot', '🎯 handleEnemyDeath called for:', enemy.blueprintId || enemy.type);
+        DebugLogger.verbose('loot', '   Blueprint exists:', !!enemy.blueprint);
+        DebugLogger.verbose('loot', '   Blueprint ID:', enemy.blueprint?.id);
+        DebugLogger.verbose('loot', '   Has drops array:', !!enemy.blueprint?.drops);
+        DebugLogger.verbose('loot', '   Drops array length:', enemy.blueprint?.drops?.length);
+        DebugLogger.verbose('loot', '   Drops content:', enemy.blueprint?.drops);
+        
         // PR7: Drops pouze z blueprintů - žádné loot tables
-        if (!enemy._blueprint?.drops) {
+        if (!enemy.blueprint?.drops || enemy.blueprint.drops.length === 0) {
+            DebugLogger.debug('loot', '❌ No drops defined for enemy:', enemy.blueprint?.id || enemy.blueprintId);
             // No drops defined - this is fine for enemies that only drop XP
             return;
         }
         
         // Zpracovat drops z blueprintu
-        for (const drop of enemy._blueprint.drops) {
+        DebugLogger.debug('loot', `✅ Processing ${enemy.blueprint.drops.length} drops`);
+        for (const drop of enemy.blueprint.drops) {
             const roll = Math.random();
+            DebugLogger.verbose('loot', `🎲 Drop roll for ${drop.itemId}: chance=${drop.chance}, roll=${roll.toFixed(3)}, will drop=${roll < drop.chance}`);
+            
             if (roll < drop.chance) {
                 // Use itemId as-is - blueprints already use correct format
-                this.createDrop(enemy.x, enemy.y, drop.itemId);
+                DebugLogger.debug('loot', '💎 Creating drop:', drop.itemId);
+                const dropObject = this.createDrop(enemy.x, enemy.y, drop.itemId);
+                DebugLogger.debug('loot', '💎 Drop created:', !!dropObject);
             }
         }
     }
@@ -205,53 +221,36 @@ export class SimpleLootSystem {
         const magnetRadius = baseRadius * Math.pow(1.25, magnetLevel);
         
         // Apply magnet effect to XP orbs
-        this.lootGroup.getChildren().forEach(loot => {
-            if (!loot.active || loot.dropType !== 'xp') return;
+        const children = this.lootGroup?.getChildren();
+        if (children && Array.isArray(children)) {
+            children.forEach(loot => {
+                if (!loot?.active || loot.dropType !== 'xp') return;
             
             // Verify physics body exists
             if (!loot.body) {
                 if (Math.random() < 0.01) {
-                    console.error(`[SimpleLootSystem] ❌ XP orb missing physics body:`, loot.dropId);
+                    DebugLogger.error('loot', `❌ XP orb missing physics body:`, loot.dropId);
                 }
                 return;
             }
             
             const dx = player.x - loot.x;
             const dy = player.y - loot.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < magnetRadius && distance > 0) {
-                // Calculate attraction force (stronger when closer)
+            const distSq = dx * dx + dy * dy;
+            const radiusSq = magnetRadius * magnetRadius;
+
+            if (distSq < radiusSq && distSq > 1) {
+                // Only compute sqrt when inside range (most orbs are outside)
+                const distance = Math.sqrt(distSq);
                 const normalizedDistance = distance / magnetRadius;
                 const force = 0.3 + (0.7 * (1 - normalizedDistance));
-                
-                // Apply velocity directly (isolinear movement)
-                const speed = 300 * force; // Increased speed for better responsiveness
-                const vx = (dx / distance) * speed;
-                const vy = (dy / distance) * speed;
-                
-                // Set velocity directly to physics body
-                loot.body.setVelocity(vx, vy);
-                
-                // DEBUG: Enhanced logging for physics debugging
-                if (Math.random() < 0.005) { // Slightly more frequent logging
-                    console.log(`[SimpleLootSystem] 🧲 XP Attraction (Enhanced):`, {
-                        magnetLevel,
-                        magnetRadius: Math.round(magnetRadius),
-                        distance: Math.round(distance),
-                        force: force.toFixed(2),
-                        velocity: `(${Math.round(vx)}, ${Math.round(vy)})`,
-                        orbPos: `(${Math.round(loot.x)}, ${Math.round(loot.y)})`,
-                        playerPos: `(${Math.round(player.x)}, ${Math.round(player.y)})`,
-                        bodyEnabled: loot.body.enabled,
-                        currentVelocity: `(${Math.round(loot.body.velocity.x)}, ${Math.round(loot.body.velocity.y)})`
-                    });
-                }
-            } else if (distance >= magnetRadius) {
-                // Stop movement if outside magnet range
+                const speed = 300 * force;
+                loot.body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
+            } else if (distSq >= radiusSq) {
                 loot.body.setVelocity(0, 0);
             }
         });
+        }
     }
     
     /**
@@ -330,8 +329,8 @@ export class SimpleLootSystem {
      * Clean up old position records
      */
     cleanupOldPositions() {
-        const now = Date.now();
-        this.recentDrops = this.recentDrops.filter(drop => 
+        const now = this.scene?.time?.now || Date.now();
+        this.recentDrops = this.recentDrops.filter(drop =>
             now - drop.time < this.dropCleanupTime
         );
     }
@@ -356,7 +355,7 @@ export class SimpleLootSystem {
         const graphicsFactory = this.scene.graphicsFactory;
         
         if (!graphicsFactory) {
-            console.warn('[SimpleLootSystem] GraphicsFactory not available, skipping texture generation');
+            DebugLogger.warn('loot', 'GraphicsFactory not available, skipping texture generation');
             return;
         }
         
@@ -461,7 +460,7 @@ export class SimpleLootSystem {
             graphicsFactory.release(graphics);
         }
         
-        console.log('[SimpleLootSystem] Item textures generated');
+        DebugLogger.info('loot', 'Item textures generated');
     }
     
     /**
@@ -511,19 +510,24 @@ export class SimpleLootSystem {
     shutdown() {
         // Stop all tweens on loot objects
         if (this.scene && this.scene.tweens && this.lootGroup) {
-            this.lootGroup.getChildren().forEach(loot => {
-                if (loot) {
-                    this.scene.tweens.killTweensOf(loot);
-                }
-            });
+            const children = this.lootGroup.getChildren();
+            if (children && Array.isArray(children)) {
+                children.forEach(loot => {
+                    if (loot && this.scene && this.scene.tweens) {
+                        this.scene.tweens.killTweensOf(loot);
+                    }
+                });
+            }
         }
         
         // Clear the group
-        if (this.lootGroup) {
+        if (this.lootGroup && this.lootGroup.clear) {
             this.lootGroup.clear(true, true);
         }
         
         // Clear recent drops
-        this.recentDrops = [];
+        if (this.recentDrops) {
+            this.recentDrops = [];
+        }
     }
 }

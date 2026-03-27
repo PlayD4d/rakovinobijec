@@ -134,8 +134,8 @@ export class SpawnDirectorIntegration {
         );
         
         // Show boss health bar
-        if (this.scene.unifiedHUD?.showBossHealth) {
-            this.scene.unifiedHUD.showBossHealth(boss.bossName, boss.hp, boss.maxHp);
+        if (this.scene.unifiedHUD?.showBoss) {
+            this.scene.unifiedHUD.showBoss(boss.bossName, boss.hp, boss.maxHp);
         }
         
         // Analytics

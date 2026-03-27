@@ -2,14 +2,14 @@
   id: 'powerup.damage_boost',
   type: 'powerup',
   stats: {
-    maxLevel: 10,
+    maxLevel: 5,
   },
   mechanics: {
     modifiersPerLevel: [
       {
         path: 'projectileDamage',
         type: 'add',
-        value: 5,
+        value: 3,
         description: 'Increases projectile damage',
       },
     ],

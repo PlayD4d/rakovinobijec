@@ -1,3 +1,5 @@
+import { DebugLogger } from '../core/debug/DebugLogger.js';
+
 /**
  * UpdateManager - Centralized update orchestration for GameScene
  * PR7 compliant - deterministic update phases with priority ordering
@@ -7,6 +9,7 @@ export class UpdateManager {
     constructor(scene) {
         this.scene = scene;
         this.phases = new Map();
+        this._sortedPhasesCache = null; // Cached sorted phase list
         this.enabled = true;
         
         // Performance metrics for DEV mode
@@ -64,17 +67,25 @@ export class UpdateManager {
             }
         }, 'game_timer');
         
-        // Player safety check
+        // Player update and safety check
         this.addTask('player', (time, delta) => {
-            if (scene.player && scene.player.hp > 0 && !scene.player.active) {
-                console.warn('[GameScene] Player was inactive but has HP - reactivating!');
-                scene.player.setActive(true);
-                scene.player.setVisible(true);
-                if (scene.player.body) {
-                    scene.player.body.enable = true;
+            if (scene.player) {
+                // Safety check
+                if (scene.player.hp > 0 && !scene.player.active) {
+                    DebugLogger.warn('general', '[GameScene] Player was inactive but has HP - reactivating!');
+                    scene.player.setActive(true);
+                    scene.player.setVisible(true);
+                    if (scene.player.body) {
+                        scene.player.body.enable = true;
+                    }
+                }
+                
+                // Call player update
+                if (scene.player.active && scene.player.update) {
+                    scene.player.update(time, delta);
                 }
             }
-        }, 'player_safety');
+        }, 'player_update');
         
         // Enemy updates
         this.addTask('enemies', (time, delta) => {
@@ -140,13 +151,19 @@ export class UpdateManager {
             }
         }, 'powerup_system');
         
-        // HUD updates
+        // HUD updates — only setText when values actually change
+        let _lastHudLevel = -1;
+        let _lastHudStage = -1;
         this.addTask('hud', (time, delta) => {
             if (scene.unifiedHUD) {
                 scene.unifiedHUD.update();
-                
-                if (scene.unifiedHUD.levelText) {
-                    scene.unifiedHUD.levelText.setText(`Level: ${scene.gameStats.level} | Stage: ${scene.currentLevel}`);
+
+                const lvl = scene.gameStats.level;
+                const stg = scene.currentLevel;
+                if (scene.unifiedHUD.levelText && (lvl !== _lastHudLevel || stg !== _lastHudStage)) {
+                    _lastHudLevel = lvl;
+                    _lastHudStage = stg;
+                    scene.unifiedHUD.levelText.setText(`Level: ${lvl} | Stage: ${stg}`);
                 }
             }
         }, 'hud_update');
@@ -164,7 +181,7 @@ export class UpdateManager {
      */
     registerPhase(name, priority) {
         if (this.phases.has(name)) {
-            console.warn(`[UpdateManager] Phase '${name}' already registered`);
+            DebugLogger.warn('general', `[UpdateManager] Phase '${name}' already registered`);
             return;
         }
         
@@ -174,6 +191,7 @@ export class UpdateManager {
             tasks: [],
             enabled: true
         });
+        this._sortedPhasesCache = null;
     }
     
     /**
@@ -182,7 +200,7 @@ export class UpdateManager {
     addTask(phaseName, fn, taskName = '') {
         const phase = this.phases.get(phaseName);
         if (!phase) {
-            console.error(`[UpdateManager] Phase '${phaseName}' not found`);
+            DebugLogger.error('general', `[UpdateManager] Phase '${phaseName}' not found`);
             return;
         }
         
@@ -196,13 +214,20 @@ export class UpdateManager {
     /**
      * Main update method - orchestrates all phases
      */
-    update(time, delta) {
-        if (!this.enabled) return;
-        
-        // Sort phases by priority
-        const sortedPhases = Array.from(this.phases.values())
+    _rebuildSortedPhases() {
+        this._sortedPhasesCache = Array.from(this.phases.values())
             .filter(phase => phase.enabled)
             .sort((a, b) => a.priority - b.priority);
+    }
+
+    update(time, delta) {
+        if (!this.enabled) return;
+
+        // Use cached sorted phases (rebuilt only when phases change)
+        if (!this._sortedPhasesCache) {
+            this._rebuildSortedPhases();
+        }
+        const sortedPhases = this._sortedPhasesCache;
         
         // Execute each phase
         for (const phase of sortedPhases) {
@@ -216,7 +241,7 @@ export class UpdateManager {
                     try {
                         task.fn(time, delta);
                     } catch (error) {
-                        console.error(`[UpdateManager] Error in ${phase.name}/${task.name}:`, error);
+                        DebugLogger.error('general', `[UpdateManager] Error in ${phase.name}/${task.name}:`, error);
                     }
                 }
             }
@@ -254,7 +279,7 @@ export class UpdateManager {
         
         // Log outliers (> 3ms)
         if (duration > 3) {
-            console.warn(`[UpdateManager] Phase '${phaseName}' took ${duration.toFixed(2)}ms`);
+            DebugLogger.warn('general', `[UpdateManager] Phase '${phaseName}' took ${duration.toFixed(2)}ms`);
         }
     }
     
@@ -267,7 +292,7 @@ export class UpdateManager {
         // Report every second
         if (time - this.metrics.lastReport < 1000) return;
         
-        console.log('[UpdateManager] Performance Report:');
+        DebugLogger.info('general', '[UpdateManager] Performance Report:');
         
         // Sort by average time descending
         const sorted = Array.from(this.metrics.phaseTimings.entries())
@@ -276,7 +301,7 @@ export class UpdateManager {
         
         for (const [phase, timing] of sorted) {
             if (timing.avg > 0.1) { // Only show phases taking > 0.1ms avg
-                console.log(`  ${phase}: avg=${timing.avg.toFixed(2)}ms, max=${timing.max.toFixed(2)}ms`);
+                DebugLogger.info('general', `  ${phase}: avg=${timing.avg.toFixed(2)}ms, max=${timing.max.toFixed(2)}ms`);
             }
         }
         
@@ -293,6 +318,7 @@ export class UpdateManager {
         const phase = this.phases.get(phaseName);
         if (phase) {
             phase.enabled = enabled;
+            this._sortedPhasesCache = null;
         }
     }
     

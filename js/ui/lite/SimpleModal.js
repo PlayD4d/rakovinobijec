@@ -45,15 +45,15 @@ export class SimpleModal extends Phaser.GameObjects.Container {
     // Add to container
     this.add([this.overlay, this.panel]);
     
-    // List of added children for cleanup
-    this.children = [];
+    // List of added children for cleanup (avoid shadowing Phaser Container.children)
+    this._childObjects = [];
     
     // Set depth and scroll factor
     this.setDepth(this.config.depth);
     this.setScrollFactor(0); // Pin to camera
     
-    // Initially hidden
-    this.visible = false;
+    // Initially hidden — use setVisible for proper Phaser visibility
+    this.setVisible(false);
   }
   
   /**
@@ -61,7 +61,7 @@ export class SimpleModal extends Phaser.GameObjects.Container {
    */
   addChild(gameObject) {
     this.add(gameObject);
-    this.children.push(gameObject);
+    this._childObjects.push(gameObject);
     return gameObject;
   }
   
@@ -70,18 +70,15 @@ export class SimpleModal extends Phaser.GameObjects.Container {
    * Pause-safe: skips animation if time.paused
    */
   show(animated = true, duration = 250) {
-    // Check if time is paused
     const paused = this.scene?.time?.paused === true;
-    
-    this.visible = true;
-    
-    // If paused or no animation requested, show immediately
+
+    this.setVisible(true);
+
     if (paused || !animated || !this.scene?.tweens) {
       this.alpha = 1;
       return Promise.resolve();
     }
-    
-    // Animate in
+
     this.alpha = 0;
     return new Promise((resolve) => {
       this.scene.tweens.add({
@@ -99,18 +96,21 @@ export class SimpleModal extends Phaser.GameObjects.Container {
    * Pause-safe: skips animation if time.paused
    */
   hide(animated = true, duration = 200, onComplete) {
-    // Check if time is paused
+    // Guard against double-hide
+    if (!this.visible) {
+      if (onComplete) onComplete();
+      return Promise.resolve();
+    }
+
     const paused = this.scene?.time?.paused === true;
-    
-    // If paused or no animation requested, hide immediately
+
     if (paused || !animated || !this.scene?.tweens) {
-      this.visible = false;
+      this.setVisible(false);
       this.alpha = 0;
       if (onComplete) onComplete();
       return Promise.resolve();
     }
-    
-    // Animate out
+
     return new Promise((resolve) => {
       this.scene.tweens.add({
         targets: this,
@@ -118,7 +118,7 @@ export class SimpleModal extends Phaser.GameObjects.Container {
         duration: duration,
         ease: 'Power2',
         onComplete: () => {
-          this.visible = false;
+          this.setVisible(false);
           if (onComplete) onComplete();
           resolve();
         }
@@ -130,15 +130,16 @@ export class SimpleModal extends Phaser.GameObjects.Container {
    * Clean destroy
    */
   destroy(fromScene) {
-    // Destroy all children
+    // Destroy tracked child objects
     try {
-      this.children.forEach(child => {
+      this._childObjects.forEach(child => {
         if (child && typeof child.destroy === 'function') {
           child.destroy();
         }
       });
+      this._childObjects = [];
     } catch (e) {
-      console.warn('[SimpleModal] Error destroying children:', e);
+      // Silently continue cleanup
     }
     
     // Destroy overlay and panel

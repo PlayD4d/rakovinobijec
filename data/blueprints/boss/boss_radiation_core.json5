@@ -2,12 +2,12 @@
   id: 'boss.radiation_core',
   type: 'boss',
   stats: {
-    hp: 750,
+    hp: 400,
     damage: 10,
     speed: 30,
     size: 60,
-    armor: 5,
-    xp: 300,
+    armor: 3,
+    xp: 350,
   },
   visuals: {
     textureKey: 'boss.radiation_core',

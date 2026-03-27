@@ -1,3 +1,5 @@
+import { DebugLogger } from '../../core/debug/DebugLogger.js';
+
 /**
  * EnemyCore.js - Core enemy functionality with Phaser integration
  * 
@@ -132,32 +134,56 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
     inRangeOfPlayer(range) {
         const player = this.scene.player;
         if (!player || !player.active) return false;
-        
-        const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
-        return dist <= range;
+
+        const dx = this.x - player.x;
+        const dy = this.y - player.y;
+        return (dx * dx + dy * dy) <= range * range;
     }
     
     /**
-     * Shoot projectile
+     * Shoot projectile with normalized velocity
      * @param {string} patternId - Projectile pattern ID
      * @param {Object} opts - Additional options
      */
     shoot(patternId, opts = {}) {
         if (!this.scene.projectileSystem) return;
         
-        // Check cooldown
-        const now = Date.now();
+        const player = this.scene.player;
+        if (!player || !this.active) return;
+        
+        // Check cooldown (use scene time — respects pause)
+        const now = this.scene.time?.now || Date.now();
         const cooldown = opts.cooldown || 500;
         if (now - this.lastShootTime < cooldown) return;
-        
+
         this.lastShootTime = now;
         
-        // Create projectile
+        // Calculate normalized direction to player
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const len = Math.hypot(dx, dy) || 1; // Zero-distance guard
+        const dirX = dx / len;
+        const dirY = dy / len;
+        
+        // Get speed from blueprint/pattern/opts
+        const speed = opts.speed ?? 
+                      this.blueprint?.combat?.bulletSpeed ?? 
+                      220;
+        
+        // Get damage from blueprint with proper fallback
+        const damage = opts.damage ?? 
+                      this.damage ?? 
+                      this.blueprint?.stats?.damage ?? 
+                      this.blueprint?.combat?.bulletDamage ?? 
+                      8; // Fallback damage value
+        
+        // Create projectile with normalized velocity
         this.scene.projectileSystem.createEnemyProjectile({
             x: this.x,
             y: this.y,
+            velocity: { x: dirX * speed, y: dirY * speed }, // Normalized!
             pattern: patternId,
-            damage: this.damage,
+            damage: damage,
             owner: this,
             ...opts
         });
@@ -306,15 +332,19 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         const originalTint = this.tintTopLeft;
         this.setTint(0xffffff);
         
-        this.flashTween = this.scene.tweens.add({
-            targets: this,
-            tint: originalTint,
-            duration: 100,
-            yoyo: true,
-            onComplete: () => {
-                this.flashTween = null;
-            }
-        });
+        // GUARD COMPLIANCE: Delegace na VFXSystem místo přímého tweens volání
+        if (this.scene.vfxSystem && this.scene.vfxSystem.animateFlash) {
+            this.flashTween = this.scene.vfxSystem.animateFlash(this, {
+                originalTint,
+                duration: 100,
+                onComplete: () => {
+                    this.flashTween = null;
+                }
+            });
+        } else {
+            // Fallback - simple tint change without animation
+            this.setTint(originalTint);
+        }
     }
     
     /**
@@ -341,8 +371,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
             this.disposables.disposeAll();
         }
         
-        // Destroy sprite
-        this.destroy();
+        // NOTE: Do NOT call destroy() here - causes infinite recursion!
     }
     
     destroy() {

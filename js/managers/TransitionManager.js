@@ -1,3 +1,5 @@
+import { DebugLogger } from '../core/debug/DebugLogger.js';
+
 /**
  * TransitionManager - Handles all game flow transitions
  * PR7 compliant - centralized victory/defeat/level transitions
@@ -68,7 +70,7 @@ export class TransitionManager {
         }
         
         // Console log for debugging
-        console.log(`[TransitionManager] ${event}`, data);
+        DebugLogger.info('transition', `[TransitionManager] ${event}`, data);
         
         return record;
     }
@@ -87,7 +89,7 @@ export class TransitionManager {
     async showVictory() {
         // Re-entrancy guard
         if (this.isShowingVictory || this.isTransitioning) {
-            console.warn('[TransitionManager] Victory already in progress, ignoring');
+            DebugLogger.warn('transition', '[TransitionManager] Victory already in progress, ignoring');
             this._log('victory_blocked', { reason: 'already_in_progress' });
             return;
         }
@@ -102,7 +104,7 @@ export class TransitionManager {
         this.isTransitioning = true;
         
         try {
-            console.log('[TransitionManager] Showing victory screen');
+            DebugLogger.info('transition', '[TransitionManager] Showing victory screen');
             
             // 1. Pause game systems
             this.pauseGameSystems();
@@ -125,7 +127,7 @@ export class TransitionManager {
             // UI scene will emit 'ui:victory:continue' when ready
             
         } catch (error) {
-            console.error('[TransitionManager] Victory sequence failed:', error);
+            DebugLogger.error('transition', '[TransitionManager] Victory sequence failed:', error);
             this.resetTransitionState();
         }
     }
@@ -137,7 +139,7 @@ export class TransitionManager {
     async gameOver() {
         // Re-entrancy guard
         if (this.isShowingDefeat || this.isTransitioning) {
-            console.warn('[TransitionManager] Defeat already in progress, ignoring');
+            DebugLogger.warn('transition', '[TransitionManager] Defeat already in progress, ignoring');
             this._log('gameover_blocked', { reason: 'already_in_progress' });
             return;
         }
@@ -153,7 +155,7 @@ export class TransitionManager {
         this.isTransitioning = true;
         
         try {
-            console.log('[TransitionManager] Game Over sequence starting');
+            DebugLogger.info('transition', '[TransitionManager] Game Over sequence starting');
             
             // 1. Pause everything immediately
             this.pauseGameSystems();
@@ -213,7 +215,7 @@ export class TransitionManager {
             // 7. UI scene will emit 'ui:defeat:restart' or 'ui:defeat:menu'
             
         } catch (error) {
-            console.error('[TransitionManager] Game over sequence failed:', error);
+            DebugLogger.error('transition', '[TransitionManager] Game over sequence failed:', error);
             this.resetTransitionState();
         }
     }
@@ -225,7 +227,7 @@ export class TransitionManager {
     async transitionToNextLevel(nextLevel) {
         // Re-entrancy guard
         if (this.isTransitioning) {
-            console.warn('[TransitionManager] Transition already in progress, ignoring');
+            DebugLogger.warn('transition', '[TransitionManager] Transition already in progress, ignoring');
             this._log('level_transition_blocked', { reason: 'already_in_progress' });
             return;
         }
@@ -240,7 +242,7 @@ export class TransitionManager {
         this.currentTransition = nextLevel;
         
         try {
-            console.log(`[TransitionManager] Transitioning to level ${nextLevel}`);
+            DebugLogger.info('transition', `[TransitionManager] Transitioning to level ${nextLevel}`);
             
             // 1. Pause game but keep time running for animations
             this.scene.isPaused = true;
@@ -278,7 +280,7 @@ export class TransitionManager {
             });
             
         } catch (error) {
-            console.error('[TransitionManager] Level transition failed:', error);
+            DebugLogger.error('transition', '[TransitionManager] Level transition failed:', error);
             this.resetTransitionState();
             // Try to recover by resetting current level
             this.resetLevel();
@@ -292,23 +294,24 @@ export class TransitionManager {
     async resetLevel() {
         // Re-entrancy guard
         if (this.isResetting || this.isTransitioning) {
-            console.warn('[TransitionManager] Reset already in progress, ignoring');
+            DebugLogger.warn('transition', '[TransitionManager] Reset already in progress, ignoring');
             return;
         }
         
         this.isResetting = true;
         
         try {
-            console.log('[TransitionManager] Resetting current level');
+            DebugLogger.info('transition', '[TransitionManager] Resetting current level');
             
             // 1. Clean up everything
             await this.cleanupLevel();
             
-            // 2. Reset player state
+            // 2. Reset player state  
             if (this.scene.player) {
-                this.scene.player.reset();
-                this.scene.player.x = this.scene.scale.width / 2;
-                this.scene.player.y = this.scene.scale.height / 2;
+                this.scene.player.resetTimersAfterPause();
+                const scale = this.scene.getScaleManager();
+                this.scene.player.x = scale.width / 2;
+                this.scene.player.y = scale.height / 2;
             }
             
             // 3. Reset game stats
@@ -323,10 +326,10 @@ export class TransitionManager {
             this.isResetting = false;
             
         } catch (error) {
-            console.error('[TransitionManager] Reset failed:', error);
+            DebugLogger.error('transition', '[TransitionManager] Reset failed:', error);
             this.isResetting = false;
             // Last resort - restart scene
-            this.scene.scene.restart();
+            this.scene.restartScene();
         }
     }
     
@@ -370,8 +373,8 @@ export class TransitionManager {
         // Final celebration burst
         if (this.scene.vfxSystem) {
             this.scene.vfxSystem.play('vfx.level.complete', 
-                this.scene.scale.width / 2,
-                this.scene.scale.height / 2
+                this.scene.getScaleManager().width / 2,
+                this.scene.getScaleManager().height / 2
             );
         }
         
@@ -384,15 +387,11 @@ export class TransitionManager {
     pauseGameSystems() {
         this.scene.isPaused = true;
         
-        // Pause physics
-        if (this.scene.physics?.world) {
-            this.scene.physics.world.pause();
-        }
+        // Pause physics using interface method
+        this.scene.pausePhysics();
         
-        // Pause time (for delayed calls)
-        if (this.scene.time) {
-            this.scene.time.paused = true;
-        }
+        // Pause time using interface method
+        this.scene.pauseTime();
         
         // Disable spawn director
         if (this.scene.spawnDirector) {
@@ -413,15 +412,11 @@ export class TransitionManager {
     resumeGameSystems() {
         this.scene.isPaused = false;
         
-        // Resume physics
-        if (this.scene.physics?.world) {
-            this.scene.physics.world.resume();
-        }
+        // Resume physics using interface method
+        this.scene.resumePhysics();
         
-        // Resume time
-        if (this.scene.time) {
-            this.scene.time.paused = false;
-        }
+        // Resume time using interface method
+        this.scene.resumeTime();
         
         // Enable spawn director
         if (this.scene.spawnDirector) {
@@ -440,7 +435,7 @@ export class TransitionManager {
      * Clean up current level
      */
     async cleanupLevel() {
-        console.log('[TransitionManager] Cleaning up level');
+        DebugLogger.info('transition', '[TransitionManager] Cleaning up level');
         
         // Execute cleanup in deterministic order
         for (const step of this.cleanupOrder) {
@@ -454,14 +449,12 @@ export class TransitionManager {
     async executeCleanupStep(step) {
         switch(step) {
             case 'pausePhysics':
-                if (this.scene.physics?.world) {
-                    this.scene.physics.world.pause();
-                }
+                this.scene.pausePhysics();
                 break;
                 
             case 'stopSpawns':
                 if (this.scene.spawnDirector) {
-                    this.scene.spawnDirector.reset();
+                    this.scene.spawnDirector.stop();
                 }
                 break;
                 
@@ -493,9 +486,7 @@ export class TransitionManager {
                 break;
                 
             case 'unpauseTime':
-                if (this.scene.time) {
-                    this.scene.time.paused = false;
-                }
+                this.scene.resumeTime();
                 break;
         }
         
@@ -507,7 +498,7 @@ export class TransitionManager {
      * Initialize a level
      */
     async initializeLevel(level) {
-        console.log(`[TransitionManager] Initializing level ${level}`);
+        DebugLogger.info('transition', `[TransitionManager] Initializing level ${level}`);
         
         // Reset spawn director for new level
         if (this.scene.spawnDirector) {
@@ -528,21 +519,13 @@ export class TransitionManager {
      * Show UI modal and wait for response
      */
     async showUIModal(eventName, data) {
+        // Emit to game-level events so GameUIScene can receive it
+        this.scene.game.events.emit(eventName, data);
+        DebugLogger.info('transition', `[TransitionManager] Emitted ${eventName}`);
+
+        // Brief delay for visual transition effect
         return new Promise((resolve) => {
-            // Set up one-time listener for response
-            const responseEvent = eventName.replace(':show', ':response');
-            this.scene.events.once(responseEvent, (response) => {
-                resolve(response);
-            });
-            
-            // Emit event to UI scene
-            this.scene.events.emit(eventName, data);
-            
-            // Timeout after 30 seconds
-            setTimeout(() => {
-                console.warn(`[TransitionManager] Modal timeout for ${eventName}`);
-                resolve(null);
-            }, 30000);
+            this.scene.time.delayedCall(1500, () => resolve(null));
         });
     }
     
@@ -592,7 +575,7 @@ export class TransitionManager {
         }
         
         // Log for debugging
-        console.log(`[Analytics] ${event}:`, data);
+        DebugLogger.info('transition', `[Analytics] ${event}:`, data);
     }
     
     /**

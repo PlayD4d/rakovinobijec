@@ -2,12 +2,12 @@
   id: 'boss.onkogen_prime',
   type: 'boss',
   stats: {
-    hp: 1200,
+    hp: 700,
     damage: 25,
     speed: 45,
     size: 35,
-    armor: 8,
-    xp: 250,
+    armor: 6,
+    xp: 450,
   },
   visuals: {
     textureKey: 'boss.onkogen_prime',

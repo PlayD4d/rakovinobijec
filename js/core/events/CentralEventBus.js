@@ -4,6 +4,7 @@
  */
 
 import { UI_EVENTS } from '../../ui/UIEventContract.js';
+import { DebugLogger } from '../debug/DebugLogger.js';
 
 export class CentralEventBus {
     constructor() {
@@ -24,7 +25,7 @@ export class CentralEventBus {
             ENEMY: 'enemy'
         };
         
-        console.log('[CentralEventBus] Initialized with namespaces:', this.namespaces);
+        DebugLogger.info('events', '[CentralEventBus] Initialized with namespaces:', this.namespaces);
     }
     
     /**
@@ -35,7 +36,7 @@ export class CentralEventBus {
         
         // Validate event format
         if (!this.isValidEventName(eventName)) {
-            console.warn(`[CentralEventBus] Invalid event name: ${eventName}`);
+            DebugLogger.warn('events', `[CentralEventBus] Invalid event name: ${eventName}`);
             return;
         }
         
@@ -59,7 +60,7 @@ export class CentralEventBus {
             });
         }
         
-        console.debug(`[CentralEventBus] Emitted: ${eventName}`, data);
+        DebugLogger.debug('events', `[CentralEventBus] Emitted: ${eventName}`, data);
     }
     
     /**
@@ -74,22 +75,23 @@ export class CentralEventBus {
                     callback(event.data, event);
                 }
             } catch (error) {
-                console.error(`[CentralEventBus] Error in event handler for ${eventName}:`, error);
+                DebugLogger.error('events', `[CentralEventBus] Error in event handler for ${eventName}:`, error);
             }
         };
-        
+
         this.eventEmitter.on(eventName, wrappedCallback);
-        
-        // Track listeners for cleanup
+
+        // Track listeners for cleanup — store both original and wrapped callback
         if (!this.listeners.has(context)) {
             this.listeners.set(context, []);
         }
         this.listeners.get(context).push({
             eventName: eventName,
-            callback: wrappedCallback
+            callback: wrappedCallback,
+            originalCallback: callback
         });
-        
-        console.debug(`[CentralEventBus] Registered listener for: ${eventName}`);
+
+        DebugLogger.debug('events', `[CentralEventBus] Registered listener for: ${eventName}`);
     }
     
     /**
@@ -104,32 +106,33 @@ export class CentralEventBus {
                     callback(event.data, event);
                 }
             } catch (error) {
-                console.error(`[CentralEventBus] Error in once handler for ${eventName}:`, error);
+                DebugLogger.error('events', `[CentralEventBus] Error in once handler for ${eventName}:`, error);
             }
         };
         
         this.eventEmitter.once(eventName, wrappedCallback);
-        console.debug(`[CentralEventBus] Registered once listener for: ${eventName}`);
+        DebugLogger.debug('events', `[CentralEventBus] Registered once listener for: ${eventName}`);
     }
     
     /**
      * Remove listener
      */
     off(eventName, callback, context = null) {
-        this.eventEmitter.off(eventName, callback);
-        
-        // Remove from tracking
+        // Find the wrapped callback that corresponds to the original
+        let wrappedCallback = callback;
         if (this.listeners.has(context)) {
             const contextListeners = this.listeners.get(context);
-            const index = contextListeners.findIndex(l => 
-                l.eventName === eventName && l.callback === callback
+            const index = contextListeners.findIndex(l =>
+                l.eventName === eventName && l.originalCallback === callback
             );
             if (index !== -1) {
+                wrappedCallback = contextListeners[index].callback;
                 contextListeners.splice(index, 1);
             }
         }
-        
-        console.debug(`[CentralEventBus] Removed listener for: ${eventName}`);
+
+        this.eventEmitter.off(eventName, wrappedCallback);
+        DebugLogger.debug('events', `[CentralEventBus] Removed listener for: ${eventName}`);
     }
     
     /**
@@ -144,7 +147,7 @@ export class CentralEventBus {
         });
         
         this.listeners.delete(context);
-        console.debug(`[CentralEventBus] Removed all listeners for context:`, context?.constructor?.name || 'unknown');
+        DebugLogger.debug('events', `[CentralEventBus] Removed all listeners for context:`, context?.constructor?.name || 'unknown');
     }
     
     /**
@@ -256,7 +259,7 @@ export class CentralEventBus {
         this.eventEmitter.removeAllListeners();
         this.listeners.clear();
         this.eventHistory = [];
-        console.log('[CentralEventBus] Destroyed');
+        DebugLogger.info('events', '[CentralEventBus] Destroyed');
     }
 }
 

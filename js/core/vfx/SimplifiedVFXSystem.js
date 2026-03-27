@@ -10,6 +10,7 @@ import { VFXPresets } from './VFXPresets.js';
 import { RadiotherapyEffect } from './effects/RadiotherapyEffect.js';
 import { FlamethrowerEffect } from './effects/FlamethrowerEffect.js';
 import { ShieldEffect } from './effects/ShieldEffect.js';
+import { DebugLogger } from '../debug/DebugLogger.js';
 
 export class SimplifiedVFXSystem {
     constructor(scene) {
@@ -25,7 +26,8 @@ export class SimplifiedVFXSystem {
         // Performance settings
         this.maxEmitters = 24;
         this.maxParticles = 1000;
-        
+        this._emitterCounter = 0;
+
         this.initialized = false;
     }
     
@@ -43,7 +45,7 @@ export class SimplifiedVFXSystem {
         this.scene.events.once('destroy', () => this.destroy());
         
         this.initialized = true;
-        console.log('[SimplifiedVFXSystem] Initialized');
+        DebugLogger.info('vfx', '[SimplifiedVFXSystem] Initialized');
     }
     
     /**
@@ -54,7 +56,19 @@ export class SimplifiedVFXSystem {
      * @param {object} options - Additional options
      */
     play(config, x, y, options = {}) {
-        if (!this.initialized || !this.scene || !this.scene.sys?.isActive()) return null;
+        // Enhanced debug for VFX troubleshooting
+        DebugLogger.verbose('vfx', '[VFX] play() called:', {
+            config: typeof config === 'string' ? config : Object.keys(config || {}),
+            position: { x, y },
+            initialized: this.initialized,
+            sceneActive: !!this.scene?.sys?.isActive(),
+            options
+        });
+        
+        if (!this.initialized || !this.scene || !this.scene.sys?.isActive()) {
+            DebugLogger.warn('vfx', '[VFX] Cannot play effect - system not ready');
+            return null;
+        }
         
         // Handle string references (presets or legacy IDs)
         if (typeof config === 'string') {
@@ -112,7 +126,7 @@ export class SimplifiedVFXSystem {
         }
         
         // Track active emitter
-        const emitterId = `emitter_${Date.now()}_${Math.random()}`;
+        const emitterId = `em_${this._emitterCounter++}`;
         this.activeEmitters.set(emitterId, emitter);
         
         // Auto-cleanup after lifespan
@@ -161,7 +175,7 @@ export class SimplifiedVFXSystem {
             // If effect has updateConfig method, update it instead of creating new one
             if (existingEffect && existingEffect.updateConfig) {
                 existingEffect.updateConfig(config);
-                console.log(`[VFX] Updated existing ${effectType} effect configuration`);
+                DebugLogger.debug('vfx', `[VFX] Updated existing ${effectType} effect configuration`);
                 return existingEffect;
             }
             
@@ -251,7 +265,7 @@ export class SimplifiedVFXSystem {
         keysToRemove.forEach(key => this.powerUpEffects.delete(key));
         
         if (removedCount > 0) {
-            console.debug(`[VFX] Cleaned up ${removedCount} effects for entity ${entityId}`);
+            DebugLogger.debug('vfx', `[VFX] Cleaned up ${removedCount} effects for entity ${entityId}`);
         }
         
         return removedCount;

@@ -98,7 +98,6 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
      */
     onScreenTypeChanged(newScreenType) {
         // Override v child třídách
-        console.log(`${this.constructor.name} screen type changed to: ${newScreenType}`);
     }
     
     /**
@@ -182,7 +181,6 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
      */
     onHideComplete() {
         // Override v child třídách
-        console.log('[BaseUIComponent] onHideComplete called for:', this.constructor.name);
     }
     
     /**

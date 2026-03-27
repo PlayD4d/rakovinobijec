@@ -1,6 +1,6 @@
 {
   id: 'player.main',
-  type: 'powerup',
+  type: 'player',
   visuals: {
     textureKey: 'player',
     tint: 2328063,
@@ -12,7 +12,7 @@
   stats: {
     hp: 100,
     maxHp: 100,
-    armor: 0,
+    armor: 2,
     speed: 135,
     size: 24,
     level: 1,
@@ -41,7 +41,7 @@
       damageReduction: 0,
     },
     regeneration: {
-      hpPerSecond: 0,
+      hpPerSecond: 1,
       interval: 1000,
     },
     iFrames: {

@@ -1,6 +1,7 @@
 {
   id: 'elite.tank_cell',
-  type: 'elite',
+  type: 'enemy',
+  meta: { category: 'elite' },
   baseEnemyId: 'enemy.necrotic_cell',
   multipliers: {
     hp: 5,

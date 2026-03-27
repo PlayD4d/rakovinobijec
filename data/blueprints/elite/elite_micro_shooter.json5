@@ -1,6 +1,7 @@
 {
   id: 'elite.micro_shooter',
-  type: 'elite',
+  type: 'enemy',
+  meta: { category: 'elite' },
   baseEnemyId: 'enemy.micro_shooter',
   multipliers: {
     hp: 2,

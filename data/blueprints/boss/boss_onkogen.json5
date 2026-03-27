@@ -2,13 +2,13 @@
   id: 'boss.onkogen',
   type: 'boss',
   stats: {
-    hp: 300,
-    maxHp: 300,
+    hp: 350,
+    maxHp: 350,
     speed: 0.8,
-    damage: 30,
+    damage: 25,
     xp: 380,
     size: 50,
-    armor: 10,
+    armor: 8,
   },
   visuals: {
     textureKey: 'boss.onkogen',
