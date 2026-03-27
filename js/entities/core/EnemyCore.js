@@ -359,11 +359,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * @param {number} dt - Delta time in seconds
      */
     update(dt) {
-        // Auto-shoot if enemy has canShoot ability (independent of AI state)
-        if (this.blueprint?.mechanics?.canShoot && this.active && this.scene?.player?.active) {
-            const cooldown = this.blueprint.mechanics.shootInterval || 3000;
-            this.shoot('straight', { cooldown, damage: this.blueprint.mechanics.projectileDamage || this.damage });
-        }
+        // Shooting is now handled by the combat layer in EnemyBehaviors
     }
     
     /**
