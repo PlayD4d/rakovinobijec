@@ -311,18 +311,20 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      */
     die(killer) {
         if (!this.active) return;
-        
+
+        // Deactivate immediately to prevent double-die and further collision
+        this.setActive(false);
+        this.setVisible(false);
+        if (this.body) this.body.enable = false;
+
         // Death VFX/SFX
         this.spawnVfx('death');
         this.playSfx('death');
-        
-        // Emit death event
-        if (this.scene.events) {
+
+        // Emit death event for any listeners
+        if (this.scene?.events) {
             this.scene.events.emit('enemyDeath', this, killer);
         }
-        
-        // Let GameScene handle actual cleanup
-        // Don't set active/visible false here
     }
     
     /**

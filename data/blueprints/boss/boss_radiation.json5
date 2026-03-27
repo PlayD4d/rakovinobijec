@@ -101,6 +101,7 @@
   },
   drops: [
     {
+      itemId: 'item.xp_large',
       chance: 1,
       quantity: 2,
     },

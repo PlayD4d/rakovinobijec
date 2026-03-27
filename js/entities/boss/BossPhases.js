@@ -94,8 +94,9 @@ export class BossPhases {
         this.boss.transitionToPhase(newPhase);
         this.currentPhase = newPhase;
         
-        // Post-transition effects
-        this.scene.time.delayedCall(500, () => {
+        // Post-transition effects (guarded against boss death during delay)
+        this.scene?.time?.delayedCall(500, () => {
+            if (!this.boss || !this.scene) return;
             this.executePostTransitionEffects(newPhase);
             this.isTransitioning = false;
         });

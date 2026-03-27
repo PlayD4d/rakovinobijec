@@ -52,6 +52,19 @@ export class BossAbilities {
         this.abilityHandlers.set('rapid_beams', this.executeRapidBeams.bind(this));
         this.abilityHandlers.set('massive_summon', this.executeMassiveSummon.bind(this));
         this.abilityHandlers.set('core_overload', this.executeCoreOverload.bind(this));
+
+        // Karcinogenní Král + Onkogen abilities (map to projectile burst variants)
+        this.abilityHandlers.set('shoot_fan', this.executeProjectileBurst.bind(this));
+        this.abilityHandlers.set('shoot_circle', this.executeProjectileBurst.bind(this));
+        this.abilityHandlers.set('tracking_burst', this.executeProjectileBurst.bind(this));
+
+        // Onkogen Prime abilities
+        this.abilityHandlers.set('shoot_fans', this.executeProjectileBurst.bind(this));
+        this.abilityHandlers.set('circle_burst', this.executeProjectileBurst.bind(this));
+        this.abilityHandlers.set('laser_sweep', this.executeBeamSweep.bind(this));
+        this.abilityHandlers.set('rapid_spawns', this.executeMassiveSummon.bind(this));
+        this.abilityHandlers.set('enrage_mode', this.executeRageMode.bind(this));
+        this.abilityHandlers.set('summon_minions', this.executeMinionSpawn.bind(this));
     }
     
     /**
@@ -103,7 +116,9 @@ export class BossAbilities {
         const handler = this.abilityHandlers.get(abilityId);
         
         if (!handler) {
-            DebugLogger.warn('boss', `[BossAbilities] No handler for ability: ${abilityId}`);
+            DebugLogger.warn('boss', `[BossAbilities] No handler for ability: ${abilityId} — applying default cooldown`);
+            // Set cooldown even for unknown abilities to prevent infinite retry
+            this.boss?.setAbilityCooldown?.(abilityId, 5000);
             return false;
         }
         

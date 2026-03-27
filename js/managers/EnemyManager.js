@@ -14,8 +14,8 @@ export class EnemyManager {
         
         // Create groups if not exists
         if (!scene.enemiesGroup) {
-            scene.enemiesGroup = scene.physics.add.group();
-            scene.enemies = scene.enemiesGroup; // Alias
+            scene.enemiesGroup = scene.physics.add.group({ runChildUpdate: false });
+            scene.enemies = scene.enemiesGroup;
         }
         if (!scene.bossGroup) {
             scene.bossGroup = scene.physics.add.group();
@@ -154,7 +154,15 @@ export class EnemyManager {
         }
         
         this.scene.enemiesGroup.add(enemy);
-        
+
+        // Re-apply physics config after group.add() — Phaser resets body on add
+        if (enemy.body) {
+            enemy.body.setCollideWorldBounds(false);
+            enemy.body.setAllowGravity(false);
+            const radius = Math.max(6, Math.floor(Math.min(enemy.displayWidth, enemy.displayHeight) * 0.45));
+            enemy.setCircle(radius);
+        }
+
         // Set depth
         enemy.setDepth(this.scene.DEPTH_LAYERS?.ENEMIES || 1000);
         

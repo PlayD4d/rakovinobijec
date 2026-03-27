@@ -517,10 +517,11 @@ export class GameScene extends Phaser.Scene {
     }
     
     handleEnemyDeath(enemy) {
-        if (!enemy || !enemy.active) return;
-        
-        // Mark as inactive first
-        enemy.active = false;
+        if (!enemy) return;
+        // Note: enemy.active may already be false (set by EnemyCore.die/Boss.die)
+        // Use a processed flag to prevent double-processing
+        if (enemy._deathProcessed) return;
+        enemy._deathProcessed = true;
         
         // Clean up ALL VFX effects immediately before any other cleanup
         if (enemy.cleanupAllVFX && typeof enemy.cleanupAllVFX === 'function') {

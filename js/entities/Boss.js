@@ -295,12 +295,7 @@ export class Boss extends BossCore {
     die(killer) {
         if (!this.active) return;
 
-        // Deactivate immediately to prevent further updates/damage
-        this.setActive(false);
-        this.setVisible(false);
-        if (this.body) this.body.enable = false;
-
-        // Death VFX/SFX
+        // Death VFX/SFX (while still visible)
         this.spawnVfx('death');
         this.playSfx('death');
 
@@ -313,15 +308,29 @@ export class Boss extends BossCore {
         this.scene.currentBoss = null;
         this.scene.bossActive = false;
 
-        // Process death through GameScene (XP, loot, stats)
+        // Process loot/XP BEFORE deactivating (handleEnemyDeath needs position)
         if (this.scene.handleEnemyDeath) {
             this.scene.handleEnemyDeath(this);
         }
 
-        // Emit boss-specific event for level transition
-        if (this.scene.events) {
+        // NOW deactivate — prevents further damage/updates
+        this.setActive(false);
+        this.setVisible(false);
+        if (this.body) this.body.enable = false;
+
+        // Clean up boss sub-systems
+        if (this.abilitiesSystem) {
+            try { this.abilitiesSystem.destroy(); } catch (_) {}
+            this.abilitiesSystem = null;
+        }
+        if (this.phases) {
+            try { this.phases.destroy(); } catch (_) {}
+            this.phases = null;
+        }
+
+        // Emit boss-specific event for level transition (after cleanup)
+        if (this.scene?.events) {
             this.scene.events.emit('boss:die', {
-                boss: this,
                 bossId: this.blueprint?.id,
                 killer: killer
             });
