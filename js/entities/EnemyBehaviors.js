@@ -172,6 +172,9 @@ export class EnemyBehaviors {
             if (userConfig.loseRange !== undefined) {
                 merged[state].loseRange = userConfig.loseRange;
             }
+            if (userConfig.canShoot !== undefined) {
+                merged[state].canShoot = userConfig.canShoot;
+            }
         }
         
         // Merge hysteresis
