@@ -497,6 +497,7 @@ export class PowerUpAbilities {
      * Cleanup
      */
     destroy() {
+        this._destroyAuraZone();
         this.activeAbilities.clear();
         this.scene = null;
         this.powerUpSystem = null;

@@ -58,9 +58,10 @@ export class FlamethrowerEffect {
         if (config.angle !== undefined) this.coneAngle = config.angle;
         if (config.color !== undefined) this.color = config.color;
         
-        // Update damage zone if active
-        if (this.active && this.damageZone) {
-            this._updateDamageZone();
+        // Resize physics zone to match new range
+        if (this.active && this._damageZone?.body) {
+            this._damageZone.setSize(this.baseLength * 2, this.baseLength * 2);
+            this._damageZone.body.setCircle(this.baseLength);
         }
         
         DebugLogger.info('vfx', `[FlamethrowerEffect] Config updated - Length: ${this.baseLength}, Angle: ${(this.coneAngle * 180/Math.PI).toFixed(1)}°, Damage: ${this.damage}`);

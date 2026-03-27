@@ -395,6 +395,21 @@ export class SimplifiedVFXSystem {
     }
     
     /**
+     * Stop all active effects without destroying the system (for level transitions)
+     */
+    stopAllEffects() {
+        for (const [id, emitter] of this.activeEmitters) {
+            emitter.stop();
+        }
+        this.activeEmitters.clear();
+
+        for (const effect of this.powerUpEffects.values()) {
+            if (effect.detach) effect.detach();
+        }
+        this.powerUpEffects.clear();
+    }
+
+    /**
      * Shutdown the system
      */
     shutdown() {

@@ -91,14 +91,14 @@ export class ShieldEffect {
      */
     detach() {
         if (!this.active) return;
-        
-        this.active = false;
-        this.entity = null;
-        
-        // Play deactivation VFX if entity still exists
+
+        // Play deactivation VFX before clearing entity reference
         if (this.entity && this.scene.vfxSystem) {
             this.scene.vfxSystem.play('vfx.shield.break', this.entity.x, this.entity.y);
         }
+
+        this.active = false;
+        this.entity = null;
         
         // PR7: Clean up graphics properly
         if (this.graphics) {

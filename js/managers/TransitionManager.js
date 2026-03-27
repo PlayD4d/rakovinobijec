@@ -480,8 +480,8 @@ export class TransitionManager {
                 break;
                 
             case 'stopVFX':
-                if (this.scene.vfxSystem) {
-                    this.scene.vfxSystem.stopAll();
+                if (this.scene.vfxSystem?.stopAllEffects) {
+                    this.scene.vfxSystem.stopAllEffects();
                 }
                 break;
                 

@@ -72,7 +72,7 @@
       'Zvyšuje dosah a poškození paprsků',
       'Maximální dosah a poškození paprsků',
     ],
-    icon: 'powerup_flamethrower',
+    icon: 'powerup_radiotherapy',
     color: '#FF5722',
     rarity: 'rare',
     category: 'special',
@@ -87,6 +87,6 @@
       short: 'Radiační paprsky ({{ability.beamsPerLevel[level]}} paprsků)',
       long: 'Rotující radioaktivní paprsky kolem hráče. Počet paprsků: {{ability.beamsPerLevel[level]}}, dosah: {{ability.rangePerLevel[level]}}px, poškození: {{ability.damagePerLevel[level]}}.',
     },
-    srKey: 'sr.powerup.flamethrower',
+    srKey: 'sr.powerup.radiotherapy',
   },
 }

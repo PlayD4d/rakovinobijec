@@ -235,6 +235,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             return 0;
         }
 
+        // Dodge check — roll against dodgeChance stat
+        const dodgeChance = this._stats().dodgeChance || 0;
+        if (dodgeChance > 0 && Math.random() < dodgeChance) {
+            this._playVfx(this.vfx.hit, this.x, this.y); // visual feedback
+            return 0;
+        }
+
         // Process damage through PowerUpSystem (PR7: Shield logic moved to PowerUpAbilities)
         if (this.scene.powerUpSystem?.processDamage) {
             amount = this.scene.powerUpSystem.processDamage(this, amount, time);
@@ -584,8 +591,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
                 } else if (mod.type === 'multiply') {
                     value *= mod.value;
                 } else if (mod.type === 'mul') {
-                    // Some blueprints use 'mul' instead of 'multiply'
                     value *= (1 + mod.value);
+                } else if (mod.type === 'base') {
+                    value = mod.value;
+                } else if (mod.type === 'set') {
+                    value = mod.value;
                 }
             }
         }
