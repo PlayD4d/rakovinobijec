@@ -281,26 +281,28 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      */
     takeDamage(hit) {
         let amount = hit.amount || hit;
-        
+
         // Apply armor reduction
         if (this.armor > 0) {
             amount = Math.max(1, amount - this.armor);
         }
-        
+
         // Apply damage
         this.hp -= amount;
-        
+
         // VFX/SFX
         this.spawnVfx('hit');
         this.playSfx('hit');
-        
+
         // Flash effect
         this.flashEffect();
-        
+
         // Check death
         if (this.hp <= 0) {
             this.die(hit.source);
         }
+
+        return amount;
     }
     
     /**

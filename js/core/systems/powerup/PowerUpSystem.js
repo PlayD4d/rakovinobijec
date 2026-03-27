@@ -487,34 +487,49 @@ export class PowerUpSystem {
     }
     
     _formatPowerUpStats(blueprint, level = 1) {
-        // Try to extract meaningful stats from the blueprint
-        const mods = blueprint.mechanics?.modifiersPerLevel;
-        if (mods && mods.length > 0) {
-            const firstMod = mods[0];
-            const value = this._calculateValueForLevel(blueprint, level);
-            
-            if (firstMod.path === 'projectileDamage') {
-                return `+${value} DMG`;
-            } else if (firstMod.path === 'moveSpeed') {
-                return `+${Math.round(value * 100)}% SPD`;
-            } else if (firstMod.path === 'attackIntervalMs') {
-                return `+${Math.abs(Math.round(value * 100))}% AS`;
-            } else if (firstMod.path === 'shieldHP') {
-                return `${value} HP štít`;
+        const parts = [];
+        const mods = blueprint.mechanics?.modifiersPerLevel || [];
+
+        // Format each modifier into a readable stat line
+        const statLabels = {
+            projectileDamage: (v) => `+${v} DMG`,
+            moveSpeed: (v) => `+${Math.round(v * 100)}% rychlost`,
+            attackIntervalMs: (v) => `-${Math.abs(Math.round(v * 100))}% interval útoku`,
+            dodgeChance: (v) => `+${Math.round(v * 100)}% úhyb`,
+            shieldHP: (v) => `${v} HP štít`,
+            xpMagnetRadius: (v) => `+${v}px dosah magnetu`,
+            explosionRadius: (v) => `+${v}px radius exploze`,
+            explosionDamage: (v) => `+${v} DMG exploze`,
+            projectilePiercing: (v) => `průstřel ${v}`,
+        };
+
+        for (const mod of mods) {
+            const value = (mod.type === 'base' || mod.type === 'set')
+                ? mod.value
+                : mod.value * level;
+            const formatter = statLabels[mod.path];
+            if (formatter) {
+                parts.push(formatter(value));
             }
         }
-        
-        // Check for ability-based power-ups
-        if (blueprint.ability?.type === 'shield') {
-            const hp = (blueprint.ability.baseShieldHP || 50) * level;
-            return `${hp} HP štít`;
-        } else if (blueprint.ability?.type === 'radiotherapy') {
-            return 'Radiační paprsky';
-        } else if (blueprint.ability?.type === 'flamethrower') {
-            return 'Plamenomety';
+
+        // Ability-based descriptions
+        const ability = blueprint.ability;
+        if (ability?.type === 'shield') {
+            parts.push(`${(ability.baseShieldHP || 50) * level} HP štít`);
+        } else if (ability?.type === 'radiotherapy') {
+            const beams = ability.beamsPerLevel?.[level - 1] || 1;
+            const dmg = ability.damagePerLevel?.[level - 1] || 5;
+            parts.push(`${beams} paprsek${beams > 1 ? 'y' : ''} • ${dmg} DMG`);
+        } else if (ability?.type === 'flamethrower') {
+            const range = ability.rangePerLevel?.[level - 1] || 80;
+            const dmg = ability.damagePerLevel?.[level - 1] || 3;
+            parts.push(`dosah ${range}px • ${dmg} DMG`);
+        } else if (ability?.type === 'chemo_aura') {
+            parts.push(`${ability.chemoCloudDamage || 4} DMG/s oblak`);
         }
-        
-        return '+???';
+
+        return parts.length > 0 ? parts.join(' • ') : `Level ${level}`;
     }
     
 }
