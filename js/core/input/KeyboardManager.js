@@ -232,15 +232,21 @@ export class KeyboardManager {
     /**
      * Nastavit debug klávesy
      */
-    setupDebugKeys() {
-        this.register('F3', 'debug.overlay.toggle', 'debug');
-        this.register('F4', 'debug.enemy.spawn', 'debug');
-        this.register('F6', 'debug.missing-assets.toggle', 'debug'); 
-        this.register('F7', 'debug.boss.spawn', 'debug');
-        this.register('F8', 'debug.sfx.soundboard', 'debug');
-        this.register('F9', 'debug.vfx.test', 'debug');
-        
-        console.log('[KeyboardManager] Debug keys registered');
+    /**
+     * Register debug keys with direct callbacks (bypass CentralEventBus)
+     * @param {Object} handlers - Map of key→callback: { F3: () => {}, F9: () => {} }
+     */
+    setupDebugKeys(handlers = {}) {
+        for (const [keyCode, callback] of Object.entries(handlers)) {
+            try {
+                const key = this.scene.input.keyboard.addKey(keyCode);
+                key.on('down', callback);
+                this.handlers.set(`debug:${keyCode}`, { key, handler: callback });
+            } catch (e) {
+                console.warn(`[KeyboardManager] Failed to register debug key ${keyCode}:`, e);
+            }
+        }
+        console.log('[KeyboardManager] Debug keys registered:', Object.keys(handlers).join(', '));
     }
     
     /**

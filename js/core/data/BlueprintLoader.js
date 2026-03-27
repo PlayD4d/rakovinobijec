@@ -426,6 +426,17 @@ export class BlueprintLoader {
     }
     
     /**
+     * Hot-reload all blueprints from server (F9 dev tool)
+     */
+    async reload() {
+        DebugLogger.info('dev', '[BlueprintLoader] Hot-reloading all blueprints...');
+        const oldCount = this.blueprints.size;
+        await this.loadAllBlueprints();
+        await this.loadSpawnTables();
+        DebugLogger.info('dev', `[BlueprintLoader] Reloaded ${this.blueprints.size} blueprints (was ${oldCount})`);
+    }
+
+    /**
      * Get all blueprints as an object
      * Used by dev tools and soft refresh
      */

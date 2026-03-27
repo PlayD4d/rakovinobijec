@@ -545,6 +545,33 @@ export class BootstrapManager {
                 });
             }
             
+            // Register debug keys (DEV mode only)
+            if (window.DEV_MODE || window.location.search.includes('debug=true')) {
+                this.scene.keyboardManager.setupDebugKeys({
+                    F3: () => {
+                        if (this.scene.debugOverlay) {
+                            this.scene.debugOverlay.toggle();
+                        }
+                    },
+                    F6: () => {
+                        if (this.scene.debugOverlay) {
+                            this.scene.debugOverlay.showMissingAssets = !this.scene.debugOverlay.showMissingAssets;
+                            if (!this.scene.debugOverlay.visible) this.scene.debugOverlay.show();
+                        }
+                    },
+                    F9: () => {
+                        // Hot-reload blueprints from server
+                        if (this.scene.blueprintLoader?.reload) {
+                            this.scene.blueprintLoader.reload().then(() => {
+                                DebugLogger.info('dev', '[F9] Blueprints hot-reloaded');
+                            });
+                        } else {
+                            DebugLogger.info('dev', '[F9] Hot-reload not available');
+                        }
+                    }
+                });
+            }
+
             console.log('[BootstrapManager] ✅ KeyboardManager fully initialized!');
             DebugLogger.info('bootstrap', '[KeyboardManager] Initialized with centralEventBus');
         } catch (error) {

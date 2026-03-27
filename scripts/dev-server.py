@@ -20,7 +20,7 @@ DEV_SCRIPT = """
     // Development Mode Enabled
     window.DEV_MODE = true;
     console.log('%c🔧 DEV MODE ENABLED', 'color: #00ff88; font-weight: bold; font-size: 14px');
-    console.log('%c[F3] Debug Overlay | [F6] Missing Assets | [F7] Boss Playground | [F8] SFX Soundboard | [F9] Soft Refresh', 'color: #888');
+    console.log('%c[F3] Debug Overlay | [F6] Missing Assets | [F9] Hot-Reload Data', 'color: #888');
 </script>
 """
 
@@ -89,9 +89,7 @@ def run_server():
     print(f"Debug controls:")
     print(f"  [F3] - Toggle Debug Overlay")
     print(f"  [F6] - Toggle Missing Assets Panel")
-    print(f"  [F7] - Boss Playground")
-    print(f"  [F8] - SFX Soundboard")
-    print(f"  [F9] - Soft Refresh (hot-reload data)")
+    print(f"  [F9] - Hot-Reload Data (blueprints)")
     print(f"")
     print(f"Press Ctrl+C to stop the server")
     print("-" * 50)
