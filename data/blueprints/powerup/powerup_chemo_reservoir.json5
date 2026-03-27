@@ -8,21 +8,15 @@
     modifiersPerLevel: [
       {
         path: 'explosionRadius',
-        type: 'mul',
-        value: 0.2,
-        description: 'Increases explosion radius by 20% per level',
+        type: 'add',
+        value: 15,
+        description: 'Adds 15px explosion radius per level',
       },
       {
         path: 'explosionDamage',
-        type: 'mul',
-        value: 0.25,
-        description: 'Increases explosion damage by 25% per level',
-      },
-      {
-        path: 'chemoCloudFrequency',
-        type: 'mul',
-        value: 0.15,
-        description: 'Increases chemo cloud spawn frequency by 15% per level',
+        type: 'add',
+        value: 3,
+        description: 'Adds 3 explosion damage per level',
       },
     ],
     stackable: true,

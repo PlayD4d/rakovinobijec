@@ -91,11 +91,11 @@ export class PowerUpSystem {
         // Apply to player
         this._applyToPlayer(modifiers, abilities, level, powerUpId);
         
-        // Update tracking
+        // Update tracking (replace modifiers, not accumulate)
         this.appliedPowerUps.set(powerUpId, {
             blueprint,
             level,
-            modifiers: [...currentData.modifiers, ...modifiers],
+            modifiers,
             abilities
         });
         

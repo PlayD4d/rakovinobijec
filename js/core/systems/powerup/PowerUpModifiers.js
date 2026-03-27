@@ -19,39 +19,32 @@ export class PowerUpModifiers {
     processModifiers(blueprint, levelDelta, currentLevel) {
         const modifiers = [];
         const modifierDefs = blueprint.mechanics?.modifiersPerLevel || [];
-        
+        const targetLevel = (currentLevel || 0) + levelDelta;
+
         for (const modDef of modifierDefs) {
             if (!modDef.path || modDef.value === undefined) continue;
-            
+
             let value;
-            
-            // PR7: Calculate value based on type
             if (modDef.type === 'base') {
-                // Base type: value = baseValue * currentLevel (not delta)
-                // For shield: 50 * level = 50, 100, 150, 200, 250
-                const targetLevel = (currentLevel || 0) + levelDelta;
+                // Base type: absolute value for target level (e.g. shield 50 * level)
                 value = modDef.value * targetLevel;
             } else if (modDef.type === 'set') {
-                // Set type: just use the value as-is
                 value = modDef.value;
             } else {
-                // Add/multiply types: value increases by delta
-                value = modDef.value * levelDelta;
+                // Add/mul: total cumulative value for target level (not delta)
+                // Since old modifiers are removed before applying, we need the full amount
+                value = modDef.value * targetLevel;
             }
-            
-            // Create modifier object for direct application
-            const modifier = {
+
+            modifiers.push({
                 source: blueprint.id,
                 path: modDef.path,
                 type: modDef.type || 'add',
                 value: value,
                 description: modDef.description
-            };
-            
-            modifiers.push(modifier);
-            DebugLogger.info('powerup', `[PowerUpModifiers] Modifier: ${modifier.path} ${modifier.type} ${modifier.value}`);
+            });
         }
-        
+
         return modifiers;
     }
     
@@ -60,19 +53,20 @@ export class PowerUpModifiers {
      * PR7: Direct application through player's modifier system
      */
     applyToPlayer(player, modifiers, level, powerUpId) {
-        DebugLogger.info('powerup', `[PowerUpModifiers] Applying ${modifiers.length} modifiers to player for ${powerUpId} level ${level}`);
-        
-        // Apply modifiers through player's modifier system
+        // Remove old modifiers from this power-up before adding new ones
+        // This prevents accumulation of stale modifiers on level-up
+        if (player.activeModifiers) {
+            player.activeModifiers = player.activeModifiers.filter(m => m.source !== powerUpId);
+        }
+
+        // Apply fresh modifiers
         for (const modifier of modifiers) {
-            DebugLogger.info('powerup', `[PowerUpModifiers] Adding modifier: ${modifier.path} = ${modifier.value} (${modifier.type})`);
             player.addModifier(modifier);
-            
-            // Special handling for specific power-ups
             this._handleSpecialCases(player, modifier, level, powerUpId);
         }
-        
-        // Log player state after application
-        DebugLogger.info('powerup', `[PowerUpModifiers] Player now has ${player.activeModifiers?.length || 0} active modifiers`);
+
+        // Invalidate stats cache
+        player._statsCacheTime = 0;
     }
     
     /**
@@ -80,19 +74,9 @@ export class PowerUpModifiers {
      * PR7: Bridge between modifier system and legacy properties
      */
     _handleSpecialCases(player, modifier, level, powerUpId) {
-        // XP Magnet - set direct property for SimpleLootSystem
-        if (powerUpId === 'powerup.xp_magnet') {
-            player.xpMagnetLevel = level;
-            DebugLogger.info('powerup', `[PowerUpModifiers] ✅ Set player.xpMagnetLevel = ${level}`);
-        }
-        
-        // Shield HP - set direct property for shield system
-        if (powerUpId === 'powerup.shield' && modifier.path === 'shieldHP') {
-            // These are set by PowerUpAbilities, but we track them here too
-            DebugLogger.info('powerup', `[PowerUpModifiers] Shield HP modifier applied: ${modifier.value} HP`);
-        }
-        
-        // Other special cases can be added here as needed
+        // Special cases are minimized — most power-ups work through the modifier pipeline
+        // XP Magnet: reads xpMagnetRadius from _stats() — no special handling needed
+        // Shield: HP set by PowerUpAbilities._applyAbility, modifier tracks it in pipeline
     }
     
     /**

@@ -3,18 +3,18 @@
   type: 'powerup',
   stats: {
     maxLevel: 5,
-    rarity: 'common',
-    category: 'utility',
   },
   mechanics: {
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
     effectType: 'xp_collection',
-    baseRadius: 100,
     modifiersPerLevel: [
       {
         path: 'xpMagnetRadius',
-        type: 'multiply',
-        value: 1.25,
-        description: 'Zvětšuje dosah přitahování XP orbů o 25%',
+        type: 'add',
+        value: 25,
+        description: 'Adds 25px magnet radius per level',
       },
     ],
   },
@@ -22,12 +22,13 @@
     key: 'powerup.xp_magnet.name',
     descKey: 'powerup.xp_magnet.desc',
     devNameFallback: 'XP Magnet',
-    devDescFallback: 'Zvyšuje dosah přitahování XP orbů o 25% za level',
+    devDescFallback: 'Zvyšuje dosah přitahování XP orbů',
+    rarity: 'common',
+    category: 'utility',
+    sortOrder: 230,
     templates: {
-      name: 'XP Magnet',
-      short: '+{{value}}% dosah',
-      desc: 'Zvětšuje oblast přitahování XP orbů o {{value}}% za úroveň',
-      levelUp: 'XP Magnet (úroveň {{nextLevel}}): +{{totalValue}}% dosah',
+      short: '+25px dosah za level',
+      desc: 'Zvětšuje oblast přitahování XP orbů o 25px za úroveň.',
     },
     icon: 'icon_xp_magnet',
     color: '#00FFFF',
@@ -39,10 +40,10 @@
   },
   vfx: {
     apply: 'vfx.powerup',
-    aura: 'vfx.effect',
+    levelUp: 'vfx.powerup',
   },
   sfx: {
     apply: 'sound/powerup.mp3',
-    collect: 'sound/hit_soft.mp3',
+    levelUp: 'sound/powerup.mp3',
   },
 }

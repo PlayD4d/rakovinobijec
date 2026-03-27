@@ -199,10 +199,10 @@ export class PowerUpAbilities {
                 break;
                 
             case 'chemo_aura':
-                // Enable chemo aura on player
                 player.chemoAuraActive = true;
                 player.chemoAuraConfig = config;
-                DebugLogger.info('powerup', `[PowerUpAbilities] Activated chemo aura with config:`, config);
+                this._startChemoCloud(player, config);
+                DebugLogger.info('powerup', `[PowerUpAbilities] Activated chemo aura — cloud damage ${config.chemoCloudDamage}, radius ${config.chemoCloudRadius}`);
                 break;
                 
             case 'piercing':
@@ -229,13 +229,24 @@ export class PowerUpAbilities {
             }
         }
         
-        // Update aura if active
         const player = this.scene.player;
+
+        // Update aura if active
         if (player?.aura && player.auraDamage > 0) {
             this._updateAura(player, delta);
         }
-        
-        // Update shield regeneration (moved from Player to PowerUpSystem)
+
+        // Update chemo cloud position
+        if (this._chemoZone && player?.active) {
+            this._chemoZone.setPosition(player.x, player.y);
+            // Update tick timer for damage throttle
+            const now = this.scene.time?.now || 0;
+            if (now - (this._chemoLastTick || 0) >= 500) {
+                this._chemoLastTick = now;
+            }
+        }
+
+        // Update shield regeneration
         this._updateShieldRegeneration(player, time);
     }
     
@@ -346,6 +357,53 @@ export class PowerUpAbilities {
         }
     }
     
+    /**
+     * Start chemo cloud periodic damage zone around player
+     */
+    _startChemoCloud(player, config) {
+        // Clean up old cloud if exists
+        this._destroyChemoCloud();
+
+        const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
+        if (!enemiesGroup || !this.scene.physics) return;
+
+        const radius = config.chemoCloudRadius || 35;
+        const damage = config.chemoCloudDamage || 4;
+
+        // Invisible physics zone for broadphase
+        this._chemoZone = this.scene.add.zone(player.x, player.y, radius * 2, radius * 2);
+        this.scene.physics.add.existing(this._chemoZone, false);
+        this._chemoZone.body.setCircle(radius);
+
+        // Overlap — applies damage every frame but we throttle via timer
+        this._chemoLastTick = 0;
+        this._chemoOverlap = this.scene.physics.add.overlap(
+            this._chemoZone,
+            enemiesGroup,
+            (zone, enemy) => {
+                const now = this.scene.time?.now || 0;
+                if (now - this._chemoLastTick < 500) return; // 2 ticks/sec
+                if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
+                enemy.takeDamage(damage, 'chemo_cloud');
+            }
+        );
+
+        // Store for cleanup and position update
+        this._chemoPlayer = player;
+    }
+
+    _destroyChemoCloud() {
+        if (this._chemoOverlap) {
+            this.scene.physics?.world?.removeCollider(this._chemoOverlap);
+            this._chemoOverlap = null;
+        }
+        if (this._chemoZone) {
+            this._chemoZone.destroy();
+            this._chemoZone = null;
+        }
+        this._chemoPlayer = null;
+    }
+
     /**
      * Update aura damage using Phaser overlap zone (broadphase)
      */
@@ -498,6 +556,7 @@ export class PowerUpAbilities {
      */
     destroy() {
         this._destroyAuraZone();
+        this._destroyChemoCloud();
         this.activeAbilities.clear();
         this.scene = null;
         this.powerUpSystem = null;

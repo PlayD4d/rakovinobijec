@@ -212,13 +212,9 @@ export class SimpleLootSystem {
         
         const player = this.scene.player;
         
-        // PR7: Direct player stats - no PowerUpManager intermediary
-        const magnetLevel = player.xpMagnetLevel || 0;
-        if (magnetLevel <= 0) return; // No magnet active
-        
-        // Calculate effective radius: base * (1.25 ^ level)
-        const baseRadius = 100;
-        const magnetRadius = baseRadius * Math.pow(1.25, magnetLevel);
+        // Read magnet radius from player stats pipeline (single source of truth)
+        const magnetRadius = player._stats?.()?.xpMagnetRadius || player.baseStats?.xpMagnetRadius || 0;
+        if (magnetRadius <= 0) return;
         
         // Apply magnet effect to XP orbs
         const children = this.lootGroup?.getChildren();
