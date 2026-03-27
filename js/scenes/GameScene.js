@@ -1,4 +1,5 @@
 import { Player } from '../entities/Player.js';
+import { startSession, getSession, endSession } from '../core/debug/SessionLog.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Boss } from '../entities/Boss.js';
 import { UnifiedHUD } from '../ui/UnifiedHUD.js';
@@ -475,6 +476,9 @@ export class GameScene extends Phaser.Scene {
         // Start spawn director with first level spawn table
         if (this.spawnDirector) {
             // Load spawn table first
+            // Start session logging
+            this._session = startSession(this.game.config?.gameVersion || 'dev');
+
             const loaded = await this.spawnDirector.loadSpawnTable('spawnTable.level1');
             
             if (loaded) {
@@ -522,10 +526,13 @@ export class GameScene extends Phaser.Scene {
     
     handleEnemyDeath(enemy) {
         if (!enemy) return;
-        // Note: enemy.active may already be false (set by EnemyCore.die/Boss.die)
-        // Use a processed flag to prevent double-processing
         if (enemy._deathProcessed) return;
         enemy._deathProcessed = true;
+
+        // Session log
+        this._session?.kill('player', enemy.blueprintId || enemy.blueprint?.id, enemy.xp, {
+            hp: enemy.maxHp, pos: `${Math.round(enemy.x)},${Math.round(enemy.y)}`
+        });
         
         // Clean up ALL VFX effects immediately before any other cleanup
         if (enemy.cleanupAllVFX && typeof enemy.cleanupAllVFX === 'function') {
@@ -770,7 +777,7 @@ export class GameScene extends Phaser.Scene {
     
     
     levelUp() {
-        console.log(`🎊 LEVEL UP! Level ${this.gameStats.level}`);
+        this._session?.log('game', 'level_up', { level: this.gameStats.level, time: Math.floor(this.sceneTimeSec) });
         
         // Heal player
         this.player.heal(20);
@@ -798,6 +805,7 @@ export class GameScene extends Phaser.Scene {
     }
     
     async gameOver() {
+        endSession('death');
         // Delegate to TransitionManager
         if (this.transitionManager) {
             await this.transitionManager.gameOver();

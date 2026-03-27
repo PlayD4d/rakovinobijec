@@ -1,4 +1,5 @@
 import { DebugLogger } from '../core/debug/DebugLogger.js';
+import { getSession } from '../core/debug/SessionLog.js';
 
 /**
  * Player.js - Třída hráče
@@ -259,7 +260,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
 
         const oldHp = this.hp;
-        this.hp = Math.max(0, this.hp - dmg); // Prevent negative HP
+        this.hp = Math.max(0, this.hp - dmg);
+        getSession()?.damage(source?.blueprintId || 'enemy', 'player', dmg, 'hit');
         
         this._iFramesMsLeft = this._stats().iFramesMs;
 

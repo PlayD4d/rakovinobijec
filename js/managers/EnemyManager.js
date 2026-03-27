@@ -1,3 +1,5 @@
+import { getSession } from '../core/debug/SessionLog.js';
+
 /**
  * EnemyManager - Centralized enemy and boss management
  * PR7 compliant - handles all enemy spawning and lifecycle
@@ -57,7 +59,8 @@ export class EnemyManager {
             entity = this.createRegularEnemy(blueprint, blueprintId, x, y, textureKey, color, size, options);
         }
         
-        // Analytics
+        // Session log + analytics
+        getSession()?.spawn(blueprint.type || 'enemy', blueprintId, entity?.x || x, entity?.y || y);
         if (this.scene.analyticsManager) {
             this.scene.analyticsManager.trackEnemySpawn(blueprintId);
         }

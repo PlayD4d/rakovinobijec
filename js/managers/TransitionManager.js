@@ -1,4 +1,5 @@
 import { DebugLogger } from '../core/debug/DebugLogger.js';
+import { getSession } from '../core/debug/SessionLog.js';
 
 /**
  * TransitionManager - Handles all game flow transitions
@@ -243,6 +244,7 @@ export class TransitionManager {
         
         try {
             DebugLogger.info('transition', `[TransitionManager] Transitioning to level ${nextLevel}`);
+            getSession()?.transition(this.scene.currentLevel, nextLevel, 'level_transition');
             
             // 1. Pause game but keep time running for animations
             this.scene.isPaused = true;

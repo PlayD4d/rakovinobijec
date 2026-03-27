@@ -1,3 +1,5 @@
+import { getSession } from '../../debug/SessionLog.js';
+
 /**
  * PowerUpSystem - Main orchestrator for power-up system
  * PR7 Compliant - 100% data-driven via blueprints
@@ -100,7 +102,7 @@ export class PowerUpSystem {
         });
         
         DebugLogger.info('powerup', `[PowerUpSystem] ✅ Successfully applied ${powerUpId} level ${level}`);
-        DebugLogger.info('powerup', `[PowerUpSystem] Player now has ${this.scene.player?.activeModifiers?.length || 0} active modifiers`);
+        getSession()?.powerup(powerUpId, level, 'applied');
         
         // Play effects
         this.effects.playApplyEffects(blueprint, this.scene.player);

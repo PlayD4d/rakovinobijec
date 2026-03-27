@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
+import { getSession } from '../../core/debug/SessionLog.js';
 
 /**
  * EnemyCore.js - Core enemy functionality with Phaser integration
@@ -289,6 +290,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
 
         // Apply damage
         this.hp -= amount;
+        getSession()?.damage('player', this.blueprintId || this.blueprint?.id, amount, 'hit');
 
         // VFX/SFX
         this.spawnVfx('hit');
@@ -357,8 +359,11 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * @param {number} dt - Delta time in seconds
      */
     update(dt) {
-        // Update cooldowns, effects, etc.
-        // Keep minimal - most logic is in behaviors
+        // Auto-shoot if enemy has canShoot ability (independent of AI state)
+        if (this.blueprint?.mechanics?.canShoot && this.active && this.scene?.player?.active) {
+            const cooldown = this.blueprint.mechanics.shootInterval || 3000;
+            this.shoot('straight', { cooldown, damage: this.blueprint.mechanics.projectileDamage || this.damage });
+        }
     }
     
     /**
