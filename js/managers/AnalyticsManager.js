@@ -509,8 +509,26 @@ export class AnalyticsManager {
         }
     }
     
+    // ===== LIFECYCLE =====
+
+    shutdown() { this.destroy(); }
+
+    destroy() {
+        this.enabled = false;
+        this._fpsTrackingActive = false;
+        if (this.performanceSnapshotTimer) {
+            clearInterval(this.performanceSnapshotTimer);
+            this.performanceSnapshotTimer = null;
+        }
+        if (this._flushTimer) {
+            clearInterval(this._flushTimer);
+            this._flushTimer = null;
+        }
+        this.eventQueue = [];
+    }
+
     // ===== PERFORMANCE TRACKING =====
-    
+
     startPerformanceMonitoring() {
         if (!this.enabled) return;
         
@@ -526,8 +544,9 @@ export class AnalyticsManager {
             }
             
             lastTime = currentTime;
-            requestAnimationFrame(trackFPS);
+            if (this._fpsTrackingActive) requestAnimationFrame(trackFPS);
         };
+        this._fpsTrackingActive = true;
         requestAnimationFrame(trackFPS);
     }
     
@@ -612,7 +631,7 @@ export class AnalyticsManager {
     startFlushTimer() {
         if (!this.enabled) return;
         
-        setInterval(() => {
+        this._flushTimer = setInterval(() => {
             this.flushEvents();
         }, this.flushInterval);
     }

@@ -21,8 +21,12 @@ export class DisposableRegistry {
      * Track tweens (noop - Phaser manages tweens)
      */
     trackTween(scene, targets) {
-        // Tweens are managed by Phaser engine
-        scene?.tweens?.killTweensOf?.(targets);
+        // Store for deferred cleanup — kill tweens on these targets when disposeAll() is called
+        if (scene && targets) {
+            this._items.push({
+                destroy: () => scene?.tweens?.killTweensOf?.(targets)
+            });
+        }
         return this;
     }
     

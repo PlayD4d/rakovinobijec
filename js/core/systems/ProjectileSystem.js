@@ -531,24 +531,12 @@ export class ProjectileSystem {
       }
     });
     
-    // PR7: VFX/SFX integrace pro exploze
+    // VFX/SFX for explosion (single call, no duplicates)
     if (this.scene.vfxSystem) {
       this.scene.vfxSystem.play('vfx.explosion.small', x, y);
     }
     if (this.scene.audioSystem) {
-      // Get explosion sound from projectile blueprint if available
-      const projectileBlueprint = this.blueprintLoader?.getBlueprint(projectileId);
-      const explosionSFX = projectileBlueprint?.sfx?.explosion;
-      if (explosionSFX) {
-        this.scene.audioSystem.play(explosionSFX);
-      } else {
-        DebugLogger.warn('projectile', '[ProjectileSystem] Missing explosion sound in projectile blueprint:', projectileId);
-      }
-    }
-    
-    // Záložní řešení pro starší systémy
-    if (this.scene.vfxSystem) {
-      this.scene.vfxSystem.playExplosion(x, y, 'explosive');
+      this.scene.audioSystem.play('sound/explosion_small.mp3');
     }
     try {
       this.scene.audioManager?.playSound?.('explosion');

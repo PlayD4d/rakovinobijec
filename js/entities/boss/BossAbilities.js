@@ -508,11 +508,28 @@ export class BossAbilities {
      */
     executeBeamSweep(abilityData, params) {
         DebugLogger.info('boss', '[BossAbilities] Executing beam sweep');
-        
+        const player = this.scene.player;
+        if (!player?.active) return false;
+
+        // VFX warning
         if (this.scene.vfxSystem) {
             this.scene.vfxSystem.play('boss.beam.warning', this.boss.x, this.boss.y);
         }
-        
+
+        // Deal damage to player if in range
+        const dx = player.x - this.boss.x;
+        const dy = player.y - this.boss.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const range = abilityData.range || 300;
+        const damage = abilityData.damage || 10;
+
+        if (dist <= range && player.canTakeDamage?.()) {
+            this.scene.time?.delayedCall(abilityData.chargeTime || 1000, () => {
+                if (!player?.active || !this.boss?.active) return;
+                player.takeDamage(damage, this.boss);
+            });
+        }
+
         return true;
     }
     
@@ -543,11 +560,28 @@ export class BossAbilities {
      */
     executeRadiationStorm(abilityData, params) {
         DebugLogger.info('boss', '[BossAbilities] Executing radiation storm');
-        
+        const player = this.scene.player;
+
         if (this.scene.vfxSystem) {
             this.scene.vfxSystem.play('boss.radiation.storm', this.boss.x, this.boss.y);
         }
-        
+
+        // DoT damage in radius over duration
+        const damage = abilityData.damage || 3;
+        const radius = abilityData.radius || 250;
+        const ticks = Math.floor((abilityData.stormDuration || 3000) / (abilityData.tickInterval || 500));
+
+        for (let i = 0; i < ticks; i++) {
+            this.scene.time?.delayedCall(i * (abilityData.tickInterval || 500), () => {
+                if (!player?.active || !this.boss?.active) return;
+                const dx = player.x - this.boss.x;
+                const dy = player.y - this.boss.y;
+                if (dx * dx + dy * dy <= radius * radius) {
+                    player.takeDamage(damage, this.boss);
+                }
+            });
+        }
+
         return true;
     }
     
@@ -556,18 +590,27 @@ export class BossAbilities {
      */
     executeRapidBeams(abilityData, params) {
         DebugLogger.info('boss', '[BossAbilities] Executing rapid beams');
-        
+        const player = this.scene.player;
+
         const beamCount = abilityData.beamCount || 5;
+        const damage = abilityData.damage || 8;
+        const range = abilityData.range || 350;
+
         for (let i = 0; i < beamCount; i++) {
-            if (this.scene.time) {
-                this.scene.time.delayedCall(i * 200, () => {
-                    if (this.scene.vfxSystem) {
-                        this.scene.vfxSystem.play('boss.beam.warning', this.boss.x, this.boss.y);
-                    }
-                });
-            }
+            this.scene.time?.delayedCall(i * (abilityData.fireRate ? abilityData.fireRate * 1000 : 300), () => {
+                if (!player?.active || !this.boss?.active) return;
+                if (this.scene.vfxSystem) {
+                    this.scene.vfxSystem.play('boss.beam.warning', this.boss.x, this.boss.y);
+                }
+                // Damage if in range
+                const dx = player.x - this.boss.x;
+                const dy = player.y - this.boss.y;
+                if (dx * dx + dy * dy <= range * range) {
+                    player.takeDamage(damage, this.boss);
+                }
+            });
         }
-        
+
         return true;
     }
     

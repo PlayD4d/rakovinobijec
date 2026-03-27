@@ -91,13 +91,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this._iFramesMsLeft = 0; // Zbývající čas nezranitelnosti
         this.activeModifiers = []; // Aktivní modifikátory z PowerUpSystem
         
-        // Shield compatibility - managed by PowerUpSystem
+        // Shield state — managed by PowerUpSystem
         this.shieldActive = false;
-        this.shieldHits = 0;
+        this.shieldHP = 0;
+        this.maxShieldHP = 0;
         this.shieldLevel = 0;
         this.shieldBroken = false;
         this.shieldRegenMs = 10000;
-        this._shieldBrokenAt = -Infinity; // Use absolute time instead of accumulator
+        this.shieldRecharging = false;
+        this.shieldRechargeAt = 0;
+        this.shieldRechargeTime = 10000;
+        this._shieldBrokenAt = -Infinity;
         
         // Power-up states (set by PowerUpSystem)
         this.xpMagnetLevel = 0;
@@ -428,6 +432,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     
     // Essential getter methods only (PR7: Minimal interface)
     getExplosionRadius() { return this._getStatWithModifiers('explosionRadius'); }
+    getExplosionDamage() { return this._getStatWithModifiers('explosionDamage'); }
     getProjectilePiercing() { return this._getStatWithModifiers('projectilePiercing', true); }
 
     // ================ Systém vstupu ================

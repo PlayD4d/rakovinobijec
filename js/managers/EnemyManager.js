@@ -89,6 +89,7 @@ export class EnemyManager {
         const boss = new Boss(this.scene, x, y, blueprint, options);
         this.scene.bossGroup.add(boss);
         this.scene.currentBoss = boss;
+        this.scene.bossActive = true;
 
         // Re-apply physics config after group.add() (same as regular enemies)
         if (boss.body) {
