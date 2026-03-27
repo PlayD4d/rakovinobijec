@@ -85,7 +85,7 @@ export class EnemyManager {
         
         const boss = new Boss(this.scene, x, y, blueprint, options);
         this.scene.bossGroup.add(boss);
-        this.scene.enemies.add(boss); // For collision detection
+        // Boss only in bossGroup — separate collision handlers exist for boss
         this.scene.currentBoss = boss;
         
         // Set depth

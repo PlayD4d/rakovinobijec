@@ -386,24 +386,22 @@ export class TransitionManager {
      */
     pauseGameSystems() {
         this.scene.isPaused = true;
-        
-        // Pause physics using interface method
+
+        // Pause physics
         this.scene.pausePhysics();
-        
-        // Pause time using interface method
-        this.scene.pauseTime();
-        
-        // Disable spawn director
+
+        // Stop spawn director (don't set .enabled — property doesn't exist)
         if (this.scene.spawnDirector) {
-            this.scene.spawnDirector.enabled = false;
+            this.scene.spawnDirector.stop();
         }
-        
+
         // Pause update manager phases
         if (this.scene.updateManager) {
             this.scene.updateManager.setPhaseEnabled('ai_spawn', false);
             this.scene.updateManager.setPhaseEnabled('enemies', false);
             this.scene.updateManager.setPhaseEnabled('projectiles', false);
         }
+        // NOTE: Don't pause scene.time — it breaks delayedCall timers used by showUIModal
     }
     
     /**
@@ -411,24 +409,17 @@ export class TransitionManager {
      */
     resumeGameSystems() {
         this.scene.isPaused = false;
-        
-        // Resume physics using interface method
+
+        // Resume physics
         this.scene.resumePhysics();
-        
-        // Resume time using interface method
-        this.scene.resumeTime();
-        
-        // Enable spawn director
-        if (this.scene.spawnDirector) {
-            this.scene.spawnDirector.enabled = true;
-        }
-        
+
         // Resume update manager phases
         if (this.scene.updateManager) {
             this.scene.updateManager.setPhaseEnabled('ai_spawn', true);
             this.scene.updateManager.setPhaseEnabled('enemies', true);
             this.scene.updateManager.setPhaseEnabled('projectiles', true);
         }
+        // SpawnDirector is restarted by initializeLevel, not here
     }
     
     /**
@@ -486,7 +477,7 @@ export class TransitionManager {
                 break;
                 
             case 'unpauseTime':
-                this.scene.resumeTime();
+                // Time is no longer paused during transitions (breaks delayedCall)
                 break;
         }
         

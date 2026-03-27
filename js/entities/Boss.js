@@ -294,30 +294,38 @@ export class Boss extends BossCore {
      */
     die(killer) {
         if (!this.active) return;
-        
+
+        // Deactivate immediately to prevent further updates/damage
+        this.setActive(false);
+        this.setVisible(false);
+        if (this.body) this.body.enable = false;
+
         // Death VFX/SFX
         this.spawnVfx('death');
         this.playSfx('death');
-        
+
         // Hide boss HP bar
         if (this.scene.unifiedHUD) {
             this.scene.unifiedHUD.hideBoss();
         }
-        
-        // Emit boss-specific death event (not enemyDeath)
-        // This triggers level transition in BootstrapManager
+
+        // Clear boss reference and flag
+        this.scene.currentBoss = null;
+        this.scene.bossActive = false;
+
+        // Process death through GameScene (XP, loot, stats)
+        if (this.scene.handleEnemyDeath) {
+            this.scene.handleEnemyDeath(this);
+        }
+
+        // Emit boss-specific event for level transition
         if (this.scene.events) {
-            this.scene.events.emit('boss:die', { 
+            this.scene.events.emit('boss:die', {
                 boss: this,
                 bossId: this.blueprint?.id,
-                killer: killer 
+                killer: killer
             });
-            
-            DebugLogger.info('boss', `[Boss] ${this.blueprint?.id} died - emitting boss:die event`);
         }
-        
-        // Loot handled by GameScene/EnemyManager
-        // Don't set active/visible false here - let manager handle cleanup
     }
     
     /**

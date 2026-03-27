@@ -474,8 +474,14 @@ export class GameScene extends Phaser.Scene {
             const loaded = await this.spawnDirector.loadSpawnTable('spawnTable.level1');
             
             if (loaded) {
-                // Start spawning
                 this.spawnDirector.start();
+
+                // Start level music from spawn table
+                const table = this.spawnDirector.currentTable;
+                if (table?.music?.ambient && this.audioSystem) {
+                    this.audioSystem.playMusic(table.music.ambient);
+                }
+
                 console.log('🎮 Game started! SpawnDirector activated with level1 spawn table');
             } else {
                 console.error('⚠️ Failed to load spawn table - no enemies will spawn');
