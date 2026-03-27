@@ -363,9 +363,8 @@ export class GameScene extends Phaser.Scene {
             }
         } catch (_) {}
         
-        // Set up scene shutdown listener for proper cleanup
-        this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanupSystems, this);
-        this.events.once(Phaser.Scenes.Events.DESTROY, this.cleanupSystems, this);
+        // Phaser calls shutdown() automatically on scene stop — no need for explicit listener
+        // (explicit listener caused double-shutdown → removeKey crash)
     }
     
     setupCollisions() {
@@ -576,11 +575,14 @@ export class GameScene extends Phaser.Scene {
             
         } catch (error) {
             console.warn('[GameScene] enemy death handling failed:', error);
-        } finally {
-            // Always destroy the enemy sprite
-            if (enemy && enemy.destroy) {
-                enemy.destroy(true);
-            }
+        }
+
+        // Deactivate (don't destroy — Boss.die() still runs after this returns)
+        // Phaser group.clear() in cleanupLevel will destroy sprites properly
+        if (enemy.active) {
+            enemy.setActive(false);
+            enemy.setVisible(false);
+            if (enemy.body) enemy.body.enable = false;
         }
     }
     

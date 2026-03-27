@@ -188,14 +188,16 @@ export class KeyboardManager {
         
         for (const [id, entry] of this.handlers) {
             try {
-                // Bezpečná kontrola před voláním off()
-                if (entry && entry.key && typeof entry.key.off === 'function') {
-                    entry.key.off('down', entry.handler);
+                if (entry?.key) {
+                    if (typeof entry.key.off === 'function') {
+                        entry.key.off('down', entry.handler);
+                    }
+                    // Remove key from Phaser's InputPlugin to prevent stale removeKey crash
+                    if (this.scene.input?.keyboard?.removeKey) {
+                        this.scene.input.keyboard.removeKey(entry.key, true);
+                    }
                 }
-            } catch (error) {
-                // Tiché selhání - scéna už může být částečně zničena
-                // Nepotřebujeme varování, protože to je očekávané při rychlém přepínání scén
-            }
+            } catch (_) {}
         }
         
         this.handlers.clear();
