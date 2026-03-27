@@ -40,7 +40,7 @@ export class EnemyManager {
         
         // Get visual properties
         const visuals = blueprint.visuals || {};
-        const color = visuals.tint || this.getColorFromBlueprint(blueprint);
+        const color = visuals.tint || blueprint.graphics?.tint || this.getColorFromBlueprint(blueprint);
         const size = blueprint.stats?.size || visuals.size?.w || (blueprint.type === 'boss' ? 60 : 20);
         const textureKey = visuals.textureKey || blueprintId;
         
@@ -192,6 +192,7 @@ export class EnemyManager {
      */
     getColorFromBlueprint(blueprint) {
         if (blueprint.visuals?.tint) return blueprint.visuals.tint;
+        if (blueprint.graphics?.tint) return blueprint.graphics.tint;
         if (blueprint.graphics?.color) return blueprint.graphics.color;
         if (blueprint.display?.tint) return blueprint.display.tint;
         

@@ -363,8 +363,13 @@ export class GameScene extends Phaser.Scene {
             }
         } catch (_) {}
         
-        // Phaser calls shutdown() automatically on scene stop — no need for explicit listener
-        // (explicit listener caused double-shutdown → removeKey crash)
+        // Listen for scene stop to trigger cleanup (using once to prevent double-call)
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            if (!this._shutdownDone) {
+                this._shutdownDone = true;
+                this.shutdown();
+            }
+        });
     }
     
     setupCollisions() {
@@ -1079,6 +1084,8 @@ export class GameScene extends Phaser.Scene {
      * Clean up all resources to prevent errors during destroy
      */
     shutdown() {
+        if (this._shutdownDone) return; // Prevent double-shutdown
+        this._shutdownDone = true;
         console.log('[GameScene] Starting shutdown sequence...');
         
         try {
