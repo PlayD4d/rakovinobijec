@@ -340,16 +340,30 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
  * Handle player bullet hitting boss
  */
 function handlePlayerBulletBossCollision(bullet, boss) {
+    const scene = this;
     if (!bullet.active || !boss.active) return;
-    
-    // Apply damage to boss
-    if (boss.takeDamage) {
-        boss.takeDamage(bullet.damage || 10);
+
+    // Apply damage with piercing reduction
+    let damage = bullet.damage || scene?.player?.baseStats?.projectileDamage || 10;
+    if (bullet.piercing && bullet.hitCount > 0 && bullet.damageReduction) {
+        damage *= Math.pow(1 - bullet.damageReduction, bullet.hitCount);
     }
-    
-    // Destroy bullet (unless piercing)
-    if (!bullet.piercing) {
+
+    if (boss.takeDamage) {
+        boss.takeDamage(damage);
+    }
+
+    // VFX/SFX hit feedback
+    try {
+        if (boss._vfx?.hit && scene?.vfxSystem) scene.vfxSystem.play(boss._vfx.hit, boss.x, boss.y);
+        if (boss._sfx?.hit && scene?.audioSystem) scene.audioSystem.play(boss._sfx.hit);
+    } catch (_) {}
+
+    // Handle piercing (same logic as enemy bullets)
+    if (!bullet.piercing || bullet.hitCount >= bullet.maxPiercing) {
         bullet.destroy();
+    } else {
+        bullet.hitCount = (bullet.hitCount || 0) + 1;
     }
 }
 

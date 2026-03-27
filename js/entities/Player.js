@@ -88,7 +88,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         // Aktuální stav hráče
         this.maxHp = this.baseStats.hp;
         this.hp = this.maxHp;
-        this._cooldownMs = 0; // Cooldown mezi útoky
         this._iFramesMsLeft = 0; // Zbývající čas nezranitelnosti
         this.activeModifiers = []; // Aktivní modifikátory z PowerUpSystem
         
@@ -162,9 +161,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             return;
         }
 
-        // Movement and shooting handled in update() via UpdateManager
-        // Only cooldown decrement here (needs to run in Phaser's preUpdate cycle)
-        if (this._cooldownMs > 0) this._cooldownMs -= delta;
+        // Movement, shooting, iFrames all handled in update() via UpdateManager
     }
 
     // ================ Pohyb hráče ================
@@ -364,11 +361,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             this.scene.analyticsManager.trackPlayerDeath(source, position, gameStats, context);
         }
 
-        // Don't destroy player immediately - let GameScene handle it after showing game over
-        DebugLogger.info('general', '[Player] Setting player to inactive state (active=false, visible=false)');
-        this.active = false;
-        this.visible = false;
-        this.body.enable = false; // Disable physics body to prevent further collisions
+        // Deactivate via Phaser methods (proper group bookkeeping)
+        this.setActive(false);
+        this.setVisible(false);
+        if (this.body) this.body.enable = false;
     }
 
     // ================ API pro modifikátory ================

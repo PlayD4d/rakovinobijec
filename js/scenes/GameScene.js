@@ -237,6 +237,9 @@ export class GameScene extends Phaser.Scene {
         // Complete BlueprintLoader initialization (async)
         await this._initializeBlueprintLoader();
         
+        // Reset shutdown guard for potential scene restart
+        this._shutdownDone = false;
+
         // Store start time for XP scaling
         this.startTime = this.time.now;
         
@@ -1138,7 +1141,10 @@ export class GameScene extends Phaser.Scene {
                 { name: 'analyticsManager', ref: this.analyticsManager },
                 { name: 'armorShieldEffect', ref: this.armorShieldEffect },
                 { name: 'playerShieldEffect', ref: this.playerShieldEffect },
-                { name: 'debugOverlay', ref: this.debugOverlay }
+                { name: 'debugOverlay', ref: this.debugOverlay },
+                { name: 'telemetryLogger', ref: this.telemetryLogger },
+                { name: 'unifiedHUD', ref: this.unifiedHUD },
+                { name: 'graphicsFactory', ref: this.graphicsFactory },
             ];
             
             for (const system of systemsToShutdown) {
@@ -1163,7 +1169,15 @@ export class GameScene extends Phaser.Scene {
                 this._bootstrapGameListeners = null;
             }
 
-            // 10. Nullify references to prevent memory leaks
+            // 10. Remove resize listener from scale manager (persists across scenes)
+            try { this.scale.off('resize', this.handleResize, this); } catch (_) {}
+
+            // 11. Disable mobile controls
+            if (this.mobileControls?.enabled) {
+                try { this.mobileControls.disable(); } catch (_) {}
+            }
+
+            // 12. Nullify references to prevent memory leaks
             this.player = null;
             this.spawnDirector = null;
             this.projectileSystem = null;
@@ -1178,6 +1192,15 @@ export class GameScene extends Phaser.Scene {
             this.enemiesGroup = null;
             this.bossGroup = null;
             this.debugOverlay = null;
+            this.telemetryLogger = null;
+            this.unifiedHUD = null;
+            this.graphicsFactory = null;
+            this.targetingSystem = null;
+            this.mobileControls = null;
+            this.frameworkDebug = null;
+            this.blueprintLoader = null;
+            this.uiLayer = null;
+            this.enemies = null;
             
             console.log('[GameScene] Shutdown sequence completed successfully');
             

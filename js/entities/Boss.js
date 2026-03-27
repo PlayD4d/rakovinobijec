@@ -318,13 +318,13 @@ export class Boss extends BossCore {
         this.setVisible(false);
         if (this.body) this.body.enable = false;
 
-        // Clean up boss sub-systems
+        // Clean up boss sub-systems (cleanup, not destroy — destroy doesn't exist on these)
         if (this.abilitiesSystem) {
-            try { this.abilitiesSystem.destroy(); } catch (_) {}
+            try { this.abilitiesSystem.cleanup?.(); } catch (_) {}
             this.abilitiesSystem = null;
         }
         if (this.phases) {
-            try { this.phases.destroy(); } catch (_) {}
+            try { this.phases.cleanup?.(); } catch (_) {}
             this.phases = null;
         }
 

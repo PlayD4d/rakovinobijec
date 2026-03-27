@@ -205,6 +205,17 @@ export class SimpleLootSystem {
     }
     
     /**
+     * Auto-collect a loot item (used during level transition)
+     */
+    collectItem(loot) {
+        if (!loot?.active) return;
+        const player = this.scene?.player;
+        if (player) {
+            this.handlePickup(player, loot);
+        }
+    }
+
+    /**
      * Update loop - handle XP magnet effect
      */
     update(time, delta) {

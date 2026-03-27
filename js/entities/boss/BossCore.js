@@ -22,6 +22,7 @@ export class BossCore extends EnemyCore {
         
         // Movement state
         this.isDashing = false;
+        this.moveSpeed = blueprint.stats?.speed || 50;
         this.originalSpeed = this.moveSpeed;
         
         // Debug info

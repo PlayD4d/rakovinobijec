@@ -88,12 +88,19 @@ export class EnemyManager {
         
         const boss = new Boss(this.scene, x, y, blueprint, options);
         this.scene.bossGroup.add(boss);
-        // Boss only in bossGroup — separate collision handlers exist for boss
         this.scene.currentBoss = boss;
-        
+
+        // Re-apply physics config after group.add() (same as regular enemies)
+        if (boss.body) {
+            boss.body.setCollideWorldBounds(false);
+            boss.body.setAllowGravity(false);
+            const radius = Math.max(8, Math.floor(size * 0.45));
+            boss.setCircle(radius);
+        }
+
         // Set depth
         boss.setDepth(this.scene.DEPTH_LAYERS?.BOSSES || 1100);
-        
+
         // Ensure texture
         boss.setTexture(textureKey);
         boss.setDisplaySize(size, size);

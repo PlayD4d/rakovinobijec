@@ -255,15 +255,15 @@ export class BossPhases {
      * Vykoná registrované callbacks pro fázi
      */
     executeTransitionCallbacks(phase) {
-        const callbacks = this.transitionCallbacks.get(phase);
-        if (callbacks) {
-            callbacks.forEach(callback => {
-                try {
-                    callback(phase, this.boss);
-                } catch (error) {
-                    DebugLogger.error('boss', `[BossPhases] Callback error for phase ${phase}:`, error);
-                }
-            });
+        // Execute phase-specific callbacks
+        const phaseCallbacks = this.transitionCallbacks.get(phase);
+        if (phaseCallbacks) {
+            phaseCallbacks.forEach(cb => { try { cb(phase, this.boss); } catch (_) {} });
+        }
+        // Execute 'all' callbacks (registered for every phase transition)
+        const allCallbacks = this.transitionCallbacks.get('all');
+        if (allCallbacks) {
+            allCallbacks.forEach(cb => { try { cb(phase, this.boss); } catch (_) {} });
         }
     }
     
