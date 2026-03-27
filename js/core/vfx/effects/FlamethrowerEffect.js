@@ -1,3 +1,5 @@
+import { DebugLogger } from '../../debug/DebugLogger.js';
+
 /**
  * FlamethrowerEffect - PR7 compliant flamethrower visual effect
  * Creates an animated flame cone in front of entity
@@ -34,7 +36,7 @@ export class FlamethrowerEffect {
         this.tickRate = config.tickRate || 0.1; // Damage every 100ms
         this.lastDamageTick = 0;
         
-        console.log(`[FlamethrowerEffect] Created - damage: ${this.damage}, tick rate: ${this.tickRate}s`);
+        DebugLogger.info('vfx', `[FlamethrowerEffect] Created - damage: ${this.damage}, tick rate: ${this.tickRate}s`);
     }
     
     /**
@@ -42,7 +44,7 @@ export class FlamethrowerEffect {
      * @param {Object} config - New configuration
      */
     updateConfig(config) {
-        console.log('[FlamethrowerEffect] Updating config:', config);
+        DebugLogger.info('vfx', '[FlamethrowerEffect] Updating config:', config);
         
         // Update damage parameters
         if (config.damage !== undefined) this.damage = config.damage;
@@ -58,7 +60,7 @@ export class FlamethrowerEffect {
             this._updateDamageZone();
         }
         
-        console.log(`[FlamethrowerEffect] Config updated - Length: ${this.baseLength}, Angle: ${(this.coneAngle * 180/Math.PI).toFixed(1)}°, Damage: ${this.damage}`);
+        DebugLogger.info('vfx', `[FlamethrowerEffect] Config updated - Length: ${this.baseLength}, Angle: ${(this.coneAngle * 180/Math.PI).toFixed(1)}°, Damage: ${this.damage}`);
     }
     
     /**
@@ -154,7 +156,7 @@ export class FlamethrowerEffect {
             
             // Debug: Log damage ticks occasionally
             if (Math.random() < 0.1) { // 10% chance to log
-                console.log(`[FlamethrowerEffect] 🔥 DAMAGE TICK - ${this.damage} damage, tick rate: ${this.tickRate}s`);
+                DebugLogger.info('vfx', `[FlamethrowerEffect] 🔥 DAMAGE TICK - ${this.damage} damage, tick rate: ${this.tickRate}s`);
             }
         }
     }
@@ -282,14 +284,14 @@ export class FlamethrowerEffect {
                         }
                     }
                 } else if (Math.random() < 0.01) {
-                    console.warn(`[FlamethrowerEffect] Enemy missing takeDamage method:`, enemy?.constructor?.name);
+                    DebugLogger.warn('enemy', `[FlamethrowerEffect] Enemy missing takeDamage method:`, enemy?.constructor?.name);
                 }
             }
         }
         
         // Debug: Log damage results occasionally
         if (Math.random() < 0.05 && (enemiesInRange > 0 || enemiesHit > 0)) { // 5% chance when there are enemies
-            console.log(`[FlamethrowerEffect] 🔥 DAMAGE RESULTS - In range: ${enemiesInRange}, Hit: ${enemiesHit}, Total enemies: ${enemies.length}`);
+            DebugLogger.info('vfx', `[FlamethrowerEffect] 🔥 DAMAGE RESULTS - In range: ${enemiesInRange}, Hit: ${enemiesHit}, Total enemies: ${enemies.length}`);
         }
     }
     
@@ -328,7 +330,7 @@ export class FlamethrowerEffect {
     reset(config = {}) {
         this.config = config;
         this.animationTime = 0;
-        this.particleTimer = 0;
+        this.lastParticleAt = 0;
         
         // Update parameters from new config
         const CR = this.scene.configResolver || window.ConfigResolver;
@@ -368,12 +370,12 @@ export class FlamethrowerEffect {
         // PR7: Fallback with warning
         if (this.scene && this.scene.add && this.scene.add.graphics) {
             if (Math.random() < 0.01) { // Only log occasionally
-                console.warn('[FlamethrowerEffect] Using scene.add.graphics fallback - needs PR7 GraphicsFactory');
+                DebugLogger.warn('enemy', '[FlamethrowerEffect] Using scene.add.graphics fallback - needs PR7 GraphicsFactory');
             }
             return this.scene.add.graphics();
         }
         
-        console.error('[FlamethrowerEffect] Cannot create graphics - no factory available');
+        DebugLogger.error('vfx', '[FlamethrowerEffect] Cannot create graphics - no factory available');
         return null;
     }
 }

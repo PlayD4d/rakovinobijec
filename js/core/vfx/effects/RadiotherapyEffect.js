@@ -1,3 +1,5 @@
+import { DebugLogger } from '../../debug/DebugLogger.js';
+
 /**
  * RadiotherapyEffect - PR7 compliant rotating radiation beams effect
  * Creates rotating radiation beams around the player
@@ -40,7 +42,7 @@ export class RadiotherapyEffect {
         this.tickRate = config.tickRate || 0.1; // Damage every 100ms
         this.lastDamageTick = 0;
         
-        console.log(`[RadiotherapyEffect] Created - damage: ${this.damage}, tick rate: ${this.tickRate}s`);
+        DebugLogger.info('vfx', `[RadiotherapyEffect] Created - damage: ${this.damage}, tick rate: ${this.tickRate}s`);
         
         // Current rotation angle
         this.currentAngle = 0;
@@ -59,8 +61,8 @@ export class RadiotherapyEffect {
         this.entity = entity;
         this.active = true;
         
-        console.log(`[RadiotherapyEffect] ✅ ATTACHED - ${this.beamCount} beams, range: ${this.beamRange}, width: ${(this.beamWidth * 180/Math.PI).toFixed(1)}°, damage: ${this.damage}/tick`);
-        console.log(`[RadiotherapyEffect] Entity:`, entity?.constructor?.name, `at (${entity?.x}, ${entity?.y})`);
+        DebugLogger.info('vfx', `[RadiotherapyEffect] ✅ ATTACHED - ${this.beamCount} beams, range: ${this.beamRange}, width: ${(this.beamWidth * 180/Math.PI).toFixed(1)}°, damage: ${this.damage}/tick`);
+        DebugLogger.info('vfx', `[RadiotherapyEffect] Entity:`, entity?.constructor?.name, `at (${entity?.x}, ${entity?.y})`);
         
         // PR7: Create graphics through factory method
         this.graphics = this._createGraphics();
@@ -112,7 +114,7 @@ export class RadiotherapyEffect {
      * Update beam configuration (called when power-up levels up)
      */
     updateConfig(config) {
-        console.log('[RadiotherapyEffect] Updating config:', config);
+        DebugLogger.info('vfx', '[RadiotherapyEffect] Updating config:', config);
         
         if (config.beamCount !== undefined) {
             this.beamCount = config.beamCount;
@@ -140,7 +142,7 @@ export class RadiotherapyEffect {
         if (config.strokeAlpha !== undefined) this.strokeAlpha = config.strokeAlpha;
         if (config.fillAlpha !== undefined) this.fillAlpha = config.fillAlpha;
         
-        console.log(`[RadiotherapyEffect] Config updated - Beams: ${this.beamCount}, Range: ${this.beamRange}, Width: ${(this.beamWidth * 180/Math.PI).toFixed(1)}°, Damage: ${this.damage}`);
+        DebugLogger.info('vfx', `[RadiotherapyEffect] Config updated - Beams: ${this.beamCount}, Range: ${this.beamRange}, Width: ${(this.beamWidth * 180/Math.PI).toFixed(1)}°, Damage: ${this.damage}`);
     }
     
     /**
@@ -151,7 +153,7 @@ export class RadiotherapyEffect {
     update(time, delta) {
         if (!this.active || !this.entity || !this.entity.active) {
             if (Math.random() < 0.01) { // Log occasionally to avoid spam
-                console.log(`[RadiotherapyEffect] Update skipped - active: ${this.active}, entity: ${!!this.entity}, entity.active: ${this.entity?.active}`);
+                DebugLogger.info('vfx', `[RadiotherapyEffect] Update skipped - active: ${this.active}, entity: ${!!this.entity}, entity.active: ${this.entity?.active}`);
             }
             return;
         }
@@ -173,7 +175,7 @@ export class RadiotherapyEffect {
         
         // Debug: Log occasionally to verify update is being called
         if (Math.random() < 0.001) { // Very rare logging
-            console.log(`[RadiotherapyEffect] 🔄 UPDATE - Drawing ${this.beamCount} beams at angle ${(this.currentAngle * 180/Math.PI).toFixed(1)}°`);
+            DebugLogger.info('vfx', `[RadiotherapyEffect] 🔄 UPDATE - Drawing ${this.beamCount} beams at angle ${(this.currentAngle * 180/Math.PI).toFixed(1)}°`);
         }
         
         // Draw each beam - EVENLY SPACED like radioactive symbol ☢️
@@ -195,7 +197,7 @@ export class RadiotherapyEffect {
             
             // Debug: Log damage ticks occasionally
             if (Math.random() < 0.1) { // 10% chance to log
-                console.log(`[RadiotherapyEffect] 💥 DAMAGE TICK - ${this.damage} damage, tick rate: ${this.tickRate}s`);
+                DebugLogger.info('vfx', `[RadiotherapyEffect] 💥 DAMAGE TICK - ${this.damage} damage, tick rate: ${this.tickRate}s`);
             }
         }
     }
@@ -309,7 +311,7 @@ export class RadiotherapyEffect {
         // PR7: Use enemiesGroup from SpawnDirector integration
         const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
         if (!enemiesGroup) {
-            console.warn('[RadiotherapyEffect] No enemies group found in scene!');
+            DebugLogger.warn('vfx', '[RadiotherapyEffect] No enemies group found in scene!');
             return;
         }
         
@@ -329,7 +331,7 @@ export class RadiotherapyEffect {
             // Also skip if enemy doesn't have required methods
             if (!enemy.takeDamage || typeof enemy.takeDamage !== 'function') {
                 if (Math.random() < 0.01) { // Log occasionally
-                    console.warn(`[RadiotherapyEffect] Enemy missing takeDamage method:`, enemy?.constructor?.name);
+                    DebugLogger.warn('vfx', `[RadiotherapyEffect] Enemy missing takeDamage method:`, enemy?.constructor?.name);
                 }
                 return;
             }
@@ -389,7 +391,7 @@ export class RadiotherapyEffect {
         
         // Debug: Log damage results occasionally
         if (Math.random() < 0.05 && (enemiesInRange > 0 || enemiesHit > 0)) { // 5% chance when there are enemies
-            console.log(`[RadiotherapyEffect] 🎯 DAMAGE RESULTS - In range: ${enemiesInRange}, Hit: ${enemiesHit}, Total enemies: ${enemies.length}`);
+            DebugLogger.info('vfx', `[RadiotherapyEffect] 🎯 DAMAGE RESULTS - In range: ${enemiesInRange}, Hit: ${enemiesHit}, Total enemies: ${enemies.length}`);
         }
     }
     
@@ -434,12 +436,12 @@ export class RadiotherapyEffect {
         if (this.scene && this.scene.add && this.scene.add.graphics) {
             // Log this as a PR7 exception that needs framework support
             if (Math.random() < 0.01) { // Only log occasionally
-                console.warn('[RadiotherapyEffect] Using scene.add.graphics fallback - needs PR7 GraphicsFactory');
+                DebugLogger.warn('vfx', '[RadiotherapyEffect] Using scene.add.graphics fallback - needs PR7 GraphicsFactory');
             }
             return this.scene.add.graphics();
         }
         
-        console.error('[RadiotherapyEffect] Cannot create graphics - no factory available');
+        DebugLogger.error('vfx', '[RadiotherapyEffect] Cannot create graphics - no factory available');
         return null;
     }
 }

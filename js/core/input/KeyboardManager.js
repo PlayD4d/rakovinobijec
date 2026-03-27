@@ -247,8 +247,9 @@ export class KeyboardManager {
      * Nastavit UI klávesy
      */
     setupUIKeys() {
-        this.register('ESC', 'ui.escape', 'ui');
+        this.register('ESC', 'ui:escape', 'ui');
         
-        console.log('[KeyboardManager] UI keys registered');
+        console.log('[KeyboardManager] UI keys registered - ESC mapped to ui:escape event');
+        console.log('[KeyboardManager] Active handlers:', this.handlers.size);
     }
 }

@@ -59,6 +59,24 @@
       "name": "Small XP"
     }
   },
+  "elite": {
+    "artillery_fungus": {
+      "desc": "Elite fungus shooting explosive spores at long range",
+      "name": "Elite Artillery Fungus"
+    },
+    "micro_shooter": {
+      "desc": "Elite version of micro shooter with enhanced fire rate",
+      "name": "Elite Micro Shooter"
+    },
+    "speed_virus": {
+      "desc": "Extremely fast elite virus with dash abilities",
+      "name": "Elite Speed Virus"
+    },
+    "tank_cell": {
+      "desc": "Heavily armored elite cell with regenerating shield",
+      "name": "Elite Tank Cell"
+    }
+  },
   "enemy": {
     "aberrant_cell": {
       "desc": "Elite cell with disrupted structure and high resistance",
@@ -75,6 +93,10 @@
     "brown_shooter": {
       "desc": "Shoots projectiles at distant targets",
       "name": "Necrotic Tissue"
+    },
+    "fungal_parasite": {
+      "desc": "Drains health and releases spores on death",
+      "name": "Fungal Parasite"
     },
     "green_heavy": {
       "desc": "Slow but resilient cancer cell",
@@ -111,10 +133,6 @@
     "support_bacteria": {
       "desc": "Heals nearby enemies within range",
       "name": "Support Bacteria"
-    },
-    "fungal_parasite": {
-      "desc": "Drains health and releases spores on death",
-      "name": "Fungal Parasite"
     },
     "viral_swarm": {
       "desc": "Fast viral organism attacking in groups",
@@ -156,10 +174,6 @@
       "desc": "Cone of fire in front of player",
       "name": "Flamethrower"
     },
-    "radiotherapy": {
-      "desc": "Rotating radiation beams around player",
-      "name": "Radiotherapy"
-    },
     "lightning_chain": {
       "desc": "Chain lightning between enemies",
       "name": "Immunotherapy"
@@ -184,6 +198,10 @@
       "desc": "Increases range of all attacks",
       "name": "Increased Range"
     },
+    "radiotherapy": {
+      "desc": "Rotating radiation beams around player",
+      "name": "Radiotherapy"
+    },
     "shield": {
       "desc": "Absorbs incoming damage",
       "name": "Immune System"
@@ -206,9 +224,21 @@
       "desc": "Poisonous projectile damaging cellular structure",
       "name": "Cytotoxin"
     },
+    "cytotoxin_enhanced": {
+      "desc": "Powered-up toxic projectile with greater range",
+      "name": "Enhanced Cytotoxin"
+    },
+    "cytotoxin_small": {
+      "desc": "Smaller cytotoxin variant for rapid attacks",
+      "name": "Small Cytotoxin"
+    },
     "homing": {
       "desc": "Projectile that tracks target",
       "name": "Homing Projectile"
+    },
+    "player_basic": {
+      "desc": "Standard projectile fired by the player",
+      "name": "Player Basic Projectile"
     }
   },
   "sr": {
@@ -223,8 +253,8 @@
       "damage_boost": "Damage boost enhancing all attacks for more effective combat",
       "explosive_bullets": "Proton Cannon - bullets explode on impact dealing area damage",
       "flamethrower": "Cone of fire damaging enemies in front of player",
-      "radiotherapy": "Rotating radiation beams around player",
       "piercing_arrows": "Cisplatin projectiles piercing through multiple enemies",
+      "radiotherapy": "Rotating radiation beams around player",
       "shield": "Immune system shield absorbing incoming damage"
     },
     "projectile": {
@@ -252,24 +282,14 @@
     "value": "Value",
     "xp": "XP"
   },
-  "elite": {
-    "tank_cell": {
-      "desc": "Heavily armored elite cell with regenerating shield",
-      "name": "Elite Tank Cell"
-    },
-    "speed_virus": {
-      "desc": "Extremely fast elite virus with dash abilities",
-      "name": "Elite Speed Virus"
-    },
-    "artillery_fungus": {
-      "desc": "Elite fungus shooting explosive spores at long range",
-      "name": "Elite Artillery Fungus"
-    }
-  },
   "unique": {
     "chromoblast": {
       "desc": "Time-manipulating entity with leukemic bursts",
       "name": "Chromoblast"
+    },
+    "golden_cell": {
+      "desc": "Rare golden cell providing large rewards",
+      "name": "Golden Cell"
     },
     "mutagen_splicer": {
       "desc": "Adaptive enemy changing abilities during combat",
@@ -286,10 +306,6 @@
     "radiomorph_titan": {
       "desc": "Massive radiation mutant with phase shifting",
       "name": "Radiomorph Titan"
-    },
-    "golden_cell": {
-      "desc": "Rare golden cell providing large rewards",
-      "name": "Golden Cell"
     },
     "rainbow_virus": {
       "desc": "Mystical virus changing colors with unique abilities",

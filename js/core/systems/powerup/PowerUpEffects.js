@@ -146,13 +146,11 @@ export class PowerUpEffects {
             this.scene.vfxSystem.play('vfx.powerup.epic', player.x, player.y);
         }
         
-        // Time slow effect (optional)
-        if (this.scene.time) {
-            this.scene.time.delayedCall(100, () => {
-                this.scene.physics.world.timeScale = 0.5;
-                this.scene.time.delayedCall(300, () => {
-                    this.scene.physics.world.timeScale = 1.0;
-                });
+        // Time slow effect (optional) - PR7: Through VFXSystem
+        if (this.scene.vfxSystem) {
+            this.scene.vfxSystem.play('vfx.powerup.epic.timeslow', player.x, player.y, {
+                duration: 400,
+                slowFactor: 0.5
             });
         }
     }
@@ -161,33 +159,17 @@ export class PowerUpEffects {
      * Show level up text
      */
     _showLevelText(player, powerUpName, level) {
-        if (!this.scene.add) return;
-        
-        const text = this.scene.add.text(
-            player.x,
-            player.y - 50,
-            `${powerUpName} LVL ${level}`,
-            {
+        // PR7: Delegate text animation to VFXSystem instead of direct tweens
+        if (this.scene.vfxSystem) {
+            this.scene.vfxSystem.play('vfx.powerup.levelup.text', player.x, player.y, {
+                text: `${powerUpName} LVL ${level}`,
                 fontSize: '16px',
                 fontFamily: 'monospace',
                 color: '#ffff00',
                 stroke: '#000000',
                 strokeThickness: 2
-            }
-        );
-        
-        text.setOrigin(0.5);
-        text.setDepth(1000);
-        
-        // Animate text
-        this.scene.tweens.add({
-            targets: text,
-            y: player.y - 100,
-            alpha: 0,
-            duration: 1000,
-            ease: 'Power2',
-            onComplete: () => text.destroy()
-        });
+            });
+        }
     }
     
     /**

@@ -6,6 +6,7 @@
  */
 
 import { PowerUpModifiers } from './PowerUpModifiers.js';
+import { DebugLogger } from '../../debug/DebugLogger.js';
 import { PowerUpAbilities } from './PowerUpAbilities.js';
 import { PowerUpEffects } from './PowerUpEffects.js';
 
@@ -32,7 +33,7 @@ export class PowerUpSystem {
         // Selection modal reference
         this._selectionModal = null;
         
-        console.log('[PowerUpSystem] Initialized with modular architecture');
+        DebugLogger.info('powerup', '[PowerUpSystem] Initialized with modular architecture');
     }
     
     /**
@@ -49,31 +50,43 @@ export class PowerUpSystem {
      * @param {number} level - Power-up level to apply
      */
     applyPowerUp(powerUpId, level = 1) {
+        DebugLogger.info('powerup', `[PowerUpSystem] 🎯 APPLYING POWERUP: ${powerUpId} at level ${level}`);
+        
         const blueprint = this.scene.blueprintLoader.get(powerUpId);
         if (!blueprint) {
-            console.error(`[PowerUpSystem] Blueprint not found: ${powerUpId}`);
+            DebugLogger.error('powerup', `[PowerUpSystem] ❌ Blueprint not found: ${powerUpId}`);
             return false;
         }
         
         // Validate blueprint structure
         if (!this._validateBlueprint(blueprint)) {
-            console.error(`[PowerUpSystem] Invalid blueprint structure: ${powerUpId}`);
+            DebugLogger.error('powerup', `[PowerUpSystem] ❌ Invalid blueprint structure: ${powerUpId}`);
             return false;
         }
         
         const currentData = this.appliedPowerUps.get(powerUpId) || { level: 0, modifiers: [], abilities: [] };
         const levelDelta = level - currentData.level;
         
+        DebugLogger.info('powerup', `[PowerUpSystem] 📊 Level progression: ${currentData.level} → ${level} (delta: ${levelDelta})`);
+        
         if (levelDelta <= 0) {
-            console.warn(`[PowerUpSystem] Power-up ${powerUpId} already at level ${currentData.level}`);
+            DebugLogger.warn('powerup', `[PowerUpSystem] ⚠️ Power-up ${powerUpId} already at level ${currentData.level}`);
             return false;
         }
         
-        console.log(`[PowerUpSystem] Applying ${powerUpId} from level ${currentData.level} to ${level}`);
+        DebugLogger.info('powerup', `[PowerUpSystem] Applying ${powerUpId} from level ${currentData.level} to ${level}`);
         
-        // Process through modules
-        const modifiers = this.modifiers.processModifiers(blueprint, levelDelta);
+        // Process through modules - pass current level for 'base' type calculations
+        const modifiers = this.modifiers.processModifiers(blueprint, levelDelta, currentData.level);
         const abilities = this.abilities.processAbilities(blueprint, level);
+        
+        DebugLogger.info('powerup', `[PowerUpSystem] 📋 Generated ${modifiers.length} modifiers and ${abilities.length} abilities`);
+        if (modifiers.length > 0) {
+            DebugLogger.info('powerup', '[PowerUpSystem] Modifiers:', modifiers.map(m => `${m.path}:${m.type}:${m.value}`));
+        }
+        if (abilities.length > 0) {
+            DebugLogger.info('powerup', '[PowerUpSystem] Abilities:', abilities.map(a => `${a.type}:level${a.level}`));
+        }
         
         // Apply to player
         this._applyToPlayer(modifiers, abilities, level, powerUpId);
@@ -85,6 +98,9 @@ export class PowerUpSystem {
             modifiers: [...currentData.modifiers, ...modifiers],
             abilities
         });
+        
+        DebugLogger.info('powerup', `[PowerUpSystem] ✅ Successfully applied ${powerUpId} level ${level}`);
+        DebugLogger.info('powerup', `[PowerUpSystem] Player now has ${this.scene.player?.activeModifiers?.length || 0} active modifiers`);
         
         // Play effects
         this.effects.playApplyEffects(blueprint, this.scene.player);
@@ -111,7 +127,7 @@ export class PowerUpSystem {
         try {
             // Validate scene is still valid
             if (!this.scene || !this.scene.scene || !this.scene.scene.isActive()) {
-                console.error('[PowerUpSystem] Cannot show modal - scene is inactive');
+                DebugLogger.error('powerup', '[PowerUpSystem] Cannot show modal - scene is inactive');
                 callback?.();
                 return;
             }
@@ -139,7 +155,7 @@ export class PowerUpSystem {
             
             await this._selectionModal.show();
         } catch (error) {
-            console.error('[PowerUpSystem] Failed to show selection modal:', error);
+            DebugLogger.error('powerup', '[PowerUpSystem] Failed to show selection modal:', error);
             callback?.();
         }
     }
@@ -167,6 +183,32 @@ export class PowerUpSystem {
     }
     
     /**
+     * Generate power-up options for level-up selection
+     * Public method for GameScene to call
+     */
+    generatePowerUpOptions() {
+        const options = this._generatePowerUpOptions();
+        
+        // Convert to UI format - extract emoji from blueprint name
+        return options.map(opt => {
+            // Extract emoji from name if present (data-driven from blueprints)
+            const name = opt.name || opt.id.replace('powerup.', '').replace(/_/g, ' ');
+            const emojiMatch = name.match(/^([^\s]+)\s/); // Match first non-space chars
+            const emoji = emojiMatch && emojiMatch[1].match(/[\u{1F300}-\u{1FAD6}]/u) ? emojiMatch[1] : '⭐';
+            
+            return {
+                id: opt.id,
+                name: name,
+                description: opt.description || '',
+                stats: opt.stats || '',
+                rarity: opt.rarity || 'common',
+                icon: emoji, // Extracted from blueprint, not hardcoded
+                level: opt.level || 0
+            };
+        });
+    }
+    
+    /**
      * Get XP magnet radius (for compatibility)
      */
     getXPMagnetRadius() {
@@ -189,25 +231,31 @@ export class PowerUpSystem {
     }
     
     /**
-     * Process damage through shield (for compatibility)
+     * Process damage through power-up systems (PR7: Delegate to PowerUpAbilities)
+     * @param {Player} player - Player object
+     * @param {number} amount - Damage amount  
+     * @param {number} time - Current game time
+     * @returns {number} Remaining damage after power-up processing
      */
-    processDamage(damage) {
-        if (this.shouldBlockDamage()) {
-            // Shield blocks the damage
-            const player = this.scene.player;
-            player.shieldHits--;
-            
-            if (player.shieldHits <= 0) {
-                player.shieldBroken = true;
-                player.shieldRegenTimer = 0;
-                if (this.vfxManager) {
-                    this.vfxManager.detachEffect(player, 'shield');
-                }
-            }
-            
-            return 0; // Damage blocked
+    processDamage(player, amount, time) {
+        if (!this.abilities?.processDamageWithShield) {
+            return amount; // No shield system, return full damage
         }
-        return damage;
+        
+        return this.abilities.processDamageWithShield(player, amount, time);
+    }
+    
+    /**
+     * Reset timers after pause/resume (PR7: Delegate to PowerUpAbilities)
+     * Called when scene resumes from pause
+     */
+    resetTimersAfterPause() {
+        // Delegate to PowerUpAbilities module (proper PR7 architecture)
+        if (this.abilities?.resetTimersAfterPause) {
+            this.abilities.resetTimersAfterPause();
+        }
+        
+        DebugLogger.info('powerup', '[PowerUpSystem] Delegated timer reset to PowerUpAbilities');
     }
     
     /**
@@ -244,7 +292,7 @@ export class PowerUpSystem {
         const hasAbility = blueprint.ability?.type;
         
         if (!hasModifiers && !hasAbility) {
-            console.warn(`[PowerUpSystem] Blueprint ${blueprint.id} has no modifiers or ability`);
+            DebugLogger.warn('powerup', `[PowerUpSystem] Blueprint ${blueprint.id} has no modifiers or ability`);
             return false;
         }
         
@@ -254,32 +302,66 @@ export class PowerUpSystem {
     _applyToPlayer(modifiers, abilities, level, powerUpId) {
         const player = this.scene.player;
         if (!player) {
-            console.error('[PowerUpSystem] No player to apply power-ups to');
+            DebugLogger.error('powerup', '[PowerUpSystem] No player to apply power-ups to');
             return;
         }
+        
+        DebugLogger.info('powerup', `[PowerUpSystem] 🎮 Applying to player:`);
+        DebugLogger.info('powerup', `  - Modifiers: ${modifiers.length}`);
+        DebugLogger.info('powerup', `  - Abilities: ${abilities.length}`);
+        DebugLogger.info('powerup', `  - PowerUp ID: ${powerUpId}`);
         
         // Apply modifiers
         this.modifiers.applyToPlayer(player, modifiers, level, powerUpId);
         
         // Apply abilities
         this.abilities.applyToPlayer(player, abilities);
+        
+        // Force stats recalculation
+        if (player._statsCache) {
+            player._statsCache = null;
+            player._statsCacheTime = null;
+        }
+        
+        DebugLogger.info('powerup', `[PowerUpSystem] 📊 Player stats after application:`);
+        DebugLogger.info('powerup', `  - Active modifiers: ${player.activeModifiers?.length || 0}`);
+        if (player.activeModifiers?.length > 0) {
+            DebugLogger.info('powerup', `  - Modifier details:`, player.activeModifiers.map(m => `${m.path}:${m.type}:${m.value}`));
+        }
     }
     
     _generatePowerUpOptions() {
         const allPowerUps = this.scene.blueprintLoader.getAll('powerup') || [];
         const options = [];
         
+        DebugLogger.info('powerup', `[PowerUpSystem] Found ${allPowerUps.length} total powerup blueprints`);
+        
         for (const blueprint of allPowerUps) {
-            if (!blueprint?.id) continue;
+            if (!blueprint?.id) {
+                DebugLogger.warn('powerup', '[PowerUpSystem] Skipping blueprint without ID:', blueprint);
+                continue;
+            }
             
-            // Skip templates
-            if (blueprint.id.includes('template')) continue;
+            // Skip templates and backup files
+            if (blueprint.id.includes('template') || blueprint.id.includes('.bak')) {
+                DebugLogger.debug('powerup', `[PowerUpSystem] Skipping template/backup: ${blueprint.id}`);
+                continue;
+            }
             
             const current = this.appliedPowerUps.get(blueprint.id);
             const currentLevel = current?.level || 0;
             const maxLevel = blueprint.stats?.maxLevel || 10;
             
-            if (currentLevel >= maxLevel) continue;
+            if (currentLevel >= maxLevel) {
+                DebugLogger.debug('powerup', `[PowerUpSystem] Skipping maxed powerup: ${blueprint.id} (${currentLevel}/${maxLevel})`);
+                continue;
+            }
+            
+            // Calculate next level value for display
+            const nextLevel = currentLevel + 1;
+            const nextValue = this._calculateValueForLevel(blueprint, nextLevel);
+            
+            DebugLogger.debug('powerup', `[PowerUpSystem] Adding powerup option: ${blueprint.id} (level ${currentLevel} -> ${nextLevel})`);
             
             options.push({
                 id: blueprint.id,
@@ -287,19 +369,56 @@ export class PowerUpSystem {
                 description: this._getBlueprintDescription(blueprint),
                 type: blueprint.category || 'passive',
                 level: currentLevel,
+                nextLevel: nextLevel,
                 maxLevel: maxLevel,
-                value: this._extractValueFromBlueprint(blueprint),
+                value: nextValue,
                 icon: blueprint.display?.icon,
-                color: blueprint.display?.color
+                color: blueprint.display?.color,
+                stats: this._formatPowerUpStats(blueprint, nextLevel),
+                rarity: blueprint.display?.rarity || 'common'
             });
         }
         
-        // Randomly select 3
-        const selected = [];
-        while (selected.length < 3 && options.length > 0) {
-            const index = Math.floor(Math.random() * options.length);
-            selected.push(options.splice(index, 1)[0]);
+        DebugLogger.info('powerup', `[PowerUpSystem] Generated ${options.length} valid powerup options`);
+        
+        // Weighted random selection based on rarity
+        const rarityWeights = {
+            'common': 4,
+            'rare': 2,
+            'epic': 1,
+            'legendary': 0.5
+        };
+        
+        // Calculate weighted list
+        const weightedOptions = [];
+        for (const option of options) {
+            const weight = rarityWeights[option.rarity] || 1;
+            for (let i = 0; i < weight * 10; i++) {
+                weightedOptions.push(option);
+            }
         }
+        
+        // Randomly select 3 unique options
+        const selected = [];
+        const usedIds = new Set();
+        
+        while (selected.length < 3 && weightedOptions.length > 0) {
+            const index = Math.floor(Math.random() * weightedOptions.length);
+            const option = weightedOptions[index];
+            
+            if (!usedIds.has(option.id)) {
+                selected.push(option);
+                usedIds.add(option.id);
+                // Remove all instances of this option from weighted list
+                for (let i = weightedOptions.length - 1; i >= 0; i--) {
+                    if (weightedOptions[i].id === option.id) {
+                        weightedOptions.splice(i, 1);
+                    }
+                }
+            }
+        }
+        
+        DebugLogger.info('powerup', `[PowerUpSystem] Selected ${selected.length} powerups for display:`, selected.map(p => `${p.id} (L${p.nextLevel})`));
         
         return selected;
     }
@@ -338,6 +457,66 @@ export class PowerUpSystem {
         
         return 0;
     }
+    
+    _calculateValueForLevel(blueprint, level) {
+        const mods = blueprint.mechanics?.modifiersPerLevel;
+        if (mods && mods.length > 0) {
+            const firstMod = mods[0];
+            if (firstMod.type === 'base') {
+                // Base type: value * level
+                return firstMod.value * level;
+            } else if (firstMod.type === 'set') {
+                // Set type: use value as-is
+                return firstMod.value;
+            } else {
+                // Add/multiply: accumulate value
+                return firstMod.value * level;
+            }
+        }
+        
+        // Check ability values
+        if (blueprint.ability) {
+            const ability = blueprint.ability;
+            if (ability.baseShieldHP) return ability.baseShieldHP * level;
+            if (ability.damagePerLevel) return ability.damagePerLevel[level - 1] || ability.damagePerLevel[0];
+            if (ability.rangePerLevel) return ability.rangePerLevel[level - 1] || ability.rangePerLevel[0];
+            if (ability.baseDamage) return ability.baseDamage + (level - 1) * 5;
+        }
+        
+        return 0;
+    }
+    
+    _formatPowerUpStats(blueprint, level = 1) {
+        // Try to extract meaningful stats from the blueprint
+        const mods = blueprint.mechanics?.modifiersPerLevel;
+        if (mods && mods.length > 0) {
+            const firstMod = mods[0];
+            const value = this._calculateValueForLevel(blueprint, level);
+            
+            if (firstMod.path === 'projectileDamage') {
+                return `+${value} DMG`;
+            } else if (firstMod.path === 'moveSpeed') {
+                return `+${Math.round(value * 100)}% SPD`;
+            } else if (firstMod.path === 'attackIntervalMs') {
+                return `+${Math.abs(Math.round(value * 100))}% AS`;
+            } else if (firstMod.path === 'shieldHP') {
+                return `${value} HP štít`;
+            }
+        }
+        
+        // Check for ability-based power-ups
+        if (blueprint.ability?.type === 'shield') {
+            const hp = (blueprint.ability.baseShieldHP || 50) * level;
+            return `${hp} HP štít`;
+        } else if (blueprint.ability?.type === 'radiotherapy') {
+            return 'Radiační paprsky';
+        } else if (blueprint.ability?.type === 'flamethrower') {
+            return 'Plamenomety';
+        }
+        
+        return '+???';
+    }
+    
 }
 
 // Register DEV commands for testing
@@ -347,29 +526,29 @@ if (typeof window !== 'undefined') {
     window.DEV.applyPowerUp = (id, level = 1) => {
         const scene = window.game?.scene?.getScene('GameScene');
         if (!scene?.powerUpSystem) {
-            console.error('PowerUpSystem not initialized');
+            DebugLogger.error('powerup', 'PowerUpSystem not initialized');
             return;
         }
         
         const success = scene.powerUpSystem.applyPowerUp(id, level);
-        console.log(success ? `✅ Applied ${id} at level ${level}` : `❌ Failed to apply ${id}`);
+        DebugLogger.info('powerup', success ? `✅ Applied ${id} at level ${level}` : `❌ Failed to apply ${id}`);
     };
     
     window.DEV.powerUpStatus = () => {
         const scene = window.game?.scene?.getScene('GameScene');
         const player = scene?.player;
         if (!player) {
-            console.error('Player not found');
+            DebugLogger.error('powerup', 'Player not found');
             return;
         }
         
-        console.group('🎯 Power-Up Status');
-        console.log('XP Magnet Level:', player.xpMagnetLevel || 0);
-        console.log('Shield Active:', player.shieldActive || false);
-        console.log('Shield Hits:', player.shieldHits || 0);
-        console.log('Piercing Level:', player.piercingLevel || 0);
-        console.log('Active Power-Ups:', scene.powerUpSystem?.getActivePowerUps() || []);
-        console.groupEnd();
+        DebugLogger.info('powerup', '========== 🎯 Power-Up Status ==========');
+        DebugLogger.info('powerup', 'XP Magnet Level:', player.xpMagnetLevel || 0);
+        DebugLogger.info('powerup', 'Shield Active:', player.shieldActive || false);
+        DebugLogger.info('powerup', 'Shield Hits:', player.shieldHits || 0);
+        DebugLogger.info('powerup', 'Piercing Level:', player.piercingLevel || 0);
+        DebugLogger.info('powerup', 'Active Power-Ups:', scene.powerUpSystem?.getActivePowerUps() || []);
+        DebugLogger.info('powerup', '=========================================');
     };
 }
 

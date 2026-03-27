@@ -1,51 +1,46 @@
-// PR7: GameConfig removed - use ConfigResolver only
-// import { GameConfig } from '../config.js';
 import { calculateGameSize } from '../config.js';
 import { HighScoreManager } from '../managers/HighScoreManager.js';
 import { GlobalHighScoreManager } from '../managers/GlobalHighScoreManager.js';
-// AudioLoader removed - using direct loading
 import { SimplifiedVFXSystem } from '../core/vfx/SimplifiedVFXSystem.js';
 import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
-// buildSfxManifest removed - using direct loading
 import { EventBus } from '../core/events/EventBus.js';
 import { KeyboardManager } from '../core/input/KeyboardManager.js';
+import { DebugLogger } from '../core/debug/DebugLogger.js';
 // LiteUI components - replacing RexUI modals
 import { MainMenuUI } from '../ui/lite/MainMenuUI.js';
 import { loadGameVersion, getCachedVersion } from '../utils/version.js';
-// SimplifiedAudioSystem will be imported dynamically in create()
 
 export class MainMenu extends Phaser.Scene {
     constructor() {
         super({ key: 'MainMenu' });
-        
+
         this.mainMenuUI = null;
         this.highScoreManager = null;
         this.globalHighScoreManager = null;
         this.musicManager = null;
         this.keyboardManager = null;
-        
+
         // Flag pro tracking fullscreen stavu
         this.isFullscreenMode = false;
     }
-    
+
     preload() {
         // LiteUI doesn't need external plugins
         // Načíst pouze základní UI zvuky pro menu
         const menuSounds = [
             'sound/intro.mp3',
-            'sound/ready_fight.mp3',
             'sound/pickup.mp3'
         ];
-        
+
         menuSounds.forEach(path => {
             // Use consistent key generation - same as GameScene and SimplifiedAudioSystem
             const key = path.replace(/[^a-zA-Z0-9]/g, '_');
             if (!this.cache.audio.has(key)) {
                 this.load.audio(key, path);
-                console.log(`[MainMenu] Loading audio: ${path} -> ${key}`);
+                DebugLogger.info('menu', `[MainMenu] Loading audio: ${path} -> ${key}`);
             }
         });
-        
+
         // Load menu music if configured
         const CR = window.ConfigResolver;
         if (CR) {
@@ -55,79 +50,79 @@ export class MainMenu extends Phaser.Scene {
                 const musicKey = menuMusic.replace(/[^a-zA-Z0-9]/g, '_');
                 if (!this.cache.audio.has(musicKey)) {
                     this.load.audio(musicKey, menuMusic);
-                    console.log(`[MainMenu] Loading menu music: ${menuMusic} -> ${musicKey}`);
+                    DebugLogger.info('menu', `[MainMenu] Loading menu music: ${menuMusic} -> ${musicKey}`);
                 }
             }
         }
     }
-    
-    async create() {        
-        console.log('[MainMenu] create');
+
+    async create() {
+        DebugLogger.info('menu', '[MainMenu] create');
         // V menu fyziku nepotřebujeme – pauznout pro úsporu CPU
-        try { this.physics?.world?.pause(); } catch (_) {}
+        try { this.physics?.world?.pause(); } catch (_) { }
         // Bezpečnost: zastavit všechny hrající zvuky/hudbu po návratu z GameScene
-        try { this.sound && this.sound.stopAll && this.sound.stopAll(); } catch (_) {}
-        try { this.game && this.game.sound && this.game.sound.stopAll && this.game.sound.stopAll(); } catch (_) {}
+        try { this.sound && this.sound.stopAll && this.sound.stopAll(); } catch (_) { }
+        try { this.game && this.game.sound && this.game.sound.stopAll && this.game.sound.stopAll(); } catch (_) { }
         // Debug: Check scene dimensions
-        console.log('=== MAINMENU SCENE DEBUG ===');
-        console.log('scene.scale.width:', this.scale.width);
-        console.log('scene.scale.height:', this.scale.height);
-        console.log('scene.scale.gameSize:', this.scale.gameSize);
-        console.log('scene.cameras.main size:', this.cameras.main.width, 'x', this.cameras.main.height);
-        
+        DebugLogger.info('menu', '=== MAINMENU SCENE DEBUG ===');
+        DebugLogger.info('menu', 'scene.scale.width:', this.scale.width);
+        DebugLogger.info('menu', 'scene.scale.height:', this.scale.height);
+        DebugLogger.info('menu', 'scene.scale.gameSize:', this.scale.gameSize);
+        DebugLogger.info('menu', 'scene.cameras.main size:', this.cameras.main.width, 'x', this.cameras.main.height);
+
         // Načtení verze hry ze version.js
         try {
             this.gameVersion = await loadGameVersion();
         } catch (e) {
             this.gameVersion = getCachedVersion();
         }
-        
+
         // Inicializace high score managerů
         this.highScoreManager = new HighScoreManager();
         this.globalHighScoreManager = new GlobalHighScoreManager();
         this.globalHighScoreManager.setLocalFallback(this.highScoreManager);
-        
+
         // PR7: Init EventBus first (needed by KeyboardManager)
         try {
             this.eventBus = new EventBus();
         } catch (error) {
-            console.warn('EventBus init failed:', error);
+            DebugLogger.warn('menu', 'EventBus init failed:', error);
             this.eventBus = null;
         }
-        
+
         // Vytvoření main menu UI (LiteUI)
         this.mainMenuUI = new MainMenuUI(this, this.gameVersion);
-        
+
         // Setup KeyboardManager for MainMenu
         try {
             this.keyboardManager = new KeyboardManager(this, this.eventBus);
             this.setupMenuKeyboardEvents();
             this.keyboardManager.register('ESC', 'menu.escape', 'menu');
-            console.log('✅ MainMenu KeyboardManager initialized');
+            DebugLogger.info('menu', '✅ MainMenu KeyboardManager initialized');
         } catch (error) {
-            console.error('MainMenu KeyboardManager init failed:', error);
+            DebugLogger.error('menu', 'MainMenu KeyboardManager init failed:', error);
         }
-        
+
         // PR7: Init GraphicsFactory and VFX pro menu
         try {
             this.graphicsFactory = new GraphicsFactory(this);
             this.vfxSystem = new SimplifiedVFXSystem(this);
             this.vfxSystem.initialize();
-        } catch (_) {}
+        } catch (_) { }
 
         // Přehrát intro zvuk přímo přes audio system
-        try { 
+        try {
             if (this.sound && this.sound.add) {
                 const introKey = 'sound_ready_fight_mp3'; // Key generated from 'sound/ready_fight.mp3'
                 if (this.cache.audio.exists(introKey)) {
                     this.sound.play(introKey, { volume: 0.5 });
-                    console.log('[MainMenu] Playing intro sound');
+                    DebugLogger.info('menu', '[MainMenu] Playing intro sound');
                 }
             }
         } catch (e) {
-            console.warn('[MainMenu] Failed to play intro sound:', e);
+            DebugLogger.warn('menu', '[MainMenu] Failed to play intro sound:', e);
         }
-        
+
         // Initialize and start menu music - create own instance (PR7: no singleton issues)
         try {
             const { SimplifiedAudioSystem } = await import('../core/audio/SimplifiedAudioSystem.js');
@@ -135,7 +130,7 @@ export class MainMenu extends Phaser.Scene {
             await this.musicManager.initialize();
             this.musicManager.playMusic('music/8bit_main_menu.mp3');
         } catch (e) {
-            console.warn('[MainMenu] Failed to start music:', e);
+            DebugLogger.warn('menu', '[MainMenu] Failed to start music:', e);
         }
 
         // LiteUI doesn't need resize handlers - it's simple and fixed
@@ -143,11 +138,11 @@ export class MainMenu extends Phaser.Scene {
         try {
             this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this);
             this.events.once(Phaser.Scenes.Events.DESTROY, this.shutdown, this);
-        } catch (_) {}
+        } catch (_) { }
 
         // Remove blur/focus sleep/wake - it causes input issues in menu
         // Keep the game running in menu for responsive UI
-        console.log('[MainMenu] Skipping blur/focus sleep/wake - keeping menu responsive');
+        DebugLogger.info('menu', '[MainMenu] Skipping blur/focus sleep/wake - keeping menu responsive');
 
         // NEUSPÁVAT menu automaticky - nechme ho běžet, ale s nízkou frame rate
         // Menu je jednoduché a LiteUI nezatěžuje systém
@@ -157,13 +152,13 @@ export class MainMenu extends Phaser.Scene {
         // Low FPS can cause input lag and unresponsive buttons
         try {
             this.game.loop.targetFps = 30; // Compromise between performance and responsiveness
-        } catch (_) {}
+        } catch (_) { }
     }
-    
+
     // Keyboard navigation removed - LiteUI uses mouse/touch only for simplicity
-    
+
     // Menu action handling is now done directly in MainMenuUI buttons
-    
+
     /**
      * Start the game
      */
@@ -172,31 +167,31 @@ export class MainMenu extends Phaser.Scene {
         if (this.musicManager) {
             this.musicManager.stopMusic();
         }
-        
+
         // Obnovit normální FPS před přechodem do hry
-        try { this.game.loop.targetFps = 60; } catch (_) {}
+        try { this.game.loop.targetFps = 60; } catch (_) { }
         // Pro jistotu okamžitě uklidit posluchače z MainMenu ještě před přepnutím scény
-        try { this.shutdown(); } catch (_) {}
+        try { this.shutdown(); } catch (_) { }
         // Play pickup sound for menu confirm
-        try { 
+        try {
             if (this.sound && this.sound.add) {
                 const pickupKey = 'sound_pickup_mp3'; // Key generated from 'sound/pickup.mp3'
                 if (this.cache.audio.exists(pickupKey)) {
                     this.sound.play(pickupKey, { volume: 0.5 });
                 }
             }
-        } catch (_) {}
-        
+        } catch (_) { }
+
         // Transition to game
         this.scene.start('GameScene');
     }
-    
+
     // High scores functionality temporarily disabled - will be added to LiteUI later
-    
+
     // Settings functionality temporarily disabled - will be added to LiteUI later
-    
+
     // Audio and enemy info functionality will be added to LiteUI later
-    
+
     /**
      * Setup keyboard event listeners for MainMenu
      */
@@ -204,10 +199,10 @@ export class MainMenu extends Phaser.Scene {
         this.eventBus.on('menu.escape', () => {
             this.handleEscKey();
         });
-        
-        console.log('[MainMenu] Menu keyboard event listeners registered');
+
+        DebugLogger.info('menu', '[MainMenu] Menu keyboard event listeners registered');
     }
-    
+
     /**
      * Handle ESC key
      */
@@ -217,26 +212,26 @@ export class MainMenu extends Phaser.Scene {
             this.scale.stopFullscreen();
         }
     }
-    
+
     /**
      * Try to play intro sound
      */
     tryPlayIntro() {
         // Delay to ensure audio is loaded
         this.time.delayedCall(500, () => {
-            try { 
+            try {
                 if (this.sound && this.sound.add) {
                     const introKey = 'sound_ready_fight_mp3';
                     if (this.cache.audio.exists(introKey)) {
                         this.sound.play(introKey, { volume: 0.5 });
                     }
                 }
-            } catch (_) {}
+            } catch (_) { }
         });
     }
-    
+
     // LiteUI doesn't need resize handlers
-    
+
     /**
      * Cleanup when leaving scene
      */
@@ -246,25 +241,25 @@ export class MainMenu extends Phaser.Scene {
             this.keyboardManager.destroy();
             this.keyboardManager = null;
         }
-        
+
         // Cleanup music manager
         if (this.musicManager) {
             this.musicManager.destroy();
             this.musicManager = null;
         }
-        
+
         // Cleanup LiteUI
         if (this.mainMenuUI) {
             this.mainMenuUI.destroy();
             this.mainMenuUI = null;
         }
-        
+
         // Cleanup event listeners
         // Obnovit normální FPS při opuštění menu
-        try { this.game.loop.targetFps = 60; } catch (_) {}
-        
+        try { this.game.loop.targetFps = 60; } catch (_) { }
+
         // No blur/focus listeners to clean up
-        try { this.sfxRouter && this.sfxRouter.destroy(); } catch (_) {}
+        try { this.sfxRouter && this.sfxRouter.destroy(); } catch (_) { }
         this.sfxRouter = null;
         this.sfxSystem = null;
         this.vfxSystem = null;

@@ -11,6 +11,8 @@
 
 // JSON5 se použije pokud je dostupné globálně, jinak fallback na JSON
 
+import { DebugLogger } from '../debug/DebugLogger.js';
+
 export class BlueprintLoader {
     constructor(game) {
         this.game = game;
@@ -22,7 +24,7 @@ export class BlueprintLoader {
         // Kategorie blueprintů - budou inicializované z konfigurace
         this.categories = {};
         
-        console.log('[BlueprintLoader] Initialized');
+        DebugLogger.info('bootstrap', 'BlueprintLoader initialized');
     }
     
     /**
@@ -32,7 +34,7 @@ export class BlueprintLoader {
     loadConfig() {
         const CR = window.ConfigResolver;
         if (!CR) {
-            console.error('[BlueprintLoader] ConfigResolver není dostupný!');
+            DebugLogger.error('bootstrap', ' ConfigResolver není dostupný!');
             // Záložní konfigurace pro případ selhání
             this.config = {
                 paths: {
@@ -83,7 +85,7 @@ export class BlueprintLoader {
             this.categories[category] = new Map();
         });
         
-        console.log('[BlueprintLoader] Konfigurace načtena:', {
+        DebugLogger.debug('bootstrap', 'BlueprintLoader konfigurace načtena:', {
             categories: this.config.categories.length,
             spawnTables: this.config.spawnTables.length,
             systemConfigs: this.config.systemConfigs.length
@@ -94,7 +96,7 @@ export class BlueprintLoader {
      * Initialize and load all blueprints
      */
     async init() {
-        console.log('[BlueprintLoader] Starting initialization...');
+        DebugLogger.info('bootstrap', 'BlueprintLoader starting initialization...');
         
         // Nejprve načíst konfiguraci
         this.loadConfig();
@@ -116,18 +118,18 @@ export class BlueprintLoader {
             await this.loadItemBlueprints();
             
             this.loaded = true;
-            console.log(`[BlueprintLoader] ✅ Loaded ${this.blueprints.size} blueprints total`);
+            DebugLogger.info('bootstrap', `✅ BlueprintLoader loaded ${this.blueprints.size} blueprints total`);
             
             // Log summary
             Object.entries(this.categories).forEach(([category, map]) => {
                 if (map.size > 0) {
-                    console.log(`  ${category}: ${map.size} items`);
+                    DebugLogger.verbose('bootstrap', `  ${category}: ${map.size} items`);
                 }
             });
             
             return true;
         } catch (error) {
-            console.error('[BlueprintLoader] ❌ Initialization failed:', error);
+            DebugLogger.error('bootstrap', ' ❌ Initialization failed:', error);
             return false;
         }
     }
@@ -144,9 +146,9 @@ export class BlueprintLoader {
             }
             
             this.registryIndex = await response.json();
-            console.log(`[BlueprintLoader] Registry index loaded: ${this.registryIndex.totalEntities} entities`);
+            DebugLogger.debug('bootstrap', `Registry index loaded: ${this.registryIndex.totalEntities} entities`);
         } catch (error) {
-            console.error('[BlueprintLoader] Failed to load registry index:', error);
+            DebugLogger.error('bootstrap', ' Failed to load registry index:', error);
             throw error;
         }
     }
@@ -156,7 +158,7 @@ export class BlueprintLoader {
      */
     async loadAllBlueprints() {
         if (!this.registryIndex || !this.registryIndex.index) {
-            console.warn('[BlueprintLoader] No registry index available');
+            DebugLogger.warn('bootstrap', ' No registry index available');
             return;
         }
         
@@ -173,7 +175,7 @@ export class BlueprintLoader {
         results.forEach((result, index) => {
             if (result.status === 'rejected') {
                 const [id] = Object.entries(this.registryIndex.index)[index];
-                console.warn(`[BlueprintLoader] Failed to load ${id}:`, result.reason);
+                DebugLogger.warn('bootstrap', ` Failed to load ${id}:`, result.reason);
             }
         });
     }
@@ -218,7 +220,7 @@ export class BlueprintLoader {
             
             return blueprint;
         } catch (error) {
-            console.warn(`[BlueprintLoader] Failed to load ${id} from ${path}:`, error.message);
+            DebugLogger.warn('bootstrap', ` Failed to load ${id} from ${path}:`, error.message);
             throw error;
         }
     }
@@ -243,9 +245,9 @@ export class BlueprintLoader {
                 this.categories.spawnTable.set(tableId, table);
                 this.blueprints.set(`spawn.${tableId}`, table);
                 
-                console.log(`[BlueprintLoader] Loaded spawn table: ${tableId}`);
+                DebugLogger.verbose('loot', `Loaded spawn table: ${tableId}`);
             } catch (error) {
-                console.warn(`[BlueprintLoader] Failed to load spawn table ${tableId}:`, error);
+                DebugLogger.warn('bootstrap', ` Failed to load spawn table ${tableId}:`, error);
             }
         }
     }
@@ -270,9 +272,9 @@ export class BlueprintLoader {
                 this.categories.system.set(configId, config);
                 this.blueprints.set(`system.${configId}`, config);
                 
-                console.log(`[BlueprintLoader] Loaded system config: ${configId}`);
+                DebugLogger.verbose('loot', `Loaded system config: ${configId}`);
             } catch (error) {
-                console.warn(`[BlueprintLoader] Failed to load system config ${configId}:`, error);
+                DebugLogger.warn('bootstrap', ` Failed to load system config ${configId}:`, error);
             }
         }
     }
@@ -319,7 +321,7 @@ export class BlueprintLoader {
                 const response = await fetch(fullPath);
                 
                 if (!response.ok) {
-                    console.warn(`[BlueprintLoader] Item file not found: ${filePath}`);
+                    DebugLogger.warn('bootstrap', ` Item file not found: ${filePath}`);
                     continue;
                 }
                 
@@ -330,10 +332,10 @@ export class BlueprintLoader {
                     this.blueprints.set(item.id, item);
                     this.categories.item = this.categories.item || new Map();
                     this.categories.item.set(item.id, item);
-                    console.log(`[BlueprintLoader] Loaded item: ${item.id}`);
+                    DebugLogger.verbose('loot', `Loaded item: ${item.id}`);
                 }
             } catch (error) {
-                console.warn(`[BlueprintLoader] Failed to load item ${filePath}:`, error);
+                DebugLogger.warn('bootstrap', ` Failed to load item ${filePath}:`, error);
             }
         }
     }
@@ -409,7 +411,7 @@ export class BlueprintLoader {
                      this.blueprints.get(expectedId);
         
         if (!table) {
-            console.error(`[BlueprintLoader] Spawn table not found: ${expectedId}`);
+            DebugLogger.error('bootstrap', ` Spawn table not found: ${expectedId}`);
         }
         
         return table;
@@ -457,7 +459,7 @@ export class BlueprintLoader {
             this.categories[category].set(id, data);
         }
         
-        console.log(`[BlueprintLoader] Updated blueprint: ${id}`);
+        DebugLogger.debug('bootstrap', `Updated blueprint: ${id}`);
     }
     
     /**

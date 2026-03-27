@@ -12,6 +12,7 @@
  */
 
 import { GameConfig } from '../../config.js';
+import { DebugLogger } from '../debug/DebugLogger.js';
 
 export class ConfigResolver {
   // Externí konfigurace načtené ze souborů
@@ -85,7 +86,7 @@ export class ConfigResolver {
     const fallback = this._fallbacks[path];
     if (fallback !== undefined) {
       if (warnIfMissing && this._telemetry.enabled) {
-        console.warn(`[ConfigResolver] Missing value for '${path}', using fallback: ${fallback}`);
+        DebugLogger.warn('bootstrap', `Missing value for '${path}', using fallback: ${fallback}`);
         this._recordMissing(path);
       }
       return fallback;
@@ -94,7 +95,7 @@ export class ConfigResolver {
     // 5. Explicitní defaultValue
     if (defaultValue !== null) {
       if (warnIfMissing && this._telemetry.enabled) {
-        console.warn(`[ConfigResolver] Missing value for '${path}', using provided default: ${defaultValue}`);
+        DebugLogger.warn('bootstrap', `Missing value for '${path}', using provided default: ${defaultValue}`);
         this._recordMissing(path);
       }
       return defaultValue;
@@ -102,7 +103,7 @@ export class ConfigResolver {
 
     // 6. Hodnota nenalezena nikde
     if (warnIfMissing) {
-      console.error(`[ConfigResolver] No value found for '${path}' and no default provided`);
+      DebugLogger.error('bootstrap', `No value found for '${path}' and no default provided`);
       this._recordMissing(path);
     }
     return undefined;
@@ -246,7 +247,7 @@ export class ConfigResolver {
    * @returns {Promise<void>}
    */
   static async initialize() {
-    console.log('[ConfigResolver] Inicializace...');
+    DebugLogger.info('bootstrap', 'ConfigResolver inicializace...');
     
     // Seznam konfiguračních souborů k načtení - PR7 kompletní konfigurace
     const configFiles = [
@@ -265,13 +266,13 @@ export class ConfigResolver {
         // Použít JSON5 pro parsování (podporuje komentáře, trailing commas, atd.)
         const data = window.JSON5 ? window.JSON5.parse(text) : JSON.parse(text);
         this._externalConfigs[key] = data;
-        console.log(`[ConfigResolver] ✅ Načteno: ${key} z ${path}`);
+        DebugLogger.debug('bootstrap', `✅ Načteno: ${key} z ${path}`);
       } catch (error) {
-        console.warn(`[ConfigResolver] ⚠️ Nelze načíst ${path}:`, error.message);
+        DebugLogger.warn('bootstrap', `⚠️ Nelze načíst ${path}:`, error.message);
       }
     }
     
-    console.log('[ConfigResolver] Inicializace dokončena, načteno ' + Object.keys(this._externalConfigs).length + ' konfiguračních souborů');
+    DebugLogger.info('bootstrap', 'ConfigResolver inicializace dokončena, načteno ' + Object.keys(this._externalConfigs).length + ' konfiguračních souborů');
   }
 }
 

@@ -245,31 +245,145 @@ DEV.killAll();
 
 ---
 
-## 📋 Praktické návody
+## 📋 Praktické návody (Golden Path)
 
-### 🆕 Přidání nového nepřítele (3 kroky)
+### 🆕 Přidání nového nepřítele - Kompletní tutoriál
 
-**1. Vytvoř blueprint** v `/data/blueprints/enemy/`
+#### Krok 1: Vytvoř blueprint
 ```bash
-cp data/blueprints/templates/enemy.json5 data/blueprints/enemy/enemy.novy_nepritel.json5
+cp data/blueprints/templates/enemy.json5 data/blueprints/enemy/enemy.toxic_spore.json5
 ```
 
-**2. Nastav základní parametry:**
+#### Krok 2: Definuj kompletní blueprint
 ```json5
 {
-  id: "enemy.novy_nepritel",
+  id: "enemy.toxic_spore",
   type: "enemy",
-  stats: { hp: 25, damage: 8, speed: 80, size: 16, xp: 4 },
-  ai: { behavior: "chase", params: { aggroRange: 250 } },
-  lootTable: "lootTable.level1.common",
-  sfx: { hit: "sound/npc_hit.mp3", death: "sound/npc_death.mp3" }
+  
+  // Základní stats
+  stats: { 
+    hp: 30, 
+    damage: 12, 
+    speed: 75, 
+    size: 18,
+    armor: 2,
+    xp: 5 
+  },
+  
+  // AI behavior - BEZ Phaser API!
+  ai: { 
+    behavior: "aggressive",       // Použije behaviors/chase.js
+    initialState: "idle",
+    params: { 
+      aggroRange: 250,
+      attackRange: 150,
+      shootCooldown: 2000
+    }
+  },
+  
+  // Vizuální styl
+  visuals: {
+    tint: 0x00FF00,              // Zelená barva
+    scale: 1.0,
+    texture: "enemy_basic"        // Nebo vlastní textura
+  },
+  
+  // VFX efekty - registry IDs
+  vfx: {
+    spawn: "vfx.enemy.spawn.toxic",
+    hit: "vfx.hit.spark.green",
+    death: "vfx.enemy.death.toxic_burst"
+  },
+  
+  // SFX zvuky - direct paths
+  sfx: {
+    spawn: "sound/enemy_spawn.mp3",
+    hit: "sound/toxic_hit.mp3",
+    death: "sound/toxic_death.mp3"
+  },
+  
+  // Loot table
+  loot: {
+    lootTableId: "lootTable.level1.common",
+    dropChance: 0.3
+  }
 }
 ```
 
-**3. Registruj a testuj:**
-- Přidej do `/data/registries/index.json`
-- Test: `DEV.spawnEnemy("enemy.novy_nepritel")`
-- Přidej do spawn tabulky v `/data/blueprints/spawn/`
+#### Krok 3: Registruj VFX efekty (pokud nové)
+```javascript
+// js/core/vfx/VFXPlaceholders.js nebo VFXRegistry
+VFXRegistry.register('vfx.enemy.spawn.toxic', {
+    type: 'particles',
+    preset: 'toxic_spawn',
+    duration: 500
+});
+
+VFXRegistry.register('vfx.enemy.death.toxic_burst', {
+    type: 'particles',
+    preset: 'toxic_explosion',
+    particleCount: 20
+});
+```
+
+#### Krok 4: Přidej do spawn tabulky
+```json5
+// data/blueprints/spawn/level1.json5
+{
+  waves: [
+    {
+      time: 10,
+      entries: [
+        { 
+          id: "enemy.toxic_spore", 
+          count: { min: 2, max: 4 }, 
+          weight: 0.25,
+          spawnPattern: "circle"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Krok 5: Vlastní AI behavior (pokud potřeba)
+```javascript
+// js/entities/ai/behaviors/toxic.js - PURE FUNCTION!
+export function toxic(cap, cfg, dt) {
+    // Žádné Phaser API! Pouze capabilities
+    const pos = cap.getPos();
+    
+    if (cap.inRangeOfPlayer(cfg.aggroRange)) {
+        // Poison cloud mechanic
+        if (Math.random() < 0.01) {
+            cap.spawnVfx('poison_cloud', pos);
+        }
+        return 'chase';
+    }
+    
+    return null; // Stay in current state
+}
+```
+
+#### Krok 6: Test
+```javascript
+// V browser console
+DEV.spawnEnemy("enemy.toxic_spore");
+
+// Hromadný test
+for(let i = 0; i < 5; i++) {
+    DEV.spawnEnemy("enemy.toxic_spore");
+}
+
+// Ověř VFX/SFX
+__framework.quickCheck();
+```
+
+#### ⚠️ Časté chyby a řešení
+- **Enemy neviditelný**: Chybí texture → použije se placeholder
+- **VFX nefunguje**: Špatné ID → zkontroluj registry
+- **AI nefunguje**: Chyba v behavior → console.log v capability
+- **Není drop**: Špatná lootTable → fallback na XP orby
 
 ### 🐉 Přidání nového bosse (3 kroky)
 
@@ -293,31 +407,297 @@ cp data/blueprints/templates/boss.json5 data/blueprints/boss/boss.novy_boss.json
 }
 ```
 
-**3. Test v Boss Playground:**
-- Stiskni **F7** pro otevření Boss Playground
-- Vyber svého bosse ze seznamu
-- Klikni **SPAWN** pro test
+**3. Test pomocí DEV console:**
+```javascript
+// V browser console
+DEV.spawnBoss("boss.novy_boss");
+```
 
-### ⚡ Přidání nového power-upu (3 kroky)
+### ⚡ Přidání nového power-upu - Golden Path
 
-**1. Vytvoř blueprint:**
+#### Krok 1: Vytvoř blueprint
+```bash
+cp data/blueprints/templates/powerup.json5 data/blueprints/powerup/powerup.toxic_shield.json5
+```
+
+#### Krok 2: Definuj power-up mechaniku
 ```json5
 {
-  id: "powerup.novy_powerup",
+  id: "powerup.toxic_shield",
   type: "powerup",
+  
+  // Metadata
+  meta: {
+    rarity: "rare",
+    maxStacks: 3,
+    category: "defensive"
+  },
+  
+  // Vizuální prezentace
+  display: {
+    name: "Toxický štít",
+    description: "Poison damage při kontaktu",
+    icon: "powerup_toxic_shield",
+    color: 0x00FF00
+  },
+  
+  // Modifikátory - co power-up dělá
   modifiers: [
-    { stat: "damage", type: "multiply", value: 1.5, duration: 10000 }
+    { 
+      stat: "shield", 
+      type: "add", 
+      value: 20,
+      duration: -1  // Permanentní
+    },
+    {
+      stat: "contactPoison",
+      type: "add", 
+      value: 5,
+      duration: -1
+    }
   ],
+  
+  // Level scaling
   levels: [
-    { level: 1, modifiers: [{ value: 1.5 }] },
-    { level: 2, modifiers: [{ value: 1.8 }] }
+    { 
+      level: 1, 
+      modifiers: [
+        { stat: "shield", value: 20 },
+        { stat: "contactPoison", value: 5 }
+      ]
+    },
+    { 
+      level: 2, 
+      modifiers: [
+        { stat: "shield", value: 35 },
+        { stat: "contactPoison", value: 8 }
+      ]
+    },
+    { 
+      level: 3, 
+      modifiers: [
+        { stat: "shield", value: 50 },
+        { stat: "contactPoison", value: 12 }
+      ]
+    }
+  ],
+  
+  // VFX při aktivaci
+  vfx: {
+    pickup: "vfx.powerup.toxic_shield.activate",
+    active: "vfx.powerup.toxic_shield.aura"
+  },
+  
+  // SFX
+  sfx: {
+    pickup: "sound/powerup_shield.mp3",
+    proc: "sound/poison_proc.mp3"
+  }
+}
+```
+
+#### Krok 3: Registruj VFX efekt
+```javascript
+// js/core/vfx/VFXPlaceholders.js
+VFXRegistry.register('vfx.powerup.toxic_shield.aura', {
+    type: 'aura',
+    color: 0x00FF00,
+    alpha: 0.3,
+    pulseSpeed: 1000,
+    radius: 40
+});
+```
+
+#### Krok 4: Implementuj mechaniku (pokud custom)
+```javascript
+// js/core/systems/PowerUpSystem.js - přidej handler
+handleToxicShield(player, powerup) {
+    // Aplikuj modifikátory
+    this.applyModifiers(player, powerup.modifiers);
+    
+    // Custom mechanika - poison při kontaktu
+    player.on('enemy-contact', (enemy) => {
+        enemy.takeDamage({
+            amount: powerup.modifiers[1].value,
+            type: 'poison'
+        });
+        this.scene.vfxSystem.play('vfx.poison.proc', enemy.x, enemy.y);
+    });
+}
+```
+
+#### Krok 5: Přidej do level-up selection poolu
+```json5
+// data/blueprints/system/levelup_pool.json5
+{
+  powerups: [
+    { id: "powerup.toxic_shield", weight: 0.15, minLevel: 3 }
   ]
 }
 ```
 
-**2. Přidej do loot tabulek** v `/data/blueprints/loot/`
+#### Krok 6: Test
+```javascript
+// Okamžitý test
+DEV.givePowerUp("powerup.toxic_shield");
 
-**3. Test:** `DEV.spawnDrop("powerup.novy_powerup")`
+// Test level-up selection
+DEV.levelUp();
+
+// Ověř modifikátory
+console.log(this.scene.player.modifiers);
+```
+
+### 🖼️ Práce s UI - Pouze přes GameUIScene
+
+#### Základní pravidla
+1. **VEŠKERÉ UI je v GameUIScene** - nikdy v GameScene!
+2. **Komunikace pouze přes eventy** - žádné přímé reference
+3. **RexUI pro modaly** - používejte tovární metody
+
+#### Příklad: Přidání nového modal dialogu
+```javascript
+// js/scenes/GameUIScene.js
+createCustomModal() {
+    // Použij RexUI factory
+    const modal = this.rexUI.add.dialog({
+        x: this.centerX,
+        y: this.centerY,
+        width: 400,
+        height: 300,
+        
+        background: this.rexUI.add.roundRectangle(0, 0, 100, 100, 20, 0x1a1a1a),
+        
+        title: this.createLabel('Custom Modal'),
+        
+        content: this.createLabel('Modal content here'),
+        
+        actions: [
+            this.createButton('OK'),
+            this.createButton('Cancel')
+        ],
+        
+        space: {
+            title: 25,
+            content: 25,
+            action: 15,
+            left: 20, right: 20, top: 20, bottom: 20
+        }
+    })
+    .layout()
+    .setDepth(this.DEPTH_LAYERS.UI_OVERLAY);
+    
+    // Input isolation
+    this.input.setTopOnly(true);
+    modal.setInteractive();
+    
+    return modal;
+}
+```
+
+#### Event komunikace
+```javascript
+// GameScene → GameUIScene
+this.game.events.emit('ui:show-modal', { 
+    type: 'custom',
+    data: { message: 'Hello!' }
+});
+
+// GameUIScene listener
+this.game.events.on('ui:show-modal', (config) => {
+    this.showModal(config);
+});
+
+// GameUIScene → GameScene callback
+this.scene.get('GameScene').events.emit('modal:closed', result);
+```
+
+#### Input blocking při UI overlay
+```javascript
+showOverlay() {
+    // 1. Vytvoř blocking container
+    const blocker = this.add.container(0, 0);
+    blocker.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), 
+                          Phaser.Geom.Rectangle.Contains);
+    
+    // 2. Block propagaci
+    blocker.on('pointerdown', (pointer, localX, localY, event) => {
+        event.stopPropagation();
+    });
+    
+    // 3. Top-only input
+    this.input.setTopOnly(true);
+    
+    // 4. Pauza game scene
+    this.scene.pause('GameScene');
+}
+```
+
+### 🐞 Debug a DEV nástroje
+
+#### DEV Console příkazy
+```javascript
+// Přímé volání DEV funkcí v browser console
+
+// Spawn enemy
+DEV.spawnEnemy("enemy.viral_swarm");
+
+// Spawn boss  
+DEV.spawnBoss("boss.radiation_core");
+
+// Framework diagnostika
+__framework.healthcheck();
+```
+
+#### Console commands
+```javascript
+// Základní DEV commands
+DEV.spawnEnemy("enemy.viral_swarm");
+DEV.spawnBoss("boss.radiation_core");
+DEV.killAll();
+DEV.heal(100);
+DEV.givePowerUp("powerup.damage_boost");
+DEV.levelUp();
+
+// Framework diagnostika
+__framework.healthcheck();
+__framework.quickCheck();
+__framework.smokeTest();
+
+// Memory profiling
+enemyManager.getActiveCount();
+projectileSystem.getActiveCount();
+disposableRegistry.getStats();
+
+// Transition history
+transitionManager.getTransitionHistory();
+```
+
+#### Memory leak detection
+```javascript
+// Test cyklus
+function memoryLeakTest() {
+    // 1. Spawn hodně enemies
+    for(let i = 0; i < 100; i++) {
+        DEV.spawnEnemy("enemy.viral_swarm");
+    }
+    
+    // 2. Počkej na update
+    setTimeout(() => {
+        // 3. Zabij všechny
+        DEV.killAll();
+        
+        // 4. Check counts
+        setTimeout(() => {
+            console.log('Active enemies:', enemyManager.getActiveCount());
+            console.log('Active projectiles:', projectileSystem.getActiveCount());
+            console.log('Disposables:', disposableRegistry.getStats());
+            
+            // Vše by mělo být 0!
+        }, 1000);
+    }, 3000);
+}
+```
 
 ### 🎮 SFX a VFX systém
 

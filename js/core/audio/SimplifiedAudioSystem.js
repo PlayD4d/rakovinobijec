@@ -6,6 +6,8 @@
  * No registry needed - just play files directly
  */
 
+import { DebugLogger } from '../debug/DebugLogger.js';
+
 export class SimplifiedAudioSystem {
     constructor(scene) {
         this.scene = scene;
@@ -55,7 +57,7 @@ export class SimplifiedAudioSystem {
         this.scene.events.once('destroy', () => this.destroy());
         
         this.initialized = true;
-        console.log('[SimplifiedAudioSystem] Initialized');
+        DebugLogger.info('audio', '[SimplifiedAudioSystem] Initialized');
     }
     
     /**
@@ -84,13 +86,13 @@ export class SimplifiedAudioSystem {
                 this.musicTracks.menu = ['music/8bit_main_menu_norm.mp3'];
             }
             
-            console.log('[SimplifiedAudioSystem] Music tracks loaded:', {
+            DebugLogger.info('audio', '[SimplifiedAudioSystem] Music tracks loaded:', {
                 game: this.musicTracks.game.length,
                 boss: this.musicTracks.boss.length,
                 menu: this.musicTracks.menu.length
             });
         } catch (error) {
-            console.warn('[SimplifiedAudioSystem] Failed to load music tracks:', error);
+            DebugLogger.warn('audio', '[SimplifiedAudioSystem] Failed to load music tracks:', error);
         }
     }
     
@@ -130,7 +132,7 @@ export class SimplifiedAudioSystem {
                 return sound;
             }
         } catch (error) {
-            console.warn(`[SimplifiedAudioSystem] Failed to play: ${soundPath}`, error);
+            DebugLogger.warn('audio', `[SimplifiedAudioSystem] Failed to play: ${soundPath}`, error);
         }
         
         return null;
@@ -210,14 +212,14 @@ export class SimplifiedAudioSystem {
             // Set up track rotation on completion if not looping
             if (options.loop === false && this.currentMusicCategory === 'game') {
                 music.once('complete', () => {
-                    console.log('[SimplifiedAudioSystem] Track ended, playing next track');
+                    DebugLogger.info('audio', '[SimplifiedAudioSystem] Track ended, playing next track');
                     this.playNextTrack();
                 });
             }
             
             return music;
         } catch (error) {
-            console.warn(`[SimplifiedAudioSystem] Failed to play music: ${musicPath}`, error);
+            DebugLogger.warn('audio', `[SimplifiedAudioSystem] Failed to play music: ${musicPath}`, error);
         }
         
         return null;
@@ -228,13 +230,13 @@ export class SimplifiedAudioSystem {
      */
     switchMusicCategory(category, options = {}) {
         if (!this.initialized || !this.musicTracks[category]) {
-            console.warn(`[SimplifiedAudioSystem] Invalid music category: ${category}`);
+            DebugLogger.warn('audio', `[SimplifiedAudioSystem] Invalid music category: ${category}`);
             return;
         }
         
         const tracks = this.musicTracks[category];
         if (tracks.length === 0) {
-            console.warn(`[SimplifiedAudioSystem] No tracks for category: ${category}`);
+            DebugLogger.warn('audio', `[SimplifiedAudioSystem] No tracks for category: ${category}`);
             return;
         }
         
@@ -264,7 +266,7 @@ export class SimplifiedAudioSystem {
             loop: true
         });
         
-        console.log(`[SimplifiedAudioSystem] Switched to ${category} music: ${trackToPlay}`);
+        DebugLogger.info('audio', `[SimplifiedAudioSystem] Switched to ${category} music: ${trackToPlay}`);
     }
     
     /**
@@ -272,13 +274,13 @@ export class SimplifiedAudioSystem {
      */
     playNextTrack(options = {}) {
         if (!this.currentMusicCategory) {
-            console.warn('[SimplifiedAudioSystem] No music category set');
+            DebugLogger.warn('audio', '[SimplifiedAudioSystem] No music category set');
             return;
         }
         
         const tracks = this.musicTracks[this.currentMusicCategory];
         if (tracks.length <= 1) {
-            console.log('[SimplifiedAudioSystem] Only one track in category, continuing current');
+            DebugLogger.info('audio', '[SimplifiedAudioSystem] Only one track in category, continuing current');
             return;
         }
         
@@ -293,7 +295,7 @@ export class SimplifiedAudioSystem {
             loop: true
         });
         
-        console.log(`[SimplifiedAudioSystem] Playing next track: ${nextTrack}`);
+        DebugLogger.info('audio', `[SimplifiedAudioSystem] Playing next track: ${nextTrack}`);
     }
     
     /**
@@ -433,7 +435,7 @@ export class SimplifiedAudioSystem {
         // Check if sound is loaded
         if (!this.scene.cache.audio.exists(key)) {
             // Try to load it (this might not work in production)
-            console.warn(`[SimplifiedAudioSystem] Sound not preloaded: ${key} (${path})`);
+            DebugLogger.warn('audio', `[SimplifiedAudioSystem] Sound not preloaded: ${key} (${path})`);
             return null;
         }
         

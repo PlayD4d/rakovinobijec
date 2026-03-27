@@ -1,3 +1,5 @@
+import { DebugLogger } from '../../debug/DebugLogger.js';
+
 /**
  * ShieldEffect - PR7 compliant shield visual effect
  * Creates an animated shield bubble around an entity
@@ -31,7 +33,7 @@ export class ShieldEffect {
      * @param {Object} config - New configuration
      */
     updateConfig(config) {
-        console.log('[ShieldEffect] Updating config:', config);
+        DebugLogger.info('vfx', '[ShieldEffect] Updating config:', config);
         
         // Update visual parameters
         if (config.radius !== undefined) this.radius = config.radius;
@@ -45,7 +47,7 @@ export class ShieldEffect {
             this._drawShield();
         }
         
-        console.log(`[ShieldEffect] Config updated - Radius: ${this.radius}, Color: 0x${this.color.toString(16)}`);
+        DebugLogger.info('vfx', `[ShieldEffect] Config updated - Radius: ${this.radius}, Color: 0x${this.color.toString(16)}`);
     }
     
     /**
@@ -79,7 +81,7 @@ export class ShieldEffect {
             if (activateSFX) {
                 this.scene.audioSystem.play(activateSFX);
             } else {
-                console.warn('[ShieldEffect] Missing shield.activate sound in player blueprint');
+                DebugLogger.warn('vfx', '[ShieldEffect] Missing shield.activate sound in player blueprint');
             }
         }
     }
@@ -229,12 +231,12 @@ export class ShieldEffect {
         // PR7: Fallback with warning
         if (this.scene && this.scene.add && this.scene.add.graphics) {
             if (Math.random() < 0.01) { // Only log occasionally
-                console.warn('[ShieldEffect] Using scene.add.graphics fallback - needs PR7 GraphicsFactory');
+                DebugLogger.warn('vfx', '[ShieldEffect] Using scene.add.graphics fallback - needs PR7 GraphicsFactory');
             }
             return this.scene.add.graphics();
         }
         
-        console.error('[ShieldEffect] Cannot create graphics - no factory available');
+        DebugLogger.error('vfx', '[ShieldEffect] Cannot create graphics - no factory available');
         return null;
     }
 }

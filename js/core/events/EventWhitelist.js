@@ -34,6 +34,7 @@ export const EventWhitelist = {
 
   // Game Lifecycle Events
   LIFECYCLE: {
+    PLAYER_SPAWNED: 'player:spawned',
     SCENE_PAUSED: 'scene.paused',
     SCENE_RESUMED: 'scene.resumed',
     SETTINGS_CHANGED: 'settings.changed',

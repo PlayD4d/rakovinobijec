@@ -20,9 +20,20 @@ npm-debug.log*
 *.temp
 .cache/
 
+# Generated files
+data/generated/
+
 # Internal tools (not for public repo)
 analytics-dashboard/
 editor/
 start-editor.sh
 test-shapes.html
 test-projectiles.html
+
+# Temporary test/build artifacts
+docs.zip
+test-basic.js
+test-runner-inline.js
+test-working.js
+*.bak
+*.pre-vfx-sfx-migration.bak

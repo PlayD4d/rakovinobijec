@@ -1,3 +1,5 @@
+import { DebugLogger } from '../../debug/DebugLogger.js';
+
 /**
  * PowerUpAbilities - Handles special abilities from power-ups
  * PR7 Compliant - All abilities driven by blueprint configuration
@@ -49,10 +51,11 @@ export class PowerUpAbilities {
                 break;
                 
             case 'shield':
-                config.baseRegenMs = ability.baseRegenMs || 10000;
-                config.minRegenMs = ability.minRegenMs || 5000;
-                config.regenReduction = ability.regenReductionPerLevel || 500;
-                config.hits = level; // Shield hits = level
+                // PR7: Use baseShieldHP from ability config, multiply by level
+                const baseHP = ability.baseShieldHP || 50;
+                config.shieldHP = baseHP * level;  // 50, 100, 150, 200, 250
+                config.rechargeTime = ability.rechargeTimePerLevel?.[level - 1] || 10000;
+                DebugLogger.info('powerup', `[PowerUpAbilities] Shield config: HP=${config.shieldHP}, recharge=${config.rechargeTime}ms`);
                 break;
                 
             case 'chain_lightning':
@@ -84,12 +87,12 @@ export class PowerUpAbilities {
                 break;
                 
             default:
-                console.warn(`[PowerUpAbilities] Unknown ability type: ${ability.type}`);
+                DebugLogger.warn('powerup', `[PowerUpAbilities] Unknown ability type: ${ability.type}`);
                 return [];
         }
         
         abilities.push(config);
-        console.log(`[PowerUpAbilities] Ability: ${config.type} level ${config.level}`, config);
+        DebugLogger.info('powerup', `[PowerUpAbilities] Ability: ${config.type} level ${config.level}`, config);
         
         return abilities;
     }
@@ -111,7 +114,7 @@ export class PowerUpAbilities {
         
         switch (config.type) {
             case 'radiotherapy':
-                console.log(`[PowerUpAbilities] 🔬 Applying radiotherapy config:`, config);
+                DebugLogger.info('powerup', `[PowerUpAbilities] 🔬 Applying radiotherapy config:`, config);
                 if (vfxManager) {
                     vfxManager.attachEffect(player, 'radiotherapy', config);
                 }
@@ -136,48 +139,60 @@ export class PowerUpAbilities {
                 break;
                 
             case 'shield':
-                // Set shield directly on player
+                // Set shield HP-based system on player
                 player.shieldActive = true;
                 player.shieldLevel = config.level;
-                player.shieldHits = config.hits;
-                player.shieldRegenMs = Math.max(config.minRegenMs, 
-                    config.baseRegenMs - (config.regenReduction * (config.level - 1)));
-                player.shieldBroken = false;
-                player.shieldRegenTimer = 0;
+                player.shieldHP = config.shieldHP;
+                player.maxShieldHP = config.shieldHP;
+                player.shieldRechargeTime = config.rechargeTime;
+                player.shieldRecharging = false;
+                player.shieldRechargeAt = 0;
                 
-                console.log(`[PowerUpAbilities] ✅ SHIELD ACTIVATED - Level: ${config.level}, Hits: ${config.hits}, Regen: ${player.shieldRegenMs}ms`);
+                DebugLogger.info('powerup', `[PowerUpAbilities] ✅ SHIELD ACTIVATED - Level: ${config.level}, HP: ${config.shieldHP}, Recharge: ${config.rechargeTime}ms`);
                 
                 // Create shield visual effect
                 if (vfxManager) {
+                    DebugLogger.info('powerup', `[PowerUpAbilities] Attaching shield VFX to player`);
                     vfxManager.attachEffect(player, 'shield', {
                         radius: 40 + (config.level * 5),
                         color: 0x00ffff,
                         alpha: 0.3
                     });
+                } else if (this.scene.vfxSystem) {
+                    // Fallback to direct VFX system call
+                    DebugLogger.info('powerup', `[PowerUpAbilities] Using vfxSystem for shield effect`);
+                    this.scene.vfxSystem.play('vfx.shield.active', player.x, player.y);
+                } else {
+                    DebugLogger.warn('powerup', `[PowerUpAbilities] No VFX system available for shield effect`);
                 }
                 break;
                 
             case 'xp_magnet':
                 // XP magnet uses modifier system only
-                console.log(`[PowerUpAbilities] XP magnet handled via modifiers (level ${config.level})`);
+                DebugLogger.info('powerup', `[PowerUpAbilities] XP magnet handled via modifiers (level ${config.level})`);
                 break;
                 
             case 'chain_lightning':
                 // Register lightning ability for update loop
                 this.activeAbilities.set('chain_lightning', {
                     config,
-                    timer: 0,
-                    updateFn: (delta) => this._updateChainLightning(delta, config)
+                    nextTriggerAt: 0,
+                    updateFn: (time, delta) => this._updateChainLightning(time, delta, config)
                 });
                 player.hasLightningChain = true;
                 player.lightningChainLevel = config.level;
                 break;
                 
             case 'aura':
-                // Create aura visual if not exists
-                if (!player.aura && this.scene.add) {
-                    player.aura = this.scene.add.graphics();
-                    player.aura.setDepth(player.depth - 1);
+                // PR7: Create aura visual through VFXSystem
+                if (this.scene.vfxSystem && !player.aura) {
+                    this.scene.vfxSystem.play('vfx.aura.damage', player.x, player.y, {
+                        radius: config.radius + (config.radiusPerLevel * (config.level - 1)),
+                        color: 0x00ff00,
+                        alpha: 0.1,
+                        persistent: true
+                    });
+                    player.aura = true; // Mark as created
                 }
                 player.auraDamage = config.damage * config.level;
                 player.auraRadius = config.radius + (config.radiusPerLevel * (config.level - 1));
@@ -187,7 +202,7 @@ export class PowerUpAbilities {
                 // Enable chemo aura on player
                 player.chemoAuraActive = true;
                 player.chemoAuraConfig = config;
-                console.log(`[PowerUpAbilities] Activated chemo aura with config:`, config);
+                DebugLogger.info('powerup', `[PowerUpAbilities] Activated chemo aura with config:`, config);
                 break;
                 
             case 'piercing':
@@ -195,11 +210,11 @@ export class PowerUpAbilities {
                 player.piercingLevel = config.level;
                 player.piercingMaxPierces = config.maxPierces;
                 player.piercingDamageReduction = config.damageReduction;
-                console.log(`[PowerUpAbilities] Activated piercing: ${config.maxPierces} pierces, ${(config.damageReduction * 100)}% damage reduction`);
+                DebugLogger.info('powerup', `[PowerUpAbilities] Activated piercing: ${config.maxPierces} pierces, ${(config.damageReduction * 100)}% damage reduction`);
                 break;
                 
             default:
-                console.warn(`[PowerUpAbilities] Unhandled ability type: ${config.type}`);
+                DebugLogger.warn('powerup', `[PowerUpAbilities] Unhandled ability type: ${config.type}`);
         }
     }
     
@@ -207,10 +222,10 @@ export class PowerUpAbilities {
      * Update active abilities
      */
     update(time, delta) {
-        // Update each active ability
+        // Update each active ability with absolute time
         for (const [type, ability] of this.activeAbilities) {
             if (ability.updateFn) {
-                ability.updateFn(delta);
+                ability.updateFn(time, delta);
             }
         }
         
@@ -219,19 +234,33 @@ export class PowerUpAbilities {
         if (player?.aura && player.auraDamage > 0) {
             this._updateAura(player, delta);
         }
+        
+        // Update shield regeneration (moved from Player to PowerUpSystem)
+        this._updateShieldRegeneration(player, time);
     }
     
     /**
      * Update chain lightning ability
      */
-    _updateChainLightning(delta, config) {
+    _updateChainLightning(time, delta, config) {
         const ability = this.activeAbilities.get('chain_lightning');
         if (!ability) return;
         
-        ability.timer += delta;
-        if (ability.timer >= config.interval) {
-            ability.timer = 0;
+        // Use absolute time instead of delta accumulation
+        if (!ability.nextTriggerAt) {
+            ability.nextTriggerAt = time + config.interval;
+        }
+        
+        // Process with catch-up protection
+        let triggers = 0;
+        while (time >= ability.nextTriggerAt && triggers < 2) {
             this._performChainLightning(config);
+            ability.nextTriggerAt += config.interval;
+            triggers++;
+        }
+        
+        if (triggers > 1) {
+            DebugLogger.info('powerup', `[PowerUpAbilities] Chain lightning catch-up: ${triggers} triggers`);
         }
     }
     
@@ -298,21 +327,16 @@ export class PowerUpAbilities {
             }
             
             if (next) {
-                // Draw lightning visual
-                const gfx = this.scene.add.graphics();
-                gfx.lineStyle(3, 0x4444ff, 1);
-                gfx.beginPath();
-                gfx.moveTo(enemy.x, enemy.y);
-                gfx.lineTo(next.x, next.y);
-                gfx.strokePath();
-                
-                // Fade out
-                this.scene.tweens.add({
-                    targets: gfx,
-                    alpha: 0,
-                    duration: 200,
-                    onComplete: () => gfx.destroy()
-                });
+                // PR7: Delegate lightning visual to VFXSystem instead of direct tweens
+                if (this.scene.vfxSystem) {
+                    this.scene.vfxSystem.play('vfx.lightning.chain.bolt', enemy.x, enemy.y, {
+                        targetX: next.x,
+                        targetY: next.y,
+                        color: 0x4444ff,
+                        width: 3,
+                        duration: 200
+                    });
+                }
                 
                 // Continue chain after delay
                 this.scene.time.delayedCall(150, () => {
@@ -323,19 +347,12 @@ export class PowerUpAbilities {
     }
     
     /**
-     * Update aura damage
+     * Update aura damage (PR7: Visual handled by VFXSystem)
      */
     _updateAura(player, delta) {
         if (!player.aura) return;
         
-        // Update aura visual
-        player.aura.clear();
-        player.aura.lineStyle(2, 0x00ff00, 0.3);
-        player.aura.fillStyle(0x00ff00, 0.1);
-        player.aura.strokeCircle(player.x, player.y, player.auraRadius);
-        player.aura.fillCircle(player.x, player.y, player.auraRadius);
-        
-        // Apply damage to enemies in range
+        // Apply damage to enemies in range (logic only)
         const enemies = this.scene.enemiesGroup?.getChildren() || [];
         const tickDamage = player.auraDamage * 0.1; // 10 ticks per second
         
@@ -348,6 +365,104 @@ export class PowerUpAbilities {
                     enemy.takeDamage(tickDamage, 'aura');
                 }
             }
+        }
+    }
+    
+    /**
+     * Update shield regeneration (moved from Player to PowerUpSystem for proper architecture)
+     */
+    _updateShieldRegeneration(player, time) {
+        if (!player || !player.shieldActive) return;
+        
+        // Shield auto-regeneration logic
+        if (player.shieldHP < player.maxShieldHP) {
+            // Start recharge if not already recharging
+            if (!player.shieldRecharging) {
+                player.shieldRecharging = true;
+                player.shieldRechargeAt = time + player.shieldRechargeTime;
+                DebugLogger.info('powerup', `[PowerUpAbilities] Shield recharge started - will regenerate in ${player.shieldRechargeTime}ms`);
+            }
+            
+            // Check if recharge time has elapsed
+            if (time >= player.shieldRechargeAt) {
+                player.shieldHP = player.maxShieldHP;
+                player.shieldRecharging = false;
+                player.shieldRechargeAt = 0;
+                
+                DebugLogger.info('powerup', `[PowerUpAbilities] ✨ SHIELD REGENERATED - HP: ${player.shieldHP}/${player.maxShieldHP}`);
+                
+                // Restore shield VFX
+                const vfxManager = this.powerUpSystem?.vfxManager;
+                if (vfxManager) {
+                    vfxManager.attachEffect(player, 'shield', {
+                        radius: 40 + (player.shieldLevel * 5),
+                        color: 0x00ffff,
+                        alpha: 0.3
+                    });
+                }
+            }
+        }
+    }
+    
+    /**
+     * Process damage through shield system (PR7: Moved from Player.js)
+     * @param {Player} player - Player object
+     * @param {number} amount - Damage amount
+     * @param {number} time - Current game time
+     * @returns {number} Remaining damage after shield absorption
+     */
+    processDamageWithShield(player, amount, time) {
+        if (!player.shieldActive || player.shieldHP <= 0) {
+            return amount; // No shield, return full damage
+        }
+        
+        const absorbed = Math.min(amount, player.shieldHP);
+        player.shieldHP -= absorbed;
+        const remainingDamage = amount - absorbed;
+        
+        DebugLogger.info('powerup', `[PowerUpAbilities] 🛡️ SHIELD ABSORBED ${absorbed} damage - Shield HP: ${player.shieldHP}/${player.maxShieldHP}`);
+        
+        // If shield depleted, start recharge timer
+        if (player.shieldHP <= 0) {
+            player.shieldHP = 0;
+            player.shieldRecharging = true;
+            player.shieldRechargeAt = time + player.shieldRechargeTime;
+            DebugLogger.info('powerup', `[PowerUpAbilities] 🛡️ SHIELD DEPLETED - Recharging in ${player.shieldRechargeTime}ms`);
+            
+            // Remove shield visual effect
+            const vfxManager = this.powerUpSystem?.vfxManager;
+            if (vfxManager) {
+                vfxManager.detachEffect(player, 'shield');
+            }
+        }
+        
+        return remainingDamage;
+    }
+    
+    /**
+     * Reset timers after pause/resume
+     * Called by PowerUpSystem when game resumes
+     */
+    resetTimersAfterPause() {
+        const now = this.scene.time?.now || 0;
+        const player = this.scene.player;
+        
+        if (!player) return;
+        
+        // Reset shield regeneration timer if shield was recharging
+        if (player.shieldActive && player.shieldRecharging && player.shieldRechargeAt > 0) {
+            // Calculate remaining recharge time before pause
+            const remainingTime = Math.max(0, player.shieldRechargeTime);
+            player.shieldRechargeAt = now + remainingTime;
+            
+            DebugLogger.info('powerup', `[PowerUpAbilities] Shield recharge timer reset - new recharge at: ${player.shieldRechargeAt}`);
+        }
+        
+        // Reset chain lightning timers
+        const lightningAbility = this.activeAbilities.get('chain_lightning');
+        if (lightningAbility) {
+            lightningAbility.nextTriggerAt = now + (lightningAbility.config?.interval || 2000);
+            DebugLogger.info('powerup', '[PowerUpAbilities] Chain lightning timer reset');
         }
     }
     

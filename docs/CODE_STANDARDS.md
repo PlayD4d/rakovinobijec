@@ -77,15 +77,77 @@ class Enemy {
 }
 ```
 
-### Blueprint IDs
+### Blueprint IDs - Detailní struktura
+
+#### Základní formát
 ```
-enemy.viral_swarm       // enemy.[name]
-boss.radiation_core     // boss.[name]
-powerup.damage_boost    // powerup.[name]
-projectile.laser        // projectile.[name]
-vfx.explosion.small     // vfx.[category].[variant]
+[type].[name]           // Základní
+[type].[category].[name] // S kategorií
+```
+
+#### Enemy IDs
+```
+enemy.viral_swarm       // Běžný nepřítel
+enemy.toxic_spore       // Běžný nepřítel
+elite.tank_cell         // Elite varianta
+unique.golden_cell      // Unikátní/vzácný
+boss.radiation_core     // Boss
+miniboss.alpha_swarm    // Mini-boss
+```
+
+#### Power-up IDs
+```
+powerup.damage_boost    // Offensive
+powerup.shield          // Defensive
+powerup.metabolic_haste // Speed/utility
+```
+
+#### Projectile IDs
+```
+projectile.player_basic // Hráčův projektil
+projectile.enemy_toxic  // Nepřátelský projektil
+projectile.boss_beam    // Boss projektil
+```
+
+#### VFX IDs - Hierarchická struktura
+```
+vfx.explosion.small     // vfx.[effect].[size]
+vfx.explosion.large
+vfx.hit.spark.red       // vfx.[effect].[type].[color]
+vfx.hit.spark.green
+vfx.enemy.spawn.default // vfx.[entity].[action].[variant]
+vfx.enemy.death.toxic
+vfx.powerup.pickup.glow // vfx.[system].[action].[style]
+```
+
+#### SFX IDs - Hierarchická struktura
+```
 sfx.weapon.laser        // sfx.[category].[sound]
+sfx.weapon.plasma
+sfx.enemy.spawn         // sfx.[entity].[action]
+sfx.enemy.hit.soft
+sfx.enemy.death.small
+sfx.ui.click            // sfx.[system].[action]
+sfx.ui.hover
+sfx.ambient.heartbeat   // sfx.[type].[sound]
 ```
+
+#### Sprite/Texture klíče
+```
+sprite_player           // sprite_[entity]
+sprite_enemy_basic      // sprite_[entity]_[variant]
+texture_boss_radiation  // texture_[entity]_[name]
+atlas_enemies           // atlas_[category]
+particle_spark          // particle_[type]
+```
+
+### Pravidla pro tweens
+- **Tweens pouze v povolených systémech:**
+  - ✅ VFXSystem - pro efekty
+  - ✅ SimpleLootSystem - pro pickup animace
+  - ✅ GameUIScene - pro UI animace
+  - ❌ GameScene - NIKDY přímo
+  - ❌ Behaviors - NIKDY
 
 ---
 
@@ -261,6 +323,60 @@ const deep = structuredClone(original);   // Deep copy
 ```
 
 ---
+
+## 📋 Whitelist souborů pro Phaser API
+
+### Povolené soubory pro přímé Phaser API volání
+
+| Soubor | Důvod | Povolená API |
+|--------|-------|--------------|
+| **js/scenes/GameScene.js** | Hlavní scéna | `this.scene.*` pouze |
+| **js/scenes/GameUIScene.js** | UI scéna | Vše pro UI |
+| **js/entities/core/EnemyCore.js** | Phaser sprite | `Phaser.Physics.Arcade.Sprite` |
+| **js/entities/Player.js** | Phaser sprite | `Phaser.Physics.Arcade.Sprite` |
+| **js/entities/Boss.js** | Phaser sprite | Extends Enemy |
+| **js/core/systems/ProjectileSystem.js** | Sprite management | `this.scene.physics.add.sprite()` |
+| **js/core/systems/SimpleLootSystem.js** | Loot sprites | `this.scene.add.sprite()`, tweens |
+| **js/core/factories/GraphicsFactory.js** | Graphics creation | `this.scene.add.graphics()` |
+| **js/core/audio/SimplifiedAudioSystem.js** | Sound API | `this.scene.sound.*` |
+| **js/core/vfx/SimplifiedVFXSystem.js** | Particles, sprites | `this.scene.add.particles()` |
+| **js/ui/\*.js** | UI komponenty | UI specific Phaser API |
+
+### ZAKÁZANÉ soubory pro Phaser API
+
+| Soubor/Pattern | Důvod |
+|----------------|-------|
+| **js/entities/ai/behaviors/\*.js** | Pure functions only |
+| **js/entities/EnemyBehaviors.js** | State machine only |
+| **js/managers/\*.js** | Orchestrators only |
+| **js/core/blueprints/\*.js** | Data only |
+| **js/utils/\*.js** | Utilities only |
+
+### Pravidla pro nové soubory
+
+Před použitím Phaser API v novém souboru:
+1. Je to System nebo Factory? → Možná OK
+2. Je to Manager nebo Orchestrator? → NE
+3. Je to Behavior nebo AI? → NIKDY
+4. Je to UI komponenta? → OK v GameUIScene
+5. Jinak → Požádejte o review
+
+### Příklad správné abstrakce
+```javascript
+// ❌ ŠPATNĚ - Manager používá Phaser API
+class EnemyManager {
+    spawnEnemy() {
+        const enemy = this.scene.physics.add.sprite(...); // NE!
+    }
+}
+
+// ✅ SPRÁVNĚ - Manager deleguje na Factory
+class EnemyManager {
+    spawnEnemy() {
+        const enemy = new Enemy(this.scene, blueprint); // Enemy extends Phaser.Sprite
+    }
+}
+```
 
 ## 🚫 Zakázané praktiky
 

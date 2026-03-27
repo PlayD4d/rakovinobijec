@@ -1,11 +1,23 @@
 // Jednoduchá developerská konzole: window.DEV.spawnBoss(index|name)
 // Bez UI, pouze JS API pro rychlé testování
 import { GameConfig } from '../../config.js';
+import { DebugLogger } from '../debug/DebugLogger.js';
 
 export function installDevConsole(scene) {
   try {
     if (typeof window === 'undefined') return;
     if (!window.DEV) window.DEV = {};
+    
+    // PR7: Helper for safe system access
+    const getSystem = (path) => {
+      const parts = path.split('.');
+      let current = scene;
+      for (const part of parts) {
+        current = current?.[part];
+        if (!current) return null;
+      }
+      return current;
+    };
     
     // ===== DEBUG TOGGLES =====
     // Global debug flags
@@ -61,7 +73,8 @@ export function installDevConsole(scene) {
       console.log('🔇 All debug logs muted');
     };
     
-    window.DEV.spawnBoss = (arg) => {
+    // LEGACY: Keep for backward compatibility
+    window.DEV.spawnBossLegacy = (arg) => {
       try {
         const bosses = GameConfig?.bosses || [];
         let index = -1;
@@ -74,31 +87,59 @@ export function installDevConsole(scene) {
         console.log('[DEV] Spawning boss at index:', index);
         scene.enemyManager.spawnBoss(index);
       } catch (e) {
-        console.warn('[DEV] spawnBoss failed:', e?.message);
+        console.warn('[DEV] spawnBossLegacy failed:', e?.message);
       }
     };
     window.DEV.listBosses = () => {
-      const bosses = GameConfig?.bosses || [];
-      bosses.forEach((b, i) => console.log(`${i}: ${b.name}`));
-      return bosses.map((b, i) => ({ index: i, name: b.name }));
+      try {
+        // PR7: Use BlueprintLoader instead of GameConfig
+        const blueprintLoader = scene.blueprintLoader || window.BlueprintLoaderModule?.BlueprintLoader;
+        if (!blueprintLoader) {
+          console.warn('[DEV] BlueprintLoader not available, falling back to legacy');
+          const bosses = GameConfig?.bosses || [];
+          bosses.forEach((b, i) => console.log(`${i}: ${b.name} (legacy)`));
+          return bosses.map((b, i) => ({ index: i, name: b.name, legacy: true }));
+        }
+        
+        // Get all boss blueprints
+        const bossBlueprints = blueprintLoader.getAllOfType?.('boss') || [];
+        bossBlueprints.forEach((boss, i) => {
+          const displayName = boss.display?.name || boss.meta?.displayName || boss.id;
+          console.log(`${i}: ${boss.id} (${displayName})`);
+        });
+        
+        return bossBlueprints.map((boss, i) => ({ 
+          index: i, 
+          id: boss.id, 
+          name: boss.display?.name || boss.meta?.displayName || boss.id,
+          blueprint: true
+        }));
+      } catch (e) {
+        console.error('[DEV] listBosses failed:', e);
+        return [];
+      }
     };
 
-    // God mode (nesmrtelnost)
+    // PR7: God mode through proper Player API
     window.DEV.setGodMode = (enabled = true) => {
       try {
         const p = scene.player;
         if (!p) { console.warn('[DEV] Player not ready'); return; }
+        
+        // PR7: Use proper player property instead of direct manipulation
         if (enabled) {
-          if (!p._origCanTakeDamage) p._origCanTakeDamage = p.canTakeDamage.bind(p);
-          p.canTakeDamage = () => false;
-          p.invincible = true;
+          if (!p._origCanTakeDamage) p._origCanTakeDamage = p.canTakeDamage?.bind(p);
+          if (p.canTakeDamage) p.canTakeDamage = () => false;
+          p.invincible = true; // This property is expected by the Player class
           console.log('🛡️ DEV God Mode: ON');
         } else {
-          if (p._origCanTakeDamage) p.canTakeDamage = p._origCanTakeDamage;
+          if (p._origCanTakeDamage && p.canTakeDamage) p.canTakeDamage = p._origCanTakeDamage;
           p.invincible = false;
           console.log('🛡️ DEV God Mode: OFF');
         }
-      } catch (e) { console.warn('[DEV] setGodMode failed:', e?.message); }
+      } catch (e) { 
+        console.warn('[DEV] setGodMode failed:', e?.message); 
+      }
     };
 
     // Rychlý level-up (vyvolá výběr power-upu)
@@ -157,50 +198,106 @@ export function installDevConsole(scene) {
         return !current;
       } catch (e) { console.warn('[DEV] toggleHotReload failed:', e?.message); }
     };
+    
+    // === DEBUG SYSTEM CONTROLS ===
+    window.DEV.debug = {
+      // Enable a debug category
+      enable: (category) => DebugLogger.enable(category),
+      
+      // Disable a debug category
+      disable: (category) => DebugLogger.disable(category),
+      
+      // Set log level
+      setLevel: (level) => DebugLogger.setLevel(level),
+      
+      // Apply a preset
+      preset: (name) => DebugLogger.preset(name),
+      
+      // Show active categories
+      showActive: () => DebugLogger.showActive(),
+      
+      // List all categories with status
+      list: () => DebugLogger.list(),
+      
+      // Silence all except errors
+      silence: () => DebugLogger.silence(),
+      
+      // Enable verbose mode
+      verbose: () => DebugLogger.enableVerbose(),
+      
+      // Reset to config defaults
+      reset: () => DebugLogger.reset(),
+      
+      // Quick toggles
+      combat: () => DebugLogger.preset('combat'),
+      ai: () => DebugLogger.preset('ai'),
+      perf: () => DebugLogger.preset('perf'),
+      ui: () => DebugLogger.preset('ui'),
+      game: () => DebugLogger.preset('game'),
+      fx: () => DebugLogger.preset('fx'),
+      all: () => DebugLogger.preset('all'),
+      none: () => DebugLogger.preset('none')
+    };
 
-    // Test enemy projectiles
+    // PR7: Test enemy projectiles through modern ProjectileSystem
     window.DEV.testEnemyBullet = () => {
       console.log('[DEV] Testing enemy bullet...');
-      if (scene.coreProjectileSystem && scene.player) {
+      if (scene.projectileSystem && scene.player) {
         // Fire enemy bullet towards player from random position
         const playerX = scene.player.x;
         const playerY = scene.player.y;
         const startX = playerX + 200 + (Math.random() - 0.5) * 100;
         const startY = playerY + (Math.random() - 0.5) * 100;
-        const dirX = playerX - startX;
-        const dirY = playerY - startY;
         
-        const success = scene.coreProjectileSystem.fireEnemy(
-          startX, startY, dirX, dirY, 
-          100, 400, 5, 'TRACKING', 'dev:test', 0xff0000
-        );
-        console.log('[DEV] Enemy bullet fired:', success);
+        // PR7: Use modern ProjectileSystem API
+        const projectileData = {
+          x: startX,
+          y: startY,
+          projectileBlueprintId: 'projectile.enemy_basic', // Use blueprint ID
+          damage: 5,
+          speed: 400,
+          range: 1000,
+          angleRad: Math.atan2(playerY - startY, playerX - startX),
+          owner: null // Enemy projectile
+        };
+        
+        const success = scene.projectileSystem.createEnemyProjectile(projectileData);
+        console.log('[DEV] Enemy bullet fired:', !!success);
       } else {
         console.warn('[DEV] ProjectileSystem or player not available');
       }
     };
     
+    // PR7: Test homing projectiles through modern system
     window.DEV.testHomingBullet = () => {
       console.log('[DEV] Testing homing enemy bullet...');
-      if (scene.coreProjectileSystem && scene.player) {
+      if (scene.projectileSystem && scene.player) {
         const playerX = scene.player.x;
         const playerY = scene.player.y;
         const startX = playerX + 300;
         const startY = playerY;
-        const dirX = playerX - startX;
-        const dirY = playerY - startY;
         
-        const success = scene.coreProjectileSystem.fireEnemy(
-          startX, startY, dirX, dirY, 
-          80, 600, 8, 'AGGRESSIVE', 'dev:homing', 0xff4444
-        );
-        console.log('[DEV] Homing bullet fired:', success);
+        // PR7: Use blueprint-based homing projectile
+        const projectileData = {
+          x: startX,
+          y: startY,
+          projectileBlueprintId: 'projectile.enemy_homing', // Blueprint with homing
+          damage: 8,
+          speed: 300,
+          range: 1200,
+          angleRad: Math.atan2(playerY - startY, playerX - startX),
+          owner: null,
+          homing: true // Enable homing behavior
+        };
+        
+        const success = scene.projectileSystem.createEnemyProjectile(projectileData);
+        console.log('[DEV] Homing bullet fired:', !!success);
       } else {
         console.warn('[DEV] ProjectileSystem or player not available');
       }
     };
     
-    // Testovací monitoring pro ověření kolizí
+    // PR7: Collision monitoring through modern systems
     window.DEV.startCollisionMonitoring = () => {
       if (window.DEV._collisionMonitorInterval) {
         clearInterval(window.DEV._collisionMonitorInterval);
@@ -208,13 +305,16 @@ export function installDevConsole(scene) {
       
       console.log('[DEV] Starting collision monitoring (every 1 second)...');
       window.DEV._collisionMonitorInterval = setInterval(() => {
-        if (scene.coreProjectileSystem && scene.enemyManager) {
-          const playerActive = scene.coreProjectileSystem.playerBullets?.countActive() || 0;
-          const enemyActive = scene.coreProjectileSystem.enemyBullets?.countActive() || 0; 
-          const enemiesActive = scene.enemyManager.enemies?.countActive() || 0;
+        try {
+          // PR7: Use modern system APIs
+          const projectileStats = scene.projectileSystem?.getActiveCount?.() || { player: 0, enemy: 0 };
+          const enemiesActive = scene.enemyManager?.getActiveCount?.() || 0;
           const playerHp = scene.player?.hp || 0;
+          const playerMaxHp = scene.player?.maxHp || 0;
           
-          console.log(`[MONITOR] Player bullets: ${playerActive}, Enemy bullets: ${enemyActive}, Enemies: ${enemiesActive}, Player HP: ${playerHp}`);
+          console.log(`[MONITOR] Player bullets: ${projectileStats.player || 0}, Enemy bullets: ${projectileStats.enemy || 0}, Enemies: ${enemiesActive}, Player HP: ${playerHp}/${playerMaxHp}`);
+        } catch (e) {
+          console.warn('[MONITOR] Failed to collect stats:', e.message);
         }
       }, 1000);
     };
@@ -227,60 +327,123 @@ export function installDevConsole(scene) {
       }
     };
     
-    // Test explosion system
+    // PR7: Test explosion through VFX system and damage calculation
     window.DEV.testExplosion = (radius = 100) => {
       console.log('[DEV] Testing explosion...');
-      if (scene.coreProjectileSystem && scene.player) {
+      if (scene.player) {
         const playerX = scene.player.x;
         const playerY = scene.player.y;
-        const enemiesHit = scene.coreProjectileSystem.createExplosion(
-          playerX, playerY, 50, radius, 3
-        );
-        console.log(`[DEV] Explosion at player position: ${enemiesHit} enemies hit, radius: ${radius}px`);
+        
+        // PR7: Use VFX system for visual effect
+        if (scene.vfxSystem || scene.newVFXSystem) {
+          const vfxSystem = scene.newVFXSystem || scene.vfxSystem;
+          vfxSystem.play('vfx.explosion.large', playerX, playerY);
+        }
+        
+        // Calculate area damage to nearby enemies
+        let enemiesHit = 0;
+        if (scene.enemyManager?.getActiveEnemies) {
+          const enemies = scene.enemyManager.getActiveEnemies();
+          enemies.forEach(enemy => {
+            const distance = Phaser.Math.Distance.Between(playerX, playerY, enemy.x, enemy.y);
+            if (distance <= radius) {
+              enemy.takeDamage({ amount: 50, type: 'explosion', source: 'dev_test' });
+              enemiesHit++;
+            }
+          });
+        }
+        
+        console.log(`✅ Explosion at player position: ${enemiesHit} enemies hit, radius: ${radius}px`);
       } else {
-        console.warn('[DEV] ProjectileSystem not available');
+        console.warn('[DEV] Player not available');
       }
     };
     
-    // Enable explosive bullets for testing
+    // PR7: Enable explosive bullets through modifier system
     window.DEV.enableExplosive = (radius = 50, damage = 25) => {
-      if (scene.player) {
-        scene.player.baseStats.explosionRadius = radius;
-        scene.player.baseStats.explosionDamage = damage;
-        console.log(`[DEV] Explosive bullets enabled, radius: ${radius}, damage: ${damage}`);
+      try {
+        if (!scene.player) {
+          console.warn('[DEV] Player not available');
+          return;
+        }
+        
+        // PR7: Use modifier system instead of direct baseStats manipulation
+        const modifier = {
+          id: 'dev_explosive',
+          path: 'explosionRadius',
+          type: 'add',
+          value: radius
+        };
+        const damageModifier = {
+          id: 'dev_explosive_damage',
+          path: 'explosionDamage', 
+          type: 'add',
+          value: damage
+        };
+        
+        scene.player.addModifier(modifier);
+        scene.player.addModifier(damageModifier);
+        console.log(`✅ Explosive bullets enabled, radius: ${radius}, damage: ${damage}`);
+      } catch (e) {
+        console.error('[DEV] enableExplosive failed:', e);
       }
     };
     
-    // Enable piercing bullets for testing
+    // PR7: Enable piercing bullets through modifier system
     window.DEV.enablePiercing = (pierceCount = 3) => {
-      if (scene.player) {
-        scene.player.baseStats.projectilePiercing = pierceCount;
-        console.log(`[DEV] Piercing arrows enabled, pierce count: ${pierceCount}`);
+      try {
+        if (!scene.player) {
+          console.warn('[DEV] Player not available');
+          return;
+        }
+        
+        // PR7: Use modifier system instead of direct baseStats manipulation
+        const modifier = {
+          id: 'dev_piercing',
+          path: 'projectilePiercing',
+          type: 'add',
+          value: pierceCount
+        };
+        
+        scene.player.addModifier(modifier);
+        console.log(`✅ Piercing bullets enabled, pierce count: ${pierceCount}`);
+      } catch (e) {
+        console.error('[DEV] enablePiercing failed:', e);
       }
     };
     
-    // Performance stress test - fires many bullets
+    // PR7: Performance stress test through modern ProjectileSystem
     window.DEV.stressTestBullets = (count = 100) => {
       console.log(`[DEV] Firing ${count} bullets for performance test...`);
-      if (scene.coreProjectileSystem && scene.player) {
+      if (scene.projectileSystem && scene.player) {
         const startTime = performance.now();
         let fired = 0;
         
         for (let i = 0; i < count; i++) {
           const angle = (i / count) * Math.PI * 2;
-          const dirX = Math.cos(angle);
-          const dirY = Math.sin(angle);
           
-          const success = scene.coreProjectileSystem.firePlayer(
-            scene.player.x, scene.player.y, dirX, dirY, 1.0, 1.0, 1.0, 0xffffff
-          );
+          // PR7: Use modern ProjectileSystem with blueprint
+          const projectileData = {
+            x: scene.player.x,
+            y: scene.player.y,
+            projectileBlueprintId: 'projectile.player_basic',
+            damage: 10,
+            speed: 400,
+            range: 800,
+            angleRad: angle,
+            owner: scene.player
+          };
+          
+          const success = scene.projectileSystem.createPlayerProjectile(projectileData);
           if (success) fired++;
         }
         
         const endTime = performance.now();
-        const stats = scene.coreProjectileSystem.getStats();
+        const activeCount = scene.projectileSystem.getActiveCount?.() || {};
         console.log(`[DEV] Performance test: ${fired}/${count} bullets fired in ${(endTime - startTime).toFixed(2)}ms`);
-        console.log(`[DEV] Pool stats: ${stats.player.active} active, ${stats.player.pooled} pooled`);
+        console.log(`[DEV] Active projectiles: ${activeCount.player || 0} player, ${activeCount.enemy || 0} enemy`);
+      } else {
+        console.warn('[DEV] ProjectileSystem or player not available');
       }
     };
     
@@ -654,76 +817,82 @@ export function installDevConsole(scene) {
     };
     
     /**
-     * Set player health
+     * PR7: Set player health through proper API
      * Example: DEV.setHealth(100)
      */
     window.DEV.setHealth = (hp) => {
       try {
-        if (scene.player) {
-          scene.player.hp = hp;
-          if (scene.unifiedHUD) {
-            scene.unifiedHUD.updatePlayerHealth(hp, scene.player.maxHp);
-          }
-          console.log(`✅ Player health set to ${hp}`);
+        if (!scene.player) {
+          console.warn('[DEV] Player not available');
+          return;
         }
+        
+        // PR7: Use heal method instead of direct hp manipulation
+        const currentHp = scene.player.hp;
+        const targetHp = Math.max(0, hp);
+        
+        if (targetHp > currentHp) {
+          scene.player.heal(targetHp - currentHp);
+        } else if (targetHp < currentHp) {
+          // For reducing health, we still need direct access
+          scene.player.hp = targetHp;
+          // Update HUD through proper method
+          if (scene.unifiedHUD?.setPlayerHealth) {
+            scene.unifiedHUD.setPlayerHealth(targetHp, scene.player.maxHp);
+          }
+        }
+        
+        console.log(`✅ Player health set to ${scene.player.hp}`);
       } catch (e) {
         console.error('[DEV] setHealth failed:', e);
       }
     };
     
     /**
-     * Set player max health
+     * PR7: Set player max health with proper validation
      * Example: DEV.setMaxHealth(200)
      */
     window.DEV.setMaxHealth = (maxHp) => {
       try {
-        if (scene.player) {
-          scene.player.maxHp = maxHp;
-          scene.player.hp = Math.min(scene.player.hp, maxHp);
-          if (scene.unifiedHUD) {
-            scene.unifiedHUD.updatePlayerHealth(scene.player.hp, maxHp);
-          }
-          console.log(`✅ Player max health set to ${maxHp}`);
+        if (!scene.player) {
+          console.warn('[DEV] Player not available');
+          return;
         }
+        
+        const newMaxHp = Math.max(1, maxHp); // Ensure minimum 1 HP
+        scene.player.maxHp = newMaxHp;
+        scene.player.hp = Math.min(scene.player.hp, newMaxHp);
+        
+        // Update HUD through proper method
+        if (scene.unifiedHUD?.setPlayerHealth) {
+          scene.unifiedHUD.setPlayerHealth(scene.player.hp, newMaxHp);
+        }
+        
+        console.log(`✅ Player max health set to ${newMaxHp} (current: ${scene.player.hp})`);
       } catch (e) {
         console.error('[DEV] setMaxHealth failed:', e);
       }
     };
     
     /**
-     * Toggle god mode
+     * PR7: Toggle god mode (alias for setGodMode)
      * Example: DEV.godMode()
      */
     window.DEV.godMode = () => {
       try {
-        if (scene.player) {
-          scene.player.invincible = !scene.player.invincible;
-          console.log(`✅ God mode: ${scene.player.invincible ? 'ON' : 'OFF'}`);
+        if (!scene.player) {
+          console.warn('[DEV] Player not available');
+          return;
         }
+        
+        // PR7: Use the properly implemented setGodMode method
+        const currentState = scene.player.invincible || false;
+        window.DEV.setGodMode(!currentState);
       } catch (e) {
         console.error('[DEV] godMode failed:', e);
       }
     };
     
-    /**
-     * Kill all enemies
-     * Example: DEV.killAll()
-     */
-    window.DEV.killAll = () => {
-      try {
-        if (scene.enemies) {
-          const count = scene.enemies.children.entries.length;
-          scene.enemies.children.entries.forEach(enemy => {
-            if (enemy && enemy.kill) {
-              enemy.kill();
-            }
-          });
-          console.log(`✅ Killed ${count} enemies`);
-        }
-      } catch (e) {
-        console.error('[DEV] killAll failed:', e);
-      }
-    };
     
     /**
      * Clear all enemies (without death effects)
@@ -919,18 +1088,35 @@ export function installDevConsole(scene) {
       }
     };
     
-    console.log('✅ DEV console installed. Try: DEV.listBosses(), DEV.spawnBoss(5), DEV.togglePerf(), DEV.setGodMode(true)');
-    console.log('✅ Spawn commands: DEV.spawnEnemy("enemy.necrotic_cell"), DEV.spawnBoss("boss.karcinogenni_kral")');
-    console.log('✅ XP validation: DEV.validateXP("spawnTable.level1")');
-    console.log('✅ Wave spawn: DEV.spawnWave(10), DEV.spawnDrop("powerup.damage_boost")');
-    console.log('✅ Player: DEV.giveXP(1000), DEV.setHealth(100), DEV.godMode(), DEV.killAll()');
-    console.log('✅ Enemy bullet tests: DEV.testEnemyBullet(), DEV.testHomingBullet()');
-    console.log('✅ Homing blueprints: DEV.testHomingBlueprints() - tests all 4 types');
-    console.log('✅ Collision monitoring: DEV.startCollisionMonitoring(), DEV.stopCollisionMonitoring()');
-    console.log('✅ Power-up tests: DEV.enableExplosive(3), DEV.enablePiercing(3), DEV.testExplosion(100)');
-    console.log('✅ Performance: DEV.stressTestBullets(500), DEV.tunnelingTest()');
+    // PR7: Updated help messages with modern API references
+    console.log('🎮 ===== DEV CONSOLE (PR7 Compatible) =====');
+    console.log('✅ Blueprint-driven spawn: DEV.spawnEnemy("enemy.necrotic_cell"), DEV.spawnBoss("boss.karcinogenni_kral")');
+    console.log('✅ Legacy support: DEV.spawnBossLegacy(5), DEV.listBosses() - shows both blueprint & legacy');
+    console.log('✅ Player management: DEV.setHealth(100), DEV.godMode(), DEV.setGodMode(true)');
+    console.log('✅ Modern power-ups: DEV.enableExplosive(50, 25), DEV.enablePiercing(3) - via modifier system');
+    console.log('✅ System management: DEV.killAll(), DEV.clearProjectiles(), DEV.giveXP(1000)');
+    console.log('✅ XP progression: DEV.validateXP("spawnTable.level1") - PR7 validation system');
+    console.log('✅ Performance tests: DEV.stressTestBullets(100), DEV.testExplosion(100)');
+    console.log('✅ Debug system: DEV.debug.list(), DEV.debug.preset("combat"), DEV.debug.enable("ai")');
+    console.log('✅ Game flow: DEV.victory(), DEV.gameOver(), DEV.pause(), DEV.resume()');
+    console.log('✅ Monitoring: DEV.startCollisionMonitoring(), __phase5Debug.performance.report()');
+    console.log('🔧 Type DEV.[method]() for individual commands or __phase5Debug.vfx.test() for VFX testing');
     
-  } catch (_) { /* no-op */ }
+    // PR7: Validate critical systems are available
+    const criticalSystems = [
+      'enemyManager', 'projectileSystem', 'player'
+    ];
+    
+    const missingSystem = criticalSystems.find(sys => !scene[sys]);
+    if (missingSystem) {
+      console.warn(`⚠️ Critical system missing: ${missingSystem} - some DEV commands may fail`);
+    } else {
+      console.log('✅ All critical systems detected - DEV console fully operational');
+    }
+    
+  } catch (error) { 
+    console.error('❌ DevConsole installation failed:', error);
+  }
 }
 
 // Framework Debug Console - Phase 5
@@ -979,7 +1165,7 @@ if (typeof window !== 'undefined') {
             }
         },
 
-        // Performance monitoring
+        // PR7: Performance monitoring with modern systems
         performance: {
             report: () => {
                 const scene = getCurrentScene();
@@ -988,12 +1174,17 @@ if (typeof window !== 'undefined') {
                 const report = {
                     fps: scene.game.loop.actualFps,
                     enemies: {
-                        active: scene.enemyManager?.enemies?.countActive?.() || 0,
+                        active: scene.enemyManager?.getActiveCount?.() || 0,
                         total: scene.enemyManager?.enemies?.children?.size || 0
                     },
-                    projectiles: scene.coreProjectileSystem?.getStats?.() || 'N/A',
+                    projectiles: scene.projectileSystem?.getActiveCount?.() || 'N/A',
                     vfx: scene.newVFXSystem?.getDebugStats?.() || 'N/A',
-                    loot: scene.coreLootSystem?.loot?.countActive?.() || 0
+                    loot: scene.simpleLootSystem?.getActiveCount?.() || 0,
+                    player: {
+                        hp: scene.player?.hp || 0,
+                        maxHp: scene.player?.maxHp || 0,
+                        modifiers: scene.player?.activeModifiers?.length || 0
+                    }
                 };
                 
                 console.log('⚡ Performance Report:', report);

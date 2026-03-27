@@ -2,6 +2,11 @@
   id: 'spawn_table.level2',
   type: 'enemy',
   level: 2,
+  music: {
+    ambient: 'music/8bit_track2.mp3',
+    combat: 'music/8bit_track2.mp3',
+    boss: 'music/8bit_boss2.mp3',
+  },
   enemyWaves: [
     {
       enemyId: 'enemy.viral_swarm',

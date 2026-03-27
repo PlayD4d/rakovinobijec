@@ -10,9 +10,10 @@
  * @param {Object} cap - Capability interface
  * @param {Object} cfg - Behavior configuration
  * @param {number} dt - Delta time in seconds
- * @returns {string|null} Next state or null to continue
+ * @param {Object} mem - Persistent memory
+ * @param {Function} setState - State transition function
  */
-export function patrol(cap, cfg, dt) {
+export function patrol(cap, cfg, dt, mem, setState) {
     // Get configuration with defaults
     const config = {
         speed: cfg?.speed || 60,
@@ -20,13 +21,20 @@ export function patrol(cap, cfg, dt) {
         detectRange: cfg?.detectRange || 150,
         pattern: cfg?.pattern || 'circle', // circle, square, random
         changeInterval: cfg?.changeInterval || 2000,
+        waypointDeadZone: cfg?.waypointDeadZone || 10,
+        hysteresis: {
+            detectEnterFactor: cfg?.hysteresis?.detectEnterFactor ?? 0.9,
+            ...cfg?.hysteresis
+        },
         ...cfg
     };
     
-    // Check for player in range
-    if (cap.inRangeOfPlayer(config.detectRange)) {
+    // Check for player in range with hysteresis
+    const detectRange = config.detectRange * config.hysteresis.detectEnterFactor;
+    if (cap.inRangeOfPlayer(detectRange)) {
         // Player detected, engage
-        return 'chase';
+        setState('chase', { stickyMs: 300 });
+        return;
     }
     
     // Get current position and spawn point
@@ -34,18 +42,21 @@ export function patrol(cap, cfg, dt) {
     const spawnX = cap.spawnX || pos.x;
     const spawnY = cap.spawnY || pos.y;
     
-    // Initialize patrol state if needed
-    if (!cap._patrolState) {
-        cap._patrolState = {
+    // Initialize patrol state in memory
+    if (!mem.patrol.initialized) {
+        mem.patrol = {
+            initialized: true,
             angle: 0,
-            lastChange: Date.now(),
+            lastChange: 0,
             targetX: spawnX,
-            targetY: spawnY
+            targetY: spawnY,
+            atWaypoint: false,
+            waypointReachedAt: 0
         };
     }
     
-    const state = cap._patrolState;
-    const now = Date.now();
+    const state = mem.patrol;
+    const now = cap.scene?.time?.now || performance.now();
     
     // Update patrol target based on pattern
     if (now - state.lastChange > config.changeInterval) {
@@ -98,18 +109,27 @@ export function patrol(cap, cfg, dt) {
     const dy = state.targetY - pos.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     
-    if (distance > 5) {
+    // Check if reached waypoint with dead zone
+    if (distance <= config.waypointDeadZone) {
+        if (!state.atWaypoint) {
+            // Just reached waypoint
+            state.atWaypoint = true;
+            state.waypointReachedAt = now;
+            cap.setVelocity(0, 0);
+        }
+        // Stay at waypoint for minimum dwell time
+        return;
+    } else {
+        state.atWaypoint = false;
+    }
+    
+    // Move towards target
+    if (distance > config.waypointDeadZone) {
         const vx = (dx / distance) * config.speed;
         const vy = (dy / distance) * config.speed;
         cap.setVelocity(vx, vy);
         cap.faceTo(state.targetX, state.targetY);
-    } else {
-        // Reached target, wait for next change
-        cap.setVelocity(0, 0);
     }
-    
-    // Stay in patrol state
-    return null;
 }
 
 export default patrol;

@@ -34,7 +34,12 @@
     "ci:full": "node scripts/ci-full.mjs",
     "ci:full:verbose": "node scripts/ci-full.mjs --verbose",
     "ci:quick": "npm run guard:check && npm run smoke:test",
-    "check:orphans": "node scripts/check-orphans.mjs"
+    "check:orphans": "node scripts/check-orphans.mjs",
+    "generate:audio": "node scripts/generate-audio-manifest.mjs",
+    "prebuild": "npm run generate:audio",
+    "test:automated": "node scripts/automated-gameplay-test.mjs",
+    "test:automated:core": "node scripts/automated-gameplay-test.mjs -s CoreGameplay",
+    "test:automated:verbose": "node scripts/automated-gameplay-test.mjs -v"
   },
   "keywords": [
     "game",

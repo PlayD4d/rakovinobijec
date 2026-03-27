@@ -8,6 +8,8 @@
  * Priorita načítání: localStorage > managers_config > hardcoded fallback
  */
 
+import { DebugLogger } from '../core/debug/DebugLogger.js';
+
 export class SettingsManager {
     constructor() {
         // Singleton pattern
@@ -39,7 +41,7 @@ export class SettingsManager {
         this.settings = { ...defaults, ...saved };
         
         this.initialized = true;
-        console.log('[SettingsManager] Inicializováno s nastavením:', this.settings);
+        DebugLogger.info('ui', '[SettingsManager] Inicializováno s nastavením:', this.settings);
     }
     
     /**
@@ -101,11 +103,11 @@ export class SettingsManager {
             const saved = localStorage.getItem('gameSettings');
             if (saved) {
                 const parsed = JSON.parse(saved);
-                console.log('[SettingsManager] Načteno z localStorage:', parsed);
+                DebugLogger.info('ui', '[SettingsManager] Načteno z localStorage:', parsed);
                 return this.flattenSettings(parsed);
             }
         } catch (error) {
-            console.warn('[SettingsManager] Chyba při načítání z localStorage:', error);
+            DebugLogger.warn('ui', '[SettingsManager] Chyba při načítání z localStorage:', error);
         }
         return {};
     }
@@ -117,9 +119,9 @@ export class SettingsManager {
         try {
             const structured = this.structureSettings(this.settings);
             localStorage.setItem('gameSettings', JSON.stringify(structured));
-            console.log('[SettingsManager] Uloženo do localStorage');
+            DebugLogger.info('ui', '[SettingsManager] Uloženo do localStorage');
         } catch (error) {
-            console.error('[SettingsManager] Chyba při ukládání:', error);
+            DebugLogger.error('ui', '[SettingsManager] Chyba při ukládání:', error);
         }
     }
     
@@ -292,7 +294,7 @@ export class SettingsManager {
         // Graphics settings
         this.applyGraphicsSettings(scene);
         
-        console.log('[SettingsManager] Nastavení aplikováno na managery');
+        DebugLogger.info('ui', '[SettingsManager] Nastavení aplikováno na managery');
     }
     
     /**
@@ -327,7 +329,7 @@ export class SettingsManager {
         const CR = window.ConfigResolver;
         this.settings = this.loadDefaultsFromConfig(CR);
         this.saveToLocalStorage();
-        console.log('[SettingsManager] Reset na výchozí hodnoty');
+        DebugLogger.info('ui', '[SettingsManager] Reset na výchozí hodnoty');
     }
     
     /**
@@ -345,10 +347,10 @@ export class SettingsManager {
             const parsed = JSON.parse(jsonString);
             const flattened = this.flattenSettings(parsed);
             this.setMultiple(flattened);
-            console.log('[SettingsManager] Nastavení importováno');
+            DebugLogger.info('ui', '[SettingsManager] Nastavení importováno');
             return true;
         } catch (error) {
-            console.error('[SettingsManager] Chyba při importu:', error);
+            DebugLogger.error('ui', '[SettingsManager] Chyba při importu:', error);
             return false;
         }
     }

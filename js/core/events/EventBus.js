@@ -2,6 +2,7 @@
 // NO hot-path combat events - use direct system calls instead
 
 import { isEventAllowed, validateEventPayload } from './EventWhitelist.js';
+import { DebugLogger } from '../debug/DebugLogger.js';
 
 export class EventBus {
   constructor(options = {}) {
@@ -14,7 +15,7 @@ export class EventBus {
   // Subscribe to event
   on(eventName, handler) {
     if (this.enforceWhitelist && !isEventAllowed(eventName)) {
-      console.warn(`[EventBus] Event '${eventName}' not whitelisted. Use direct system calls for combat events.`);
+      DebugLogger.warn('events', `[EventBus] Event '${eventName}' not whitelisted. Use direct system calls for combat events.`);
       return () => {}; // No-op unsubscriber
     }
     
@@ -37,17 +38,17 @@ export class EventBus {
   // Emit event with validated payload
   emit(eventName, payload = {}) {
     if (this.enforceWhitelist && !isEventAllowed(eventName)) {
-      console.warn(`[EventBus] Blocked non-whitelisted event: ${eventName}`);
+      DebugLogger.warn('events', `[EventBus] Blocked non-whitelisted event: ${eventName}`);
       return;
     }
     
     if (!validateEventPayload(eventName, payload)) {
-      console.warn(`[EventBus] Invalid payload for ${eventName}`);
+      DebugLogger.warn('events', `[EventBus] Invalid payload for ${eventName}`);
       return;
     }
     
     if (this.debug) {
-      console.log(`[EventBus] ${eventName}`, payload);
+      DebugLogger.info('events', `[EventBus] ${eventName}`, payload);
     }
     
     const set = this.listeners.get(eventName);
@@ -55,7 +56,7 @@ export class EventBus {
     
     // Safe iteration
     [...set].forEach((fn) => {
-      try { fn(payload); } catch (e) { console.warn(`[EventBus] Handler error for ${eventName}:`, e.message); }
+      try { fn(payload); } catch (e) { DebugLogger.warn('events', `[EventBus] Handler error for ${eventName}:`, e.message); }
     });
   }
 }

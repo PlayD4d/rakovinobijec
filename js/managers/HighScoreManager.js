@@ -1,3 +1,5 @@
+import { DebugLogger } from '../core/debug/DebugLogger.js';
+
 export class HighScoreManager {
     constructor() {
         this.storageKey = 'rakovinobijec_highscores';
@@ -22,7 +24,7 @@ export class HighScoreManager {
                 }
             }
         } catch (error) {
-            console.error('Error loading high scores:', error);
+            DebugLogger.error('general', 'Error loading high scores:', error);
         }
         
         // Výchozí prázdný seznam
@@ -33,7 +35,7 @@ export class HighScoreManager {
         try {
             localStorage.setItem(this.storageKey, JSON.stringify(this.highScores));
         } catch (error) {
-            console.error('Error saving high scores:', error);
+            DebugLogger.error('general', 'Error saving high scores:', error);
         }
     }
     

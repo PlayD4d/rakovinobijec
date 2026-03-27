@@ -2,20 +2,26 @@
   id: 'powerup.shield',
   type: 'powerup',
   stats: {
-    maxLevel: 10,
+    maxLevel: 5,
   },
   mechanics: {
-    modifiersPerLevel: [],
-    stackable: true,
+    modifiersPerLevel: [
+      { 
+        path: 'shieldHP', 
+        type: 'base',  // PR7: Base value that gets set to (baseValue * level)
+        value: 50,     // 50 HP per level (50, 100, 150, 200, 250)
+        description: 'Shield HP increases by 50 per level'
+      }
+    ],
+    stackable: false,  // Shield doesn't stack, only upgrades
     persistent: true,
     applyOnPickup: true,
     effectType: 'shield',
   },
   ability: {
     type: 'shield',
-    baseRegenMs: 10000,
-    minRegenMs: 5000,
-    regenReductionPerLevel: 500,
+    baseShieldHP: 50,  // Base HP value for calculations
+    rechargeTimePerLevel: [10000, 9000, 8000, 7000, 6000],  // 10s, 9s, 8s, 7s, 6s
   },
   vfx: {
     pickup: 'vfx.pickup',
@@ -45,8 +51,8 @@
       'ability',
     ],
     templates: {
-      short: 'Imunitní štít (regenerace {{ability.baseRegenMs}}ms - 500ms/level)',
-      long: 'Poskytuje regenerující se štít. Základní čas regenerace: 10s (každý level -0.5s, minimum 5s). Level {{mechanics.modifiersPerLevel[3].value}}/10 blokuje {{mechanics.modifiersPerLevel[0].value}} úderů.',
+      short: '{{mechanics.modifiersPerLevel.{{level-1}}.value}} HP štít ({{ability.rechargeTimePerLevel.{{level-1}}}}ms regenerace)',
+      long: 'Poskytuje regenerující se štít s {{mechanics.modifiersPerLevel.{{level-1}}.value}} HP. Regenerace po {{ability.rechargeTimePerLevel.{{level-1}}}}ms. Maximum level {{stats.maxLevel}}.',
     },
     srKey: 'sr.powerup.shield',
   },

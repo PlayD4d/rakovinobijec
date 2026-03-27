@@ -4,6 +4,7 @@
  */
 
 import { EnemyCore } from './core/EnemyCore.js';
+import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { EnemyBehaviors } from './EnemyBehaviors.js';
 
 export class Enemy extends EnemyCore {
@@ -27,7 +28,7 @@ export class Enemy extends EnemyCore {
         this.spawnVfx('spawn');
         this.playSfx('spawn');
         
-        console.debug(`[Enemy] Created ${blueprint.id} with ${this.behaviors.behaviorType} AI`);
+        DebugLogger.info('enemy', `[Enemy] Created ${blueprint.id} with ${this.behaviors.behaviorType} AI`);
     }
     
     /**

@@ -19,7 +19,6 @@
     healthDropChance: 0.15,
   },
   vfx: {
-    spawn: 'vfx.placeholder.spawn',
     hit: 'vfx.hit.small',
     death: 'vfx.death.medium',
     aura: 'vfx.effect',

@@ -6,6 +6,7 @@
  */
 
 import { getCachedVersion } from '../utils/version.js';
+import { DebugLogger } from '../core/debug/DebugLogger.js';
 
 export class AnalyticsManager {
     constructor(supabase, settings = {}) {
@@ -13,7 +14,7 @@ export class AnalyticsManager {
         this.enabled = settings.allowAnalytics !== false && !!supabase; // Enabled only with valid supabase
         
         if (!this.enabled) {
-            console.log('📊 Analytics disabled', !supabase ? '(no Supabase)' : '(user settings)');
+            DebugLogger.info('general', '📊 Analytics disabled', !supabase ? '(no Supabase)' : '(user settings)');
             // Initialize minimal state for no-op mode
             this.sessionId = this.generateSessionId();
             this.sessionStartTime = Date.now();
@@ -61,7 +62,7 @@ export class AnalyticsManager {
         this.lowFpsDebounceMs = CR?.get('analytics.lowFpsDebounce', { defaultValue: 10000 }) || 10000; // min 10s mezi low_fps eventy
         this.startPerformanceSnapshots();
         
-        console.log('📊 Analytics initialized:', this.sessionId);
+        DebugLogger.info('general', '📊 Analytics initialized:', this.sessionId);
         
         // PR7: Okamžitě vytvořit session v databázi, aby enemy_stats měly foreign key
         this.createInitialSession();
@@ -100,15 +101,15 @@ export class AnalyticsManager {
                 .insert([initialData]);
                 
             if (error) {
-                console.warn('⚠️ Failed to create initial session:', error.message);
+                DebugLogger.warn('bootstrap', '⚠️ Failed to create initial session:', error.message);
                 this.sessionCreationPending = false;
             } else {
-                console.log('✅ Initial session created:', this.sessionId);
+                DebugLogger.info('general', '✅ Initial session created:', this.sessionId);
                 this.sessionCreated = true;
                 this.sessionCreationPending = false;
             }
         } catch (error) {
-            console.warn('⚠️ Failed to create initial session:', error.message);
+            DebugLogger.warn('bootstrap', '⚠️ Failed to create initial session:', error.message);
             this.sessionCreationPending = false;
         }
     }
@@ -130,11 +131,11 @@ export class AnalyticsManager {
     
     async startSession(playerName = null) {
         if (!this.enabled) {
-            console.log('📊 Analytics disabled - session start skipped');
+            DebugLogger.info('general', '📊 Analytics disabled - session start skipped');
             return;
         }
         
-        console.log('📊 Starting session:', this.sessionId, 'for player:', playerName || 'anonymous');
+        DebugLogger.info('general', '📊 Starting session:', this.sessionId, 'for player:', playerName || 'anonymous');
         
         // PR7: Získat limity z ConfigResolver
         const CR = window.ConfigResolver;
@@ -161,24 +162,24 @@ export class AnalyticsManager {
                 fps_average: 60
             });
             
-            console.log('✅ Session started and saved successfully:', this.sessionId);
+            DebugLogger.info('general', '✅ Session started and saved successfully:', this.sessionId);
         } catch (error) {
-            console.error('❌ Failed to start session:', error);
+            DebugLogger.error('general', '❌ Failed to start session:', error);
             throw error;
         }
     }
     
     async endSession(gameStats) {
         if (!this.enabled) {
-            console.log('📊 Analytics disabled - session end skipped');
+            DebugLogger.info('general', '📊 Analytics disabled - session end skipped');
             return;
         }
         
         const endTime = Date.now();
         const duration = Math.floor((endTime - this.sessionStartTime) / 1000);
         
-        console.log('📊 Ending session:', this.sessionId, 'after', duration, 'seconds');
-        console.log('📊 Final stats:', {
+        DebugLogger.info('general', '📊 Ending session:', this.sessionId, 'after', duration, 'seconds');
+        DebugLogger.info('general', '📊 Final stats:', {
             score: gameStats.score,
             level: gameStats.level,
             enemies: gameStats.enemiesKilled,
@@ -227,9 +228,9 @@ export class AnalyticsManager {
                 });
             }
             await this.updateSessionData(sessionUpdate);
-            console.log('✅ Session ended successfully:', this.sessionId, 'duration:', duration, 'seconds');
+            DebugLogger.info('general', '✅ Session ended successfully:', this.sessionId, 'duration:', duration, 'seconds');
         } catch (error) {
-            console.error('❌ Failed to end session:', this.sessionId, error);
+            DebugLogger.error('general', '❌ Failed to end session:', this.sessionId, error);
             throw error;
         }
     }
@@ -264,7 +265,7 @@ export class AnalyticsManager {
         
         // Validace - neposlat NULL hodnoty
         if (!enemyType) {
-            console.warn('⚠️ Analytics: enemyType is null/undefined, skipping trackEnemyKill');
+            DebugLogger.warn('bootstrap', '⚠️ Analytics: enemyType is null/undefined, skipping trackEnemyKill');
             return;
         }
         
@@ -282,7 +283,7 @@ export class AnalyticsManager {
         
         // Validace - neposlat NULL hodnoty
         if (!enemyType) {
-            console.warn('⚠️ Analytics: enemyType is null/undefined, skipping trackEnemySpawn');
+            DebugLogger.warn('bootstrap', '⚠️ Analytics: enemyType is null/undefined, skipping trackEnemySpawn');
             return;
         }
         
@@ -311,7 +312,7 @@ export class AnalyticsManager {
         
         // Validace - neposlat NULL hodnoty
         if (!sourceType) {
-            console.warn('⚠️ Analytics: sourceType is null/undefined, skipping trackDamageTaken');
+            DebugLogger.warn('bootstrap', '⚠️ Analytics: sourceType is null/undefined, skipping trackDamageTaken');
             return;
         }
         
@@ -628,12 +629,12 @@ export class AnalyticsManager {
             }
             // Pokud stále není vytvořena, počkat na další flush
             if (!this.sessionCreated) {
-                console.log('📊 Čekám na vytvoření session...');
+                DebugLogger.info('general', '📊 Čekám na vytvoření session...');
                 return;
             }
         }
         
-        console.log(`📊 Flushing ${this.eventQueue.length} analytics events...`);
+        DebugLogger.info('general', `📊 Flushing ${this.eventQueue.length} analytics events...`);
         
         // Group events by table (ignore if supabase is null)
         const eventsByTable = {};
@@ -647,7 +648,7 @@ export class AnalyticsManager {
         // Upload each table's data
         for (const [table, events] of Object.entries(eventsByTable)) {
             try {
-                console.log(`📊 Uploading ${events.length} events to ${table}...`);
+                DebugLogger.info('general', `📊 Uploading ${events.length} events to ${table}...`);
                 const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
                 const { error } = await this.supabase
                     .from(table)
@@ -656,15 +657,15 @@ export class AnalyticsManager {
                 this.lastUploadLatencyMs = Math.round(t1 - t0);
                 
                 if (error) {
-                    console.warn(`❌ Failed to upload ${table}:`, error.message);
-                    console.warn('❌ Sample event data:', events[0]);
+                    DebugLogger.warn('bootstrap', `❌ Failed to upload ${table}:`, error.message);
+                    DebugLogger.warn('bootstrap', '❌ Sample event data:', events[0]);
                     // Don't throw - continue with other tables
                 } else {
-                    console.log(`✅ Uploaded ${events.length} ${table} events successfully`);
+                    DebugLogger.info('general', `✅ Uploaded ${events.length} ${table} events successfully`);
                 }
             } catch (error) {
-                console.warn(`❌ Exception uploading ${table}:`, error.message);
-                console.warn('❌ Sample event data:', events[0]);
+                DebugLogger.warn('bootstrap', `❌ Exception uploading ${table}:`, error.message);
+                DebugLogger.warn('bootstrap', '❌ Sample event data:', events[0]);
                 // Don't throw - continue with other tables
             }
         }
@@ -682,22 +683,22 @@ export class AnalyticsManager {
                 .insert([sessionData]);
             
             if (error) {
-                console.warn('❌ Failed to upload session data:', error.message);
+                DebugLogger.warn('bootstrap', '❌ Failed to upload session data:', error.message);
             } else {
-                console.log('✅ Session data uploaded successfully');
+                DebugLogger.info('general', '✅ Session data uploaded successfully');
             }
         } catch (error) {
-            console.warn('❌ Failed to upload session data:', error.message);
+            DebugLogger.warn('bootstrap', '❌ Failed to upload session data:', error.message);
         }
     }
     
     async updateSessionData(sessionUpdate) {
         if (!this.enabled || !this.supabase) {
-            console.log('📊 Analytics disabled or no Supabase - session update skipped');
+            DebugLogger.info('general', '📊 Analytics disabled or no Supabase - session update skipped');
             return;
         }
         
-        console.log('📊 Updating session data for:', this.sessionId);
+        DebugLogger.info('general', '📊 Updating session data for:', this.sessionId);
         
         try {
             // Prefer upsert pro spolehlivost (vyžaduje INSERT i UPDATE policy)
@@ -707,16 +708,16 @@ export class AnalyticsManager {
                 .upsert(payload, { onConflict: 'session_id' });
             
             if (error) {
-                console.error('❌ Database error updating session:', error.message);
-                console.error('❌ Session ID:', this.sessionId);
-                console.error('❌ Update data:', sessionUpdate);
+                DebugLogger.error('general', '❌ Database error updating session:', error.message);
+                DebugLogger.error('general', '❌ Session ID:', this.sessionId);
+                DebugLogger.error('general', '❌ Update data:', sessionUpdate);
                 throw error;
             } else {
-                console.log('✅ Session data updated successfully for:', this.sessionId);
+                DebugLogger.info('general', '✅ Session data updated successfully for:', this.sessionId);
             }
         } catch (error) {
-            console.error('❌ Exception updating session data:', error.message);
-            console.error('❌ Session ID:', this.sessionId);
+            DebugLogger.error('general', '❌ Exception updating session data:', error.message);
+            DebugLogger.error('general', '❌ Session ID:', this.sessionId);
             throw error;
         }
     }
@@ -726,12 +727,12 @@ export class AnalyticsManager {
     disable() {
         this.enabled = false;
         this.eventQueue = [];
-        console.log('📊 Analytics disabled');
+        DebugLogger.info('general', '📊 Analytics disabled');
     }
     
     enable() {
         this.enabled = true;
-        console.log('📊 Analytics enabled');
+        DebugLogger.info('general', '📊 Analytics enabled');
     }
     
     // ===== PUBLIC API =====
@@ -758,7 +759,7 @@ export class AnalyticsManager {
                     break;
             }
         } catch (error) {
-            console.warn('[Analytics] Failed to track event:', name, error);
+            DebugLogger.warn('bootstrap', '[Analytics] Failed to track event:', name, error);
         }
     }
     
@@ -766,7 +767,7 @@ export class AnalyticsManager {
     flush() {
         if (!this.enabled) return Promise.resolve(); // no-op when disabled
         return this.flushEvents().catch(err => {
-            console.warn('[Analytics] Flush failed:', err);
+            DebugLogger.warn('bootstrap', '[Analytics] Flush failed:', err);
         });
     }
     
@@ -795,9 +796,9 @@ export class AnalyticsManager {
         
         if (this.eventBusConnected) {
             this._setupEventListeners();
-            console.log('[AnalyticsManager] Connected to EventBus - listening for events');
+            DebugLogger.info('general', '[AnalyticsManager] Connected to EventBus - listening for events');
         } else {
-            console.debug('[AnalyticsManager] EventBus connection skipped (analytics disabled or no EventBus)');
+            DebugLogger.info('general', '[AnalyticsManager] EventBus connection skipped (analytics disabled or no EventBus)');
         }
     }
     
@@ -1011,7 +1012,7 @@ export class AnalyticsManager {
             });
             
             this.eventBusConnected = false;
-            console.log('[AnalyticsManager] Disconnected from EventBus');
+            DebugLogger.info('general', '[AnalyticsManager] Disconnected from EventBus');
         }
     }
 }

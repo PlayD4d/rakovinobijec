@@ -1,4 +1,5 @@
 import { SupabaseClient } from '../utils/supabaseClient.js';
+import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { getCachedVersion } from '../utils/version.js';
 
 export class GlobalHighScoreManager {
@@ -7,9 +8,9 @@ export class GlobalHighScoreManager {
         this.supabase = SupabaseClient.getInstance();
         
         if (this.supabase) {
-            console.log('✅ Global High Score Manager: Using shared Supabase client');
+            DebugLogger.info('general', '✅ Global High Score Manager: Using shared Supabase client');
         } else {
-            console.error('❌ Global High Score Manager: Supabase not available');
+            DebugLogger.error('general', '❌ Global High Score Manager: Supabase not available');
         }
         
         // Inicializovat isOnline property (bude aktualizován níže)
@@ -34,12 +35,12 @@ export class GlobalHighScoreManager {
     setupNetworkListeners() {
         window.addEventListener('online', () => {
             this.isOnline = true;
-            console.log('🌐 Connected to internet - global scores available');
+            DebugLogger.info('general', '🌐 Connected to internet - global scores available');
         });
         
         window.addEventListener('offline', () => {
             this.isOnline = false;
-            console.log('📡 Offline - using local scores only');
+            DebugLogger.info('general', '📡 Offline - using local scores only');
         });
     }
     
@@ -63,18 +64,18 @@ export class GlobalHighScoreManager {
     async fetchGlobalScores() {
         // Pokud jsme offline nebo nemáme Supabase, použij lokální scores
         if (!this.isOnline || !this.supabase) {
-            console.log('📡 Offline or Supabase not available - using local scores');
+            DebugLogger.info('general', '📡 Offline or Supabase not available - using local scores');
             return this.localManager ? this.localManager.getHighScores() : [];
         }
         
         // Check cache
         if (this.cachedScores && (Date.now() - this.lastFetchTime) < this.cacheTimeout) {
-            console.log('⚡ Using cached global scores');
+            DebugLogger.info('general', '⚡ Using cached global scores');
             return this.cachedScores;
         }
         
         try {
-            console.log('🌐 Fetching global high scores from Supabase...');
+            DebugLogger.info('general', '🌐 Fetching global high scores from Supabase...');
             
             const { data, error } = await this.supabase
                 .from('high_scores')
@@ -88,12 +89,12 @@ export class GlobalHighScoreManager {
             
             this.cachedScores = data || [];
             this.lastFetchTime = Date.now();
-            console.log('✅ Global scores loaded:', this.cachedScores.length);
+            DebugLogger.info('general', '✅ Global scores loaded:', this.cachedScores.length);
             return this.cachedScores;
             
         } catch (error) {
-            console.warn('❌ Failed to fetch global scores:', error.message);
-            console.log('🔄 Falling back to local scores');
+            DebugLogger.warn('general', '❌ Failed to fetch global scores:', error.message);
+            DebugLogger.info('general', '🔄 Falling back to local scores');
             return this.localManager ? this.localManager.getHighScores() : [];
         }
     }
@@ -104,7 +105,7 @@ export class GlobalHighScoreManager {
         // Jednoduchý idempotentní klíč (jméno+skóre+čas)
         const submitKey = `${sanitizedScore.name}|${sanitizedScore.score}|${sanitizedScore.play_time}`;
         if (this.lastSubmitKey === submitKey && this.lastSubmitResult) {
-            console.log('⛔ Duplicate submit ignored');
+            DebugLogger.info('general', '⛔ Duplicate submit ignored');
             return this.lastSubmitResult;
         }
 
@@ -125,22 +126,22 @@ export class GlobalHighScoreManager {
         let remoteSaved = false;
         if (this.isOnline && this.supabase) {
             try {
-                console.log('🌐 Submitting score to Supabase...');
+                DebugLogger.info('general', '🌐 Submitting score to Supabase...');
                 const { data, error } = await this.supabase
                     .from('high_scores')
                     .insert([sanitizedScore])
                     .select();
                 if (error) throw error;
-                console.log('✅ Score submitted to Supabase!', data);
+                DebugLogger.info('general', '✅ Score submitted to Supabase!', data);
                 remoteSaved = true;
                 // Invalidate cache pro čerstvé TOP10
                 this.cachedScores = null;
                 this.lastFetchTime = 0;
             } catch (error) {
-                console.warn('❌ Failed to submit to Supabase:', error.message);
+                DebugLogger.warn('general', '❌ Failed to submit to Supabase:', error.message);
             }
         } else {
-            console.log('📡 Offline or Supabase not available - remote submit skipped');
+            DebugLogger.info('general', '📡 Offline or Supabase not available - remote submit skipped');
         }
 
         const result = { position, remoteSaved };
@@ -191,7 +192,7 @@ export class GlobalHighScoreManager {
                 return !data || data.length === 0 || score > (data[0]?.score || 0);
                 
             } catch (error) {
-                console.warn('Failed to check high score:', error);
+                DebugLogger.warn('general', 'Failed to check high score:', error);
             }
         }
         

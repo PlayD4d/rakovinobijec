@@ -87,6 +87,24 @@
       "name": "Malé XP"
     }
   },
+  "elite": {
+    "artillery_fungus": {
+      "desc": "Elitní houba střílející explozivní spory na velkou vzdálenost",
+      "name": "Elitní dělostřelecká houba"
+    },
+    "micro_shooter": {
+      "desc": "Elitní verze mikro střelce s vylepšenou rychlostí střelby",
+      "name": "Elitní mikro střelec"
+    },
+    "speed_virus": {
+      "desc": "Extrémně rychlý elitní virus se schopností přeskakování",
+      "name": "Elitní rychlý virus"
+    },
+    "tank_cell": {
+      "desc": "Silně opancéřovaná elitní buňka s regenerujícím štítem",
+      "name": "Elitní tanková buňka"
+    }
+  },
   "enemy": {
     "aberrant_cell": {
       "desc": "Elitní buňka s narušenou strukturou a vysokou odolností",
@@ -103,6 +121,10 @@
     "brown_shooter": {
       "desc": "Střílí projektily na vzdálené cíle",
       "name": "Nekrotická tkáň"
+    },
+    "fungal_parasite": {
+      "desc": "Vysává zdraví a při smrti vypouští spory",
+      "name": "Houbový parazit"
     },
     "green_heavy": {
       "desc": "Pomalá ale odolná rakovinová buňka",
@@ -135,6 +157,10 @@
     "shielding_helper": {
       "desc": "Podpůrná buňka poskytující štíty okolním nepřátelům",
       "name": "Ochranný pomocník"
+    },
+    "support_bacteria": {
+      "desc": "Léčí okolní nepřátele v dosahu",
+      "name": "Podpůrná bakterie"
     },
     "viral_swarm": {
       "desc": "Rychlý virový organismus útočící ve skupinách",
@@ -176,10 +202,6 @@
       "desc": "Kónický proud ohně před hráčem",
       "name": "Plamenomet"
     },
-    "radiotherapy": {
-      "desc": "Rotující radioaktivní paprsky kolem hráče",
-      "name": "Radioterapie"
-    },
     "lightning_chain": {
       "desc": "Řetězové blesky mezi nepřáteli",
       "name": "Imunoterapie"
@@ -204,6 +226,10 @@
       "desc": "Zvyšuje dosah všech útoků",
       "name": "Zvýšený dosah"
     },
+    "radiotherapy": {
+      "desc": "Rotující radioaktivní paprsky kolem hráče",
+      "name": "Radioterapie"
+    },
     "shield": {
       "desc": "Absorbuje příchozí poškození",
       "name": "Imunitní systém"
@@ -226,9 +252,21 @@
       "desc": "Jedovatý projektil poškozující buněčnou strukturu",
       "name": "Cytotoxin"
     },
+    "cytotoxin_enhanced": {
+      "desc": "Zesílený jedovatý projektil s větším dosahem",
+      "name": "Vylepšený cytotoxin"
+    },
+    "cytotoxin_small": {
+      "desc": "Menší verze cytotoxinu pro rychlé útoky",
+      "name": "Malý cytotoxin"
+    },
     "homing": {
       "desc": "Projektil který sleduje cíl",
       "name": "Naváděný projektil"
+    },
+    "player_basic": {
+      "desc": "Standardní projektil vystřelovaný hráčem",
+      "name": "Základní projektil hráče"
     }
   },
   "sr": {
@@ -243,8 +281,8 @@
       "damage_boost": "Zvýšení poškození všech útoků pro efektivnější boj",
       "explosive_bullets": "Protonové dělo - střely explodují při zásahu způsobujíce poškození v oblasti",
       "flamethrower": "Kónický proud ohně poškozující nepřátele před hráčem",
-      "radiotherapy": "Rotující radioaktivní paprsky kolem hráče",
       "piercing_arrows": "Cisplatinové projektily pronikající skrz více nepřátel",
+      "radiotherapy": "Rotující radioaktivní paprsky kolem hráče",
       "shield": "Imunitní systémový štít absorbující příchozí poškození"
     },
     "projectile": {
@@ -277,6 +315,10 @@
       "desc": "Časově manipulativní entita s leukemickými výbuchy",
       "name": "Chromoblast"
     },
+    "golden_cell": {
+      "desc": "Vzácná zlatá buňka poskytující velké odměny",
+      "name": "Zlatá buňka"
+    },
     "mutagen_splicer": {
       "desc": "Adaptivní nepřítel měnící své schopnosti během boje",
       "name": "Mutagenní štěpič"
@@ -292,6 +334,10 @@
     "radiomorph_titan": {
       "desc": "Obří radiační mutant s fázovým posouváním",
       "name": "Radiomorfní titan"
+    },
+    "rainbow_virus": {
+      "desc": "Mystický virus měnící barvy s jedinečnými schopnostmi",
+      "name": "Duhový virus"
     }
   }
 }

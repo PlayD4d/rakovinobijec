@@ -10,24 +10,38 @@
  * @param {Object} cap - Capability interface
  * @param {Object} cfg - Behavior configuration
  * @param {number} dt - Delta time in seconds
- * @returns {string|null} Next state or null to continue
+ * @param {Object} mem - Persistent memory
+ * @param {Function} setState - State transition function
  */
-export function orbit(cap, cfg, dt) {
+export function orbit(cap, cfg, dt, mem, setState) {
     // Get configuration with defaults
     const config = {
         speed: cfg?.speed || 100,
         orbitRadius: cfg?.orbitRadius || 150,
         orbitSpeed: cfg?.orbitSpeed || 1.5,
         shootChance: cfg?.shootChance || 0.02,
+        shootCooldownMs: cfg?.shootCooldownMs || 1000,
         fleeDistance: cfg?.fleeDistance || 50,
+        angleSnapThreshold: cfg?.angleSnapThreshold || 0.087, // ~5 degrees
         ...cfg
     };
+    
+    // Initialize orbit memory
+    if (!mem.orbit.initialized) {
+        mem.orbit = {
+            initialized: true,
+            angle: 0,
+            lastAngle: 0,
+            lastShootAt: -Infinity
+        };
+    }
     
     // Get player reference
     const player = cap.scene?.player;
     if (!player || !player.active) {
         // Lost player, return to idle
-        return 'idle';
+        setState('idle', { stickyMs: 300 });
+        return;
     }
     
     // Get positions
@@ -38,20 +52,29 @@ export function orbit(cap, cfg, dt) {
     
     // Too close - flee briefly
     if (distance < config.fleeDistance) {
-        return 'flee';
+        setState('flee', { stickyMs: 500 });
+        return;
     }
     
     // Initialize orbit angle if needed
-    if (!cap._orbitAngle) {
-        cap._orbitAngle = Math.atan2(dy, dx);
+    if (mem.orbit.angle === 0) {
+        mem.orbit.angle = Math.atan2(dy, dx);
+        mem.orbit.lastAngle = mem.orbit.angle;
     }
     
-    // Update orbit angle
-    cap._orbitAngle += config.orbitSpeed * dt;
+    // Update orbit angle with snap threshold
+    const targetAngle = mem.orbit.angle + config.orbitSpeed * dt;
+    const angleDiff = Math.abs(targetAngle - mem.orbit.lastAngle);
+    
+    // Only update if change is significant
+    if (angleDiff > config.angleSnapThreshold) {
+        mem.orbit.angle = targetAngle;
+        mem.orbit.lastAngle = targetAngle;
+    }
     
     // Calculate desired orbit position
-    const targetX = player.x + Math.cos(cap._orbitAngle) * config.orbitRadius;
-    const targetY = player.y + Math.sin(cap._orbitAngle) * config.orbitRadius;
+    const targetX = player.x + Math.cos(mem.orbit.angle) * config.orbitRadius;
+    const targetY = player.y + Math.sin(mem.orbit.angle) * config.orbitRadius;
     
     // Move towards orbit position
     const tdx = targetX - pos.x;
@@ -64,7 +87,7 @@ export function orbit(cap, cfg, dt) {
         cap.setVelocity(vx, vy);
     } else {
         // Maintain orbit velocity
-        const tangentAngle = cap._orbitAngle + Math.PI / 2;
+        const tangentAngle = mem.orbit.angle + Math.PI / 2;
         const vx = Math.cos(tangentAngle) * config.speed * 0.5;
         const vy = Math.sin(tangentAngle) * config.speed * 0.5;
         cap.setVelocity(vx, vy);
@@ -73,17 +96,18 @@ export function orbit(cap, cfg, dt) {
     // Always face player while orbiting
     cap.faceTo(player.x, player.y);
     
-    // Random chance to shoot while orbiting
-    if (Math.random() < config.shootChance) {
-        const angle = Math.atan2(player.y - pos.y, player.x - pos.x);
-        cap.shoot('straight', { 
-            angle: angle,
-            cooldown: 1000
-        });
+    // Shoot with proper cooldown
+    const now = cap.scene?.time?.now || performance.now();
+    if (now - mem.orbit.lastShootAt >= config.shootCooldownMs) {
+        if (Math.random() < config.shootChance) {
+            const angle = Math.atan2(player.y - pos.y, player.x - pos.x);
+            cap.shoot('straight', { 
+                angle: angle,
+                damage: cap.damage
+            });
+            mem.orbit.lastShootAt = now;
+        }
     }
-    
-    // Stay in orbit state
-    return null;
 }
 
 export default orbit;

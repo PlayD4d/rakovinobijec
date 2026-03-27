@@ -327,6 +327,166 @@ export class FrameworkDebugAPI {
                 }
             };
             
+            // =======================
+            // NEW TESTING HOOKS
+            // =======================
+            
+            // Automated testing framework integration
+            window.__framework.testing = {
+                // Initialize automated testing
+                init: async () => {
+                    try {
+                        const { GameplayAutomation } = await import('./testing/GameplayAutomation.js');
+                        const { ErrorDetector } = await import('./testing/ErrorDetector.js');
+                        
+                        this.automation = new GameplayAutomation(this.gameScene);
+                        this.errorDetector = new ErrorDetector();
+                        
+                        // Hook automation to scene update
+                        const originalUpdate = this.gameScene.update;
+                        this.gameScene.update = function(time, delta) {
+                            if (originalUpdate) originalUpdate.call(this, time, delta);
+                            if (this.automation?.enabled) {
+                                this.automation.update(time, delta);
+                            }
+                        }.bind(this.gameScene);
+                        
+                        console.log('✅ Automated testing initialized');
+                        return { success: true };
+                    } catch (error) {
+                        console.error('❌ Failed to initialize testing:', error);
+                        return { success: false, error: error.message };
+                    }
+                },
+                
+                // Start automated bot
+                startBot: (config = {}) => {
+                    if (!this.automation) {
+                        console.error('Testing not initialized. Run __framework.testing.init() first');
+                        return false;
+                    }
+                    
+                    Object.assign(this.automation.botConfig, config);
+                    this.automation.enabled = true;
+                    console.log('🤖 Bot started with config:', this.automation.botConfig);
+                    return true;
+                },
+                
+                // Stop automated bot
+                stopBot: () => {
+                    if (this.automation) {
+                        this.automation.enabled = false;
+                        console.log('🛑 Bot stopped');
+                    }
+                },
+                
+                // Get automation report
+                getReport: () => {
+                    if (!this.automation) return null;
+                    return this.automation.generateReport();
+                },
+                
+                // Run specific scenario
+                runScenario: async (scenarioName) => {
+                    try {
+                        const scenarios = {
+                            CoreGameplay: () => import('./testing/scenarios/CoreGameplay.js'),
+                            EnemyBehaviors: () => import('./testing/scenarios/EnemyBehaviors.js'),
+                            BossFights: () => import('./testing/scenarios/AllScenarios.js').then(m => ({ BossFights: m.BossFights })),
+                            PowerUpCombos: () => import('./testing/scenarios/AllScenarios.js').then(m => ({ PowerUpCombos: m.PowerUpCombos })),
+                            EdgeCases: () => import('./testing/scenarios/AllScenarios.js').then(m => ({ EdgeCases: m.EdgeCases }))
+                        };
+                        
+                        if (!scenarios[scenarioName]) {
+                            console.error(`Unknown scenario: ${scenarioName}`);
+                            console.log('Available scenarios:', Object.keys(scenarios));
+                            return null;
+                        }
+                        
+                        // Initialize automation if needed
+                        if (!this.automation) {
+                            await window.__framework.testing.init();
+                        }
+                        
+                        // Load and run scenario
+                        const module = await scenarios[scenarioName]();
+                        const ScenarioClass = module[scenarioName] || module.default;
+                        const scenario = new ScenarioClass();
+                        
+                        console.log(`🎮 Running scenario: ${scenarioName}`);
+                        const result = await scenario.execute(this.automation);
+                        
+                        console.log(`✅ Scenario complete. Status: ${result.scenario.status}`);
+                        return result;
+                        
+                    } catch (error) {
+                        console.error(`Failed to run scenario ${scenarioName}:`, error);
+                        return { error: error.message };
+                    }
+                },
+                
+                // Get error detector report
+                getErrors: () => {
+                    if (!this.errorDetector) return null;
+                    return this.errorDetector.getReport();
+                },
+                
+                // Clear error detector
+                clearErrors: () => {
+                    if (this.errorDetector) {
+                        this.errorDetector.clear();
+                        console.log('🧹 Error detector cleared');
+                    }
+                }
+            };
+            
+            // Enhanced DEV commands for testing
+            window.DEV.test = {
+                // Quick test commands
+                bot: (pattern = 'aggressive') => {
+                    window.__framework.testing.startBot({ movementPattern: pattern });
+                },
+                stop: () => {
+                    window.__framework.testing.stopBot();
+                },
+                report: () => {
+                    const report = window.__framework.testing.getReport();
+                    console.table(report?.metrics);
+                    return report;
+                },
+                
+                // Run scenarios
+                core: () => window.__framework.testing.runScenario('CoreGameplay'),
+                enemy: () => window.__framework.testing.runScenario('EnemyBehaviors'),
+                boss: () => window.__framework.testing.runScenario('BossFights'),
+                powerup: () => window.__framework.testing.runScenario('PowerUpCombos'),
+                stress: () => window.__framework.testing.runScenario('EdgeCases'),
+                
+                // Run all scenarios
+                all: async () => {
+                    const scenarios = ['CoreGameplay', 'EnemyBehaviors', 'BossFights', 'PowerUpCombos', 'EdgeCases'];
+                    const results = [];
+                    
+                    for (const scenario of scenarios) {
+                        console.log(`\n🔄 Running ${scenario}...`);
+                        const result = await window.__framework.testing.runScenario(scenario);
+                        results.push(result);
+                        
+                        // Reset between scenarios
+                        if (window.DEV.killAll) window.DEV.killAll();
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
+                    
+                    // Summary
+                    console.log('\n📊 Test Summary:');
+                    results.forEach(r => {
+                        console.log(`  ${r.scenario.name}: ${r.scenario.status}`);
+                    });
+                    
+                    return results;
+                }
+            };
+            
             // Get counters for telemetry
             window.__framework.getCounters = () => {
                 return {
@@ -352,6 +512,11 @@ export class FrameworkDebugAPI {
             console.log('   - Use __framework.healthcheck() to check system status');
             console.log('   - Use __framework.smokeTest() to run full smoke test');
             console.log('   - Use __framework.quickCheck() for quick verification');
+            console.log('🤖 Automated Testing API exposed to window.__framework.testing');
+            console.log('   - Use __framework.testing.init() to initialize');
+            console.log('   - Use DEV.test.bot() to start bot player');
+            console.log('   - Use DEV.test.core() to run core gameplay tests');
+            console.log('   - Use DEV.test.all() to run all test scenarios');
         }
     }
 

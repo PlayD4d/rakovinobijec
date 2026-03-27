@@ -35,7 +35,55 @@ GameScene.create()
 │       └── spawnDirector.start()
 ```
 
-### 2. SystemsInitializer Details
+### 2. BootstrapManager vs SystemsInitializer
+
+#### Rozdělení zodpovědností
+
+**BootstrapManager** (Orchestrátor)
+- **Vlastní**: Celkový bootstrap flow
+- **Zodpovědnost**: Správné pořadí inicializace
+- **Volá**: SystemsInitializer, setup metody
+- **Neděla**: Žádnou konkrétní inicializaci
+
+**SystemsInitializer** (Implementátor)
+- **Vlastní**: Konkrétní systémy
+- **Zodpovědnost**: Data-driven setup
+- **Vytváří**: Factories, Systems, Managers
+- **Neděla**: Orchestraci nebo pořadí
+
+```javascript
+// BootstrapManager - ORCHESTRÁTOR
+class BootstrapManager {
+    bootstrap() {
+        // Phase 1: Core
+        this.initializeCore();     // DisposableRegistry, UpdateManager
+        
+        // Phase 2: Data
+        this.loadData();           // Blueprints, Config
+        
+        // Phase 3: Systems - DELEGUJE!
+        this.systemsInitializer = new SystemsInitializer(this.scene);
+        this.systemsInitializer.initializeSystems();
+        
+        // Phase 4: Game
+        this.setupGame();          // Player, HUD
+    }
+}
+
+// SystemsInitializer - IMPLEMENTÁTOR
+class SystemsInitializer {
+    initializeSystems() {
+        // Vytváří konkrétní systémy
+        this.scene.graphicsFactory = new GraphicsFactory(this.scene);
+        this.scene.audioSystem = new AudioSystem(this.scene);
+        this.scene.vfxSystem = new VFXSystem(this.scene);
+        // ...
+    }
+}
+```
+
+#### Co který systém dělá
+
 The SystemsInitializer is responsible for setting up all data-driven systems:
 
 - **GraphicsFactory**: Texture generation with pooling
@@ -70,9 +118,112 @@ UpdateManager.update(time, delta)
 ### Transition Management
 TransitionManager handles all game state transitions:
 
-- **Victory**: `showVictory()` → UI event → score submission
-- **Game Over**: `gameOver()` → UI event → retry/menu
-- **Level Transition**: `transitionToNextLevel()` → cleanup → new spawn table
+#### Victory Flow
+```
+Player defeats boss
+    ↓
+BossSystem.onBossDeath()
+    ↓
+TransitionManager.showVictory()
+    ├── Check re-entrancy guard
+    ├── Log telemetry event
+    ├── Pause physics
+    ↓
+game.events.emit('ui:victory:show')
+    ↓
+GameUIScene.showVictoryModal()
+    ├── Display score/stats
+    ├── Show continue button
+    ↓
+User clicks continue
+    ↓
+scene.events.emit('victory:continue')
+    ↓
+TransitionManager.transitionToNextLevel()
+    ├── Clear all enemies
+    ├── Reset player position
+    ├── Load next spawn table
+    └── Resume physics
+```
+
+#### Game Over Flow
+```
+Player HP reaches 0
+    ↓
+Player.die()
+    ↓
+TransitionManager.gameOver()
+    ├── Check re-entrancy guard
+    ├── Log telemetry event
+    ├── Stop spawn director
+    ↓
+game.events.emit('ui:gameover:show')
+    ↓
+GameUIScene.showGameOverModal()
+    ├── Display final score
+    ├── Show retry/menu buttons
+    ↓
+User clicks retry
+    ↓
+scene.events.emit('gameover:retry')
+    ↓
+TransitionManager.restartGame()
+    ├── Full cleanup
+    ├── Reset all systems
+    └── Restart from level 1
+```
+
+#### Power-Up Selection Flow
+```
+Player levels up
+    ↓
+ExperienceSystem.onLevelUp()
+    ↓
+TransitionManager.pauseForPowerUp()
+    ├── Pause game physics
+    ├── Generate 3 random power-ups
+    ↓
+game.events.emit('ui:powerup:show', options)
+    ↓
+GameUIScene.showPowerUpSelection()
+    ├── Display 3 cards
+    ├── Block game input
+    ↓
+User selects power-up
+    ↓
+scene.events.emit('powerup:selected', choice)
+    ↓
+PowerUpSystem.applyPowerUp(choice)
+    ↓
+TransitionManager.resumeFromPowerUp()
+    └── Resume physics
+```
+
+#### Level Transition Flow
+```
+Level completion trigger
+    ↓
+SpawnDirector.onLevelComplete()
+    ↓
+TransitionManager.transitionToNextLevel()
+    ├── Fade out current level
+    ├── Clear all entities
+    ↓
+game.events.emit('ui:level-transition:show')
+    ↓
+GameUIScene.showLevelTransition()
+    ├── "Level 2" text
+    ├── Brief pause
+    ↓
+Auto-continue after 2s
+    ↓
+scene.events.emit('level:ready')
+    ↓
+SpawnDirector.loadNextLevel()
+    ├── Load new spawn table
+    ├── Reset difficulty scaling
+    └── Begin spawning
+```
 
 Each transition includes:
 1. Re-entrancy guards to prevent duplicate transitions

@@ -6,6 +6,7 @@
 import { BaseUIComponent } from './BaseUIComponent.js';
 import { UI_THEME, UIThemeUtils } from './UITheme.js';
 import { RESPONSIVE } from './UiConstants.js';
+import { DebugLogger } from '../core/debug/DebugLogger.js';
 
 export class PowerUpSelectionModal extends BaseUIComponent {
     constructor(scene, powerUps = [], onSelectionCallback = null) {
@@ -29,7 +30,7 @@ export class PowerUpSelectionModal extends BaseUIComponent {
         this.overlay = null;
         
         // Debug scene state at construction
-        console.debug('[PowerUpSelectionModal] Constructed with scene state:', {
+        DebugLogger.debug('ui', '[PowerUpSelectionModal] Constructed with scene state:', {
             sceneKey: scene?.scene?.key || 'unknown',
             isActive: scene?.scene?.isActive?.() || false,
             hasSceneManager: !!(scene?.scene),
@@ -49,7 +50,7 @@ export class PowerUpSelectionModal extends BaseUIComponent {
         const scene = this.scene;
         const game  = scene?.sys?.game;
         if (!scene || !scene.sys || !game) {
-            console.error('[PowerUpSelectionModal] Cannot create modal - invalid scene reference');
+            DebugLogger.error('ui', '[PowerUpSelectionModal] Cannot create modal - invalid scene reference');
             return;
         }
         
@@ -63,7 +64,7 @@ export class PowerUpSelectionModal extends BaseUIComponent {
         
         // If container creation failed, don't continue
         if (!this.modalContainer) {
-            console.error('[PowerUpSelectionModal] Failed to create modal container');
+            DebugLogger.error('ui', '[PowerUpSelectionModal] Failed to create modal container');
             return;
         }
         
@@ -93,7 +94,7 @@ export class PowerUpSelectionModal extends BaseUIComponent {
         const scene = this.scene;
         const game  = scene?.sys?.game;
         if (!scene || !scene.sys || !game) {
-            console.error('[PowerUpSelectionModal] Invalid scene reference');
+            DebugLogger.error('ui', '[PowerUpSelectionModal] Invalid scene reference');
             return null;
         }
         const scale = scene.scale || game.scale;
@@ -172,11 +173,11 @@ export class PowerUpSelectionModal extends BaseUIComponent {
      */
     createPowerUpCards() {
         if (this.powerUps.length === 0) {
-            console.warn('[PowerUpSelectionModal] No powerUps to display!');
+            DebugLogger.warn('ui', '[PowerUpSelectionModal] No powerUps to display!');
             return;
         }
         
-        console.log('[PowerUpSelectionModal] Creating', this.powerUps.length, 'power-up cards');
+        DebugLogger.info('ui', '[PowerUpSelectionModal] Creating', this.powerUps.length, 'power-up cards');
         
         // Container pro karty
         const cardsContainer = this.scene.rexUI.add.sizer({
@@ -208,7 +209,7 @@ export class PowerUpSelectionModal extends BaseUIComponent {
             }
         });
         
-        console.log('[PowerUpSelectionModal] Cards created and added to modal');
+        DebugLogger.info('ui', '[PowerUpSelectionModal] Cards created and added to modal');
     }
     
     /**
@@ -503,7 +504,7 @@ export class PowerUpSelectionModal extends BaseUIComponent {
      * Update power-ups before showing
      */
     updatePowerUps(newPowerUps) {
-        console.log('[PowerUpSelectionModal] updatePowerUps called with', newPowerUps?.length, 'powerups');
+        DebugLogger.info('ui', '[PowerUpSelectionModal] updatePowerUps called with', newPowerUps?.length, 'powerups');
         this.powerUps = newPowerUps || [];
         this.selectedPowerUp = null; // Reset selection
         
@@ -569,23 +570,23 @@ export class PowerUpSelectionModal extends BaseUIComponent {
      * Jednoduchá show() metoda - používá super.show() a odstraňuje delayedCall retry logiku
      */
     show(animated = true, duration = 300) {
-        console.log('[PowerUpSelectionModal] show() called, powerUps:', this.powerUps.length);
+        DebugLogger.info('ui', '[PowerUpSelectionModal] show() called, powerUps:', this.powerUps.length);
         
         // ✅ Toleruj RUNNING i PAUSED, nevolej ScenePlugin.isActive() bez klíče
         const status = this.scene?.sys?.settings?.status;
         const usable = !!this.scene?.sys && (status === Phaser.Scenes.RUNNING || status === Phaser.Scenes.PAUSED);
         if (!usable) {
-            console.warn('[PowerUpSelectionModal] Scene not RUNNING/PAUSED, proceeding best-effort (no tween)');
+            DebugLogger.warn('ui', '[PowerUpSelectionModal] Scene not RUNNING/PAUSED, proceeding best-effort (no tween)');
             animated = false;
         }
         
         // Vytvořit modal pokud neexistuje
         if (!this.modalContainer || this.modalContainer._destroyed) {
-            console.log('[PowerUpSelectionModal] Creating modal container');
+            DebugLogger.info('ui', '[PowerUpSelectionModal] Creating modal container');
             this.createModal();
             
             if (!this.modalContainer) {
-                console.error('[PowerUpSelectionModal] Failed to create modal container');
+                DebugLogger.error('ui', '[PowerUpSelectionModal] Failed to create modal container');
                 return Promise.resolve();
             }
         }
@@ -601,7 +602,7 @@ export class PowerUpSelectionModal extends BaseUIComponent {
                     this.modalSizer.layout();
                 }
                 
-                console.log('[PowerUpSelectionModal] Modal content shown');
+                DebugLogger.info('ui', '[PowerUpSelectionModal] Modal content shown');
             }
         });
     }
@@ -656,7 +657,7 @@ export class PowerUpSelectionModal extends BaseUIComponent {
             // Clear card references
             this.cardComponents = [];
         } catch (e) {
-            console.debug('[PowerUpSelectionModal] Destroy error (safe to ignore):', e.message);
+            DebugLogger.debug('ui', '[PowerUpSelectionModal] Destroy error (safe to ignore):', e.message);
         } finally {
             // Always call parent destroy if not already destroyed
             if (!this.isDestroyed) {
@@ -799,7 +800,7 @@ export class PowerUpSelectionModal extends BaseUIComponent {
                     return `Level ${powerUp.level}`;
             }
         } catch (e) {
-            console.log('getCurrentValue error:', e);
+            DebugLogger.warn('ui', 'getCurrentValue error:', e);
             return `Level ${powerUp.level}`;
         }
     }

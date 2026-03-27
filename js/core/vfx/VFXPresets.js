@@ -1,718 +1,177 @@
+import { DebugLogger } from '../debug/DebugLogger.js';
+
+// Import all preset modules
+import * as Combat from './presets/VFXPresetsCombat.js';
+import * as Boss from './presets/VFXPresetsBoss.js';
+import * as PowerUp from './presets/VFXPresetsPowerUp.js';
+import * as Utility from './presets/VFXPresetsUtility.js';
+
 /**
- * VFXPresets - Simple utility functions for common visual effects
- * PR7 Compliant - No hardcoded values, everything parameterized
+ * VFXPresets - Aggregator for all VFX preset modules
+ * PR7 Compliant - Thin orchestrator pattern
  * 
- * These are helper functions that generate Phaser particle configs
- * based on parameters. Blueprints can either use these presets
- * or define their own custom configurations.
+ * Delegates to specialized modules for different effect categories.
+ * Maintains backward compatibility with existing code.
  */
 
 export class VFXPresets {
-    /**
-     * Small hit effect - used for projectile impacts
-     * @param {number} color - Tint color (default: white)
-     * @param {number} quantity - Number of particles (default: 8)
-     */
+    // === COMBAT EFFECTS (delegated to VFXPresetsCombat) ===
+    
     static smallHit(color = 0xFFFFFF, quantity = 8) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: quantity,
-                speed: { min: 50, max: 150 },
-                scale: { start: 0.3, end: 0 },
-                lifespan: 200,
-                tint: color,
-                blendMode: 'ADD'
-            }
-        };
+        return Combat.smallHit(color, quantity);
     }
     
-    /**
-     * Medium hit effect - used for melee hits
-     * @param {number} color - Tint color
-     * @param {number} quantity - Number of particles
-     */
     static mediumHit(color = 0xFFFFFF, quantity = 12) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: quantity,
-                speed: { min: 80, max: 200 },
-                scale: { start: 0.4, end: 0 },
-                lifespan: 300,
-                tint: color,
-                blendMode: 'ADD'
-            }
-        };
+        return Combat.mediumHit(color, quantity);
     }
     
-    /**
-     * Explosion effect - used for deaths and explosions
-     * @param {string} size - 'small', 'medium', 'large'
-     * @param {number} color - Tint color
-     */
-    static explosion(size = 'medium', color = 0xFF6600) {
-        const configs = {
-            small: {
-                quantity: 15,
-                speed: { min: 100, max: 250 },
-                scale: { start: 0.6, end: 0.1 },
-                lifespan: 300
-            },
-            medium: {
-                quantity: 25,
-                speed: { min: 150, max: 350 },
-                scale: { start: 0.8, end: 0.1 },
-                lifespan: 400
-            },
-            large: {
-                quantity: 40,
-                speed: { min: 200, max: 450 },
-                scale: { start: 1.2, end: 0.2 },
-                lifespan: 500
-            }
-        };
-        
-        const config = configs[size] || configs.medium;
-        
-        return {
-            type: 'particles',
-            config: {
-                ...config,
-                tint: color,
-                blendMode: 'ADD'
-            }
-        };
-    }
-    
-    /**
-     * Trail effect - used for projectiles and movement
-     * @param {number} color - Tint color
-     * @param {number} frequency - How often particles spawn (ms)
-     */
-    static trail(color = 0xFFFFFF, frequency = 50) {
-        return {
-            type: 'particles',
-            config: {
-                frequency: frequency,
-                quantity: 1,
-                speed: 20,
-                scale: { start: 0.3, end: 0 },
-                lifespan: 200,
-                alpha: { start: 0.8, end: 0 },
-                tint: color,
-                follow: true
-            }
-        };
-    }
-    
-    /**
-     * Spawn effect - used when entities appear
-     * @param {number} color - Tint color
-     * @param {number} quantity - Number of particles
-     */
-    static spawn(color = 0x8844AA, quantity = 12) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: quantity,
-                speed: { min: 50, max: 120 },
-                scale: { start: 0, end: 0.3, ease: 'Power2' },
-                lifespan: 400,
-                alpha: { start: 0, end: 1, ease: 'Power2' },
-                tint: color
-            }
-        };
-    }
-    
-    /**
-     * Death burst effect - used when entities die
-     * @param {string} size - 'small', 'medium', 'large'
-     * @param {number} color - Tint color
-     */
-    static deathBurst(size = 'medium', color = 0xFF2222) {
-        const configs = {
-            small: {
-                quantity: 15,
-                speed: { min: 60, max: 140 },
-                scale: { start: 0.4, end: 0 },
-                lifespan: 500
-            },
-            medium: {
-                quantity: 20,
-                speed: { min: 80, max: 180 },
-                scale: { start: 0.5, end: 0 },
-                lifespan: 600
-            },
-            large: {
-                quantity: 30,
-                speed: { min: 100, max: 250 },
-                scale: { start: 0.8, end: 0 },
-                lifespan: 800
-            }
-        };
-        
-        const config = configs[size] || configs.medium;
-        
-        return {
-            type: 'particles',
-            config: {
-                ...config,
-                tint: color,
-                gravityY: 50
-            }
-        };
-    }
-    
-    /**
-     * Pickup effect - used when collecting items
-     * @param {number} color - Tint color
-     */
-    static pickup(color = 0x00FF88) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 8,
-                speed: { min: 30, max: 80 },
-                scale: { start: 0.3, end: 0 },
-                lifespan: 300,
-                gravityY: -50,
-                tint: color
-            }
-        };
-    }
-    
-    /**
-     * Shield hit effect - used when shield blocks damage
-     * @param {number} color - Tint color (default: cyan)
-     */
-    static shieldHit(color = 0x00FFFF) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 15,
-                speed: { min: 100, max: 200 },
-                scale: { start: 0.8, end: 0 },
-                lifespan: 300,
-                tint: color,
-                blendMode: 'ADD',
-                angle: { min: 0, max: 360 }
-            }
-        };
-    }
-    
-    /**
-     * Muzzle flash - used for weapon firing
-     * @param {number} color - Tint color
-     */
-    static muzzleFlash(color = 0xFFFFAA) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 5,
-                speed: { min: 20, max: 60 },
-                scale: { start: 0.4, end: 0 },
-                lifespan: 100,
-                tint: color,
-                blendMode: 'ADD'
-            }
-        };
-    }
-    
-    /**
-     * Aura effect - continuous effect around entity
-     * @param {number} color - Tint color
-     * @param {number} frequency - Particle spawn frequency
-     */
-    static aura(color = 0x8800FF, frequency = 100) {
-        return {
-            type: 'particles',
-            config: {
-                frequency: frequency,
-                quantity: 2,
-                speed: { min: 20, max: 50 },
-                scale: { start: 0.3, end: 0 },
-                lifespan: 800,
-                alpha: { start: 0.6, end: 0 },
-                tint: color,
-                blendMode: 'ADD',
-                gravityY: -20
-            }
-        };
-    }
-    
-    /**
-     * Flash effect - screen flash for impacts
-     * @param {number} alpha - Alpha value (0-1)
-     * @param {number} duration - Duration in ms
-     */
-    static flash(alpha = 0.8, duration = 100) {
-        return {
-            type: 'flash',
-            config: {
-                alpha: alpha,
-                duration: duration,
-                color: 0xFFFFFF
-            }
-        };
-    }
-    
-    /**
-     * Large hit effect - for heavy impacts
-     */
     static largeHit(color = 0xFFFFFF) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 20,
-                speed: { min: 100, max: 300 },
-                scale: { start: 0.6, end: 0 },
-                lifespan: 400,
-                tint: color || 0xFFFFFF,
-                blendMode: 'ADD'
-            }
-        };
+        return Combat.largeHit(color);
     }
     
-    /**
-     * Generic effect - fallback for any effect type
-     */
-    static genericEffect(color = 0xFFFFFF) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 10,
-                speed: { min: 50, max: 150 },
-                scale: { start: 0.4, end: 0 },
-                lifespan: 300,
-                tint: color || 0xFFFFFF,
-                blendMode: 'ADD'
-            }
-        };
+    static explosion(size = 'medium', color = 0xFF6600) {
+        return Combat.explosion(size, color);
     }
     
-    /**
-     * Special effect - for unique/rare events
-     */
-    static specialEffect(color = 0xFFD700) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 30,
-                speed: { min: 100, max: 250 },
-                scale: { start: 0.8, end: 0 },
-                lifespan: 500,
-                tint: color || 0xFFD700,
-                blendMode: 'ADD',
-                gravityY: -50
-            }
-        };
+    static deathBurst(size = 'medium', color = 0xFF2222) {
+        return Combat.deathBurst(size, color);
     }
     
-    /**
-     * Telegraph effect - warning indicator
-     */
-    static telegraph(color = 0xFF0000) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 3,
-                speed: 0,
-                scale: { start: 1.5, end: 0.5 },
-                lifespan: 500,
-                tint: color || 0xFF0000,
-                alpha: { start: 0.8, end: 0.2 },
-                blendMode: 'ADD'
-            }
-        };
-    }
-    
-    /**
-     * Shield break effect
-     */
-    static shieldBreak(color = 0x00FFFF) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 25,
-                speed: { min: 150, max: 300 },
-                scale: { start: 0.6, end: 0 },
-                lifespan: 400,
-                tint: color || 0x00FFFF,
-                blendMode: 'ADD',
-                angle: { min: 0, max: 360 }
-            }
-        };
-    }
-    
-    /**
-     * Shield activate effect
-     */
-    static shieldActivate(color = 0x00FFFF) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 15,
-                speed: { min: 20, max: 60 },
-                scale: { start: 0.5, end: 0.8 },
-                lifespan: 600,
-                tint: color || 0x00FFFF,
-                alpha: { start: 0.8, end: 0 },
-                blendMode: 'ADD'
-            }
-        };
-    }
-    
-    /**
-     * Power-up effect - standard
-     */
-    static powerupEffect(color = 0xFFFF00) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 20,
-                speed: { min: 50, max: 150 },
-                scale: { start: 0.5, end: 0 },
-                lifespan: 500,
-                tint: color || 0xFFFF00,
-                blendMode: 'ADD',
-                gravityY: -30
-            }
-        };
-    }
-    
-    /**
-     * Power-up epic effect - for rare power-ups
-     */
-    static powerupEpic(color = 0xFF00FF) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 40,
-                speed: { min: 100, max: 250 },
-                scale: { start: 0.8, end: 0 },
-                lifespan: 700,
-                tint: color || 0xFF00FF,
-                blendMode: 'ADD',
-                gravityY: -50,
-                angle: { min: 0, max: 360 }
-            }
-        };
-    }
-    
-    /**
-     * Boss spawn effect
-     */
-    static bossSpawn(color = 0xFF0000) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 50,
-                speed: { min: 100, max: 300 },
-                scale: { start: 1.2, end: 0 },
-                lifespan: 800,
-                tint: color || 0xFF0000,
-                blendMode: 'ADD',
-                angle: { min: 0, max: 360 }
-            }
-        };
-    }
-    
-    /**
-     * Boss death effect (optimized for performance)
-     */
-    static bossDeath(color = 0xFFFF00) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 40,  // Reduced from 80
-                speed: { min: 150, max: 400 },
-                scale: { start: 1.5, end: 0 },
-                lifespan: 800,  // Reduced from 1000ms
-                tint: color || 0xFFFF00,
-                blendMode: 'ADD',
-                angle: { min: 0, max: 360 },
-                gravityY: 50
-            }
-        };
-    }
-    
-    /**
-     * Boss phase change effect
-     */
-    static bossPhase(color = 0xFF00FF) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 35,
-                speed: { min: 50, max: 200 },
-                scale: { start: 1.0, end: 0 },
-                lifespan: 600,
-                tint: color || 0xFF00FF,
-                blendMode: 'ADD',
-                alpha: { start: 1, end: 0 }
-            }
-        };
-    }
-    
-    /**
-     * Boss special attack effect
-     */
-    static bossSpecial(color = 0xFF8800) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 30,
-                speed: { min: 100, max: 250 },
-                scale: { start: 0.8, end: 0 },
-                lifespan: 500,
-                tint: color || 0xFF8800,
-                blendMode: 'ADD'
-            }
-        };
-    }
-    
-    /**
-     * Boss beam warning effect - telegraphs incoming beam attack
-     */
-    static bossBeamWarning(color = 0xFF0000) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 5,
-                speed: 0,
-                scale: { start: 2.0, end: 0.5 },
-                lifespan: 1000,
-                tint: color || 0xFF0000,
-                alpha: { start: 0.2, end: 0.8 },
-                blendMode: 'ADD',
-                frequency: 100
-            }
-        };
-    }
-    
-    /**
-     * Boss overload charge effect - charging up for overload attack
-     */
-    static bossOverloadCharge(color = 0xFF00FF) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 12,  // Reduced from 20
-                speed: { min: 50, max: 150 },
-                scale: { start: 0.1, end: 0.8 },
-                lifespan: 2000,
-                tint: color || 0xFF00FF,
-                alpha: { start: 0.3, end: 1.0 },
-                blendMode: 'ADD',
-                gravityY: -100,
-                frequency: 80  // Reduced from 50ms
-            }
-        };
-    }
-    
-    /**
-     * Boss overload explosion effect - massive explosion
-     */
-    static bossOverloadExplosion(color = 0xFFFF00) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 30,  // Reduced from 60
-                speed: { min: 200, max: 500 },
-                scale: { start: 1.5, end: 0 },
-                lifespan: 800,
-                tint: color || 0xFFFF00,
-                blendMode: 'ADD',
-                angle: { min: 0, max: 360 }
-            }
-        };
-    }
-    
-    /**
-     * Boss radiation storm effect - swirling radiation particles
-     */
-    static bossRadiationStorm(color = 0x00FF00) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 20,  // Reduced from 40
-                speed: { min: 100, max: 300 },
-                scale: { start: 0.6, end: 0.1 },
-                lifespan: 1500,
-                tint: color || 0x00FF00,
-                alpha: { start: 0.7, end: 0 },
-                blendMode: 'ADD',
-                frequency: 100,  // Reduced from 50ms
-                rotate: { min: 0, max: 360 },
-                gravityX: 50,
-                gravityY: 50
-            }
-        };
-    }
-    
-    /**
-     * Boss victory effect - smaller celebration for boss defeat
-     */
-    static bossVictory(color = 0xFFD700) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 30,  // Less than general victory
-                speed: { min: 150, max: 350 },
-                scale: { start: 0.8, end: 0 },
-                lifespan: 1000,
-                tint: [0xFFD700, 0xFFFF00],  // Just gold colors
-                blendMode: 'ADD',
-                angle: { min: 0, max: 360 },
-                gravityY: 150,
-                frequency: 80  // Less frequent
-            }
-        };
-    }
-    
-    /**
-     * Victory effect - celebration particles (optimized for performance)
-     */
-    static victory(color = 0xFFD700) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 40,  // Reduced from 100
-                speed: { min: 200, max: 400 },
-                scale: { start: 1.0, end: 0 },
-                lifespan: 1200,  // Reduced from 2000ms
-                tint: [0xFFD700, 0xFF69B4, 0x00CED1, 0xFFFF00],
-                blendMode: 'ADD',
-                angle: { min: 0, max: 360 },
-                gravityY: 200,
-                frequency: 50  // Reduced from 20ms
-            }
-        };
-    }
-    
-    /**
-     * Enemy shoot effect - small muzzle flash for enemies
-     */
-    static enemyShoot(color = 0xFF4444) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 3,
-                speed: { min: 20, max: 50 },
-                scale: { start: 0.3, end: 0 },
-                lifespan: 100,
-                tint: color || 0xFF4444,
-                blendMode: 'ADD'
-            }
-        };
-    }
-    
-    /**
-     * Radiation pulse effect - used by boss abilities
-     * Creates expanding rings with radioactive glow
-     */
-    static radiationPulse(color = 0xCCFF00) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 20,
-                speed: { min: 150, max: 300 },
-                scale: { start: 0.1, end: 1.2 },
-                lifespan: 600,
-                tint: color || 0xCCFF00,
-                alpha: { start: 0.8, end: 0 },
-                blendMode: 'ADD',
-                frequency: 100,
-                emitZone: {
-                    type: 'edge',
-                    source: {
-                        type: 'circle',
-                        radius: 10
-                    },
-                    quantity: 20
-                }
-            }
-        };
-    }
-    
-    /**
-     * Enemy hit effect - standard damage feedback
-     */
     static enemyHit(color = 0xFF4444) {
-        return {
-            type: 'particles', 
-            config: {
-                quantity: 10,
-                speed: { min: 60, max: 160 },
-                scale: { start: 0.4, end: 0 },
-                lifespan: 250,
-                tint: color || 0xFF4444,
-                blendMode: 'ADD'
-            }
-        };
+        return Combat.enemyHit(color);
     }
     
-    /**
-     * Level up effect - player progression celebration
-     */
+    static enemyShoot(color = 0xFF4444) {
+        return Combat.enemyShoot(color);
+    }
+    
+    static muzzleFlash(color = 0xFFFFAA) {
+        return Combat.muzzleFlash(color);
+    }
+    
+    // === BOSS EFFECTS (delegated to VFXPresetsBoss) ===
+    
+    static bossSpawn(color = 0xFF0000) {
+        return Boss.bossSpawn(color);
+    }
+    
+    static bossDeath(color = 0xFFFF00) {
+        return Boss.bossDeath(color);
+    }
+    
+    static bossPhase(color = 0xFF00FF) {
+        return Boss.bossPhase(color);
+    }
+    
+    static bossSpecial(color = 0xFF8800) {
+        return Boss.bossSpecial(color);
+    }
+    
+    static bossBeamWarning(color = 0xFF0000) {
+        return Boss.bossBeamWarning(color);
+    }
+    
+    static bossOverloadCharge(color = 0xFF00FF) {
+        return Boss.bossOverloadCharge(color);
+    }
+    
+    static bossOverloadExplosion(color = 0xFFFF00) {
+        return Boss.bossOverloadExplosion(color);
+    }
+    
+    static bossRadiationStorm(color = 0x00FF00) {
+        return Boss.bossRadiationStorm(color);
+    }
+    
+    static bossVictory(color = 0xFFD700) {
+        return Boss.bossVictory(color);
+    }
+    
+    static radiationPulse(color = 0xCCFF00) {
+        return Boss.radiationPulse(color);
+    }
+    
+    // === POWER-UP EFFECTS (delegated to VFXPresetsPowerUp) ===
+    
+    static shieldHit(color = 0x00FFFF) {
+        return PowerUp.shieldHit(color);
+    }
+    
+    static shieldBreak(color = 0x00FFFF) {
+        return PowerUp.shieldBreak(color);
+    }
+    
+    static shieldActivate(color = 0x00FFFF) {
+        return PowerUp.shieldActivate(color);
+    }
+    
+    static powerupEffect(color = 0xFFFF00) {
+        return PowerUp.powerupEffect(color);
+    }
+    
+    static powerupEpic(color = 0xFF00FF) {
+        return PowerUp.powerupEpic(color);
+    }
+    
+    static pickup(color = 0x00FF88) {
+        return PowerUp.pickup(color);
+    }
+    
     static levelup(color = 0xFFD700) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 50,
-                speed: { min: 100, max: 300 },
-                scale: { start: 0.8, end: 0 },
-                lifespan: 800,
-                tint: color || 0xFFD700,
-                blendMode: 'ADD',
-                gravityY: -80,
-                angle: { min: 0, max: 360 }
-            }
-        };
+        return PowerUp.levelup(color);
     }
     
-    /**
-     * Heal effect - health restoration visual
-     */
     static heal(color = 0x00FF88) {
-        return {
-            type: 'particles',
-            config: {
-                quantity: 15,
-                speed: { min: 40, max: 100 },
-                scale: { start: 0.5, end: 0 },
-                lifespan: 500,
-                tint: color || 0x00FF88,
-                gravityY: -60,
-                alpha: { start: 0.8, end: 0 }
-            }
-        };
+        return PowerUp.heal(color);
     }
     
-    /**
-     * Helper to merge preset with custom config
-     * Custom config overrides preset values
-     */
+    static aura(color = 0x8800FF, frequency = 100) {
+        return PowerUp.aura(color, frequency);
+    }
+    
+    // === UTILITY EFFECTS (delegated to VFXPresetsUtility) ===
+    
+    static trail(color = 0xFFFFFF, frequency = 50) {
+        return Utility.trail(color, frequency);
+    }
+    
+    static spawn(color = 0x8844AA, quantity = 12) {
+        return Utility.spawn(color, quantity);
+    }
+    
+    static flash(alpha = 0.8, duration = 100) {
+        return Utility.flash(alpha, duration);
+    }
+    
+    static genericEffect(color = 0xFFFFFF) {
+        return Utility.genericEffect(color);
+    }
+    
+    static specialEffect(color = 0xFFD700) {
+        return Utility.specialEffect(color);
+    }
+    
+    static telegraph(color = 0xFF0000) {
+        return Utility.telegraph(color);
+    }
+    
+    static victory(color = 0xFFD700) {
+        return Utility.victory(color);
+    }
+    
+    // === HELPER METHODS ===
+    
     static merge(preset, custom = {}) {
-        if (!preset || !preset.config) return custom;
-        
-        return {
-            type: custom.type || preset.type,
-            config: {
-                ...preset.config,
-                ...(custom.config || custom)
-            }
-        };
+        return Utility.merge(preset, custom);
     }
     
     /**
      * Get preset by name with optional color override
-     * Useful for blueprint references
+     * Maintains backward compatibility while delegating to modules
      */
     static getPreset(name, color = null) {
         const presets = {
-            // Basic hit effects
+            // Basic hit effects (Combat)
             'hit.small': () => this.smallHit(color),
             'hit.medium': () => this.mediumHit(color),
             'hit.large': () => this.largeHit(color),
@@ -720,23 +179,23 @@ export class VFXPresets {
             'medium': () => this.mediumHit(color), // Alias
             'enemy.hit': () => this.enemyHit(color),
             
-            // Explosion effects
+            // Explosion effects (Combat)
             'explosion.small': () => this.explosion('small', color),
             'explosion.medium': () => this.explosion('medium', color),
             'explosion.large': () => this.explosion('large', color),
             'explosion.toxic': () => this.explosion('medium', 0x00FF00),
             
-            // Trail effects
+            // Trail effects (Utility)
             'trail': () => this.trail(color),
             'trail.small': () => this.trail(color || 0xFFFFFF, 100),
             'trail.toxic': () => this.trail(0x00FF00, 50),
             
-            // Death effects
+            // Death effects (Combat)
             'death.small': () => this.deathBurst('small', color),
             'death.medium': () => this.deathBurst('medium', color),
             'death.large': () => this.deathBurst('large', color),
             
-            // Special effects
+            // Special effects (PowerUp & Utility)
             'spawn': () => this.spawn(color),
             'pickup': () => this.pickup(color),
             'powerup': () => this.powerupEffect(color),
@@ -744,24 +203,24 @@ export class VFXPresets {
             'levelup': () => this.levelup(color),
             'heal': () => this.heal(color),
             
-            // Shield effects
+            // Shield effects (PowerUp)
             'shield.hit': () => this.shieldHit(color),
             'shield.break': () => this.shieldBreak(color),
             'shield.activate': () => this.shieldActivate(color),
             
-            // Boss effects
+            // Boss effects (Boss)
             'boss.spawn': () => this.bossSpawn(color),
             'boss.death': () => this.bossDeath(color),
             'boss.phase': () => this.bossPhase(color),
             'boss.special': () => this.bossSpecial(color),
-            'boss.victory': () => this.bossVictory(color),  // Specific boss victory effect
+            'boss.victory': () => this.bossVictory(color),
             'boss.radiation.pulse': () => this.radiationPulse(color),
             'boss.beam.warning': () => this.bossBeamWarning(color),
             'boss.overload.charge': () => this.bossOverloadCharge(color),
             'boss.overload.explosion': () => this.bossOverloadExplosion(color),
             'boss.radiation.storm': () => this.bossRadiationStorm(color),
             
-            // Generic effects
+            // Generic effects (Utility)
             'effect': () => this.genericEffect(color),
             'special': () => this.specialEffect(color),
             'telegraph': () => this.telegraph(color),
@@ -771,14 +230,23 @@ export class VFXPresets {
             'victory': () => this.victory(color),
             'enemy.shoot': () => this.enemyShoot(color),
             
-            // Fallback mappings for simple names
+            // PowerUp refactor compatibility
+            'powerup.levelup.text': () => this.powerupEffect(0xFFFF00),
+            'lightning.chain.bolt': () => this.smallHit(0x4444FF),
+            'powerup.epic.timeslow': () => this.powerupEpic(0xFF00FF),
+            'aura.damage': () => this.aura(0x00FF00),
+            
+            // Lightning effects
+            'lightning.strike': () => this.smallHit(0x8888FF),
+            
+            // Fallback mappings
             'shoot': () => this.enemyShoot(color),
             'hit': () => this.enemyHit(color)
         };
         
         const presetFn = presets[name];
         if (!presetFn) {
-            console.warn(`[VFXPresets] Unknown preset: ${name}`);
+            DebugLogger.warn('vfx', `[VFXPresets] Unknown preset: ${name}`);
             return null;
         }
         

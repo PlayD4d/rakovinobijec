@@ -10,42 +10,63 @@
  * @param {Object} cap - Capability interface
  * @param {Object} cfg - Behavior configuration
  * @param {number} dt - Delta time in seconds
- * @returns {string|null} Next state or null to continue
+ * @param {Object} mem - Persistent memory
+ * @param {Function} setState - State transition function
  */
-export function chase(cap, cfg, dt) {
+export function chase(cap, cfg, dt, mem, setState) {
     // Get configuration with defaults
     const config = {
-        speed: cfg?.speed || 100,
-        attackRange: cfg?.attackRange || 150,
+        speed: cfg?.speed || 140,
+        attackRange: cfg?.attackRange || 160,
         loseRange: cfg?.loseRange || 400,
         predictiveChase: cfg?.predictiveChase || false,
+        hysteresis: {
+            enterFactor: cfg?.hysteresis?.enterFactor ?? 0.9,  // Enter shoot at 90% range
+            minShootStickMs: cfg?.hysteresis?.minShootStickMs ?? 250,  // Min time in shoot
+            ...cfg?.hysteresis
+        },
         ...cfg
     };
+    
+    // Get positions
+    let pos = cap.getPos();
     
     // Get player reference
     const player = cap.scene?.player;
     if (!player || !player.active) {
         // Lost player, return to idle
-        return 'idle';
+        setState('idle');
+        return;
     }
     
-    // Get positions
-    const pos = cap.getPos();
+    // Get positions (reuse from debug section)
+    pos = cap.getPos();
     const dx = player.x - pos.x;
     const dy = player.y - pos.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    const rawDist = Math.sqrt(dx * dx + dy * dy);
+    
+    // 🔹 EMA smoothing to reduce jitter
+    const alpha = 0.25;
+    mem.prevDist = (mem.prevDist == null) ? rawDist : (mem.prevDist * (1 - alpha) + rawDist * alpha);
+    const distance = mem.prevDist;
     
     // Check if out of chase range
     if (distance > config.loseRange) {
         cap.setVelocity(0, 0);
-        return 'idle';
+        setState('idle');
+        return;
     }
     
-    // Check if in attack range
-    if (distance <= config.attackRange) {
-        // Stop and switch to shooting
+    // 🔹 Check sticky time - can we switch states?
+    const now = cap.scene?.time?.now || Date.now();
+    const canSwitch = now >= (mem.stickyUntil || 0);
+    
+    // 🔹 Hysteresis: enter shoot at 90% of attack range
+    if (canSwitch && distance <= config.attackRange * config.hysteresis.enterFactor) {
+        // Stop and switch to shooting with minimum sticky time
         cap.setVelocity(0, 0);
-        return 'shoot';
+        setState('shoot', { stickyMs: config.hysteresis.minShootStickMs });
+        return;
     }
     
     // Calculate chase velocity
@@ -59,22 +80,15 @@ export function chase(cap, cfg, dt) {
         targetY += player.body.velocity.y * predictionTime;
     }
     
-    // Recalculate direction to target
-    const tdx = targetX - pos.x;
-    const tdy = targetY - pos.y;
-    const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
+    // Calculate direction to target
+    const angle = Math.atan2(player.y - pos.y, player.x - pos.x);
     
-    if (tdist > 0) {
-        // Normalize and apply speed
-        const vx = (tdx / tdist) * config.speed;
-        const vy = (tdy / tdist) * config.speed;
-        
-        cap.setVelocity(vx, vy);
-        cap.faceTo(targetX, targetY);
-    }
+    // Apply velocity
+    const vx = Math.cos(angle) * config.speed;
+    const vy = Math.sin(angle) * config.speed;
     
-    // Stay in chase state
-    return null;
+    cap.setVelocity(vx, vy);
+    cap.faceTo(player.x, player.y);
 }
 
 export default chase;

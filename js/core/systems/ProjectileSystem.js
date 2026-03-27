@@ -7,6 +7,7 @@
  */
 
 import { PlayerProjectile } from '../projectiles/PlayerProjectile.js';
+import { DebugLogger } from '../debug/DebugLogger.js';
 import { EnemyProjectile } from '../projectiles/EnemyProjectile.js';
 import { ShapeRenderer } from '../utils/ShapeRenderer.js';
 // PR7: GameConfig removed - use ConfigResolver only
@@ -139,7 +140,7 @@ export class ProjectileSystem {
         gfx.destroy();
       }
       
-      console.log(`[ProjectileSystem] Generated texture '${textureName}' with shape '${shape}'`);
+      DebugLogger.info('projectile', `[ProjectileSystem] Generated texture '${textureName}' with shape '${shape}'`);
     });
   }
   
@@ -208,7 +209,7 @@ export class ProjectileSystem {
     if (!bullet) {
       // Pool vyčerpán - elegantní degradace, bez spamu
       if (Math.random() < 0.01) { // Logovat pouze 1% selhání
-        console.warn('[ProjectileSystemV2] Pool hráčských projektilů je vyčerpán');
+        DebugLogger.warn('projectile', '[ProjectileSystemV2] Pool hráčských projektilů je vyčerpán');
       }
       return false;
     }
@@ -224,7 +225,7 @@ export class ProjectileSystem {
       if (shootSFX) {
         this.scene.audioSystem.play(shootSFX);
       } else {
-        console.warn('[ProjectileSystem] Missing shoot sound in player blueprint');
+        DebugLogger.warn('projectile', '[ProjectileSystem] Missing shoot sound in player blueprint');
       }
     }
     
@@ -240,6 +241,8 @@ export class ProjectileSystem {
     // Vystřelení pomocí zero-GC API
     bullet.fire(x, y, dirX, dirY, speed, range, damage, tint);
     
+    // Removed excessive debug logging for player projectiles
+    
     // Add piercing properties from player if active
     const player = this.scene.player;
     if (player && player.piercingLevel > 0) {
@@ -250,7 +253,7 @@ export class ProjectileSystem {
         
         // Debug: Log piercing setup occasionally
         if (Math.random() < 0.01) {
-            console.log(`[ProjectileSystem] ✅ PIERCING - Max pierces: ${bullet.maxPiercing}, damage reduction: ${(bullet.damageReduction * 100).toFixed(1)}%`);
+            DebugLogger.info('projectile', `[ProjectileSystem] ✅ PIERCING - Max pierces: ${bullet.maxPiercing}, damage reduction: ${(bullet.damageReduction * 100).toFixed(1)}%`);
         }
     } else {
         // Ensure no piercing properties if not active
@@ -282,15 +285,15 @@ export class ProjectileSystem {
    * @returns {boolean} - True pokud byl projektil vystřelen, false pokud je pool plný
    */
   fireEnemy(x, y, dirX, dirY, speed = null, range = null, damage = null, tracking = false, sourceType = null, tint = 0xff0000, projectileId = 'projectile.cytotoxin_enhanced') {
-    // PR7: Use values from config if not provided
-    speed = speed || this.config.enemySpeed;
-    range = range || this.config.enemyRange;
-    damage = damage || this.config.enemyDamage;
+    // PR7: Use values from config if not provided, with proper fallbacks
+    speed = speed || this.config.enemySpeed || 150;
+    range = range || this.config.enemyRange || 400;
+    damage = damage || this.config.enemyDamage || 8; // CRITICAL FIX: Fallback damage value
     const bullet = this.enemyBullets.get();
     if (!bullet) {
       // Pool vyčerpán - elegantní degradace, bez spamu
       if (Math.random() < 0.01) { // Logovat pouze 1% selhání  
-        console.warn('[ProjectileSystemV2] Pool nepřátelských projektilů je vyčerpán');
+        DebugLogger.warn('projectile', '[ProjectileSystemV2] Pool nepřátelských projektilů je vyčerpán');
       }
       return false;
     }
@@ -305,6 +308,8 @@ export class ProjectileSystem {
     
     // Vystřelení pomocí zero-GC API
     bullet.fire(x, y, dirX, dirY, speed, range, damage, tracking, sourceType, tint);
+    
+    // Removed excessive debug logging for enemy projectiles
     
     return true;
   }
@@ -324,8 +329,11 @@ export class ProjectileSystem {
       return this.firePlayer(opts.x, opts.y, dirX, dirY, 1.0, 1.0, (opts.damage || 10) / this.config.damage, 0xffffff, projectileId);
     }
     
-    // Starší styl: oddělené parametry
-    return this.firePlayer(xOrOptions, y, velocity.x, velocity.y, 1.0, 1.0, damage / this.config.damage, color, 'projectile.player_basic');
+    // Starší styl: oddělené parametry - normalize velocity to direction
+    const speed = Math.hypot(velocity.x, velocity.y) || this.config.speed;
+    const dirX = speed > 0 ? velocity.x / speed : 1;
+    const dirY = speed > 0 ? velocity.y / speed : 0;
+    return this.firePlayer(xOrOptions, y, dirX, dirY, 1.0, 1.0, damage / this.config.damage, color, 'projectile.player_basic');
   }
   
   /**
@@ -337,11 +345,17 @@ export class ProjectileSystem {
     if (typeof xOrOptions === 'object' && xOrOptions.x !== undefined) {
       const opts = xOrOptions;
       const vel = opts.velocity || { x: 0, y: 0 };
+      
+      // OPRAVA: Extrahovat direction z velocity vector
+      const speed = Math.hypot(vel.x, vel.y) || this.config.enemySpeed; // Skutečná rychlost z velocity
+      const dirX = speed > 0 ? vel.x / speed : 1; // Normalizovaný direction X
+      const dirY = speed > 0 ? vel.y / speed : 0; // Normalizovaný direction Y
+      
       // PR7: Get projectileId from options if available
       const projectileId = opts.projectileId || opts.projectileBlueprintId || 'projectile.cytotoxin_enhanced';
       return this.fireEnemy(
-        opts.x, opts.y, vel.x, vel.y, 
-        opts.speed || null,  // Let fireEnemy use defaults from config
+        opts.x, opts.y, dirX, dirY,  // Normalizované direction
+        speed,  // Skutečná rychlost z velocity magnitude
         opts.range || null, 
         opts.damage || null, 
         opts.homing || false, 
@@ -351,8 +365,11 @@ export class ProjectileSystem {
       );
     }
     
-    // Starší styl: oddělené parametry - use null to let fireEnemy apply defaults
-    return this.fireEnemy(xOrOptions, y, velocity.x, velocity.y, null, null, damage, tracking, sourceType, color);
+    // Starší styl: oddělené parametry - normalize velocity to direction
+    const speed = Math.hypot(velocity.x, velocity.y) || this.config.enemySpeed;
+    const dirX = speed > 0 ? velocity.x / speed : 1;
+    const dirY = speed > 0 ? velocity.y / speed : 0;
+    return this.fireEnemy(xOrOptions, y, dirX, dirY, speed, null, damage, tracking, sourceType, color);
   }
   
   /**
@@ -525,7 +542,7 @@ export class ProjectileSystem {
       if (explosionSFX) {
         this.scene.audioSystem.play(explosionSFX);
       } else {
-        console.warn('[ProjectileSystem] Missing explosion sound in projectile blueprint:', projectileId);
+        DebugLogger.warn('projectile', '[ProjectileSystem] Missing explosion sound in projectile blueprint:', projectileId);
       }
     }
     
@@ -572,7 +589,7 @@ export class ProjectileSystem {
     // PR7: Use GraphicsFactory for all graphics creation
     if (!this.scene || !this.scene.graphicsFactory) {
       // Fallback only if GraphicsFactory is not available (should not happen in production)
-      console.warn('[ProjectileSystem] GraphicsFactory not available, using fallback');
+      DebugLogger.warn('projectile', '[ProjectileSystem] GraphicsFactory not available, using fallback');
       if (!this.scene.add) {
         throw new Error('[ProjectileSystem] Scene not available for graphics creation');
       }

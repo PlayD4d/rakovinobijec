@@ -6,6 +6,120 @@ Rakovinobijec používá moderní architektonické vzory pro zajištění škál
 
 ---
 
+## 🏗️ Architektonické vrstvy
+
+### Vrstva 1: GameScene (Thin Hub)
+**GameScene** je pouze tenký orchestrátor - ŽÁDNÁ přímá Phaser API práce!
+- ❌ Žádné `this.add.*`, `this.physics.add.*`, `this.tweens.add`
+- ✅ Pouze delegace na managers a systémy
+- ✅ Event-based komunikace s UI
+
+### Vrstva 2: Managers
+Managers orchestrují high-level herní logiku:
+
+| Manager | Zodpovědnost | Může volat |
+|---------|--------------|------------|
+| **UpdateManager** | Update loop orchestrace | Všechny systémy |
+| **TransitionManager** | Victory/defeat/level transitions | UI events, clearAllEnemies() |
+| **BootstrapManager** | Inicializace scény | SystemsInitializer |
+| **EnemyManager** | Enemy lifecycle | Enemy konstruktor, pools |
+
+### Vrstva 3: Systems
+Systémy poskytují konkrétní funkcionalitu:
+
+| System | Zodpovědnost | Phaser API |
+|--------|--------------|------------|
+| **SystemsInitializer** | Data-driven system setup | ❌ Ne |
+| **ProjectileSystem** | Projektily + pooling | ✅ Sprites, physics |
+| **SimpleLootSystem** | Loot drops + animace | ✅ Sprites, tweens |
+| **PowerUpSystem** | Power-up management | ❌ Ne (deleguje) |
+| **GraphicsFactory** | Texture generation | ✅ Graphics API |
+| **AudioSystem** | SFX/music | ✅ Sound API |
+| **VFXSystem** | Visual effects | ✅ Particles, sprites |
+| **DisposableRegistry** | Resource cleanup | ❌ Ne |
+
+### Vrstva 4: UI (GameUIScene)
+Kompletně oddělená UI vrstva:
+- **GameUIScene** - Všechny UI elementy a modaly
+- **RexUI** - UI komponenty (modaly, buttons)
+- **CentralEventBus** - Event komunikace
+- **UIEventContract** - Definované event interface
+
+### Vrstva 5: Data
+Blueprint-driven data layer:
+- **BlueprintLoader** - Načítání JSON5 dat
+- **ConfigResolver** - Runtime konfigurace
+- **Registries** - VFX/SFX/enemy registrace
+
+---
+
+## 📊 DEPTH_LAYERS Management
+
+### Konstanty pro depth layering
+```javascript
+// js/scenes/GameScene.js
+this.DEPTH_LAYERS = {
+    BACKGROUND: 0,
+    LOOT: 100,
+    ENEMIES: 1000,
+    PLAYER: 1500,
+    PROJECTILES: 2000,
+    VFX: 3000,
+    UI_GAME: 4000,      // In-game UI (health bars)
+    UI_OVERLAY: 5000    // Modal overlays
+};
+```
+
+### Pravidla použití
+- **NIKDY nepoužívejte magic čísla!**
+- Vždy používejte DEPTH_LAYERS konstanty
+- UI_OVERLAY musí být nejvýš pro input blocking
+
+### Příklady správného použití
+```javascript
+// ✅ SPRÁVNĚ
+enemy.setDepth(this.scene.DEPTH_LAYERS.ENEMIES);
+projectile.setDepth(this.scene.DEPTH_LAYERS.PROJECTILES);
+
+// ❌ ŠPATNĚ
+enemy.setDepth(1000);  // Magic number!
+projectile.setDepth(2000);  // Hardcoded!
+```
+
+---
+
+## 🎮 Input Isolation
+
+### Mechanismus blokování inputu
+Když se zobrazí UI overlay (power-up selection, pause, victory):
+
+1. **GameUIScene volá `setTopOnly(true)`**
+   ```javascript
+   this.input.setTopOnly(true);  // Pouze top scéna dostává input
+   ```
+
+2. **Overlay container je interaktivní**
+   ```javascript
+   overlay.setInteractive({ useHandCursor: false });
+   overlay.on('pointerdown', (e) => e.stopPropagation());
+   ```
+
+3. **GameScene je pauzována**
+   ```javascript
+   this.scene.pause('GameScene');
+   ```
+
+4. **Input se nepropaguje do game layer**
+
+### Event propagace
+```
+User Click → GameUIScene (top) → Zpracováno → STOP
+                ↓
+         GameScene (paused) → Nedostane event
+```
+
+---
+
 ## 📐 Architektonické principy
 
 ### 1. Separation of Concerns (SoC)
@@ -106,6 +220,28 @@ class EnemyBehaviors {
 ✅ **Testovatelnost** - behaviors lze testovat s mock capabilities
 ✅ **Rozšiřitelnost** - nové behaviors bez změny core
 ✅ **Čistý kód** - jasné rozdělení zodpovědností
+
+### Diagram datového toku
+```
+┌─────────────────┐
+│     Enemy       │  (Thin Composer)
+└────────┬────────┘
+         │ extends
+┌────────▼────────┐
+│   EnemyCore     │  (Phaser API)
+└────────┬────────┘
+         │ provides capabilities
+┌────────▼────────┐
+│ EnemyBehaviors  │  (State Machine)
+└────────┬────────┘
+         │ calls
+┌────────▼────────┐
+│  behaviors/*.js │  (Pure Functions)
+└─────────────────┘
+
+Datový tok: Enemy → Core → Behaviors → Pure Functions
+Závislosti: ← (jednosměrné, žádné cykly!)
+```
 
 ---
 

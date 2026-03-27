@@ -3,99 +3,242 @@
  * PR7 compliant - single source of truth pro fyzikální interakce
  */
 
+import { DebugLogger } from '../core/debug/DebugLogger.js';
+
 /**
  * Nastaví všechny kolize pro herní scénu
  * @param {Phaser.Scene} scene - GameScene instance
+ * @returns {Array} Colliders pro DisposableRegistry cleanup
  */
 export function setupCollisions(scene) {
     // Validace
     if (!scene || !scene.physics) {
-        console.error('[setupCollisions] Invalid scene or physics not initialized');
-        return;
+        DebugLogger.error('collision', '[setupCollisions] Invalid scene or physics not initialized');
+        return [];
     }
+    
+    // Debug: Comprehensive physics and collision verification
+    DebugLogger.info('collision', '[setupCollisions] === COLLISION SYSTEM DEBUG ===');
+    DebugLogger.verbose('collision', '  - Player exists:', !!scene.player);
+    DebugLogger.verbose('collision', '  - Player physics body:', !!scene.player?.body);
+    DebugLogger.verbose('collision', '  - Player active:', scene.player?.active);
+    DebugLogger.verbose('collision', '  - Player body size:', scene.player?.body ? { width: scene.player.body.width, height: scene.player.body.height } : null);
+    DebugLogger.verbose('collision', '  - Player collision category:', scene.player?.body?.collisionCategory || 'none');
+    DebugLogger.verbose('collision', '  - Player collides with:', scene.player?.body?.collidesWith || 'none');
+    
+    DebugLogger.verbose('collision', '  - Enemies group exists:', !!scene.enemies);
+    DebugLogger.verbose('collision', '  - Enemies group type:', scene.enemies?.constructor?.name);
+    DebugLogger.verbose('collision', '  - Enemies count:', scene.enemies?.getLength?.() || 0);
+    DebugLogger.verbose('collision', '  - Enemies active count:', scene.enemies?.countActive?.() || 0);
+    
+    DebugLogger.verbose('collision', '  - Boss group exists:', !!scene.bossGroup);
+    DebugLogger.verbose('collision', '  - Boss group type:', scene.bossGroup?.constructor?.name);
+    DebugLogger.verbose('collision', '  - Boss count:', scene.bossGroup?.getLength?.() || 0);
+    
+    DebugLogger.verbose('collision', '  - Player bullets group exists:', !!scene.projectileSystem?.playerBullets);
+    DebugLogger.verbose('collision', '  - Player bullets type:', scene.projectileSystem?.playerBullets?.constructor?.name);
+    DebugLogger.verbose('collision', '  - Player bullets count:', scene.projectileSystem?.playerBullets?.getLength?.() || 0);
+    
+    DebugLogger.verbose('collision', '  - Enemy bullets group exists:', !!scene.projectileSystem?.enemyBullets);
+    DebugLogger.verbose('collision', '  - Enemy bullets type:', scene.projectileSystem?.enemyBullets?.constructor?.name);
+    DebugLogger.verbose('collision', '  - Enemy bullets count:', scene.projectileSystem?.enemyBullets?.getLength?.() || 0);
+    
+    DebugLogger.verbose('collision', '  - Physics world exists:', !!scene.physics?.world);
+    DebugLogger.verbose('collision', '  - Physics world active:', scene.physics?.world?.active || false);
+    
+    const colliders = [];
 
     // Player vs Enemies collision
     if (scene.player && scene.enemies) {
-        scene.physics.add.overlap(
+        const collider = scene.physics.add.overlap(
             scene.player,
             scene.enemies,
-            handlePlayerEnemyCollision,
+            (player, enemy) => {
+                DebugLogger.debug('collision', '[Collision] Player-Enemy collision detected!', {
+                    playerPos: { x: player.x, y: player.y },
+                    enemyPos: { x: enemy.x, y: enemy.y },
+                    playerActive: player.active,
+                    enemyActive: enemy.active
+                });
+                handlePlayerEnemyCollision(player, enemy);
+            },
             null,
             scene
         );
+        colliders.push(collider);
+        DebugLogger.info('collision', '[setupCollisions] Registered Player vs Enemies collision');
     }
 
     // Player vs Boss collision
     if (scene.player && scene.bossGroup) {
-        scene.physics.add.overlap(
-            scene.player,
-            scene.bossGroup,
-            handlePlayerBossCollision,
-            null,
-            scene
+        colliders.push(
+            scene.physics.add.overlap(
+                scene.player,
+                scene.bossGroup,
+                handlePlayerBossCollision,
+                null,
+                scene
+            )
         );
     }
 
     // Player bullets vs Enemies
     if (scene.projectileSystem?.playerBullets && scene.enemies) {
-        scene.physics.add.overlap(
+        DebugLogger.info('collision', '[setupCollisions] Setting up Player bullets vs Enemies collision:');
+        DebugLogger.verbose('collision', '  - PlayerBullets group exists:', !!scene.projectileSystem.playerBullets);
+        DebugLogger.verbose('collision', '  - PlayerBullets type:', scene.projectileSystem.playerBullets?.constructor?.name);
+        DebugLogger.verbose('collision', '  - PlayerBullets children:', scene.projectileSystem.playerBullets?.getLength?.() || 0);
+        
+        const collider = scene.physics.add.overlap(
             scene.projectileSystem.playerBullets,
             scene.enemies,
-            (bullet, enemy) => handlePlayerBulletEnemyCollision.call(scene, bullet, enemy),
+            (bullet, enemy) => {
+                DebugLogger.debug('collision', '[Collision] Player bullet hit enemy!', {
+                    bulletPos: { x: bullet.x, y: bullet.y },
+                    enemyPos: { x: enemy.x, y: enemy.y },
+                    bulletActive: bullet.active,
+                    enemyActive: enemy.active
+                });
+                handlePlayerBulletEnemyCollision.call(scene, bullet, enemy);
+            },
             null,
             scene
         );
+        colliders.push(collider);
+        DebugLogger.info('collision', '[setupCollisions] Registered Player bullets vs Enemies collision');
+    } else {
+        DebugLogger.info('collision', '[setupCollisions] SKIPPED Player bullets vs Enemies - missing components');
     }
 
     // Player bullets vs Boss
     if (scene.projectileSystem?.playerBullets && scene.bossGroup) {
-        scene.physics.add.overlap(
-            scene.projectileSystem.playerBullets,
-            scene.bossGroup,
-            handlePlayerBulletBossCollision,
-            null,
-            scene
+        colliders.push(
+            scene.physics.add.overlap(
+                scene.projectileSystem.playerBullets,
+                scene.bossGroup,
+                handlePlayerBulletBossCollision,
+                null,
+                scene
+            )
         );
     }
 
     // Enemy bullets vs Player
+    // CRITICAL: Player (sprite) must be first parameter, enemyBullets (group) second
+    // This ensures Phaser passes parameters in correct order
     if (scene.projectileSystem?.enemyBullets && scene.player) {
-        scene.physics.add.overlap(
-            scene.projectileSystem.enemyBullets,
-            scene.player,
-            handleEnemyBulletPlayerCollision,
+        DebugLogger.info('collision', '[setupCollisions] Setting up Enemy bullets vs Player collision:');
+        DebugLogger.verbose('collision', '  - Player exists:', !!scene.player);
+        DebugLogger.verbose('collision', '  - Player type:', scene.player?.constructor?.name);
+        DebugLogger.verbose('collision', '  - EnemyBullets group exists:', !!scene.projectileSystem.enemyBullets);
+        DebugLogger.verbose('collision', '  - EnemyBullets type:', scene.projectileSystem.enemyBullets?.constructor?.name);
+        DebugLogger.verbose('collision', '  - EnemyBullets children:', scene.projectileSystem.enemyBullets?.getLength?.() || 0);
+        
+        const collider = scene.physics.add.overlap(
+            scene.player,                          // Sprite first (Phaser convention)
+            scene.projectileSystem.enemyBullets,   // Group second
+            (player, bullet) => {                  // Parameters now in correct order
+                DebugLogger.debug('collision', '[Collision] Enemy bullet hit player!', {
+                    bulletPos: { x: bullet.x, y: bullet.y },
+                    playerPos: { x: player.x, y: player.y },
+                    bulletActive: bullet.active,
+                    playerActive: player.active
+                });
+                handleEnemyBulletPlayerCollision(bullet, player);
+            },
             null,
             scene
         );
+        colliders.push(collider);
+        DebugLogger.info('collision', '[setupCollisions] Registered Enemy bullets vs Player collision (sprite-first order)');
+    } else {
+        DebugLogger.info('collision', '[setupCollisions] SKIPPED Enemy bullets vs Player - missing components');
     }
 
     // Player vs Loot
     if (scene.lootSystem?.lootGroup && scene.player) {
-        scene.physics.add.overlap(
-            scene.player,
-            scene.lootSystem.lootGroup,
-            (player, loot) => scene.lootSystem.handlePickup(player, loot),
-            null,
-            scene
+        colliders.push(
+            scene.physics.add.overlap(
+                scene.player,
+                scene.lootSystem.lootGroup,
+                (player, loot) => scene.lootSystem.handlePickup(player, loot),
+                null,
+                scene
+            )
         );
     }
 
     // Additional collision for spawned health/XP orbs (will be removed in step 3)
     // These will be migrated to SimpleLootSystem
     
-    console.log('[setupCollisions] All collisions registered successfully');
+    // Add global world overlap debug listener
+    if (scene.physics && scene.physics.world) {
+        const debugListener = (event, bodyA, bodyB) => {
+            const objA = bodyA.gameObject;
+            const objB = bodyB.gameObject;
+            
+            DebugLogger.debug('collision', '[Physics World] Overlap detected:', {
+                objectA: {
+                    type: objA?.constructor?.name || 'Unknown',
+                    active: objA?.active,
+                    pos: objA ? { x: objA.x, y: objA.y } : null,
+                    bodyType: bodyA?.type || 'none',
+                    collisionCategory: bodyA?.collisionCategory || 'none',
+                    collidesWith: bodyA?.collidesWith || 'none',
+                    bodySize: { width: bodyA.width, height: bodyA.height }
+                },
+                objectB: {
+                    type: objB?.constructor?.name || 'Unknown', 
+                    active: objB?.active,
+                    pos: objB ? { x: objB.x, y: objB.y } : null,
+                    bodyType: bodyB?.type || 'none',
+                    collisionCategory: bodyB?.collisionCategory || 'none',
+                    collidesWith: bodyB?.collidesWith || 'none',
+                    bodySize: { width: bodyB.width, height: bodyB.height }
+                },
+                event: event,
+                timestamp: Date.now()
+            });
+        };
+        
+        // Listen to all overlap events
+        scene.physics.world.on('overlap', debugListener);
+        
+        // Track for cleanup
+        colliders.push({
+            name: 'worldOverlapDebugListener',
+            cleanup: () => {
+                if (scene.physics && scene.physics.world) {
+                    scene.physics.world.off('overlap', debugListener);
+                }
+            }
+        });
+    }
+
+    DebugLogger.debug('collision', `[setupCollisions] Registered ${colliders.length} collisions + debug listeners`);
+    return colliders;
 }
 
 /**
  * Handle player-enemy collision
  */
 function handlePlayerEnemyCollision(player, enemy) {
+    DebugLogger.debug('collision', '[handlePlayerEnemyCollision] Called with:', {
+        playerActive: player?.active,
+        enemyActive: enemy?.active,
+        canTakeDamage: !!player?.canTakeDamage,
+        enemyDamage: enemy?.damage
+    });
+    
     if (!player.active || !enemy.active) return;
     
     // Check if player can take damage
     if (player.canTakeDamage && player.canTakeDamage()) {
         const damage = enemy.contactDamage || enemy.damage || 10;
+        DebugLogger.debug('collision', '[handlePlayerEnemyCollision] Applying damage:', damage);
         player.takeDamage(damage);
+    } else {
+        DebugLogger.debug('collision', '[handlePlayerEnemyCollision] Player cannot take damage (iframes or shield)');
     }
 }
 
@@ -185,7 +328,7 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
             scene.vfxSystem.play(enemy._vfx.hit, enemy.x, enemy.y);
         }
     } catch (error) {
-        console.debug('[VFX] Failed to play hit effect, continuing:', error.message);
+        DebugLogger.debug('vfx', '[VFX] Failed to play hit effect, continuing:', error.message);
     }
     
     try {
@@ -193,7 +336,7 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
             scene.audioSystem.play(enemy._sfx.hit);
         }
     } catch (error) {
-        console.debug('[SFX] Failed to play hit sound, continuing:', error.message);
+        DebugLogger.debug('sfx', '[SFX] Failed to play hit sound, continuing:', error.message);
     }
 }
 
@@ -218,14 +361,28 @@ function handlePlayerBulletBossCollision(bullet, boss) {
  * Handle enemy bullet hitting player
  */
 function handleEnemyBulletPlayerCollision(bullet, player) {
-    if (!bullet.active || !player.active) return;
+    if (!bullet.active || !player.active) {
+        return;
+    }
     
     // Check if player can take damage
     if (player.canTakeDamage && player.canTakeDamage()) {
-        player.takeDamage(bullet.damage || 5);
+        const damage = bullet.damage || 5;
+        player.takeDamage(damage);
         
-        // Destroy bullet
-        bullet.destroy();
+        // Destroy bullet (use kill() for pooled objects)
+        if (bullet.kill) {
+            bullet.kill();
+        } else {
+            bullet.destroy(); // Fallback for non-pooled bullets
+        }
+    } else {
+        // Still destroy bullet even if player has shield/iframes
+        if (bullet.kill) {
+            bullet.kill();
+        } else {
+            bullet.destroy(); // Fallback for non-pooled bullets
+        }
     }
 }
 
