@@ -258,7 +258,17 @@ export class TransitionManager {
                 message: `Úroveň ${nextLevel}`
             });
             
-            // 3. Clean up current level
+            // 3. Auto-collect all loot before clearing
+            if (this.scene.lootSystem?.lootGroup) {
+                const lootItems = this.scene.lootSystem.lootGroup.getChildren().filter(l => l.active);
+                for (const loot of lootItems) {
+                    if (this.scene.lootSystem.collectItem) {
+                        try { this.scene.lootSystem.collectItem(loot); } catch (_) {}
+                    }
+                }
+            }
+
+            // 4. Clean up current level
             await this.cleanupLevel();
             
             // 4. Initialize next level

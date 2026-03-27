@@ -60,7 +60,10 @@ export class FlamethrowerEffect {
         
         // Resize physics zone to match new range
         if (this.active && this._damageZone?.body) {
-            this._damageZone.body.setCircle(this.baseLength, -this.baseLength, -this.baseLength);
+            const d = this.baseLength * 2;
+            this._damageZone.setSize(d, d);
+            this._damageZone.body.setCircle(this.baseLength);
+            this._damageZone.body.setOffset(-this.baseLength + d/2, -this.baseLength + d/2);
         }
         
         DebugLogger.info('vfx', `[FlamethrowerEffect] Config updated - Length: ${this.baseLength}, Angle: ${(this.coneAngle * 180/Math.PI).toFixed(1)}°, Damage: ${this.damage}`);
@@ -152,7 +155,6 @@ export class FlamethrowerEffect {
         // Move physics zone to follow entity
         if (this._damageZone?.body) {
             this._damageZone.setPosition(this.entity.x, this.entity.y);
-            this._damageZone.body.updateFromGameObject();
         }
 
         // Emit flame particles
@@ -243,9 +245,11 @@ export class FlamethrowerEffect {
         const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
         if (!enemiesGroup || !this.scene.physics || !this.entity) return;
 
-        this._damageZone = this.scene.add.zone(this.entity.x, this.entity.y, 1, 1);
-        this.scene.physics.add.existing(this._damageZone, true); // static body
-        this._damageZone.body.setCircle(this.baseLength, -this.baseLength, -this.baseLength);
+        const d = this.baseLength * 2;
+        this._damageZone = this.scene.add.zone(this.entity.x, this.entity.y, d, d);
+        this.scene.physics.add.existing(this._damageZone, false);
+        this._damageZone.body.setCircle(this.baseLength);
+        this._damageZone.body.setOffset(-this.baseLength + d/2, -this.baseLength + d/2);
 
         this._overlapCollider = this.scene.physics.add.overlap(
             this._damageZone,
