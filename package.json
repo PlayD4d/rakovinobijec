@@ -61,15 +61,11 @@
   "homepage": "https://playd4d.github.io/rakovinobijec/",
   "dependencies": {
     "ajv": "^8.17.1",
-    "json5": "^2.2.3",
-    "glob": "^10.3.0"
+    "glob": "^13.0.6",
+    "json5": "^2.2.3"
   },
   "devDependencies": {
     "simple-git-hooks": "^2.9.0"
-  },
-  "optionalDependencies": {
-    "chart.js": "^3.9.1",
-    "chartjs-node-canvas": "^4.1.6"
   },
   "simple-git-hooks": {
     "pre-commit": "npm run audit:data"
