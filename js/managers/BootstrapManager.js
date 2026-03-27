@@ -555,8 +555,7 @@ export class BootstrapManager {
                     },
                     F6: () => {
                         if (this.scene.debugOverlay) {
-                            this.scene.debugOverlay.showMissingAssets = !this.scene.debugOverlay.showMissingAssets;
-                            if (!this.scene.debugOverlay.visible) this.scene.debugOverlay.show();
+                            this.scene.debugOverlay.toggleMissingAssets();
                         }
                     },
                     F9: () => {

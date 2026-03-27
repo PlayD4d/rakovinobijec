@@ -1119,7 +1119,8 @@ export class GameScene extends Phaser.Scene {
                 { name: 'keyboardManager', ref: this.keyboardManager },
                 { name: 'analyticsManager', ref: this.analyticsManager },
                 { name: 'armorShieldEffect', ref: this.armorShieldEffect },
-                { name: 'playerShieldEffect', ref: this.playerShieldEffect }
+                { name: 'playerShieldEffect', ref: this.playerShieldEffect },
+                { name: 'debugOverlay', ref: this.debugOverlay }
             ];
             
             for (const system of systemsToShutdown) {
@@ -1158,6 +1159,7 @@ export class GameScene extends Phaser.Scene {
             this.transitionManager = null;
             this.enemiesGroup = null;
             this.bossGroup = null;
+            this.debugOverlay = null;
             
             console.log('[GameScene] Shutdown sequence completed successfully');
             
