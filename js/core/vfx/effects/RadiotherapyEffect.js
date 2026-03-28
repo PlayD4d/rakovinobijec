@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../debug/DebugLogger.js';
+import { createGraphicsForEffect } from './createGraphicsHelper.js';
 
 /**
  * RadiotherapyEffect - Rotating radiation beams around the player
@@ -318,9 +319,7 @@ export class RadiotherapyEffect {
     destroy() { this.detach(); }
 
     _createGraphics() {
-        if (this.scene.graphicsFactory) return this.scene.graphicsFactory.create();
-        if (this.scene.add?.graphics) return this.scene.add.graphics();
-        return null;
+        return createGraphicsForEffect(this.scene, 'RadiotherapyEffect');
     }
 }
 

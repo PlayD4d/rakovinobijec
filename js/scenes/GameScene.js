@@ -446,6 +446,7 @@ export class GameScene extends Phaser.Scene {
     addDelayedCall(delay, cb, args, scope) { return this.time.delayedCall(delay, cb, args, scope); }
     getMainCamera() { return this.cameras.main; }
     flashCamera(duration = 500, r = 255, g = 255, b = 0) { this.cameras.main.flash(duration, r, g, b); }
+    shakeCamera(duration = 300, intensity = 0.02) { this.cameras.main.shake(duration, intensity); }
     getScaleManager() { return this.scale; }
     restartScene() { this.scene.restart(); }
     

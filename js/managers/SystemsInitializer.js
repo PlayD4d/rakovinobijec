@@ -158,6 +158,13 @@ export class SystemsInitializer {
      */
     initializeEnemyManager() {
         try {
+            // Create physics groups here (PR7: SystemsInitializer owns Phaser API setup)
+            if (!this.scene.enemiesGroup) {
+                this.scene.enemiesGroup = this.scene.physics.add.group({ runChildUpdate: false });
+            }
+            if (!this.scene.bossGroup) {
+                this.scene.bossGroup = this.scene.physics.add.group();
+            }
             this.scene.enemyManager = new EnemyManager(this.scene);
             DebugLogger.info('enemy', '[EnemyManager] Initialized');
         } catch (error) {

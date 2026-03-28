@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../debug/DebugLogger.js';
+import { createGraphicsForEffect } from './createGraphicsHelper.js';
 
 /**
  * ShieldEffect - PR7 compliant shield visual effect
@@ -223,25 +224,6 @@ export class ShieldEffect {
      * @private
      */
     _createGraphics() {
-        // PR7: Check if scene has a graphics factory
-        if (this.scene.graphicsFactory) {
-            return this.scene.graphicsFactory.create();
-        }
-        
-        // PR7: Check if VFXSystem provides graphics creation
-        if (this.scene.vfxSystem && this.scene.vfxSystem._createGraphics) {
-            return this.scene.vfxSystem._createGraphics();
-        }
-        
-        // PR7: Fallback with warning
-        if (this.scene && this.scene.add && this.scene.add.graphics) {
-            if (Math.random() < 0.01) { // Only log occasionally
-                DebugLogger.warn('vfx', '[ShieldEffect] Using scene.add.graphics fallback - needs PR7 GraphicsFactory');
-            }
-            return this.scene.add.graphics();
-        }
-        
-        DebugLogger.error('vfx', '[ShieldEffect] Cannot create graphics - no factory available');
-        return null;
+        return createGraphicsForEffect(this.scene, 'ShieldEffect');
     }
 }

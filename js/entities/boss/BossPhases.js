@@ -122,9 +122,9 @@ export class BossPhases {
         const phaseData = this.phaseData[newPhase];
         if (!phaseData) return;
         
-        // Screen shake při phase transition
-        if (this.scene.cameras && this.scene.cameras.main) {
-            this.scene.cameras.main.shake(300, 0.02);
+        // Screen shake via scene interface
+        if (this.scene.shakeCamera) {
+            this.scene.shakeCamera(300, 0.02);
         }
         
         // Boss invulnerability during transition

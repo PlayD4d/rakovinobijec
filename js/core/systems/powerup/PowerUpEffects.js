@@ -136,9 +136,9 @@ export class PowerUpEffects {
      * Play epic power-up effect
      */
     _playEpicEffect(player) {
-        // Screen flash
-        if (this.scene.cameras?.main) {
-            this.scene.cameras.main.flash(200, 255, 255, 0, 0.5);
+        // Screen flash via scene interface
+        if (this.scene.flashCamera) {
+            this.scene.flashCamera(200, 255, 255, 0);
         }
         
         // Particle burst

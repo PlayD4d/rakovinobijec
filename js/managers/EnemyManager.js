@@ -18,10 +18,10 @@ export class EnemyManager {
         this.scene = scene;
         this.blueprintLoader = scene.blueprintLoader;
         
-        // Create groups if not exists
+        // Groups should be created by SystemsInitializer before EnemyManager is constructed
+        // Defensive guard: create if missing (backward compat)
         if (!scene.enemiesGroup) {
             scene.enemiesGroup = scene.physics.add.group({ runChildUpdate: false });
-            // scene.enemies alias removed — use scene.enemiesGroup consistently
         }
         if (!scene.bossGroup) {
             scene.bossGroup = scene.physics.add.group();

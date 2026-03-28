@@ -40,7 +40,7 @@ export class BossMovement {
         const targetY = startY + direction.y * distance;
         
         // Clamp k hranicím scény
-        const bounds = this.scene.cameras.main;
+        const bounds = this.scene.getMainCamera?.() || this.scene.cameras.main;
         const clampedX = Math.max(50, Math.min(targetX, bounds.width - 50));
         const clampedY = Math.max(50, Math.min(targetY, bounds.height - 50));
         

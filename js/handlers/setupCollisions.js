@@ -5,6 +5,30 @@
 
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 
+// ===== DRY helpers (shared between enemy and boss collision handlers) =====
+
+/** Apply piercing damage reduction to bullet damage */
+function applyPiercingReduction(bullet, baseDamage) {
+    if (bullet.piercing && bullet.hitCount > 0 && bullet.damageReduction) {
+        return baseDamage * Math.pow(1 - bullet.damageReduction, bullet.hitCount);
+    }
+    return baseDamage;
+}
+
+/** Handle bullet after hit: destroy or increment hitCount for piercing */
+function handleBulletAfterHit(bullet) {
+    if (!bullet.piercing || bullet.hitCount >= bullet.maxPiercing) {
+        bullet.destroy();
+    } else {
+        bullet.hitCount = (bullet.hitCount || 0) + 1;
+    }
+}
+
+/** Kill or destroy a bullet (pooled objects use kill(), others use destroy()) */
+function killBullet(bullet) {
+    if (bullet.kill) bullet.kill(); else bullet.destroy();
+}
+
 /**
  * Nastaví všechny kolize pro herní scénu
  * @param {Phaser.Scene} scene - GameScene instance
@@ -274,17 +298,9 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
         return;
     }
     
-    // Apply damage with piercing reduction
-    let damage = bullet.damage || scene.player?.baseStats?.projectileDamage || 10;
-    
-    // Apply damage reduction for piercing bullets
-    if (bullet.piercing && bullet.hitCount > 0 && bullet.damageReduction) {
-        const reductionFactor = Math.pow(1 - bullet.damageReduction, bullet.hitCount);
-        damage = damage * reductionFactor;
-    }
-    
+    // Apply damage with piercing reduction (DRY helper)
+    let damage = applyPiercingReduction(bullet, bullet.damage || scene.player?.baseStats?.projectileDamage || 10);
     enemy.takeDamage(damage);
-    // Note: if enemy dies, EnemyCore.die() calls handleEnemyDeath automatically
     
     // Handle explosive bullets from chemo_reservoir power-up
     if (scene.player?.chemoAuraActive && scene.player.chemoAuraConfig?.enableExplosions) {
@@ -313,13 +329,8 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
         }
     }
     
-    // Handle piercing
-    if (!bullet.piercing || bullet.hitCount >= bullet.maxPiercing) {
-        bullet.destroy();
-    } else {
-        bullet.hitCount = (bullet.hitCount || 0) + 1;
-    }
-    
+    handleBulletAfterHit(bullet);
+
     // VFX/SFX - Silent fail mode
     try {
         if (enemy._vfx?.hit && scene.vfxSystem) {
@@ -345,15 +356,9 @@ function handlePlayerBulletBossCollision(bullet, boss) {
     const scene = this;
     if (!bullet.active || !boss.active) return;
 
-    // Apply damage with piercing reduction
-    let damage = bullet.damage || scene?.player?.baseStats?.projectileDamage || 10;
-    if (bullet.piercing && bullet.hitCount > 0 && bullet.damageReduction) {
-        damage *= Math.pow(1 - bullet.damageReduction, bullet.hitCount);
-    }
-
-    if (boss.takeDamage) {
-        boss.takeDamage(damage);
-    }
+    // Apply damage with piercing reduction (DRY helper)
+    const damage = applyPiercingReduction(bullet, bullet.damage || scene?.player?.baseStats?.projectileDamage || 10);
+    if (boss.takeDamage) boss.takeDamage(damage);
 
     // VFX/SFX hit feedback
     try {
@@ -361,12 +366,7 @@ function handlePlayerBulletBossCollision(bullet, boss) {
         if (boss._sfx?.hit && scene?.audioSystem) scene.audioSystem.play(boss._sfx.hit);
     } catch (_) {}
 
-    // Handle piercing (same logic as enemy bullets)
-    if (!bullet.piercing || bullet.hitCount >= bullet.maxPiercing) {
-        bullet.destroy();
-    } else {
-        bullet.hitCount = (bullet.hitCount || 0) + 1;
-    }
+    handleBulletAfterHit(bullet);
 }
 
 /**
@@ -377,25 +377,12 @@ function handleEnemyBulletPlayerCollision(bullet, player) {
         return;
     }
     
-    // Check if player can take damage
-    if (player.canTakeDamage && player.canTakeDamage()) {
-        const damage = bullet.damage || 5;
-        player.takeDamage(damage);
-        
-        // Destroy bullet (use kill() for pooled objects)
-        if (bullet.kill) {
-            bullet.kill();
-        } else {
-            bullet.destroy(); // Fallback for non-pooled bullets
-        }
-    } else {
-        // Still destroy bullet even if player has shield/iframes
-        if (bullet.kill) {
-            bullet.kill();
-        } else {
-            bullet.destroy(); // Fallback for non-pooled bullets
-        }
+    // Apply damage if player can take it
+    if (player.canTakeDamage?.()) {
+        player.takeDamage(bullet.damage || 5);
     }
+    // Always destroy bullet (DRY helper handles kill vs destroy)
+    killBullet(bullet);
 }
 
 // Export callbacks for testing
