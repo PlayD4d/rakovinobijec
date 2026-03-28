@@ -130,9 +130,14 @@ export class TransitionManager {
         } catch (error) {
             DebugLogger.error('transition', '[TransitionManager] Victory sequence failed:', error);
             this.resetTransitionState();
+        } finally {
+            // Always reset guards on completion (success or failure)
+            this.isShowingVictory = false;
+            this.isTransitioning = false;
+            this.flushAnalytics();
         }
     }
-    
+
     /**
      * Handle game over
      * Extracted from GameScene.gameOver()
@@ -204,13 +209,9 @@ export class TransitionManager {
                 score: stats.score
             });
             
-            // 6. Analytics
+            // 6. Analytics — endSession expects (gameStats) only
             if (this.scene.analyticsManager) {
-                await this.scene.analyticsManager.endSession(
-                    'game_over',
-                    this.scene.gameStats,
-                    { reason: 'player_death' }
-                );
+                await this.scene.analyticsManager.endSession(this.scene.gameStats);
             }
             
             // 7. UI scene will emit 'ui:defeat:restart' or 'ui:defeat:menu'
@@ -218,6 +219,11 @@ export class TransitionManager {
         } catch (error) {
             DebugLogger.error('transition', '[TransitionManager] Game over sequence failed:', error);
             this.resetTransitionState();
+        } finally {
+            // Always reset guards on completion (success or failure)
+            this.isShowingDefeat = false;
+            this.isTransitioning = false;
+            this.flushAnalytics();
         }
     }
     
@@ -367,7 +373,13 @@ export class TransitionManager {
             const enemy = enemies[i];
             
             // Delay for stagger effect
-            await new Promise(resolve => setTimeout(resolve, i * staggerDelay));
+            await new Promise(resolve => {
+                if (this.scene?.time) {
+                    this.scene.time.delayedCall(i * staggerDelay, resolve);
+                } else {
+                    resolve();
+                }
+            });
             
             // VFX at enemy position
             if (this.scene.vfxSystem) {
@@ -390,7 +402,13 @@ export class TransitionManager {
             );
         }
         
-        return new Promise(resolve => setTimeout(resolve, 500));
+        return new Promise(resolve => {
+            if (this.scene?.time) {
+                this.scene.time.delayedCall(500, resolve);
+            } else {
+                resolve();
+            }
+        });
     }
     
     /**
@@ -468,11 +486,15 @@ export class TransitionManager {
                 break;
                 
             case 'clearEnemies':
-                if (this.scene.enemiesGroup) {
-                    this.scene.enemiesGroup.clear(true, true);
-                }
-                if (this.scene.bossGroup) {
-                    this.scene.bossGroup.clear(true, true);
+                // Delegate to EnemyManager to properly reset bossActive/currentBoss
+                if (this.scene.enemyManager) {
+                    this.scene.enemyManager.clearAll();
+                } else {
+                    // Fallback: direct clear + manual flag reset
+                    if (this.scene.enemiesGroup) this.scene.enemiesGroup.clear(true, true);
+                    if (this.scene.bossGroup) this.scene.bossGroup.clear(true, true);
+                    this.scene.currentBoss = null;
+                    this.scene.bossActive = false;
                 }
                 break;
                 
@@ -494,7 +516,13 @@ export class TransitionManager {
         }
         
         // Small delay between steps for stability
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise(resolve => {
+            if (this.scene?.time) {
+                this.scene.time.delayedCall(10, resolve);
+            } else {
+                resolve();
+            }
+        });
     }
     
     /**
@@ -575,7 +603,7 @@ export class TransitionManager {
         
         // Send to analytics manager
         if (this.scene.analyticsManager) {
-            this.scene.analyticsManager.track(event, data);
+            this.scene.analyticsManager.trackEvent(event, data);
         }
         
         // Log for debugging

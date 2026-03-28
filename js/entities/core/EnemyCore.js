@@ -219,16 +219,23 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      */
     spawnVfx(id, at, opts = {}) {
         if (!this.scene.vfxSystem && !this.scene.newVFXSystem) return;
-        
-        const pos = at || this.getPos();
-        const vfxId = this._vfx[id];
-        
+
+        // Accept both {x,y} object and (x, y) number arguments
+        let pos;
+        if (typeof at === 'number') {
+            // Called as spawnVfx(id, x, y) — opts is actually the y coordinate
+            pos = { x: at, y: opts };
+            opts = {};
+        } else {
+            pos = at || this.getPos();
+        }
+
+        const vfxId = this._vfx[id] || id;
         const vfxSystem = this.scene.newVFXSystem || this.scene.vfxSystem;
-        
+
         if (vfxId && vfxSystem) {
             vfxSystem.play(vfxId, pos.x, pos.y, opts);
         } else if (vfxSystem?.playPlaceholder) {
-            // Use placeholder if available
             vfxSystem.playPlaceholder(`vfx.placeholder.${id}`, pos.x, pos.y, opts);
         }
     }
@@ -281,7 +288,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * @param {{amount: number, source: any, type: string}} hit - Damage info
      */
     takeDamage(hit) {
-        let amount = hit.amount || hit;
+        let amount = (hit != null && typeof hit === 'object') ? (hit.amount ?? 0) : (hit ?? 0);
 
         // Apply armor reduction
         if (this.armor > 0) {

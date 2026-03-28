@@ -17,7 +17,8 @@ export function shoot(cap, cfg, dt, mem, setState) {
     cap.faceTo(player.x, player.y);
 
     // Shoot with cooldown
-    const now = cap.now || cap.scene?.time?.now || Date.now();
+    // Use game time; avoid Date.now() fallback which is incompatible in scale
+    const now = cap.now > 0 ? cap.now : (cap.scene?.time?.now || 1);
     const cooldown = cfg?.cooldown || 3000;
 
     if (now - (mem.lastShotAt || -Infinity) >= cooldown) {

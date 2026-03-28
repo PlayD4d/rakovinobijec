@@ -88,9 +88,9 @@ export class FlamethrowerEffect {
         // Create Phaser physics overlap zone for broadphase damage detection
         this._createPhysicsZone();
         
-        // Play looping flamethrower sound - PR7: používáme audioSystem
+        // Play looping flamethrower sound — PR7: use direct file path
         if (this.scene.audioSystem) {
-            this.loopId = this.scene.audioSystem.playLoop('flamethrower');
+            this.loopId = this.scene.audioSystem.playLoop('sound/flamethrower.mp3');
         }
     }
     
@@ -163,11 +163,13 @@ export class FlamethrowerEffect {
             this.particleTimer = 0;
         }
 
-        // Damage tick — open window for overlap callbacks
+        // Damage tick — open window for one frame, then close
         if (time - this.lastDamageTick > this.tickRate * 1000) {
             this._canDamage = true;
             this._hitThisTick.clear();
             this.lastDamageTick = time;
+        } else {
+            this._canDamage = false;
         }
     }
     
@@ -295,7 +297,7 @@ export class FlamethrowerEffect {
     reset(config = {}) {
         this.config = config;
         this.animationTime = 0;
-        this.lastParticleAt = 0;
+        this.particleTimer = 0;
         
         // Update parameters from new config
         const CR = this.scene.configResolver || window.ConfigResolver;

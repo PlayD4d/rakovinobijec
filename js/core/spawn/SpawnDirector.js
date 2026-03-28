@@ -65,12 +65,13 @@ export class SpawnDirector {
             return false;
         }
         
-        this.currentTable = table;
+        // Deep-clone to prevent in-place mutation of cached blueprint data
+        this.currentTable = JSON.parse(JSON.stringify(table));
         this.scenarioId = scenarioId;
         
-        // PR7: Apply XP retuning if xpPlan exists
-        if (table.meta?.extensions?.xpPlan) {
-            this.applyXpRetuning(table);
+        // PR7: Apply XP retuning if xpPlan exists — use cloned table, not original
+        if (this.currentTable.meta?.extensions?.xpPlan) {
+            this.applyXpRetuning(this.currentTable);
         }
         
         // PR7: Validate boss triggers exist
@@ -103,11 +104,14 @@ export class SpawnDirector {
         this.running = true;
         this.startTime = this.scene.time.now; // Record absolute start time
         this.gameTime = 0; // Reset for compatibility
+
+        // Clear NG+ cache on level start to avoid stale scaling
+        if (this._ngCache) this._ngCache.clear();
         
         // PR7: Reset wave timers when starting new level
         if (this.currentTable.enemyWaves) {
             this.currentTable.enemyWaves.forEach(wave => {
-                wave._lastSpawn = 0;
+                wave.lastSpawn = 0;
             });
         }
         
@@ -551,18 +555,22 @@ export class SpawnDirector {
      */
     applyNGPlusScaling(blueprint, ngLevel) {
         if (ngLevel <= 0) return blueprint;
-        
+
         // Get NG+ scaling config
         const ngConfig = this.blueprints?.get('system.ng_plus_scaling');
         if (!ngConfig) return blueprint;
-        
+
         const scaling = ngConfig.scaling;
         if (!scaling) return blueprint;
-        
-        // Clone blueprint to avoid mutation
+
+        // Cache scaled blueprints to avoid deep-cloning on every spawn
+        const cacheKey = `${blueprint.id}_ng${ngLevel}`;
+        if (!this._ngCache) this._ngCache = new Map();
+        if (this._ngCache.has(cacheKey)) return this._ngCache.get(cacheKey);
+
+        // Clone blueprint once and cache the result
         const scaled = JSON.parse(JSON.stringify(blueprint));
-        
-        // Apply scaling
+
         if (scaled.stats) {
             if (scaled.stats.hp && scaling.hp) {
                 scaled.stats.hp = Math.floor(scaled.stats.hp * Math.pow(scaling.hp, ngLevel));
@@ -577,7 +585,8 @@ export class SpawnDirector {
                 scaled.stats.xp = Math.floor(scaled.stats.xp * Math.pow(scaling.xp, ngLevel));
             }
         }
-        
+
+        this._ngCache.set(cacheKey, scaled);
         return scaled;
     }
     

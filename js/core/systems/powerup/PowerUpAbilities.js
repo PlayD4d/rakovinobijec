@@ -12,6 +12,9 @@ export class PowerUpAbilities {
         
         // Active abilities that need per-frame updates
         this.activeAbilities = new Map(); // abilityType -> { config, updateFn }
+
+        // Track chain lightning timers for cleanup
+        this._chainTimers = [];
     }
     
     /**
@@ -344,10 +347,12 @@ export class PowerUpAbilities {
                     });
                 }
                 
-                // Continue chain after delay
-                this.scene.time.delayedCall(150, () => {
+                // Continue chain after delay — tracked for cleanup
+                const timer = this.scene.time?.delayedCall(150, () => {
+                    if (!next?.active || !this.scene) return;
                     this._chainToEnemy(next, damage * 0.8, jumpsLeft - 1, jumpRange, hitList);
                 });
+                if (timer && this._chainTimers) this._chainTimers.push(timer);
             }
         }
     }
@@ -372,16 +377,18 @@ export class PowerUpAbilities {
         this._chemoZone.body.setCircle(radius);
         this._chemoZone.body.setOffset(-radius + d/2, -radius + d/2);
 
-        // Overlap — applies damage every frame but we throttle via timer
-        this._chemoLastTick = 0;
+        // Overlap — applies damage per-enemy, throttled to 2 ticks/sec per enemy
+        this._chemoHitTimes = new WeakMap();
         this._chemoOverlap = this.scene.physics.add.overlap(
             this._chemoZone,
             enemiesGroup,
             (zone, enemy) => {
                 const now = this.scene.time?.now || 0;
-                if (now - this._chemoLastTick < 500) return; // 2 ticks/sec
                 if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
+                const lastHit = this._chemoHitTimes.get(enemy) || 0;
+                if (now - lastHit < 500) return; // 2 ticks/sec per enemy
                 enemy.takeDamage(damage, 'chemo_cloud');
+                this._chemoHitTimes.set(enemy, now);
             }
         );
 
@@ -426,7 +433,9 @@ export class PowerUpAbilities {
                     enemiesGroup,
                     (zone, enemy) => {
                         if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
-                        enemy.takeDamage(tickDamage, 'aura');
+                        // Read current auraDamage each tick so level-ups take effect
+                        const currentDmg = (player.auraDamage || 0) * 0.1;
+                        enemy.takeDamage(currentDmg, 'aura');
                     }
                 );
             }
@@ -556,6 +565,11 @@ export class PowerUpAbilities {
     destroy() {
         this._destroyAuraZone();
         this._destroyChemoCloud();
+        // Cancel pending chain lightning timers
+        if (this._chainTimers) {
+            for (const t of this._chainTimers) { if (t?.destroy) t.destroy(); }
+            this._chainTimers = [];
+        }
         this.activeAbilities.clear();
         this.scene = null;
         this.powerUpSystem = null;

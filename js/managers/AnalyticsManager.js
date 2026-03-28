@@ -514,6 +514,11 @@ export class AnalyticsManager {
     shutdown() { this.destroy(); }
 
     destroy() {
+        // Flush pending events before clearing (best-effort, sync)
+        if (this.eventQueue.length > 0 && this.enabled) {
+            try { this.flushEvents(); } catch (_) {}
+        }
+
         this.enabled = false;
         this._fpsTrackingActive = false;
         if (this.performanceSnapshotTimer) {
@@ -773,8 +778,15 @@ export class AnalyticsManager {
                         this.trackEnemySpawn(payload.enemy_type, payload.level || 1);
                     }
                     break;
+                case 'level_complete':
+                case 'game_over':
+                case 'level_start':
+                    // Store transition-level analytics in event queue for flushing
+                    this.eventQueue.push({ type: name, ...payload, timestamp: Date.now() });
+                    break;
                 default:
-                    // Generic event (not implemented for now)
+                    // Generic event — log for debugging
+                    DebugLogger.debug('analytics', `[Analytics] Unhandled event: ${name}`);
                     break;
             }
         } catch (error) {

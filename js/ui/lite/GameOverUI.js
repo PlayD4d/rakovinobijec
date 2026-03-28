@@ -4,14 +4,15 @@
  */
 import { SimpleModal } from './SimpleModal.js';
 import { SimpleButton } from './SimpleButton.js';
+import { UI_THEME } from '../UITheme.js';
 
 export class GameOverUI {
   constructor(scene) {
     this.scene = scene;
-    this.modal = new SimpleModal(scene, { 
-      width: 600, 
-      height: 500, 
-      depth: 30000 
+    this.modal = new SimpleModal(scene, {
+      width: 600,
+      height: 500,
+      depth: UI_THEME.depth.modal
     });
     
     const cx = scene.cameras.main.width / 2;

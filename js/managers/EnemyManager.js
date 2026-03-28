@@ -233,6 +233,7 @@ export class EnemyManager {
         this.scene.enemiesGroup?.clear?.(true, true);
         this.scene.bossGroup?.clear?.(true, true);
         this.scene.currentBoss = null;
+        this.scene.bossActive = false;
     }
     
     /**

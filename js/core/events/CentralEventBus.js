@@ -98,6 +98,14 @@ export class CentralEventBus {
      */
     once(eventName, callback, context = null) {
         const wrappedCallback = (event) => {
+            // Auto-remove from tracking on fire
+            if (context && this.listeners.has(context)) {
+                const contextListeners = this.listeners.get(context);
+                const idx = contextListeners.findIndex(l =>
+                    l.eventName === eventName && l.originalCallback === callback
+                );
+                if (idx !== -1) contextListeners.splice(idx, 1);
+            }
             try {
                 if (context) {
                     callback.call(context, event.data, event);
@@ -108,7 +116,19 @@ export class CentralEventBus {
                 DebugLogger.error('events', `[CentralEventBus] Error in once handler for ${eventName}:`, error);
             }
         };
-        
+
+        // Track in listeners map so removeAllListeners(context) can clean it up
+        if (context) {
+            if (!this.listeners.has(context)) {
+                this.listeners.set(context, []);
+            }
+            this.listeners.get(context).push({
+                eventName,
+                callback: wrappedCallback,
+                originalCallback: callback
+            });
+        }
+
         this.eventEmitter.once(eventName, wrappedCallback);
         DebugLogger.debug('events', `[CentralEventBus] Registered once listener for: ${eventName}`);
     }

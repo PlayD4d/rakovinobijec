@@ -808,7 +808,8 @@ export class GameScene extends Phaser.Scene {
     }
     
     async gameOver() {
-        endSession('death');
+        // Log session end via debug SessionLog (not analytics — that's handled by TransitionManager)
+        try { getSession()?.end?.('death'); } catch (_) {}
         // Delegate to TransitionManager
         if (this.transitionManager) {
             await this.transitionManager.gameOver();
@@ -1142,7 +1143,7 @@ export class GameScene extends Phaser.Scene {
                 { name: 'armorShieldEffect', ref: this.armorShieldEffect },
                 { name: 'playerShieldEffect', ref: this.playerShieldEffect },
                 { name: 'debugOverlay', ref: this.debugOverlay },
-                { name: 'telemetryLogger', ref: this.telemetryLogger },
+                { name: 'telemetryLogger', ref: this.telemetryLogger, method: 'destroy' },
                 { name: 'unifiedHUD', ref: this.unifiedHUD },
                 { name: 'graphicsFactory', ref: this.graphicsFactory },
             ];
@@ -1150,7 +1151,10 @@ export class GameScene extends Phaser.Scene {
             for (const system of systemsToShutdown) {
                 if (system.ref) {
                     try {
-                        if (typeof system.ref.shutdown === 'function') {
+                        // Prefer explicit method if specified, then shutdown, then destroy
+                        if (system.method && typeof system.ref[system.method] === 'function') {
+                            system.ref[system.method]();
+                        } else if (typeof system.ref.shutdown === 'function') {
                             system.ref.shutdown();
                         } else if (typeof system.ref.destroy === 'function') {
                             system.ref.destroy();

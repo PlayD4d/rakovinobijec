@@ -170,19 +170,18 @@ export class SimplifiedAudioSystem {
         
         // Stop current music with fade if specified
         if (this.currentMusic) {
+            const oldMusic = this.currentMusic; // Capture reference before overwrite
             if (options.fadeOut && this.scene && this.scene.tweens) {
                 this.scene.tweens.add({
-                    targets: this.currentMusic,
+                    targets: oldMusic,
                     volume: 0,
                     duration: options.fadeOut,
                     onComplete: () => {
-                        if (this.currentMusic) {
-                            this.currentMusic.stop();
-                        }
+                        oldMusic.stop();
                     }
                 });
             } else {
-                this.currentMusic.stop();
+                oldMusic.stop();
             }
         }
         
@@ -472,17 +471,19 @@ export class SimplifiedAudioSystem {
      */
     _trackSound(key, sound) {
         this.activeSounds.set(key, sound);
-        
-        // Auto-remove when complete
-        sound.once('complete', () => {
+
+        // Unified cleanup — prevents double pool-return from both complete+stop
+        const cleanup = () => {
+            if (sound._poolReturned) return; // Guard against double return
+            sound._poolReturned = true;
             this.activeSounds.delete(key);
             this._returnSoundToPool(key, sound);
-        });
-        
-        sound.once('stop', () => {
-            this.activeSounds.delete(key);
-            this._returnSoundToPool(key, sound);
-        });
+            sound.off('complete', cleanup);
+            sound.off('stop', cleanup);
+        };
+        sound._poolReturned = false;
+        sound.once('complete', cleanup);
+        sound.once('stop', cleanup);
     }
     
     /**
@@ -562,7 +563,7 @@ export class SimplifiedAudioSystem {
      */
     shutdown() {
         this.stopAll();
-        
+
         // Clear pools
         for (const pool of this.soundPool.values()) {
             for (const sound of pool) {
@@ -570,6 +571,9 @@ export class SimplifiedAudioSystem {
             }
         }
         this.soundPool.clear();
+
+        // Clear throttle map to prevent stale timestamps on restart
+        this.lastPlayTimes.clear();
     }
     
     /**

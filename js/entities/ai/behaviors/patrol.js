@@ -43,7 +43,7 @@ export function patrol(cap, cfg, dt, mem, setState) {
     const spawnY = cap.spawnY || pos.y;
     
     // Initialize patrol state in memory
-    if (!mem.patrol.initialized) {
+    if (!mem.patrol?.initialized) {
         mem.patrol = {
             initialized: true,
             angle: 0,
@@ -56,7 +56,7 @@ export function patrol(cap, cfg, dt, mem, setState) {
     }
     
     const state = mem.patrol;
-    const now = cap.scene?.time?.now || performance.now();
+    const now = cap.now > 0 ? cap.now : (cap.scene?.time?.now || 1);
     
     // Update patrol target based on pattern
     if (now - state.lastChange > config.changeInterval) {

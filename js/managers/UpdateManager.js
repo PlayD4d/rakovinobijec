@@ -233,8 +233,9 @@ export class UpdateManager {
         for (const phase of sortedPhases) {
             if (!phase.enabled || phase.tasks.length === 0) continue;
             
-            const startTime = performance.now();
-            
+            const isDebug = this.scene.game?.config?.physics?.arcade?.debug;
+            const startTime = isDebug ? performance.now() : 0;
+
             // Execute all tasks in this phase
             for (const task of phase.tasks) {
                 if (task.enabled) {
@@ -245,9 +246,9 @@ export class UpdateManager {
                     }
                 }
             }
-            
-            // Track metrics in DEV mode
-            if (this.scene.game?.config?.physics?.arcade?.debug) {
+
+            // Track metrics only in DEV mode
+            if (isDebug) {
                 this.trackPhaseMetrics(phase.name, performance.now() - startTime);
             }
         }

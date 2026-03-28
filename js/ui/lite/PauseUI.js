@@ -4,17 +4,18 @@
  */
 import { SimpleModal } from './SimpleModal.js';
 import { SimpleButton } from './SimpleButton.js';
+import { UI_THEME } from '../UITheme.js';
 
 export class PauseUI {
   constructor(scene, onResume, onQuit) {
     this.scene = scene;
     this.onResume = onResume;
     this.onQuit = onQuit;
-    
-    this.modal = new SimpleModal(scene, { 
-      width: 400, 
-      height: 380, 
-      depth: 26000 
+
+    this.modal = new SimpleModal(scene, {
+      width: 400,
+      height: 380,
+      depth: UI_THEME.depth.modal
     });
     
     const cx = scene.cameras.main.width / 2;

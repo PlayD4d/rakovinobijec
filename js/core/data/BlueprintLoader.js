@@ -240,14 +240,14 @@ export class BlueprintLoader {
                 
                 const text = await response.text();
                 const table = typeof JSON5 !== 'undefined' ? JSON5.parse(text) : JSON.parse(text);
-                
+
                 const tableId = tableConfig.id;
                 this.categories.spawnTable.set(tableId, table);
                 this.blueprints.set(`spawn.${tableId}`, table);
-                
+
                 DebugLogger.verbose('loot', `Loaded spawn table: ${tableId}`);
             } catch (error) {
-                DebugLogger.warn('bootstrap', ` Failed to load spawn table ${tableId}:`, error);
+                DebugLogger.warn('bootstrap', ` Failed to load spawn table ${tableConfig?.id || 'unknown'}:`, error);
             }
         }
     }
@@ -267,14 +267,14 @@ export class BlueprintLoader {
                 
                 const text = await response.text();
                 const config = typeof JSON5 !== 'undefined' ? JSON5.parse(text) : JSON.parse(text);
-                
+
                 const configId = configItem.id;
                 this.categories.system.set(configId, config);
                 this.blueprints.set(`system.${configId}`, config);
-                
+
                 DebugLogger.verbose('loot', `Loaded system config: ${configId}`);
             } catch (error) {
-                DebugLogger.warn('bootstrap', ` Failed to load system config ${configId}:`, error);
+                DebugLogger.warn('bootstrap', ` Failed to load system config ${configItem?.id || 'unknown'}:`, error);
             }
         }
     }
@@ -284,21 +284,8 @@ export class BlueprintLoader {
      * New simplified loot system - PR7 compliant
      */
     async loadItemBlueprints() {
-        const itemSubdirs = ['xp', 'health', 'special', 'powerup', 'currency'];
         const loadPromises = [];
-        
-        for (const subdir of itemSubdirs) {
-            // Try to load all JSON5 files from each subdirectory
-            const itemFiles = [
-                // XP items
-                { subdir: 'xp', files: ['item_xp_small.json5', 'item_xp_medium.json5', 'item_xp_large.json5'] },
-                // Health items
-                { subdir: 'health', files: ['item_health_small.json5', 'item_heal_orb.json5', 'item_protein_cache.json5'] },
-                // Special items
-                { subdir: 'special', files: ['item_energy_cell.json5', 'item_metotrexat.json5', 'item_research_point.json5'] },
-            ];
-        }
-        
+
         // Load known item files
         const itemFiles = [
             // XP items

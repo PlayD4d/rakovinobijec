@@ -398,9 +398,10 @@ export class SimplifiedVFXSystem {
      * Stop all active effects without destroying the system (for level transitions)
      */
     stopAllEffects() {
-        // Stop transient particle emitters (explosions, hits, etc.)
+        // Stop AND destroy transient particle emitters (explosions, hits, etc.)
         for (const [id, emitter] of this.activeEmitters) {
             emitter.stop();
+            if (emitter.destroy) emitter.destroy();
         }
         this.activeEmitters.clear();
 

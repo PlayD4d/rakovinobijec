@@ -99,6 +99,7 @@ export class ShieldEffect {
 
         this.active = false;
         this.entity = null;
+        this._shieldDrawn = false;
         
         // PR7: Clean up graphics properly
         if (this.graphics) {
@@ -130,13 +131,16 @@ export class ShieldEffect {
         
         // Animate rotation
         this.graphics.rotation = time * this.rotationSpeed;
-        
+
         // Animate pulse
         const pulse = 0.5 + 0.3 * Math.sin(time * this.pulseSpeed);
         this.graphics.alpha = pulse;
-        
-        // Redraw shield with animation
-        this._drawShield();
+
+        // Draw shield once on first frame, then only animate via rotation/alpha
+        if (!this._shieldDrawn) {
+            this._drawShield();
+            this._shieldDrawn = true;
+        }
     }
     
     /**
@@ -192,6 +196,7 @@ export class ShieldEffect {
     reset(config = {}) {
         this.config = config;
         this.animationTime = 0;
+        this._shieldDrawn = false;
         
         // Update parameters from new config
         const CR = this.scene.configResolver || window.ConfigResolver;

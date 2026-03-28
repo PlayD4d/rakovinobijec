@@ -39,7 +39,8 @@ export class BossPhases {
                 thresholds.push({
                     phase: index,
                     hpRatio: threshold,
-                    triggered: index === 0 // First phase is already active
+                    // Phase 0 is already active at spawn — mark as triggered to prevent spurious re-trigger
+                    triggered: index === 0
                 });
             }
         });
@@ -94,12 +95,20 @@ export class BossPhases {
         this.boss.transitionToPhase(newPhase);
         this.currentPhase = newPhase;
         
-        // Post-transition effects (guarded against boss death during delay)
-        this.scene?.time?.delayedCall(500, () => {
-            if (!this.boss || !this.scene) return;
-            this.executePostTransitionEffects(newPhase);
-            this.isTransitioning = false;
-        });
+        // Post-transition effects — use tracked timer via BossAbilities
+        const schedule = this.boss?.abilitiesSystem?._schedule?.bind(this.boss.abilitiesSystem);
+        if (schedule) {
+            schedule(500, () => {
+                this.executePostTransitionEffects(newPhase);
+                this.isTransitioning = false;
+            });
+        } else if (this.scene?.time) {
+            this.scene.time.delayedCall(500, () => {
+                if (!this.boss || !this.scene) return;
+                this.executePostTransitionEffects(newPhase);
+                this.isTransitioning = false;
+            });
+        }
         
         // Execute registered callbacks
         this.executeTransitionCallbacks(newPhase);
@@ -258,12 +267,18 @@ export class BossPhases {
         // Execute phase-specific callbacks
         const phaseCallbacks = this.transitionCallbacks.get(phase);
         if (phaseCallbacks) {
-            phaseCallbacks.forEach(cb => { try { cb(phase, this.boss); } catch (_) {} });
+            phaseCallbacks.forEach(cb => {
+                try { cb(phase, this.boss); }
+                catch (e) { DebugLogger.error('boss', `[BossPhases] Phase callback error (phase ${phase}):`, e); }
+            });
         }
         // Execute 'all' callbacks (registered for every phase transition)
         const allCallbacks = this.transitionCallbacks.get('all');
         if (allCallbacks) {
-            allCallbacks.forEach(cb => { try { cb(phase, this.boss); } catch (_) {} });
+            allCallbacks.forEach(cb => {
+                try { cb(phase, this.boss); }
+                catch (e) { DebugLogger.error('boss', `[BossPhases] All-phase callback error:`, e); }
+            });
         }
     }
     

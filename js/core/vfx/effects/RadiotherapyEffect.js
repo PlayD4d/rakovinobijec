@@ -158,11 +158,14 @@ export class RadiotherapyEffect {
             this._drawBeam(this.currentAngle + angleStep * i);
         }
 
-        // Damage tick
+        // Damage tick — open window for one frame, then close
         if (time - this.lastDamageTick > this.tickRate * 1000) {
             this._canDamage = true;
             this._hitThisTick.clear();
             this.lastDamageTick = time;
+        } else {
+            // Close the damage window after the tick frame
+            this._canDamage = false;
         }
     }
 

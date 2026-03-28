@@ -75,7 +75,7 @@ export class SimpleLootSystem {
         this.recentDrops.push({
             x: adjustedPos.x,
             y: adjustedPos.y,
-            time: Date.now()
+            time: this.scene?.time?.now || Date.now()
         });
         
         // Clean up old positions
@@ -200,7 +200,10 @@ export class SimpleLootSystem {
             this.scene.audioSystem.play(blueprint.sfx.pickup);
         }
         
-        // Remove loot
+        // Kill any active tweens before destroying to prevent orphaned tween updates
+        if (this.scene?.tweens) {
+            this.scene.tweens.killTweensOf(loot);
+        }
         loot.destroy();
     }
     

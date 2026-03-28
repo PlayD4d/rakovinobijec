@@ -18,7 +18,18 @@ import { BossAbilities } from './boss/BossAbilities.js';
 import { EnemyBehaviors } from './EnemyBehaviors.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 
+// Shared behavior map — single source of truth for movePattern→behavior mapping
+const BOSS_BEHAVIOR_MAP = {
+    'seek_player': 'chase',
+    'circle_player': 'orbit',
+    'stationary': 'idle',
+    'patrol': 'patrol',
+    'aggressive': 'chase',
+    'defensive': 'orbit'
+};
+
 export class Boss extends BossCore {
+    static BEHAVIOR_MAP = BOSS_BEHAVIOR_MAP;
     constructor(scene, x, y, blueprint, opts = {}) {
         // Validace povinných systémů (PR7 - fail fast)
         if (!scene) throw new Error('[Boss] Chybí scéna');
@@ -110,17 +121,7 @@ export class Boss extends BossCore {
         const phaseData = this.phases?.getCurrentPhaseData() || this.blueprint.mechanics?.phases?.[0];
         const movePattern = phaseData?.movePattern || 'seek_player';
         
-        // Map movePattern to behavior
-        const behaviorMap = {
-            'seek_player': 'chase',
-            'circle_player': 'orbit', 
-            'stationary': 'idle',
-            'patrol': 'patrol',
-            'aggressive': 'chase',
-            'defensive': 'orbit'
-        };
-        
-        const behavior = behaviorMap[movePattern] || 'chase';
+        const behavior = Boss.BEHAVIOR_MAP[movePattern] || 'chase';
         
         // Configure AI for boss - slower but more persistent
         const bossAIConfig = {
@@ -135,15 +136,18 @@ export class Boss extends BossCore {
             }
         };
         
-        // Set behavior and config
+        // Set behavior and config — merge into per-layer configs, not top-level
         if (this.behaviors) {
             this.behaviors.setBehavior(behavior);
-            this.behaviors.config = { ...this.behaviors.config, ...bossAIConfig };
+            for (const layer of Object.keys(this.behaviors.config)) {
+                this.behaviors.config[layer] = { ...this.behaviors.config[layer], ...bossAIConfig };
+            }
             DebugLogger.info('boss', `[Boss] AI configured: ${behavior} behavior from ${movePattern} pattern`);
         }
         
-        // AI decision interval for abilities - boss decides every 2-4 seconds
-        this.aiInterval = 2000 + Math.random() * 2000;
+        // AI decision interval — use phase attackInterval if available, else random 2-4s
+        const phaseAttackInterval = phaseData?.attackInterval;
+        this.aiInterval = phaseAttackInterval || (2000 + Math.random() * 2000);
         this.nextAiDecisionAt = 0; // Will be initialized in update()
         
         DebugLogger.info('boss', `[Boss] AI setup: ${behavior} behavior, ${this.aiInterval}ms ability interval`);
@@ -200,25 +204,19 @@ export class Boss extends BossCore {
     onPhaseChange(phase) {
         const phaseData = this.phases?.getPhaseData(phase);
         if (!phaseData) return;
-        
+
         const movePattern = phaseData.movePattern || 'seek_player';
-        
-        // Map movePattern to behavior
-        const behaviorMap = {
-            'seek_player': 'chase',
-            'circle_player': 'orbit', 
-            'stationary': 'idle',
-            'patrol': 'patrol',
-            'aggressive': 'chase',
-            'defensive': 'orbit'
-        };
-        
-        const behavior = behaviorMap[movePattern] || 'chase';
-        
+        const behavior = Boss.BEHAVIOR_MAP[movePattern] || 'chase';
+
         // Update behavior for new phase
         if (this.behaviors) {
             this.behaviors.setBehavior(behavior);
             DebugLogger.info('boss', `[Boss] Phase ${phase} - switching to ${behavior} behavior`);
+        }
+
+        // Update AI decision interval from phase data
+        if (phaseData.attackInterval) {
+            this.aiInterval = phaseData.attackInterval;
         }
     }
     
@@ -267,24 +265,23 @@ export class Boss extends BossCore {
      * Override damage handling pro phase transitions
      */
     takeDamage(amount, source = null) {
-        // Parent damage handling
-        const damageDealt = super.takeDamage(amount, source);
-        
+        // Parent expects {amount, source} object or plain number
+        const damageDealt = super.takeDamage({ amount, source });
+
         // Update boss HP bar if damage was dealt
-        if (damageDealt > 0 && this.scene.unifiedHUD) {
+        if (damageDealt > 0 && this.scene?.unifiedHUD) {
             this.scene.unifiedHUD.setBossHealth(this.hp, this.maxHp);
         }
-        
-        // Trigger boss decision after taking damage
+
+        // Trigger boss decision after taking damage (tracked timer)
         if (damageDealt > 0 && this.hp > 0) {
-            if (Math.random() < 0.3) {
-                this.scene?.time?.delayedCall(500, () => {
-                    if (!this.active || !this.scene) return;
+            if (Math.random() < 0.3 && this.abilitiesSystem?._schedule) {
+                this.abilitiesSystem._schedule(500, () => {
                     this.makeBossDecision(this.scene.time.now, 16);
                 });
             }
         }
-        
+
         return damageDealt;
     }
     

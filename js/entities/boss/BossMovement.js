@@ -41,8 +41,8 @@ export class BossMovement {
         
         // Clamp k hranicím scény
         const bounds = this.scene.cameras.main;
-        const clampedX = Phaser.Math.Clamp(targetX, 50, bounds.width - 50);
-        const clampedY = Phaser.Math.Clamp(targetY, 50, bounds.height - 50);
+        const clampedX = Math.max(50, Math.min(targetX, bounds.width - 50));
+        const clampedY = Math.max(50, Math.min(targetY, bounds.height - 50));
         
         DebugLogger.info('boss', `[BossMovement] Executing dash: (${startX}, ${startY}) -> (${clampedX}, ${clampedY}`);
         
@@ -65,7 +65,7 @@ export class BossMovement {
         const { x: playerX, y: playerY } = target.getPos ? target.getPos() : target;
         
         // Vypočítej pozici za hráčem
-        const angle = Phaser.Math.Angle.Between(playerX, playerY, this.boss.x, this.boss.y);
+        const angle = Math.atan2(this.boss.y - playerY, this.boss.x - playerX);
         const strikeX = playerX + Math.cos(angle) * 80;
         const strikeY = playerY + Math.sin(angle) * 80;
         
@@ -74,13 +74,15 @@ export class BossMovement {
         // Phase 1: Teleport za hráče
         this.boss.teleportTo(strikeX, strikeY);
         
-        // Phase 2: Útok s krátkým delay
-        this.scene.time.delayedCall(200, () => {
-            this.boss.shoot('boss_strike', { 
+        // Phase 2: Útok s krátkým delay — use tracked timer via BossAbilities
+        const schedule = this.boss.abilitiesSystem?._schedule?.bind(this.boss.abilitiesSystem);
+        const delayFn = schedule || ((ms, cb) => this.scene?.time?.delayedCall(ms, cb));
+        delayFn(200, () => {
+            if (!this.boss?.active || !this.scene) return;
+            this.boss.shoot('boss_strike', {
                 damage,
                 direction: { x: playerX - strikeX, y: playerY - strikeY }
             });
-            
             this.isExecutingMovement = false;
         });
         

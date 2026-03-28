@@ -110,9 +110,18 @@ export class EnemyBehaviors {
             const cfg = this.config[layer] || {};
             const mem = this.mem[layer] || {};
 
-            // setState for this layer only
-            const setLayer = (newBehavior) => {
+            // setState for this layer only (supports optional stickyMs hysteresis)
+            const setLayer = (newBehavior, opts) => {
                 if (newBehavior && BEHAVIORS[newBehavior]) {
+                    // stickyMs prevents rapid state oscillation
+                    if (opts?.stickyMs) {
+                        const now = this.enemy.scene?.time?.now || 0;
+                        const stickKey = `_stickyUntil_${layer}`;
+                        if (this.mem._shared[stickKey] && now < this.mem._shared[stickKey]) {
+                            return; // Still in sticky period, ignore transition
+                        }
+                        this.mem._shared[stickKey] = now + opts.stickyMs;
+                    }
                     this.layers[layer] = newBehavior;
                     if (layer === 'movement') this.state = newBehavior;
                 }
@@ -135,7 +144,8 @@ export class EnemyBehaviors {
         if (!this.enemy.body) return;
         const vel = this.enemy.body.velocity;
         const speed = vel.x * vel.x + vel.y * vel.y; // squared
-        const now = this.enemy.scene?.time?.now || Date.now();
+        const now = this.enemy.scene?.time?.now || 0;
+        if (!now) return; // Scene time unavailable — skip stuck detection
 
         if (speed < 25) { // ~5px/s squared
             if (!this.mem._shared.stuck.since) {

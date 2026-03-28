@@ -20,6 +20,9 @@ export class BossAbilities {
         // Execution state
         this.isExecutingAbility = false;
         this.executionQueue = [];
+
+        // Track delayedCall timers for cleanup on boss death
+        this._pendingTimers = [];
         
         // Ability handlers registry
         this.abilityHandlers = new Map();
@@ -142,7 +145,7 @@ export class BossAbilities {
                 });
             } else {
                 // Sync ability - complete immediately
-                this.scene.time.delayedCall(100, () => {
+                this._schedule(100, () => {
                     this.onAbilityCompleted(abilityId);
                 });
             }
@@ -201,8 +204,8 @@ export class BossAbilities {
         
         for (let i = 0; i < count; i++) {
             const angle = (i / count) * spread * (Math.PI / 180);
-            
-            this.scene.time.delayedCall(i * 100, () => {
+
+            this._schedule(i * 100, () => {
                 this.boss.shoot('directional', {
                     damage,
                     angle,
@@ -263,7 +266,7 @@ export class BossAbilities {
         const dashDistance = abilityData.distance || 200;
         
         // Vypočítej směr k hráči
-        const angle = Phaser.Math.Angle.Between(this.boss.x, this.boss.y, target.x, target.y);
+        const angle = Math.atan2(target.y - this.boss.y, target.x - this.boss.x);
         const direction = { x: Math.cos(angle), y: Math.sin(angle) };
         
         // Deleguje na BossMovement systém
@@ -324,14 +327,12 @@ export class BossAbilities {
         const shieldAmount = abilityData.shieldAmount || 30;
         const duration = abilityData.duration || 5000;
         
-        // Temporary invulnerability nebo damage reduction
-        if (this.boss.setInvulnerable) {
-            this.boss.setInvulnerable(true);
-            
-            this.scene.time.delayedCall(duration, () => {
-                this.boss.setInvulnerable(false);
-            });
-        }
+        // Temporary damage reduction via flag
+        this.boss._shielded = true;
+
+        this._schedule(duration, () => {
+            if (this.boss) this.boss._shielded = false;
+        });
         
         this.boss.spawnVfx('vfx.boss.shield.activate', this.boss.x, this.boss.y);
         this.boss.playSfx('sfx.boss.shield');
@@ -356,11 +357,13 @@ export class BossAbilities {
         this.boss.damageMultiplier = originalDamage * damageMultiplier;
         this.boss.setTint(0xFF4444); // Red tint for rage
         
-        // Restore after duration
-        this.scene.time.delayedCall(duration, () => {
-            this.boss.moveSpeed = originalSpeed;
-            this.boss.damageMultiplier = originalDamage;
-            this.boss.clearTint();
+        // Restore after duration (tracked for cleanup)
+        this._schedule(duration, () => {
+            if (this.boss) {
+                this.boss.moveSpeed = originalSpeed;
+                this.boss.damageMultiplier = originalDamage;
+                this.boss.clearTint();
+            }
         });
         
         this.boss.spawnVfx('vfx.boss.rage.activate', this.boss.x, this.boss.y);
@@ -435,8 +438,10 @@ export class BossAbilities {
             this.scene.vfxSystem.play('boss.radiation.warning', this.boss.x, this.boss.y);
             
             // Actual pulse after warning
-            this.scene.time.delayedCall(500, () => {
-                this.scene.vfxSystem.play('boss.radiation.pulse', this.boss.x, this.boss.y);
+            this._schedule(500, () => {
+                if (this.scene?.vfxSystem) {
+                    this.scene.vfxSystem.play('boss.radiation.pulse', this.boss.x, this.boss.y);
+                }
             });
         }
         
@@ -448,19 +453,19 @@ export class BossAbilities {
         }
         
         // Damage nearby player AFTER WARNING DELAY
-        this.scene.time.delayedCall(500, () => {
-            const player = this.scene.player;
-            if (player && player.active) {
-                const distance = Phaser.Math.Distance.Between(this.boss.x, this.boss.y, player.x, player.y);
-                const range = abilityData.range || abilityData.radius || 140;  // Use radius from blueprint
-                
-                if (distance <= range) {
-                    // Use damage from blueprint (5) not hardcoded 15
-                    const damage = abilityData.damage || 5;
-                    DebugLogger.info('boss', `[BossAbilities] Radiation pulse hit player for ${damage} damage at distance ${distance}`);
-                    
+        const pulseRange = abilityData.range || abilityData.radius || 140;
+        const pulseDamage = abilityData.damage || 5;
+        this._schedule(500, () => {
+            const player = this.scene?.player;
+            if (player && player.active && this.boss) {
+                const dx = this.boss.x - player.x;
+                const dy = this.boss.y - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance <= pulseRange) {
+                    DebugLogger.info('boss', `[BossAbilities] Radiation pulse hit player for ${pulseDamage} damage at distance ${distance}`);
                     if (player.takeDamage) {
-                        player.takeDamage(damage, 'radiation');
+                        player.takeDamage(pulseDamage, 'radiation');
                     }
                 }
             }
@@ -496,10 +501,8 @@ export class BossAbilities {
             }
         }
         
-        if (this.scene.audioSystem) {
-            this.scene.audioSystem.play('sound/toxic_pools.mp3');
-        }
-        
+        // Removed duplicate audio play (was playing toxic_pools.mp3 twice)
+
         return true;
     }
     
@@ -524,9 +527,10 @@ export class BossAbilities {
         const damage = abilityData.damage || 10;
 
         if (dist <= range && player.canTakeDamage?.()) {
-            this.scene.time?.delayedCall(abilityData.chargeTime || 1000, () => {
-                if (!player?.active || !this.boss?.active) return;
-                player.takeDamage(damage, this.boss);
+            this._schedule(abilityData.chargeTime || 1000, () => {
+                if (player?.active) {
+                    player.takeDamage(damage, this.boss);
+                }
             });
         }
 
@@ -572,8 +576,8 @@ export class BossAbilities {
         const ticks = Math.floor((abilityData.stormDuration || 3000) / (abilityData.tickInterval || 500));
 
         for (let i = 0; i < ticks; i++) {
-            this.scene.time?.delayedCall(i * (abilityData.tickInterval || 500), () => {
-                if (!player?.active || !this.boss?.active) return;
+            this._schedule(i * (abilityData.tickInterval || 500), () => {
+                if (!player?.active) return;
                 const dx = player.x - this.boss.x;
                 const dy = player.y - this.boss.y;
                 if (dx * dx + dy * dy <= radius * radius) {
@@ -597,9 +601,9 @@ export class BossAbilities {
         const range = abilityData.range || 350;
 
         for (let i = 0; i < beamCount; i++) {
-            this.scene.time?.delayedCall(i * (abilityData.fireRate ? abilityData.fireRate * 1000 : 300), () => {
-                if (!player?.active || !this.boss?.active) return;
-                if (this.scene.vfxSystem) {
+            this._schedule(i * (abilityData.fireRate ? abilityData.fireRate * 1000 : 300), () => {
+                if (!player?.active) return;
+                if (this.scene?.vfxSystem) {
                     this.scene.vfxSystem.play('boss.beam.warning', this.boss.x, this.boss.y);
                 }
                 // Damage if in range
@@ -660,15 +664,41 @@ export class BossAbilities {
     }
 
     /**
+     * Schedule a delayedCall with automatic tracking for cleanup
+     */
+    _schedule(delay, callback) {
+        if (!this.scene?.time) return null;
+        const timer = this.scene.time.delayedCall(delay, () => {
+            // Remove from pending list
+            const idx = this._pendingTimers.indexOf(timer);
+            if (idx !== -1) this._pendingTimers.splice(idx, 1);
+            // Only execute if boss is still alive
+            if (this.boss?.active && this.scene) {
+                callback();
+            }
+        });
+        this._pendingTimers.push(timer);
+        return timer;
+    }
+
+    /**
      * Cleanup při odstranění bosse
      */
     cleanup() {
+        // Cancel all pending timers
+        if (this._pendingTimers) {
+            for (const timer of this._pendingTimers) {
+                if (timer && timer.destroy) timer.destroy();
+            }
+            this._pendingTimers = [];
+        }
+
         this.stopAllAbilities();
         this.abilityHandlers.clear();
         this.abilityCooldowns.clear();
         this.boss = null;
         this.scene = null;
-        
+
         DebugLogger.info('boss', '[BossAbilities] Cleanup completed');
     }
 }

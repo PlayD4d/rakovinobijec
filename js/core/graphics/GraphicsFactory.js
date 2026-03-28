@@ -47,6 +47,7 @@ export class GraphicsFactory {
         graphics.clear();
         graphics.setVisible(false);
         graphics.setActive(false);
+        graphics.setDepth(0);
         
         this.activeGraphics.delete(graphics);
         

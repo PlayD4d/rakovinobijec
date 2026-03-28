@@ -133,13 +133,18 @@ export class ConfigResolver {
     if (source === 'blueprint' || source === 'any') {
       if (this._fallbacks[path] !== undefined) return true;
     }
-    
+
     if (source === 'config' || source === 'any') {
+      // Check external configs (main, managers, features) first
+      for (const config of Object.values(this._externalConfigs || {})) {
+        if (config && this._resolvePath(config, path) !== undefined) return true;
+      }
+      // Then check GameConfig
       const value = this._resolvePath(GameConfig, path);
       if (value !== undefined) return true;
     }
-    
-    return this._fallbacks[path] !== undefined;
+
+    return false;
   }
 
   /**

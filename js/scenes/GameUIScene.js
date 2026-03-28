@@ -5,6 +5,7 @@
 import { PauseUI } from '../ui/lite/PauseUI.js';
 import { PowerUpUI } from '../ui/lite/PowerUpUI.js';
 import { GameOverUI } from '../ui/lite/GameOverUI.js';
+import { UI_THEME } from '../ui/UITheme.js';
 
 export class GameUIScene extends Phaser.Scene {
     constructor() {
@@ -38,9 +39,14 @@ export class GameUIScene extends Phaser.Scene {
         this._onLevelUp = (options) => this.showPowerUpSelection(options);
         this._onGameOver = (stats) => this.showGameOver(stats);
 
+        this._onVictoryShow = (data) => this.showVictory(data);
+        this._onLevelTransitionShow = (data) => this.showLevelTransition(data);
+
         this.game.events.on('game-pause-request', this._onPauseRequest);
         this.game.events.on('game-levelup', this._onLevelUp);
         this.game.events.on('game-over', this._onGameOver);
+        this.game.events.on('ui:victory:show', this._onVictoryShow);
+        this.game.events.on('ui:level-transition:show', this._onLevelTransitionShow);
     }
 
     togglePause() {
@@ -101,14 +107,53 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         if (!gameScene) return;
 
-        // PowerUpUI already hides itself on card click — no need to call hide() again
-        this.input.setTopOnly(false);
+        // Emit selection and resume immediately for responsiveness
         this.game.events.emit('powerup-selected', selection);
         gameScene.scene.resume();
+
+        // Defer input restoration until hide animation completes
+        // to prevent click-through during the 200ms fade
+        this.powerUpUI.hide(() => {
+            this.input.setTopOnly(false);
+        });
     }
 
     showGameOver(stats) {
+        this.scene.bringToTop();
+        this.input.setTopOnly(true);
         this.gameOverUI.show(stats);
+    }
+
+    showVictory(data) {
+        this.scene.bringToTop();
+        this.input.setTopOnly(true);
+        // Reuse game over UI for victory with victory flag
+        this.gameOverUI.show({ ...data, isVictory: true });
+    }
+
+    showLevelTransition(data) {
+        this.scene.bringToTop();
+
+        // Show brief level transition text
+        const cx = this.cameras.main.width / 2;
+        const cy = this.cameras.main.height / 2;
+        const msg = data?.message || `Level ${data?.toLevel || '?'}`;
+        const text = this.add.text(cx, cy, msg, {
+            fontFamily: 'Arial Black',
+            fontSize: '48px',
+            color: '#00ffff',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5).setDepth(UI_THEME.depth.modal);
+
+        // Auto-fade and destroy
+        this.tweens.add({
+            targets: text,
+            alpha: 0,
+            duration: 1200,
+            delay: 300,
+            onComplete: () => text.destroy()
+        });
     }
 
     /**
@@ -131,5 +176,7 @@ export class GameUIScene extends Phaser.Scene {
         if (this._onPauseRequest) this.game.events.off('game-pause-request', this._onPauseRequest);
         if (this._onLevelUp) this.game.events.off('game-levelup', this._onLevelUp);
         if (this._onGameOver) this.game.events.off('game-over', this._onGameOver);
+        if (this._onVictoryShow) this.game.events.off('ui:victory:show', this._onVictoryShow);
+        if (this._onLevelTransitionShow) this.game.events.off('ui:level-transition:show', this._onLevelTransitionShow);
     }
 }
