@@ -420,6 +420,7 @@ export class BlueprintLoader {
         const oldCount = this.blueprints.size;
         await this.loadAllBlueprints();
         await this.loadSpawnTables();
+        await this.loadItemBlueprints();
         DebugLogger.info('dev', `[BlueprintLoader] Reloaded ${this.blueprints.size} blueprints (was ${oldCount})`);
     }
 

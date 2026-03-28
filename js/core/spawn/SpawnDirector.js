@@ -198,7 +198,7 @@ export class SpawnDirector {
         }
         
         // Process enemy waves
-        this.processEnemyWaves(delta);
+        this.processEnemyWaves();
         
         // Process elite windows
         this.processEliteWindows();
@@ -210,7 +210,7 @@ export class SpawnDirector {
     /**
      * Process regular enemy waves
      */
-    processEnemyWaves(delta) {
+    processEnemyWaves() {
         if (!this.currentTable.enemyWaves) return;
 
         const now = this.gameTime;

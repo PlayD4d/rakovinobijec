@@ -26,6 +26,15 @@ export class EventBus {
     return () => this.off(eventName, handler);
   }
 
+  // Subscribe once — auto-removes after first fire
+  once(eventName, handler) {
+    const wrapped = (...args) => {
+      this.off(eventName, wrapped);
+      handler(...args);
+    };
+    return this.on(eventName, wrapped);
+  }
+
   // Unsubscribe from event
   off(eventName, handler) {
     const set = this.listeners.get(eventName);

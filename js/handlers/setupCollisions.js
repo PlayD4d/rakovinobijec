@@ -97,7 +97,7 @@ export function setupCollisions(scene) {
             scene.physics.add.overlap(
                 scene.player,
                 scene.bossGroup,
-                handlePlayerBossCollision,
+                (player, boss) => { handlePlayerBossCollision.call(scene, player, boss); },
                 activeFilter,
                 scene
             )

@@ -153,30 +153,35 @@ export class EnemyProjectile extends Phaser.Physics.Arcade.Sprite {
     const target = this.scene.player;
     if (!target || !target.active) return;
     
-    // Calculate desired angle with persistent aim error (no jitter)
-    const desiredAngle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y) + this._aimError;
-    
+    // Calculate desired angle (plain Math — no Phaser.Math dependency)
+    const desiredAngle = Math.atan2(target.y - this.y, target.x - this.x) + this._aimError;
+
     // Smooth rotation with limited turn rate
     const deltaSeconds = delta / 1000;
     const maxTurn = this._turnRate * deltaSeconds;
-    const newRotation = Phaser.Math.Angle.RotateTo(this.rotation, desiredAngle, maxTurn);
-    
+    // RotateTo: step current rotation toward desired by maxTurn
+    let diff = desiredAngle - this.rotation;
+    // Wrap to [-PI, PI]
+    diff = ((diff + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+    const newRotation = Math.abs(diff) <= maxTurn ? desiredAngle : this.rotation + Math.sign(diff) * maxTurn;
+
     // Calculate speed with optional slowdown on sharp turns
     let currentSpeed = this._homingSpeed;
     const slowOnTurn = this._blueprint.slowOnTurn;
-    
+
     if (slowOnTurn?.enabled) {
-      const angleDiff = Math.abs(Phaser.Math.Angle.Wrap(desiredAngle - this.rotation));
-      const angleDiffDeg = Phaser.Math.RadToDeg(angleDiff);
-      
+      const angleDiff = Math.abs(diff);
+      const angleDiffDeg = angleDiff * (180 / Math.PI);
+
       if (angleDiffDeg >= slowOnTurn.angleThresholdDeg) {
         currentSpeed = this._baseSpeed * this._blueprint.speedFactor * slowOnTurn.factor;
       }
     }
-    
-    // Apply new rotation and velocity
+
+    // Apply new rotation and velocity (velocityFromRotation equivalent)
     this.rotation = newRotation;
-    this.scene.physics.velocityFromRotation(newRotation, currentSpeed, this.body.velocity);
+    this.body.velocity.x = Math.cos(newRotation) * currentSpeed;
+    this.body.velocity.y = Math.sin(newRotation) * currentSpeed;
   }
   
   /**

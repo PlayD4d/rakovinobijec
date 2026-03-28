@@ -118,16 +118,16 @@ export class CentralEventBus {
         };
 
         // Track in listeners map so removeAllListeners(context) can clean it up
-        if (context) {
-            if (!this.listeners.has(context)) {
-                this.listeners.set(context, []);
-            }
-            this.listeners.get(context).push({
-                eventName,
-                callback: wrappedCallback,
-                originalCallback: callback
-            });
+        // Use _nullCtx sentinel for context-free listeners so destroy() can reach them
+        const ctxKey = context || this._nullCtx || (this._nullCtx = {});
+        if (!this.listeners.has(ctxKey)) {
+            this.listeners.set(ctxKey, []);
         }
+        this.listeners.get(ctxKey).push({
+            eventName,
+            callback: wrappedCallback,
+            originalCallback: callback
+        });
 
         this.eventEmitter.once(eventName, wrappedCallback);
         DebugLogger.debug('events', `[CentralEventBus] Registered once listener for: ${eventName}`);
