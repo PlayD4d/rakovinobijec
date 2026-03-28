@@ -35,14 +35,17 @@ export async function executeLevelTransition(tm, nextLevel) {
     // 4. Clean up current level
     await cleanupLevel(tm);
 
-    // 5. Initialize next level
+    // 5. Resume physics BEFORE initializing next level (so new enemies get active bodies)
+    scene.resumePhysics();
+
+    // 6. Initialize next level
     scene.currentLevel = nextLevel;
     await initializeLevel(tm, nextLevel);
 
-    // 6. Hide transition UI
+    // 7. Hide transition UI
     scene.events.emit('ui:level-transition:hide');
 
-    // 7. Resume game
+    // 8. Resume remaining game systems (spawns, enemies update, projectiles)
     tm.resumeGameSystems();
     tm.isTransitioning = false;
     tm.currentTransition = null;
