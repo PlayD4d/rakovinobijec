@@ -19,6 +19,8 @@ import { BootstrapManager } from '../managers/BootstrapManager.js';
 import { DisposableRegistry } from '../utils/DisposableRegistry.js';
 import { EnemyManager } from '../managers/EnemyManager.js';
 import { ProgressionSystem } from '../core/systems/ProgressionSystem.js';
+import * as SceneAPI from './GameSceneAPI.js';
+import * as SceneFlow from './GameSceneFlow.js';
 
 // Store BlueprintLoader for synchronous access in preload (used by devConsole)
 window.BlueprintLoaderModule = { BlueprintLoader };
@@ -219,52 +221,15 @@ export class GameScene extends Phaser.Scene {
         this.transitionManager = new TransitionManager(this);
     }
 
-    spawnDrop(itemId, x, y) {
-        if (!this.lootSystem || !itemId) return;
-        
-        // Get item blueprint
-        const itemBlueprint = this.blueprintLoader?.get(itemId);
-        if (!itemBlueprint) {
-            DebugLogger.warn('game', `[GameScene] Item blueprint not found: ${itemId}`);
-            return;
-        }
-        
-        // PR7: Use LootSystem to create the drop (single source of truth)
-        this.lootSystem.createItemDrop(x, y, itemBlueprint);
-    }
-    
+    spawnDrop(itemId, x, y) { SceneFlow.spawnDrop(this, itemId, x, y); }
+
     /** Create XP orbs based on XP amount (tiered: small=1, medium=5, large=10) */
-    createXPOrbs(x, y, totalXP) {
-        if (!totalXP || totalXP <= 0 || !this.lootSystem) return;
+    createXPOrbs(x, y, totalXP) { SceneFlow.createXPOrbs(this, x, y, totalXP); }
 
-        const largeOrbs = Math.floor(totalXP / 10);
-        const remaining = totalXP % 10;
-        const mediumOrbs = Math.floor(remaining / 5);
-        const smallOrbs = remaining % 5;
-
-        const spawn = (count, itemId) => {
-            for (let i = 0; i < count; i++) {
-                const ox = (Math.random() - 0.5) * 30;
-                const oy = (Math.random() - 0.5) * 30;
-                this.lootSystem.createDrop(x + ox, y + oy, itemId);
-            }
-        };
-
-        spawn(largeOrbs, 'item.xp_large');
-        spawn(mediumOrbs, 'item.xp_medium');
-        spawn(smallOrbs, 'item.xp_small');
-    }
-    
     /**
      * Kill all enemies (for special items)
      */
-    killAllEnemies() {
-        // Delegate to EnemyManager (single source of truth for enemy operations)
-        if (this.enemyManager) {
-            this.enemyManager.killAll();
-        }
-        this.flashCamera();
-    }
+    killAllEnemies() { SceneFlow.killAllEnemies(this); }
     
     async startGame() {
         this.levelStartTime = this.time?.now || 0;
@@ -319,41 +284,11 @@ export class GameScene extends Phaser.Scene {
         }
     }
     
-    handleMetotrexatPickup() {
-        DebugLogger.info('general', '[GameScene] METOTREXAT! Eliminating all enemies!');
+    handleMetotrexatPickup() { SceneFlow.handleMetotrexatPickup(this); }
 
-        // Flash effect
-        this.flashCamera();
+    spawnLootDrop(drop, x, y) { SceneFlow.spawnLootDrop(this, drop, x, y); }
 
-        // Delegate to EnemyManager (single source of truth for enemy operations)
-        if (this.enemyManager) this.enemyManager.killAll();
-
-        // Play metotrexat SFX
-        if (this.audioSystem) {
-            const blueprint = this.blueprintLoader?.getBlueprint('powerup.metotrexat');
-            const pickupSFX = blueprint?.sfx?.pickup;
-            if (pickupSFX) {
-                this.audioSystem.play(pickupSFX);
-            }
-        }
-    }
-    
-    spawnLootDrop(drop, x, y) {
-        const dropId = drop?.itemId || drop?.ref;
-        if (!dropId) return;
-        if (this.lootSystem) {
-            this.lootSystem.createDrop(x, y, dropId, { amount: drop.quantity || drop.qty || 1 });
-        }
-    }
-
-    attractXPOrb(orb) {
-        if (!orb?.active || !this.player?.active) return;
-        if (this.lootSystem) {
-            this.lootSystem.animateAttraction(orb, this.player, () => {
-                if (orb?.active) { this.addXP(orb.xpAmount); orb.destroy(); }
-            });
-        }
-    }
+    attractXPOrb(orb) { SceneFlow.attractXPOrb(this, orb); }
 
     addXP(amount) { this.progressionSystem?.addXP(amount); }
 
@@ -434,20 +369,20 @@ export class GameScene extends Phaser.Scene {
     // ========== PR7 Phaser API Interface Methods ==========
     // Controlled access to Phaser API for managers
 
-    pausePhysics() { this.physics?.world?.pause(); }
-    resumePhysics() { this.physics?.world?.resume(); }
-    pauseTime() { if (this.time) this.time.paused = true; }
-    resumeTime() { if (this.time) this.time.paused = false; }
-    setWorldBounds(x, y, w, h) { this.physics?.world?.setBounds(x, y, w, h); }
-    createUILayer(depth) { const a = this['add']; const l = a.layer(); l.setDepth(depth); this.uiLayer = l; return l; } // PR7 interface method
-    launchUIScene(key) { this.scene.launch(key); }
-    addTimeEvent(config) { return this.time.addEvent(config); }
-    addDelayedCall(delay, cb, args, scope) { return this.time.delayedCall(delay, cb, args, scope); }
-    getMainCamera() { return this.cameras.main; }
-    flashCamera(duration = 500, r = 255, g = 255, b = 0) { this.cameras.main.flash(duration, r, g, b); }
-    shakeCamera(duration = 300, intensity = 0.02) { this.cameras.main.shake(duration, intensity); }
-    getScaleManager() { return this.scale; }
-    restartScene() { this.scene.restart(); }
+    pausePhysics() { SceneAPI.pausePhysics(this); }
+    resumePhysics() { SceneAPI.resumePhysics(this); }
+    pauseTime() { SceneAPI.pauseTime(this); }
+    resumeTime() { SceneAPI.resumeTime(this); }
+    setWorldBounds(x, y, w, h) { SceneAPI.setWorldBounds(this, x, y, w, h); }
+    createUILayer(depth) { return SceneAPI.createUILayer(this, depth); }
+    launchUIScene(key) { SceneAPI.launchUIScene(this, key); }
+    addTimeEvent(config) { return SceneAPI.addTimeEvent(this, config); }
+    addDelayedCall(delay, cb, args, scope) { return SceneAPI.addDelayedCall(this, delay, cb, args, scope); }
+    getMainCamera() { return SceneAPI.getMainCamera(this); }
+    flashCamera(duration = 500, r = 255, g = 255, b = 0) { SceneAPI.flashCamera(this, duration, r, g, b); }
+    shakeCamera(duration = 300, intensity = 0.02) { SceneAPI.shakeCamera(this, duration, intensity); }
+    getScaleManager() { return SceneAPI.getScaleManager(this); }
+    restartScene() { SceneAPI.restartScene(this); }
     
     findNearestEnemy() {
         // Delegate to TargetingSystem (with range filter + HP check + boss priority)

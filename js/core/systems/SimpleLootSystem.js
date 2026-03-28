@@ -6,6 +6,7 @@
  */
 
 import { DebugLogger } from '../debug/DebugLogger.js';
+import { generateLootTextures } from './loot/LootTextureGenerator.js';
 
 export class SimpleLootSystem {
     constructor(scene) {
@@ -34,8 +35,8 @@ export class SimpleLootSystem {
         // PR7: No hardcoded values - everything from PowerUpManager
         
         // Generate item textures on initialization
-        this.generateItemTextures();
-        
+        generateLootTextures(this.scene);
+
         // PR7: SimpleLootSystem initialized
     }
     
@@ -341,126 +342,6 @@ export class SimpleLootSystem {
         }
         this.lootGroup.clear(true, true);
         this.recentDrops = [];
-    }
-    
-    /**
-     * Shutdown - clean up all tweens on loot objects
-     */
-    /**
-     * Generate item textures programmatically
-     * Moved from GameScene to follow PR7 principles
-     */
-    generateItemTextures() {
-        const textures = this.scene.textures;
-        const graphicsFactory = this.scene.graphicsFactory;
-        
-        if (!graphicsFactory) {
-            DebugLogger.warn('loot', 'GraphicsFactory not available, skipping texture generation');
-            return;
-        }
-        
-        // XP Orb - Small (cyan, 12px)
-        if (!textures.exists('item_xp_small')) {
-            const graphics = graphicsFactory.create();
-            const size = 12;
-            graphics.fillStyle(0x00E8FC, 1.0);
-            graphics.fillCircle(size/2, size/2, size/2);
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 2);
-            graphics.generateTexture('item_xp_small', size, size);
-            graphicsFactory.release(graphics);
-        }
-        
-        // XP Orb - Medium (blue, 16px)
-        if (!textures.exists('item_xp_medium')) {
-            const graphics = graphicsFactory.create();
-            const size = 16;
-            graphics.fillStyle(0x0080FF, 1.0);
-            graphics.fillCircle(size/2, size/2, size/2);
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 3);
-            graphics.generateTexture('item_xp_medium', size, size);
-            graphicsFactory.release(graphics);
-        }
-        
-        // XP Orb - Large (dark blue, 20px)
-        if (!textures.exists('item_xp_large')) {
-            const graphics = graphicsFactory.create();
-            const size = 20;
-            graphics.fillStyle(0x0040CC, 1.0);
-            graphics.fillCircle(size/2, size/2, size/2);
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 4);
-            graphics.generateTexture('item_xp_large', size, size);
-            graphicsFactory.release(graphics);
-        }
-        
-        // Health Small (red circle with cross, 16px)
-        if (!textures.exists('item_health_small')) {
-            const graphics = graphicsFactory.create();
-            const size = 16;
-            graphics.fillStyle(0xFF0000, 1);
-            graphics.fillCircle(size/2, size/2, size/2);
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillRect(size/2 - 1, size/4, 2, size/2);
-            graphics.fillRect(size/4, size/2 - 1, size/2, 2);
-            graphics.generateTexture('item_health_small', size, size);
-            graphicsFactory.release(graphics);
-        }
-        
-        // Heal Orb (larger red circle, 20px)
-        if (!textures.exists('item_heal_orb')) {
-            const graphics = graphicsFactory.create();
-            const size = 20;
-            graphics.fillStyle(0xFF3333, 1);
-            graphics.fillCircle(size/2, size/2, size/2);
-            graphics.fillStyle(0xFF0000, 0.8);
-            graphics.fillCircle(size/2, size/2, size/2 - 2);
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillRect(size/2 - 2, size/4, 4, size/2);
-            graphics.fillRect(size/4, size/2 - 2, size/2, 4);
-            graphics.generateTexture('item_heal_orb', size, size);
-            graphicsFactory.release(graphics);
-        }
-        
-        // Protein Cache (green capsule, 18px)
-        if (!textures.exists('item_protein_cache')) {
-            const graphics = graphicsFactory.create();
-            const size = 18;
-            graphics.fillStyle(0x00FF00, 1);
-            graphics.fillRoundedRect(size/4, 0, size/2, size, 4);
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 3);
-            graphics.generateTexture('item_protein_cache', size, size);
-            graphicsFactory.release(graphics);
-        }
-        
-        // Metotrexat (purple circle, 18px)
-        if (!textures.exists('item_metotrexat')) {
-            const graphics = graphicsFactory.create();
-            const size = 18;
-            graphics.fillStyle(0x9C27B0, 1);
-            graphics.fillCircle(size/2, size/2, size/2);
-            graphics.fillStyle(0xE91E63, 0.5);
-            graphics.fillCircle(size/2, size/2, size/2 - 2);
-            graphics.fillStyle(0xFFFFFF, 1);
-            graphics.fillCircle(size/2, size/2, 4);
-            graphics.generateTexture('item_metotrexat', size, size);
-            graphicsFactory.release(graphics);
-        }
-        
-        // Metotrexat orb variant 
-        if (!textures.exists('metotrexat_orb')) {
-            const graphics = graphicsFactory.create();
-            graphics.fillStyle(0xff00ff, 1);
-            graphics.fillCircle(8, 8, 8);
-            graphics.fillStyle(0xffffff, 1);
-            graphics.fillCircle(8, 8, 3);
-            graphics.generateTexture('metotrexat_orb', 16, 16);
-            graphicsFactory.release(graphics);
-        }
-        
-        DebugLogger.info('loot', 'Item textures generated');
     }
     
     /**
