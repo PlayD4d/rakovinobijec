@@ -76,9 +76,7 @@ export class Boss extends BossCore {
             // Phase system - HP threshold management
             this.phases = new BossPhases(this);
             
-            // Pass abilities from blueprint to BossAbilities
-            this.abilities = this.blueprint.mechanics?.abilities || {};
-            
+            // Abilities system — reads this.abilities from BossCore constructor
             // Abilities system - boss attack patterns
             this.abilitiesSystem = new BossAbilities(this);
             
@@ -291,7 +289,8 @@ export class Boss extends BossCore {
      * PR7: Boss emits different event than regular enemies
      */
     die(killer) {
-        if (!this.active) return;
+        if (!this.active || this._deathProcessed) return;
+        this._deathProcessed = true;
 
         // Death VFX/SFX (while still visible)
         this.spawnVfx('death');
@@ -312,7 +311,15 @@ export class Boss extends BossCore {
         this.setVisible(false);
         if (this.body) this.body.setEnable(false);
 
-        // Clean up boss sub-systems (cleanup, not destroy — destroy doesn't exist on these)
+        // Clean up ALL boss sub-systems
+        if (this.behaviors) {
+            try { this.behaviors.destroy?.(); } catch (_) {}
+            this.behaviors = null;
+        }
+        if (this.movement) {
+            try { this.movement.cleanup?.(); } catch (_) {}
+            this.movement = null;
+        }
         if (this.abilitiesSystem) {
             try { this.abilitiesSystem.cleanup?.(); } catch (_) {}
             this.abilitiesSystem = null;
@@ -335,7 +342,11 @@ export class Boss extends BossCore {
      * Override pro boss-specific cleanup
      */
     cleanup() {
-        // Cleanup specialized systems
+        // Cleanup ALL specialized systems
+        if (this.behaviors) {
+            try { this.behaviors.destroy(); } catch (_) {}
+            this.behaviors = null;
+        }
         if (this.movement) {
             this.movement.cleanup();
             this.movement = null;

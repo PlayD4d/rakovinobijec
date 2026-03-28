@@ -203,6 +203,7 @@ export class EnemyBehaviors {
         if (BEHAVIORS[behavior]) {
             this.layers.movement = behavior;
             this.state = behavior;
+            this._rebuildLayerCache(); // Rebuild cached entries so update() uses new behavior
         }
     }
 

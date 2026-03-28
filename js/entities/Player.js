@@ -219,7 +219,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
         
         // IMPORTANT: Don't take damage during pause (e.g., during level-up power-up selection)
-        if (this.scene.isPaused || this.scene.scene.isPaused('GameScene')) {
+        if (this.scene.isPaused || this.scene.scene.isPaused()) {
             DebugLogger.info('general', `[Player] Ignoring damage during pause - amount: ${amount}`);
             return 0;
         }
@@ -329,7 +329,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
         
         // IMPORTANT: Don't die during pause (e.g., during level-up power-up selection)
-        if (this.scene.isPaused || this.scene.scene.isPaused('GameScene')) {
+        if (this.scene.isPaused || this.scene.scene.isPaused()) {
             DebugLogger.warn('general', `[Player] Attempted to die during pause - ignoring! Source: ${source?.constructor?.name || source}`);
             // Heal player to 1 HP to prevent death during pause
             this.hp = 1;

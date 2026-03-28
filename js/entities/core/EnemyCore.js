@@ -289,7 +289,9 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * @param {{amount: number, source: any, type: string}} hit - Damage info
      */
     takeDamage(hit) {
-        let amount = (hit != null && typeof hit === 'object') ? (hit.amount ?? 0) : (hit ?? 0);
+        const isObj = hit != null && typeof hit === 'object';
+        let amount = isObj ? (hit.amount ?? 0) : (hit ?? 0);
+        const source = isObj ? hit.source : null;
 
         // Apply armor reduction
         if (this.armor > 0) {
@@ -298,18 +300,16 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
 
         // Apply damage
         this.hp -= amount;
-        getSession()?.damage('player', this.blueprintId || this.blueprint?.id, amount, 'hit');
+        getSession()?.damage(source || 'player', this.blueprintId || this.blueprint?.id, amount, 'hit');
 
         // VFX/SFX
         this.spawnVfx('hit');
         this.playSfx('hit');
-
-        // Flash effect
         this.flashEffect();
 
         // Check death
         if (this.hp <= 0) {
-            this.die(hit.source);
+            this.die(source);
         }
 
         return amount;
@@ -367,7 +367,8 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
     cleanup() {
         // Cancel tweens
         if (this.flashTween) {
-            this.flashTween.stop();
+            if (this.flashTween.destroy) this.flashTween.destroy();
+            else if (this.flashTween.remove) this.flashTween.remove();
             this.flashTween = null;
         }
         
