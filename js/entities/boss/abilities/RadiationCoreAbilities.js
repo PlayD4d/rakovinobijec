@@ -5,11 +5,13 @@
  * bossAbilities provides access to boss, scene, and _schedule.
  */
 import { DebugLogger } from '../../../core/debug/DebugLogger.js';
+import { getSession } from '../../../core/debug/SessionLog.js';
 
 /**
  * Radiation Pulse - expanding radioactive wave
  */
 export function executeRadiationPulse(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'radiation_pulse', range: abilityData.range || abilityData.radius || 140, damage: abilityData.damage || 5 });
     DebugLogger.info('boss', '[BossAbilities] Executing radiation pulse');
 
     // Visual warning before damage
@@ -56,6 +58,7 @@ export function executeRadiationPulse(bossAbilities, abilityData, params) {
  * Toxic Pools - create damaging pools on ground
  */
 export function executeToxicPools(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'toxic_pools', poolCount: abilityData.poolCount || 3 });
     DebugLogger.info('boss', '[BossAbilities] Executing toxic pools');
 
     // Play audio
@@ -85,6 +88,7 @@ export function executeToxicPools(bossAbilities, abilityData, params) {
  * Beam Sweep - rotating laser beam
  */
 export function executeBeamSweep(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'beam_sweep', range: abilityData.range || 300, damage: abilityData.damage || 10 });
     DebugLogger.info('boss', '[BossAbilities] Executing beam sweep');
     const player = bossAbilities.scene.player;
     if (!player?.active) return false;
@@ -116,6 +120,7 @@ export function executeBeamSweep(bossAbilities, abilityData, params) {
  * Summon Irradiated - spawn irradiated enemies
  */
 export function executeSummonIrradiated(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'summon_irradiated', count: abilityData.count || 3 });
     DebugLogger.info('boss', '[BossAbilities] Executing summon irradiated');
     return _spawnMinionsAroundBoss(
         bossAbilities,
@@ -130,6 +135,7 @@ export function executeSummonIrradiated(bossAbilities, abilityData, params) {
  * Radiation Storm - area denial
  */
 export function executeRadiationStorm(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'radiation_storm', damage: abilityData.damage || 3, radius: abilityData.radius || 250 });
     DebugLogger.info('boss', '[BossAbilities] Executing radiation storm');
     const player = bossAbilities.scene.player;
 
@@ -163,6 +169,7 @@ export function executeRadiationStorm(bossAbilities, abilityData, params) {
  * Rapid Beams - multiple quick beams
  */
 export function executeRapidBeams(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'rapid_beams', beamCount: abilityData.beamCount || 5, damage: abilityData.damage || 8 });
     DebugLogger.info('boss', '[BossAbilities] Executing rapid beams');
     const player = bossAbilities.scene.player;
 
@@ -193,6 +200,7 @@ export function executeRapidBeams(bossAbilities, abilityData, params) {
  * Massive Summon - spawn many enemies
  */
 export function executeMassiveSummon(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'massive_summon', count: abilityData.count || 8 });
     DebugLogger.info('boss', '[BossAbilities] Executing massive summon');
     return _spawnMinionsAroundBoss(
         bossAbilities,
@@ -207,6 +215,7 @@ export function executeMassiveSummon(bossAbilities, abilityData, params) {
  * Core Overload - devastating final attack
  */
 export function executeCoreOverload(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'core_overload', damage: abilityData.damage || 50 });
     DebugLogger.info('boss', '[BossAbilities] Executing core overload');
 
     if (bossAbilities.scene.vfxSystem) {

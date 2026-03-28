@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../debug/DebugLogger.js';
+import { getSession } from '../../debug/SessionLog.js';
 import { createGraphicsForEffect } from './createGraphicsHelper.js';
 
 /**
@@ -249,6 +250,7 @@ export class RadiotherapyEffect {
 
             if (diff <= halfWidth) {
                 this._hitThisTick.add(enemy);
+                if (Math.random() < 0.1) getSession()?.log('combat', 'radiotherapy_hit', { enemyId: enemy.blueprintId, damage: this.damage });
                 enemy.takeDamage(this.damage, 'radiotherapy');
 
                 // Throttled VFX

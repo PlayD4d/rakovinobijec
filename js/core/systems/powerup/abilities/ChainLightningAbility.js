@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../../debug/DebugLogger.js';
+import { getSession } from '../../../debug/SessionLog.js';
 
 /**
  * ChainLightningAbility - Handles chain lightning power-up ability
@@ -90,6 +91,7 @@ export class ChainLightningAbility {
 
         // Apply damage
         if (enemy.takeDamage) {
+            getSession()?.log('combat', 'chain_lightning_hit', { enemyId: enemy.blueprintId, damage, jumpsLeft });
             enemy.takeDamage(damage, 'chain_lightning');
         }
 

@@ -17,6 +17,7 @@ import { BossPhases } from './boss/BossPhases.js';
 import { BossAbilities } from './boss/BossAbilities.js';
 import { EnemyBehaviors } from './EnemyBehaviors.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
+import { getSession } from '../core/debug/SessionLog.js';
 
 // Shared behavior map — single source of truth for movePattern→behavior mapping
 const BOSS_BEHAVIOR_MAP = {
@@ -269,6 +270,11 @@ export class Boss extends BossCore {
         // Parent expects {amount, source} object or plain number
         const damageDealt = super.takeDamage({ amount, source });
 
+        // Log boss damage
+        if (damageDealt > 0) {
+            getSession()?.log('boss', 'damage_taken', { bossId: this.blueprint?.id, amount: damageDealt, hp: this.hp, maxHp: this.maxHp, phase: this.phases?.currentPhase });
+        }
+
         // Update boss HP bar if damage was dealt
         if (damageDealt > 0) {
             const hud = this.scene?.scene?.get('GameUIScene')?.hud;
@@ -294,6 +300,7 @@ export class Boss extends BossCore {
     die(killer) {
         if (!this.active || this._deathProcessed) return;
         this._deathProcessed = true;
+        getSession()?.log('boss', 'death', { bossId: this.blueprint?.id, killer });
 
         // Death VFX/SFX (while still visible)
         this.spawnVfx('death');

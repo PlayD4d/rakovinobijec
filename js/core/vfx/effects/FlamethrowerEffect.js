@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../debug/DebugLogger.js';
+import { getSession } from '../../debug/SessionLog.js';
 import { createGraphicsForEffect } from './createGraphicsHelper.js';
 
 /**
@@ -295,6 +296,7 @@ export class FlamethrowerEffect {
 
         if (Math.abs(angleDiff) <= this.coneAngle) {
             this._hitThisTick.add(enemy);
+            if (Math.random() < 0.1) getSession()?.log('combat', 'flamethrower_hit', { enemyId: enemy.blueprintId, damage: this.damage });
             enemy.takeDamage(this.damage, 'flamethrower');
 
             if (this.scene.vfxSystem && Math.random() < 0.3) {

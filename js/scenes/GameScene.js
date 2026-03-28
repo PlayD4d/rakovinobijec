@@ -302,9 +302,11 @@ export class GameScene extends Phaser.Scene {
             this.projectileSystem?.pauseAll();
             // Store pause timestamp for timer-aware resume
             if (this.player) this.player._lastPauseTime = this.time?.now || 0;
+            getSession()?.log('game', 'paused', { time: Math.floor(this.sceneTimeSec) });
             DebugLogger.info('game', 'Game paused');
         } else {
             this.projectileSystem?.resumeAll();
+            getSession()?.log('game', 'resumed', { time: Math.floor(this.sceneTimeSec) });
             DebugLogger.info('game', 'Game resumed');
         }
     }

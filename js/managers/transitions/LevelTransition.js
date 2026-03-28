@@ -13,6 +13,7 @@ export async function executeLevelTransition(tm, nextLevel) {
 
     DebugLogger.info('transition', `[TransitionManager] Transitioning to level ${nextLevel}`);
     getSession()?.transition(scene.currentLevel, nextLevel, 'level_transition');
+    getSession()?.log('game', 'level_transition', { from: scene.currentLevel, to: nextLevel });
 
     // 1. Pause game but keep time running for animations
     scene.isPaused = true;

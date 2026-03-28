@@ -9,6 +9,7 @@
  *   - abilities/RadiationCoreAbilities.js (8 boss-specific handlers)
  */
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
+import { getSession } from '../../core/debug/SessionLog.js';
 
 // Generic ability handlers
 import {
@@ -158,6 +159,7 @@ export class BossAbilities {
         }
 
         DebugLogger.info('boss', `[BossAbilities] Executing ability: ${abilityId}`);
+        getSession()?.log('boss', 'ability_used', { bossId: this.boss?.blueprintId, abilityId, cooldown: abilityData.cooldown || 3000 });
 
         this.isExecutingAbility = true;
         this.activeAbilities.add(abilityId);

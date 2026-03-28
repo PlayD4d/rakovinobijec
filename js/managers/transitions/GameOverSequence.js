@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
+import { getSession } from '../../core/debug/SessionLog.js';
 
 /**
  * GameOverSequence - Extracted game-over transition logic
@@ -10,6 +11,7 @@ export async function executeGameOver(tm) {
     const scene = tm.scene;
 
     DebugLogger.info('transition', '[TransitionManager] Game Over sequence starting');
+    getSession()?.log('game', 'gameover_start', { score: scene.gameStats?.score, level: scene.currentLevel, cause: scene.lastDamageCause || 'unknown' });
 
     // 1. Pause everything immediately
     tm.pauseGameSystems();

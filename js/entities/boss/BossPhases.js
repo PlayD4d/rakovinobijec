@@ -5,6 +5,7 @@
  * Implementuje phase transition logiku odděleně od core boss třídy.
  */
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
+import { getSession } from '../../core/debug/SessionLog.js';
 export class BossPhases {
     constructor(bossCore) {
         this.boss = bossCore;
@@ -85,7 +86,8 @@ export class BossPhases {
         if (newPhase === this.currentPhase || this.isTransitioning) return;
         
         DebugLogger.info('boss', `[BossPhases] Triggering transition: ${this.currentPhase} -> ${newPhase}`);
-        
+        getSession()?.log('boss', 'phase_transition', { bossId: this.boss?.blueprintId, fromPhase: this.currentPhase, toPhase: newPhase, bossHP: this.boss?.hp });
+
         this.isTransitioning = true;
         
         // Pre-transition effects

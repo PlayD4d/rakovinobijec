@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
+import { getSession } from '../../core/debug/SessionLog.js';
 
 /**
  * VictorySequence - Extracted victory transition logic
@@ -10,6 +11,7 @@ export async function executeVictory(tm) {
     const scene = tm.scene;
 
     DebugLogger.info('transition', '[TransitionManager] Showing victory screen');
+    getSession()?.log('game', 'victory_start', { score: scene.gameStats?.score, level: scene.currentLevel });
 
     // 1. Pause game systems
     tm.pauseGameSystems();

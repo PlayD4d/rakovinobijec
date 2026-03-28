@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../../debug/DebugLogger.js';
+import { getSession } from '../../../debug/SessionLog.js';
 
 /**
  * ShieldRegeneration - Handles shield HP regeneration and damage absorption
@@ -36,6 +37,7 @@ export class ShieldRegeneration {
                 player.shieldRechargeAt = 0;
 
                 DebugLogger.info('powerup', `[ShieldRegeneration] SHIELD REGENERATED - HP: ${player.shieldHP}/${player.maxShieldHP}`);
+                getSession()?.log('shield', 'regenerated', { shieldHP: player.shieldHP, maxShieldHP: player.maxShieldHP });
 
                 // Restore shield VFX
                 const vfxManager = this.powerUpSystem?.vfxManager;
@@ -45,6 +47,7 @@ export class ShieldRegeneration {
                         color: 0x00ffff,
                         alpha: 0.3
                     });
+                    getSession()?.log('shield', 'vfx_restored', { shieldHP: player.shieldHP });
                 }
             }
         }
@@ -67,6 +70,7 @@ export class ShieldRegeneration {
         const remainingDamage = amount - absorbed;
 
         DebugLogger.info('powerup', `[ShieldRegeneration] SHIELD ABSORBED ${absorbed} damage - Shield HP: ${player.shieldHP}/${player.maxShieldHP}`);
+        getSession()?.log('shield', 'absorbed', { absorbed, remainingDamage, shieldHP: player.shieldHP, maxShieldHP: player.maxShieldHP });
 
         // If shield depleted, start recharge timer
         if (player.shieldHP <= 0) {
@@ -74,6 +78,7 @@ export class ShieldRegeneration {
             player.shieldRecharging = true;
             player.shieldRechargeAt = time + player.shieldRechargeTime;
             DebugLogger.info('powerup', `[ShieldRegeneration] SHIELD DEPLETED - Recharging in ${player.shieldRechargeTime}ms`);
+            getSession()?.log('shield', 'broken', { rechargeTime: player.shieldRechargeTime });
 
             // Remove shield visual effect
             const vfxManager = this.powerUpSystem?.vfxManager;

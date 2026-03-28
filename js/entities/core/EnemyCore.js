@@ -193,7 +193,10 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
             owner: this,
             ...opts
         });
-        
+
+        // Session log: enemy shoot event
+        getSession()?.log('combat', 'enemy_shoot', { enemyId: this.blueprintId, pattern: patternId, damage, speed });
+
         // Play shoot SFX
         this.playSfx('shoot');
     }

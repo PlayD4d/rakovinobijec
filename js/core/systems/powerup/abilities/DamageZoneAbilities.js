@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../../debug/DebugLogger.js';
+import { getSession } from '../../../debug/SessionLog.js';
 
 /**
  * DamageZoneAbilities - Handles chemo cloud and aura damage zones
@@ -59,6 +60,7 @@ export class DamageZoneAbilities {
                 if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
                 const lastHit = this._chemoHitTimes.get(enemy) || 0;
                 if (now - lastHit < 500) return; // 2 ticks/sec per enemy
+                if (Math.random() < 0.1) getSession()?.log('combat', 'chemo_cloud_hit', { enemyId: enemy.blueprintId, damage });
                 enemy.takeDamage(damage, 'chemo_cloud');
                 this._chemoHitTimes.set(enemy, now);
             }

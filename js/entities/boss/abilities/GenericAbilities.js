@@ -5,11 +5,13 @@
  * bossAbilities provides access to boss, scene, and _schedule.
  */
 import { DebugLogger } from '../../../core/debug/DebugLogger.js';
+import { getSession } from '../../../core/debug/SessionLog.js';
 
 /**
  * Zakladni utok
  */
 export function executeBasicAttack(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'basic_attack', damage: abilityData.damage || 20 });
     const target = bossAbilities.scene.player;
     if (!target) return false;
 
@@ -33,6 +35,7 @@ export function executeBasicAttack(bossAbilities, abilityData, params) {
  * Projektilovy burst
  */
 export function executeProjectileBurst(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'projectile_burst', count: abilityData.count || 8, damage: abilityData.damage || 15 });
     const count = abilityData.count || 8;
     const damage = abilityData.damage || 15;
     const spread = abilityData.spreadAngle || 360;
@@ -59,6 +62,7 @@ export function executeProjectileBurst(bossAbilities, abilityData, params) {
  * Spawn minionu
  */
 export function executeMinionSpawn(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'minion_spawn', count: abilityData.count || 3, enemyType: abilityData.enemyType || 'enemy.viral_swarm' });
     const count = abilityData.count || 3;
     const enemyType = abilityData.enemyType || 'enemy.viral_swarm';
     const spawnRadius = abilityData.spawnRadius || 100;
@@ -75,6 +79,7 @@ export function executeMinionSpawn(bossAbilities, abilityData, params) {
  * Teleport strike
  */
 export function executeTeleportStrike(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'teleport_strike', damage: abilityData.damage || 30 });
     const target = bossAbilities.scene.player;
     if (!target) return false;
 
@@ -94,6 +99,7 @@ export function executeTeleportStrike(bossAbilities, abilityData, params) {
  * Dash utok
  */
 export function executeDashAttack(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'dash_attack', damage: abilityData.damage || 25 });
     const target = bossAbilities.scene.player;
     if (!target) return false;
 
@@ -118,6 +124,7 @@ export function executeDashAttack(bossAbilities, abilityData, params) {
  * Area damage
  */
 export function executeAreaDamage(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'area_damage', radius: abilityData.radius || 150, damage: abilityData.damage || 20 });
     const radius = abilityData.radius || 150;
     const damage = abilityData.damage || 20;
     const center = params.center || { x: bossAbilities.boss.x, y: bossAbilities.boss.y };
@@ -137,6 +144,7 @@ export function executeAreaDamage(bossAbilities, abilityData, params) {
  * Healing schopnost
  */
 export function executeHealing(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'healing', healAmount: abilityData.healAmount || 50 });
     const healAmount = abilityData.healAmount || 50;
     const maxHealRatio = abilityData.maxHealRatio || 0.8; // Max 80% HP
 
@@ -159,6 +167,7 @@ export function executeHealing(bossAbilities, abilityData, params) {
  * Shield schopnost
  */
 export function executeShield(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'shield', shieldAmount: abilityData.shieldAmount || 30, duration: abilityData.duration || 5000 });
     const shieldAmount = abilityData.shieldAmount || 30;
     const duration = abilityData.duration || 5000;
 
@@ -179,6 +188,7 @@ export function executeShield(bossAbilities, abilityData, params) {
  * Rage mode
  */
 export function executeRageMode(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'rage_mode', speedMult: abilityData.speedMultiplier || 1.5, damageMult: abilityData.damageMultiplier || 1.3, duration: abilityData.duration || 8000 });
     const speedMultiplier = abilityData.speedMultiplier || 1.5;
     const damageMultiplier = abilityData.damageMultiplier || 1.3;
     const duration = abilityData.duration || 8000;
@@ -212,6 +222,7 @@ export function executeRageMode(bossAbilities, abilityData, params) {
  * Toxic cloud
  */
 export function executeToxicCloud(bossAbilities, abilityData, params) {
+    getSession()?.log('boss', 'ability_execute', { ability: 'toxic_cloud', cloudCount: abilityData.cloudCount || 3, damage: abilityData.damage || 5 });
     const cloudCount = abilityData.cloudCount || 3;
     const cloudRadius = abilityData.cloudRadius || 80;
     const damage = abilityData.damage || 5;
