@@ -300,7 +300,9 @@ export class SystemsInitializer {
             const { FrameworkDebugAPI } = window;
             if (FrameworkDebugAPI) {
                 this.scene.frameworkDebug = new FrameworkDebugAPI(this.scene);
-                window.__framework = this.scene.frameworkDebug;
+                if (window.DEV_MODE || window.location?.search?.includes('debug=true')) {
+                    window.__framework = this.scene.frameworkDebug;
+                }
                 DebugLogger.info('dev', '[DebugAPI] Initialized - use __framework in console');
             }
         } catch (error) {

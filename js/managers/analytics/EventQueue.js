@@ -57,6 +57,7 @@ export class EventQueue {
         if (!this._isSessionReady()) {
             await this._ensureSession();
             if (!this._isSessionReady()) {
+                this._flushing = false; // Reset before early return to prevent permanent block
                 DebugLogger.info('general', 'EventQueue: waiting for session creation...');
                 return;
             }

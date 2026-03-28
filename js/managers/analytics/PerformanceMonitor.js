@@ -120,6 +120,7 @@ export class PerformanceMonitor {
     _startFPSTracking() {
         let lastTime = performance.now();
         const trackFPS = (currentTime) => {
+            if (!this._fpsTrackingActive || !this.fpsHistory) return; // Guard against post-shutdown fire
             const fps = 1000 / (currentTime - lastTime);
             this.fpsHistory.push(fps);
 

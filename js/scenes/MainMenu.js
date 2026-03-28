@@ -236,6 +236,8 @@ export class MainMenu extends Phaser.Scene {
      * Cleanup when leaving scene
      */
     shutdown() {
+        if (this._shutdownDone) return;
+        this._shutdownDone = true;
         // Cleanup KeyboardManager
         if (this.keyboardManager) {
             this.keyboardManager.destroy();

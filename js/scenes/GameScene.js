@@ -515,6 +515,7 @@ export class GameScene extends Phaser.Scene {
                 { name: 'debugOverlay', ref: this.debugOverlay },
                 { name: 'telemetryLogger', ref: this.telemetryLogger, method: 'destroy' },
                 { name: 'graphicsFactory', ref: this.graphicsFactory },
+                { name: 'enemyManager', ref: this.enemyManager },
             ];
             
             for (const { name, ref, method } of systemsToShutdown) {
@@ -538,7 +539,7 @@ export class GameScene extends Phaser.Scene {
                 'vfxSystem','audioSystem','keyboardManager','analyticsManager','updateManager',
                 'transitionManager','enemiesGroup','bossGroup','debugOverlay','telemetryLogger',
                 'graphicsFactory','targetingSystem','mobileControls','frameworkDebug',
-                'blueprintLoader','uiLayer','enemies'];
+                'blueprintLoader','uiLayer','enemyManager'];
             for (const k of refs) this[k] = null;
 
             DebugLogger.info('game', '[GameScene] Shutdown sequence completed successfully');
