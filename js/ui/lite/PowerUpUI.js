@@ -25,7 +25,7 @@ export class PowerUpUI {
     this.title = new Phaser.GameObjects.Text(scene, cx, cy - 220, '🎉 LEVEL UP! 🎉', {
       fontFamily: UI_THEME.fonts.primary,
       fontSize: '42px',
-      color: '#00ffff',
+      color: `#${UI_THEME.colors.text.accent.toString(16).padStart(6, '0')}`,
       stroke: '#004444',
       strokeThickness: 4
     }).setOrigin(0.5);
@@ -96,7 +96,7 @@ export class PowerUpUI {
       const rarityColor = this.getRarityColor(pu.rarity || 'common');
 
       // All children via constructors (Container owns rendering exclusively)
-      const bgDark = new Phaser.GameObjects.Rectangle(s, 0, 0, cardWidth, cardHeight, 0x1a1a2e, 0.95)
+      const bgDark = new Phaser.GameObjects.Rectangle(s, 0, 0, cardWidth, cardHeight, UI_THEME.colors.background.modal, 0.95)
         .setStrokeStyle(2, 0x16213e, 0.8);
       const bgGradient = new Phaser.GameObjects.Rectangle(s, 0, -cardHeight/4, cardWidth-4, cardHeight/2, 0x0f3460, 0.3);
       const border = new Phaser.GameObjects.Rectangle(s, 0, 0, cardWidth+4, cardHeight+4, rarityColor, 0.0)

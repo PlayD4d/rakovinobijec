@@ -292,6 +292,9 @@ export class UnifiedHUD {
 
     showBoss(name, hp, maxHp) {
         if (this._destroyed || !this.bossContainer) return;
+        // Kill any in-flight hideBoss tween to prevent its onComplete hiding the new bar
+        this.scene.tweens.killTweensOf(this.bossContainer);
+        this._hidingBoss = false;
         this.bossNameText.setText(name);
         this.setBossHealth(hp, maxHp);
         this.bossContainer.setVisible(true);
