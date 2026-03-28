@@ -445,11 +445,9 @@ export class BossAbilities {
             });
         }
         
-        // Try to play audio, fallback to existing sound if not found
+        // Play audio — single call, no || fallback (|| plays both when first succeeds)
         if (this.scene.audioSystem) {
-            // Use existing explosion sound as fallback
-            this.scene.audioSystem.play('sound/boss_radiation.mp3') ||
-            this.scene.audioSystem.play('sound/explode.mp3');
+            this.scene.audioSystem.play('sound/boss_radiation.mp3');
         }
         
         // Damage nearby player AFTER WARNING DELAY
@@ -480,10 +478,9 @@ export class BossAbilities {
     executeToxicPools(abilityData, params) {
         DebugLogger.info('boss', '[BossAbilities] Executing toxic pools');
         
-        // Try to play audio with fallback
+        // Play audio — single call
         if (this.scene.audioSystem) {
-            this.scene.audioSystem.play('sound/toxic_pools.mp3') ||
-            this.scene.audioSystem.play('sound/pickup.mp3');  // Use pickup sound as fallback
+            this.scene.audioSystem.play('sound/toxic_pools.mp3');
         }
         
         // Create multiple toxic pools around boss

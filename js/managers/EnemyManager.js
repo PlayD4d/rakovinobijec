@@ -37,8 +37,8 @@ export class EnemyManager {
         
         // Determine spawn position
         const scale = this.scene.getScaleManager ? this.scene.getScaleManager() : this.scene.scale;
-        const x = options.x || Phaser.Math.Between(50, scale.width - 50);
-        const y = options.y || Phaser.Math.Between(50, scale.height - 50);
+        const x = options.x || (50 + Math.random() * (scale.width - 100));
+        const y = options.y || (50 + Math.random() * (scale.height - 100));
         
         // Get visual properties
         const visuals = blueprint.visuals || {};

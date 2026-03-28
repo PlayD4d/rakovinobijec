@@ -114,8 +114,8 @@ export class SimplifiedAudioSystem {
         // Extract filename as key
         const soundKey = this._extractSoundKey(soundPath);
         
-        // Check cooldown
-        if (!this._checkCooldown(soundKey)) {
+        // Check cooldown (bypass for looping sounds)
+        if (!options.bypassCooldown && !this._checkCooldown(soundKey)) {
             return null;
         }
         
@@ -142,7 +142,8 @@ export class SimplifiedAudioSystem {
      * Play a looping sound
      */
     playLoop(soundPath, options = {}) {
-        const sound = this.play(soundPath, { ...options, loop: true });
+        // Bypass cooldown for looping sounds — they are long-lived and must not be suppressed
+        const sound = this.play(soundPath, { ...options, loop: true, bypassCooldown: true });
         if (sound) {
             const key = this._extractSoundKey(soundPath);
             this.loopingSounds.set(key, sound);

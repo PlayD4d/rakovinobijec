@@ -56,17 +56,19 @@ export class BossCore extends EnemyCore {
      */
     isAbilityReady(abilityId) {
         const cooldownEnd = this.abilityCooldowns.get(abilityId) || 0;
-        const now = this.scene?.time?.now || Date.now();
+        const now = this.scene?.time?.now || 0;
+        if (!now) return false; // Scene time unavailable — don't fire abilities
         return now >= cooldownEnd;
     }
-    
+
     /**
      * Nastaví cooldown pro schopnost
      * @param {string} abilityId ID schopnosti
      * @param {number} cooldownMs Cooldown v milisekundách
      */
     setAbilityCooldown(abilityId, cooldownMs) {
-        const now = this.scene?.time?.now || Date.now();
+        const now = this.scene?.time?.now || 0;
+        if (!now) return;
         this.abilityCooldowns.set(abilityId, now + cooldownMs);
     }
     

@@ -74,17 +74,17 @@ export class SpawnDirector {
             this.applyXpRetuning(this.currentTable);
         }
         
-        // PR7: Validate boss triggers exist
-        if (!table.bossTriggers) {
+        // PR7: Validate boss triggers exist (use clone, not original)
+        if (!this.currentTable.bossTriggers) {
             DebugLogger.error('spawn', `Missing bossTriggers in spawn table: ${scenarioId}`);
         } else {
-            DebugLogger.debug('spawn', `Boss triggers found:`, table.bossTriggers);
+            DebugLogger.debug('spawn', `Boss triggers found:`, this.currentTable.bossTriggers);
         }
-        
+
         DebugLogger.info('spawn', `✅ Loaded spawn table: ${scenarioId}`);
-        DebugLogger.debug('spawn', `  Waves: ${table.enemyWaves?.length || 0}`);
-        DebugLogger.debug('spawn', `  Elites: ${table.eliteWindows?.length || 0}`);
-        DebugLogger.debug('spawn', `  Uniques: ${table.uniqueSpawns?.length || 0}`);
+        DebugLogger.debug('spawn', `  Waves: ${this.currentTable.enemyWaves?.length || 0}`);
+        DebugLogger.debug('spawn', `  Elites: ${this.currentTable.eliteWindows?.length || 0}`);
+        DebugLogger.debug('spawn', `  Uniques: ${this.currentTable.uniqueSpawns?.length || 0}`);
         
         return true;
     }

@@ -358,7 +358,10 @@ export class SimplifiedVFXSystem {
         if (emitter) {
             emitter.stop();
             this.activeEmitters.delete(emitterId);
-            
+
+            // Guard: don't pool a destroyed emitter (can happen after stopAllEffects)
+            if (emitter.active === false && emitter.scene === undefined) return;
+
             if (this.emitterPool.length < 10) {
                 this.emitterPool.push(emitter);
             } else {
@@ -373,13 +376,14 @@ export class SimplifiedVFXSystem {
     _createBasicTextures() {
         // Check if texture already exists
         if (this.scene.textures.exists('particle')) return;
-        
-        // Create simple white circle for particles
-        const graphics = this.scene.add.graphics();
+
+        // PR7: Use GraphicsFactory when available, fallback to direct create
+        const gf = this.scene.graphicsFactory;
+        const graphics = gf ? gf.create() : this.scene.add.graphics();
         graphics.fillStyle(0xFFFFFF);
         graphics.fillCircle(4, 4, 4);
         graphics.generateTexture('particle', 8, 8);
-        graphics.destroy();
+        if (gf) { gf.release(graphics); } else { graphics.destroy(); }
     }
     
     /**

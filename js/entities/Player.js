@@ -612,7 +612,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
      */
     _stats() {
         // Cache stats — invalidated by time or modifier changes
-        const now = this.scene?.time?.now || Date.now();
+        const now = this.scene?.time?.now || 0;
         if (this._statsCache && this._statsCacheTime && (now - this._statsCacheTime < 100)) {
             return this._statsCache;
         }

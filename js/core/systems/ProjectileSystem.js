@@ -262,10 +262,7 @@ export class ProjectileSystem {
         bullet.hitCount = 0;
     }
     
-    // Přehrání zvuku střelby (volitelné, s ošetřením chyb)
-    try {
-      this.scene.audioManager?.playSound?.('shoot');
-    } catch (_) {}
+    // Legacy audioManager path removed — audioSystem handles shoot SFX above
     
     return true;
   }
@@ -538,9 +535,7 @@ export class ProjectileSystem {
     if (this.scene.audioSystem) {
       this.scene.audioSystem.play('sound/explosion_small.mp3');
     }
-    try {
-      this.scene.audioManager?.playSound?.('explosion');
-    } catch (_) {}
+    // Legacy audioManager path removed — audioSystem handles explosion SFX above
     
     return hitEnemies.length; // Vrátit počet zasažených nepřátel
   }

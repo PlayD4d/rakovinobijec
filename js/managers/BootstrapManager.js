@@ -112,6 +112,19 @@ export class BootstrapManager {
             DebugLogger.info('bootstrap', '[GameScene] Scene resumed');
             this.ensurePlayerActive();
             this.scene.isPaused = false;
+
+            // Reset timers for all systems after pause (consolidated — no separate listener needed)
+            if (this.scene.player?.resetTimersAfterPause) {
+                this.scene.player.resetTimersAfterPause();
+            }
+            this.scene.enemiesGroup?.getChildren().forEach(e => {
+                e.behaviors?.resetTimersAfterPause?.();
+            });
+            this.scene.bossGroup?.getChildren().forEach(b => {
+                b.behaviors?.resetTimersAfterPause?.();
+            });
+            this.scene.spawnDirector?.resetTimersAfterPause?.();
+            this.scene.powerUpSystem?.resetTimersAfterPause?.();
         };
         this._onPowerUpSelected = (selection) => {
             this.handlePowerUpSelection(selection);

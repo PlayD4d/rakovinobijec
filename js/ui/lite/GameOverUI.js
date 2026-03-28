@@ -109,22 +109,33 @@ export class GameOverUI {
    * Show game over screen with stats
    */
   show(stats = {}) {
+    // Victory vs defeat — update title and subtitle accordingly
+    if (stats.isVictory) {
+      this.title.setText('🎉 VICTORY!');
+      this.title.setColor('#00ff00');
+      this.subtitle.setText('Rakovina byla poražena!');
+    } else {
+      this.title.setText('💀 GAME OVER');
+      this.title.setColor('#ff0000');
+      this.subtitle.setText('Mard podlehl rakovině...');
+    }
+
     // Format stats
-    const survivalTime = stats.survivalTime || 0;
+    const survivalTime = stats.survivalTime || stats.time || 0;
     const minutes = Math.floor(survivalTime / 60);
     const seconds = survivalTime % 60;
     const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    
+
     const text = [
       `⏱️ Čas přežití: ${timeStr}`,
       `📊 Level: ${stats.level || 1}`,
       `💀 Zabito nepřátel: ${stats.kills || 0}`,
       `⭐ Skóre: ${stats.score || 0}`
     ].join('\n');
-    
+
     this.statsText.setText(text);
-    
-    // Show modal without animation (player is dead, no time for fancy stuff)
+
+    // Show modal
     this.modal.show(false);
   }
   

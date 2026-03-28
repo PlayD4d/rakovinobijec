@@ -257,44 +257,7 @@ export class GameScene extends Phaser.Scene {
     }
     
     setupResumeHandlers() {
-        // Setup resume handler for timer resets
-        this.events.on('resume', () => {
-            const now = this.time.now;
-            console.log('[GameScene] Resuming from pause - resetting timers');
-            
-            // Reset player timers
-            if (this.player && this.player.resetTimersAfterPause) {
-                this.player.resetTimersAfterPause();
-            }
-            
-            // Reset enemy behavior timers
-            if (this.enemiesGroup) {
-                this.enemiesGroup.getChildren().forEach(enemy => {
-                    if (enemy.behaviors && enemy.behaviors.resetTimersAfterPause) {
-                        enemy.behaviors.resetTimersAfterPause();
-                    }
-                });
-            }
-            
-            // Reset boss timers
-            if (this.bossGroup) {
-                this.bossGroup.getChildren().forEach(boss => {
-                    if (boss.behaviors && boss.behaviors.resetTimersAfterPause) {
-                        boss.behaviors.resetTimersAfterPause();
-                    }
-                });
-            }
-            
-            // Reset spawn director timers
-            if (this.spawnDirector && this.spawnDirector.resetTimersAfterPause) {
-                this.spawnDirector.resetTimersAfterPause();
-            }
-            
-            // Reset power-up system timers (chain lightning, etc.)
-            if (this.powerUpSystem && this.powerUpSystem.resetTimersAfterPause) {
-                this.powerUpSystem.resetTimersAfterPause();
-            }
-        });
+        // Timer resets consolidated into BootstrapManager._onResume — no duplicate listener needed
     }
     
     initializeDebugSystems() {

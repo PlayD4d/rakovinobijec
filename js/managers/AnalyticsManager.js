@@ -781,7 +781,8 @@ export class AnalyticsManager {
                 case 'level_complete':
                 case 'game_over':
                 case 'level_start':
-                    // Store transition-level analytics in event queue for flushing
+                case 'level_up':
+                    // Store transition/progression analytics in event queue for flushing
                     this.eventQueue.push({ type: name, ...payload, timestamp: Date.now() });
                     break;
                 default:

@@ -80,9 +80,11 @@ export class SimpleButton extends Phaser.GameObjects.Container {
       this.bg.setFillStyle(config.hoverColor, 1);
       this.bg.setScale(1);
       if (this.onClick) {
-        // Add small delay to ensure visual feedback is seen
-        this.scene.time.delayedCall(50, () => {
-          this.onClick();
+        // Add small delay to ensure visual feedback is seen — tracked for cleanup
+        if (this._pendingClick) this._pendingClick.destroy();
+        this._pendingClick = this.scene.time.delayedCall(50, () => {
+          this._pendingClick = null;
+          if (this.onClick) this.onClick();
         });
       }
     });
@@ -106,6 +108,11 @@ export class SimpleButton extends Phaser.GameObjects.Container {
   }
   
   destroy() {
+    // Cancel pending click timer
+    if (this._pendingClick) {
+      this._pendingClick.destroy();
+      this._pendingClick = null;
+    }
     // Cleanup hover cursor
     if (this.scene?.input?.setDefaultCursor) {
       this.scene.input.setDefaultCursor('default');

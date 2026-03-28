@@ -348,6 +348,13 @@ export class SimpleLootSystem {
      * Clear all drops
      */
     clearAll() {
+        // Kill tweens on all loot items before destroying to prevent orphaned tween updates
+        if (this.scene?.tweens) {
+            const children = this.lootGroup.getChildren();
+            for (const loot of children) {
+                this.scene.tweens.killTweensOf(loot);
+            }
+        }
         this.lootGroup.clear(true, true);
         this.recentDrops = [];
     }

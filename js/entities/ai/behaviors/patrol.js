@@ -69,38 +69,26 @@ export function patrol(cap, cfg, dt, mem, setState) {
                 state.targetX = spawnX + Math.cos(state.angle) * config.radius;
                 state.targetY = spawnY + Math.sin(state.angle) * config.radius;
                 break;
-                
-            case 'square':
-                // Move in square pattern
+
+            case 'square': {
+                // Move in square pattern (block-scoped const)
                 const side = Math.floor(state.angle / (Math.PI / 2)) % 4;
-                switch (side) {
-                    case 0: // Right
-                        state.targetX = spawnX + config.radius;
-                        state.targetY = spawnY;
-                        break;
-                    case 1: // Down
-                        state.targetX = spawnX;
-                        state.targetY = spawnY + config.radius;
-                        break;
-                    case 2: // Left
-                        state.targetX = spawnX - config.radius;
-                        state.targetY = spawnY;
-                        break;
-                    case 3: // Up
-                        state.targetX = spawnX;
-                        state.targetY = spawnY - config.radius;
-                        break;
-                }
+                const squareOffsets = [[1,0],[0,1],[-1,0],[0,-1]];
+                const [ox, oy] = squareOffsets[side];
+                state.targetX = spawnX + ox * config.radius;
+                state.targetY = spawnY + oy * config.radius;
                 state.angle += Math.PI / 2;
                 break;
-                
-            case 'random':
-                // Random points within radius
+            }
+
+            case 'random': {
+                // Random points within radius (block-scoped const)
                 const randomAngle = Math.random() * Math.PI * 2;
                 const randomDist = Math.random() * config.radius;
                 state.targetX = spawnX + Math.cos(randomAngle) * randomDist;
                 state.targetY = spawnY + Math.sin(randomAngle) * randomDist;
                 break;
+            }
         }
     }
     

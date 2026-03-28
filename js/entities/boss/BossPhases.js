@@ -99,6 +99,7 @@ export class BossPhases {
         const schedule = this.boss?.abilitiesSystem?._schedule?.bind(this.boss.abilitiesSystem);
         if (schedule) {
             schedule(500, () => {
+                if (!this.boss || !this.scene) return;
                 this.executePostTransitionEffects(newPhase);
                 this.isTransitioning = false;
             });

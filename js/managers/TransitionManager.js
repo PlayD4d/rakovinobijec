@@ -186,19 +186,26 @@ export class TransitionManager {
             const isHighScore = this.scene.highScoreManager?.isHighScore(finalScore);
             
             if (isHighScore && this.scene.highScoreManager) {
-                // Import HighScoreModal dynamically
-                const { HighScoreModal } = await import('../ui/HighScoreModal.js');
-                this.scene.highScoreModal = new HighScoreModal(
-                    this.scene,
-                    finalScore,
-                    async (name) => {
-                        await this.scene.highScoreManager.addScore(name, finalScore);
-                        if (this.scene.globalHighScoreManager) {
-                            await this.scene.globalHighScoreManager.submitScore(name, finalScore);
+                try {
+                    const { HighScoreModal } = await import('../ui/HighScoreModal.js');
+                    this.scene.highScoreModal = new HighScoreModal(
+                        this.scene,
+                        this.scene.gameStats,  // Pass full gameStats object, not just score
+                        async (name) => {
+                            await this.scene.highScoreManager.addScore(name, finalScore);
+                            if (this.scene.globalHighScoreManager) {
+                                await this.scene.globalHighScoreManager.submitScore(name, finalScore);
+                            }
+                            this.scene.highScoreModal = null;
                         }
-                        this.scene.highScoreModal = null;
+                    );
+                    // Actually show the modal
+                    if (this.scene.highScoreModal.showEntry) {
+                        this.scene.highScoreModal.showEntry();
                     }
-                );
+                } catch (e) {
+                    DebugLogger.warn('transition', '[TransitionManager] HighScoreModal failed:', e);
+                }
             }
             
             // 5. Show defeat modal via UI scene (existing game-over event)
