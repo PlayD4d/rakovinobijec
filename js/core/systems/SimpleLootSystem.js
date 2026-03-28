@@ -167,6 +167,7 @@ export class SimpleLootSystem {
      */
     handlePickup(player, loot) {
         if (!loot.active) return;
+        DebugLogger.info('loot', `[LootPickup] Picking up ${loot.dropId} type=${loot.dropType} value=${loot.value}`);
         
         const blueprint = loot.blueprint;
         const dropType = loot.dropType;
@@ -228,36 +229,46 @@ export class SimpleLootSystem {
      */
     update(time, delta) {
         if (!this.scene.player?.active) return;
-        
+
         const player = this.scene.player;
-        
-        // Read magnet radius from player stats pipeline (single source of truth)
+        const children = this.lootGroup?.getChildren();
+        if (!children || children.length === 0) return;
+
+        // Distance-based pickup for ALL loot (overlap fallback)
+        const pickupRadiusSq = 25 * 25;
+        for (let i = children.length - 1; i >= 0; i--) {
+            const loot = children[i];
+            if (!loot?.active) continue;
+            const dx = player.x - loot.x;
+            const dy = player.y - loot.y;
+            if (dx * dx + dy * dy < pickupRadiusSq) {
+                this.handlePickup(player, loot);
+            }
+        }
+
+        // XP magnet attraction
         const magnetRadius = player._stats?.()?.xpMagnetRadius || player.baseStats?.xpMagnetRadius || 0;
         if (magnetRadius <= 0) return;
         
-        // Apply magnet effect to XP orbs
-        const children = this.lootGroup?.getChildren();
-        if (children) {
-            const radiusSq = magnetRadius * magnetRadius;
-            // for-loop: no closure allocation per frame (hot path optimization)
-            for (let i = 0, len = children.length; i < len; i++) {
-                const loot = children[i];
-                if (!loot?.active || loot.dropType !== 'xp') continue;
-                if (!loot.body) continue;
+        // Apply magnet attraction to XP orbs (pickup handled above)
+        const radiusSq = magnetRadius * magnetRadius;
+        for (let i = 0, len = children.length; i < len; i++) {
+            const loot = children[i];
+            if (!loot?.active || loot.dropType !== 'xp') continue;
+            if (!loot.body) continue;
 
-                const dx = player.x - loot.x;
-                const dy = player.y - loot.y;
-                const distSq = dx * dx + dy * dy;
+            const dx = player.x - loot.x;
+            const dy = player.y - loot.y;
+            const distSq = dx * dx + dy * dy;
 
-                if (distSq < radiusSq && distSq > 1) {
-                    const distance = Math.sqrt(distSq);
-                    const normalizedDistance = distance / magnetRadius;
-                    const force = 0.3 + (0.7 * (1 - normalizedDistance));
-                    const speed = 300 * force;
-                    loot.body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
-                } else if (distSq >= radiusSq) {
-                    loot.body.setVelocity(0, 0);
-                }
+            if (distSq < radiusSq && distSq > 1) {
+                const distance = Math.sqrt(distSq);
+                const normalizedDistance = distance / magnetRadius;
+                const force = 0.3 + (0.7 * (1 - normalizedDistance));
+                const speed = 300 * force;
+                loot.body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
+            } else if (distSq >= radiusSq) {
+                loot.body.setVelocity(0, 0);
             }
         }
     }

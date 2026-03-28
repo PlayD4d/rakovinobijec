@@ -130,15 +130,20 @@ export function setupCollisions(scene) {
 
     // Player vs Loot
     if (scene.lootSystem?.lootGroup && scene.player) {
+        DebugLogger.info('collision', `[setupCollisions] Registering Player vs Loot: player=${!!scene.player.body}, lootGroup children=${scene.lootSystem.lootGroup.getLength()}`);
         colliders.push(
             scene.physics.add.overlap(
                 scene.player,
                 scene.lootSystem.lootGroup,
-                (player, loot) => scene.lootSystem.handlePickup(player, loot),
+                (player, loot) => {
+                    scene.lootSystem.handlePickup(player, loot);
+                },
                 activeFilter,
                 scene
             )
         );
+    } else {
+        DebugLogger.error('collision', `[setupCollisions] SKIPPED Player vs Loot! lootSystem=${!!scene.lootSystem}, lootGroup=${!!scene.lootSystem?.lootGroup}, player=${!!scene.player}`);
     }
 
     DebugLogger.debug('collision', `[setupCollisions] Registered ${colliders.length} collisions`);
