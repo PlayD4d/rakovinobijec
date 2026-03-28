@@ -22,6 +22,7 @@ npm-debug.log*
 
 # Generated files
 data/generated/
+build/
 
 # Internal tools (not for public repo)
 analytics-dashboard/
