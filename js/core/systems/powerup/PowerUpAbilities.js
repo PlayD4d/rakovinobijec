@@ -1,38 +1,48 @@
 import { DebugLogger } from '../../debug/DebugLogger.js';
+import { ChainLightningAbility } from './abilities/ChainLightningAbility.js';
+import { DamageZoneAbilities } from './abilities/DamageZoneAbilities.js';
+import { ShieldRegeneration } from './abilities/ShieldRegeneration.js';
 
 /**
  * PowerUpAbilities - Handles special abilities from power-ups
  * PR7 Compliant - All abilities driven by blueprint configuration
+ *
+ * Thin Composer: delegates to extracted ability modules:
+ *  - ChainLightningAbility (chain lightning attack + timers)
+ *  - DamageZoneAbilities   (chemo cloud + aura damage zones)
+ *  - ShieldRegeneration    (shield HP regen + damage absorption)
  */
 
 export class PowerUpAbilities {
     constructor(scene, powerUpSystem) {
         this.scene = scene;
         this.powerUpSystem = powerUpSystem;
-        
+
         // Active abilities that need per-frame updates
         this.activeAbilities = new Map(); // abilityType -> { config, updateFn }
 
-        // Track chain lightning timers for cleanup
-        this._chainTimers = [];
+        // Extracted ability modules
+        this._chainLightning = new ChainLightningAbility(scene, powerUpSystem);
+        this._damageZones = new DamageZoneAbilities(scene, powerUpSystem);
+        this._shieldRegen = new ShieldRegeneration(scene, powerUpSystem);
     }
-    
+
     /**
      * Process abilities from blueprint
      */
     processAbilities(blueprint, level) {
         if (!blueprint.ability?.type) return [];
-        
+
         const ability = blueprint.ability;
         const abilities = [];
-        
+
         // Create ability configuration based on type and level
         const config = {
             type: ability.type,
             level: level,
             enabled: true
         };
-        
+
         // Extract level-based values
         switch (ability.type) {
             case 'radiotherapy':
@@ -45,61 +55,59 @@ export class PowerUpAbilities {
                 config.beamColor = ability.beamColor || 0x00ff00;
                 config.beamAlpha = ability.beamAlpha || 0.7;
                 break;
-                
+
             case 'flamethrower':
                 config.range = ability.rangePerLevel?.[level - 1] || 80;
                 config.damage = ability.damagePerLevel?.[level - 1] || 3;
                 config.coneAngle = ability.coneAnglePerLevel?.[level - 1] || 0.4;
                 config.tickRate = ability.tickRate || 0.1;
                 break;
-                
+
             case 'shield':
-                // PR7: Use baseShieldHP from ability config, multiply by level
-                const baseHP = ability.baseShieldHP || 50;
-                config.shieldHP = baseHP * level;  // 50, 100, 150, 200, 250
+                config.shieldHP = (ability.baseShieldHP || 50) * level;
                 config.rechargeTime = ability.rechargeTimePerLevel?.[level - 1] || 10000;
                 DebugLogger.info('powerup', `[PowerUpAbilities] Shield config: HP=${config.shieldHP}, recharge=${config.rechargeTime}ms`);
                 break;
-                
+
             case 'chain_lightning':
                 config.damage = ability.baseDamage || 15;
                 config.damagePerLevel = ability.damagePerLevel || 10;
                 config.range = ability.baseRange || 200;
                 config.jumpRange = ability.jumpRange || 80;
-                config.jumps = level; // Number of jumps = level
+                config.jumps = level;
                 config.interval = ability.interval || 2000;
                 break;
-                
+
             case 'aura':
                 config.damage = ability.baseDamagePerTick || 2;
                 config.radius = ability.baseRadius || 100;
                 config.radiusPerLevel = ability.radiusPerLevel || 10;
                 config.tickRate = ability.tickRate || 0.1;
                 break;
-                
+
             case 'chemo_aura':
                 config.cloudDuration = ability.chemoCloudDuration || 6000;
                 config.cloudDamage = ability.chemoCloudDamage || 4;
                 config.cloudRadius = ability.chemoCloudRadius || 35;
                 config.enableExplosions = ability.enableExplosions || false;
                 break;
-                
+
             case 'piercing':
                 config.maxPierces = ability.maxPierces?.[level - 1] || 1;
                 config.damageReduction = ability.damageReduction || 0.1;
                 break;
-                
+
             default:
                 DebugLogger.warn('powerup', `[PowerUpAbilities] Unknown ability type: ${ability.type}`);
                 return [];
         }
-        
+
         abilities.push(config);
         DebugLogger.info('powerup', `[PowerUpAbilities] Ability: ${config.type} level ${config.level}`, config);
-        
+
         return abilities;
     }
-    
+
     /**
      * Apply abilities to player
      */
@@ -108,16 +116,16 @@ export class PowerUpAbilities {
             this._applyAbility(player, ability);
         }
     }
-    
+
     /**
      * Apply specific ability to player
      */
     _applyAbility(player, config) {
         const vfxManager = this.powerUpSystem.vfxManager;
-        
+
         switch (config.type) {
             case 'radiotherapy':
-                DebugLogger.info('powerup', `[PowerUpAbilities] 🔬 Applying radiotherapy config:`, config);
+                DebugLogger.info('powerup', `[PowerUpAbilities] Applying radiotherapy config:`, config);
                 if (vfxManager) {
                     vfxManager.attachEffect(player, 'radiotherapy', config);
                 }
@@ -125,7 +133,7 @@ export class PowerUpAbilities {
                 player.radiotherapyLevel = config.level;
                 player.radiotherapyConfig = config;
                 break;
-                
+
             case 'flamethrower':
                 if (vfxManager) {
                     vfxManager.attachEffect(player, 'flamethrower', {
@@ -140,9 +148,8 @@ export class PowerUpAbilities {
                 player.flamethrowerLevel = config.level;
                 player.flamethrowerConfig = config;
                 break;
-                
+
             case 'shield':
-                // Set shield HP-based system on player
                 player.shieldActive = true;
                 player.shieldLevel = config.level;
                 player.shieldHP = config.shieldHP;
@@ -150,10 +157,9 @@ export class PowerUpAbilities {
                 player.shieldRechargeTime = config.rechargeTime;
                 player.shieldRecharging = false;
                 player.shieldRechargeAt = 0;
-                
-                DebugLogger.info('powerup', `[PowerUpAbilities] ✅ SHIELD ACTIVATED - Level: ${config.level}, HP: ${config.shieldHP}, Recharge: ${config.rechargeTime}ms`);
-                
-                // Create shield visual effect
+
+                DebugLogger.info('powerup', `[PowerUpAbilities] SHIELD ACTIVATED - Level: ${config.level}, HP: ${config.shieldHP}, Recharge: ${config.rechargeTime}ms`);
+
                 if (vfxManager) {
                     DebugLogger.info('powerup', `[PowerUpAbilities] Attaching shield VFX to player`);
                     vfxManager.attachEffect(player, 'shield', {
@@ -162,32 +168,31 @@ export class PowerUpAbilities {
                         alpha: 0.3
                     });
                 } else if (this.scene.vfxSystem) {
-                    // Fallback to direct VFX system call
                     DebugLogger.info('powerup', `[PowerUpAbilities] Using vfxSystem for shield effect`);
                     this.scene.vfxSystem.play('vfx.shield.active', player.x, player.y);
                 } else {
                     DebugLogger.warn('powerup', `[PowerUpAbilities] No VFX system available for shield effect`);
                 }
                 break;
-                
+
             case 'xp_magnet':
-                // XP magnet uses modifier system only
                 DebugLogger.info('powerup', `[PowerUpAbilities] XP magnet handled via modifiers (level ${config.level})`);
                 break;
-                
+
             case 'chain_lightning':
-                // Register lightning ability for update loop
                 this.activeAbilities.set('chain_lightning', {
                     config,
                     nextTriggerAt: 0,
-                    updateFn: (time, delta) => this._updateChainLightning(time, delta, config)
+                    updateFn: (time, delta) => {
+                        const ability = this.activeAbilities.get('chain_lightning');
+                        this._chainLightning.update(time, delta, config, ability);
+                    }
                 });
                 player.hasLightningChain = true;
                 player.lightningChainLevel = config.level;
                 break;
-                
+
             case 'aura':
-                // PR7: Create aura visual through VFXSystem
                 if (this.scene.vfxSystem && !player.aura) {
                     this.scene.vfxSystem.play('vfx.aura.damage', player.x, player.y, {
                         radius: config.radius + (config.radiusPerLevel * (config.level - 1)),
@@ -195,32 +200,31 @@ export class PowerUpAbilities {
                         alpha: 0.1,
                         persistent: true
                     });
-                    player.aura = true; // Mark as created
+                    player.aura = true;
                 }
                 player.auraDamage = config.damage * config.level;
                 player.auraRadius = config.radius + (config.radiusPerLevel * (config.level - 1));
                 break;
-                
+
             case 'chemo_aura':
                 player.chemoAuraActive = true;
                 player.chemoAuraConfig = config;
-                this._startChemoCloud(player, config);
+                this._damageZones.startChemoCloud(player, config);
                 DebugLogger.info('powerup', `[PowerUpAbilities] Activated chemo aura — cloud damage ${config.chemoCloudDamage}, radius ${config.chemoCloudRadius}`);
                 break;
-                
+
             case 'piercing':
-                // Set piercing properties on player
                 player.piercingLevel = config.level;
                 player.piercingMaxPierces = config.maxPierces;
                 player.piercingDamageReduction = config.damageReduction;
                 DebugLogger.info('powerup', `[PowerUpAbilities] Activated piercing: ${config.maxPierces} pierces, ${(config.damageReduction * 100)}% damage reduction`);
                 break;
-                
+
             default:
                 DebugLogger.warn('powerup', `[PowerUpAbilities] Unhandled ability type: ${config.type}`);
         }
     }
-    
+
     /**
      * Update active abilities
      */
@@ -231,327 +235,32 @@ export class PowerUpAbilities {
                 ability.updateFn(time, delta);
             }
         }
-        
+
         const player = this.scene.player;
 
-        // Update aura if active
+        // Delegate aura update
         if (player?.aura && player.auraDamage > 0) {
-            this._updateAura(player, delta);
+            this._damageZones.updateAura(player, delta);
         }
 
-        // Update chemo cloud position
-        if (this._chemoZone?.body && player?.active) {
-            this._chemoZone.setPosition(player.x, player.y);
-        }
+        // Delegate chemo cloud position update
+        this._damageZones.updateChemoCloud(player);
 
-        // Update shield regeneration
-        this._updateShieldRegeneration(player, time);
-    }
-    
-    /**
-     * Update chain lightning ability
-     */
-    _updateChainLightning(time, delta, config) {
-        const ability = this.activeAbilities.get('chain_lightning');
-        if (!ability) return;
-        
-        // Use absolute time instead of delta accumulation
-        if (!ability.nextTriggerAt) {
-            ability.nextTriggerAt = time + config.interval;
-        }
-        
-        // Process with catch-up protection
-        let triggers = 0;
-        while (time >= ability.nextTriggerAt && triggers < 2) {
-            this._performChainLightning(config);
-            ability.nextTriggerAt += config.interval;
-            triggers++;
-        }
-        
-        if (triggers > 1) {
-            DebugLogger.info('powerup', `[PowerUpAbilities] Chain lightning catch-up: ${triggers} triggers`);
-        }
-    }
-    
-    /**
-     * Perform chain lightning attack
-     */
-    _performChainLightning(config) {
-        const player = this.scene.player;
-        if (!player?.active) return;
-        
-        const enemies = this.scene.enemiesGroup?.getChildren() || [];
-        if (enemies.length === 0) return;
-        
-        // Find closest enemy (squared distance avoids Math.sqrt)
-        let closest = null;
-        let minDistSq = config.range * config.range;
-
-        for (const enemy of enemies) {
-            if (!enemy?.active) continue;
-            const dx = player.x - enemy.x;
-            const dy = player.y - enemy.y;
-            const distSq = dx * dx + dy * dy;
-            if (distSq < minDistSq) {
-                minDistSq = distSq;
-                closest = enemy;
-            }
-        }
-        
-        if (!closest) return;
-        
-        // Start chain (use Set for O(1) lookups instead of Array.includes)
-        // Reuse pre-allocated set to avoid per-fire allocation
-        if (!this._chainHitSet) this._chainHitSet = new Set();
-        this._chainHitSet.clear();
-        this._chainToEnemy(closest, config.damage, config.jumps, config.jumpRange, this._chainHitSet);
-    }
-    
-    /**
-     * Chain lightning to enemy
-     */
-    _chainToEnemy(enemy, damage, jumpsLeft, jumpRange, hitList) {
-        if (!enemy?.active || jumpsLeft <= 0) return;
-        
-        hitList.add(enemy);
-        
-        // Apply damage
-        if (enemy.takeDamage) {
-            enemy.takeDamage(damage, 'chain_lightning');
-        }
-        
-        // Visual effect
-        if (this.scene.vfxSystem) {
-            this.scene.vfxSystem.play('vfx.lightning.strike', enemy.x, enemy.y);
-        }
-        
-        // Find next target
-        if (jumpsLeft > 1) {
-            const enemies = this.scene.enemiesGroup?.getChildren() || [];
-            let next = null;
-            let minDistSq = jumpRange * jumpRange;
-
-            for (const e of enemies) {
-                if (!e?.active || hitList.has(e)) continue;
-                const dx = enemy.x - e.x;
-                const dy = enemy.y - e.y;
-                const distSq = dx * dx + dy * dy;
-                if (distSq < minDistSq) {
-                    minDistSq = distSq;
-                    next = e;
-                }
-            }
-            
-            if (next) {
-                // PR7: Delegate lightning visual to VFXSystem instead of direct tweens
-                if (this.scene.vfxSystem) {
-                    this.scene.vfxSystem.play('vfx.lightning.chain.bolt', enemy.x, enemy.y, {
-                        targetX: next.x,
-                        targetY: next.y,
-                        color: 0x4444ff,
-                        width: 3,
-                        duration: 200
-                    });
-                }
-                
-                // Continue chain after delay — tracked for cleanup, self-removing on completion
-                const timer = this.scene.time?.delayedCall(150, () => {
-                    // Remove from tracking on completion
-                    if (this._chainTimers) {
-                        const idx = this._chainTimers.indexOf(timer);
-                        if (idx !== -1) this._chainTimers.splice(idx, 1);
-                    }
-                    if (!next?.active || !this.scene) return;
-                    this._chainToEnemy(next, damage * 0.8, jumpsLeft - 1, jumpRange, hitList);
-                });
-                if (timer && this._chainTimers) this._chainTimers.push(timer);
-            }
-        }
-    }
-    
-    /**
-     * Start chemo cloud periodic damage zone around player
-     */
-    _startChemoCloud(player, config) {
-        // Clean up old cloud if exists
-        this._destroyChemoCloud();
-
-        const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
-        if (!enemiesGroup || !this.scene.physics) return;
-
-        const radius = config.chemoCloudRadius || 35;
-        const damage = config.chemoCloudDamage || 4;
-
-        // Invisible physics zone for broadphase
-        const d = radius * 2;
-        this._chemoZone = this.scene.add.zone(player.x, player.y, d, d);
-        this.scene.physics.add.existing(this._chemoZone, false);
-        this._chemoZone.body.setCircle(radius);
-        this._chemoZone.body.setOffset(-radius + d/2, -radius + d/2);
-
-        // Overlap — applies damage per-enemy, throttled to 2 ticks/sec per enemy
-        this._chemoHitTimes = new WeakMap();
-        this._chemoOverlap = this.scene.physics.add.overlap(
-            this._chemoZone,
-            enemiesGroup,
-            (zone, enemy) => {
-                const now = this.scene.time?.now || 0;
-                if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
-                const lastHit = this._chemoHitTimes.get(enemy) || 0;
-                if (now - lastHit < 500) return; // 2 ticks/sec per enemy
-                enemy.takeDamage(damage, 'chemo_cloud');
-                this._chemoHitTimes.set(enemy, now);
-            }
-        );
-
-        // Store for cleanup and position update
-        this._chemoPlayer = player;
+        // Delegate shield regeneration
+        this._shieldRegen.update(player, time);
     }
 
-    _destroyChemoCloud() {
-        if (this._chemoOverlap) {
-            this.scene.physics?.world?.removeCollider(this._chemoOverlap);
-            this._chemoOverlap = null;
-        }
-        if (this._chemoZone) {
-            this._chemoZone.destroy();
-            this._chemoZone = null;
-        }
-        this._chemoPlayer = null;
-    }
-
-    /**
-     * Update aura damage using Phaser overlap zone (broadphase)
-     */
-    _updateAura(player, delta) {
-        if (!player.aura) {
-            this._destroyAuraZone();
-            return;
-        }
-
-        // Lazy-create physics zone on first call (damage computed dynamically in overlap callback)
-        // Recreate zone if radius changed (level-up)
-        if (this._auraZone && this._auraRadius !== player.auraRadius) {
-            this._destroyAuraZone();
-        }
-        if (!this._auraZone && this.scene.physics) {
-            this._auraRadius = player.auraRadius;
-            const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
-            if (enemiesGroup) {
-                const ad = player.auraRadius * 2;
-                this._auraZone = this.scene.add.zone(player.x, player.y, ad, ad);
-                this.scene.physics.add.existing(this._auraZone, false);
-                this._auraZone.body.setCircle(player.auraRadius);
-                this._auraZone.body.setOffset(-player.auraRadius + ad/2, -player.auraRadius + ad/2);
-                // Throttle aura damage per-enemy (same pattern as chemo cloud)
-                this._auraHitTimes = new WeakMap();
-                this._auraOverlap = this.scene.physics.add.overlap(
-                    this._auraZone,
-                    enemiesGroup,
-                    (zone, enemy) => {
-                        if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
-                        const now = this.scene.time?.now || 0;
-                        const lastHit = this._auraHitTimes.get(enemy) || 0;
-                        if (now - lastHit < 100) return; // ~10 ticks/sec per enemy (not every physics step)
-                        const currentDmg = (player.auraDamage || 0) * 0.1;
-                        enemy.takeDamage(currentDmg, 'aura');
-                        this._auraHitTimes.set(enemy, now);
-                    }
-                );
-            }
-        }
-
-        // Follow player
-        if (this._auraZone?.body) {
-            this._auraZone.setPosition(player.x, player.y);
-        }
-    }
-
-    /**
-     * Clean up aura physics zone
-     */
-    _destroyAuraZone() {
-        if (this._auraOverlap) {
-            this.scene.physics.world.removeCollider(this._auraOverlap);
-            this._auraOverlap = null;
-        }
-        if (this._auraZone) {
-            this._auraZone.destroy();
-            this._auraZone = null;
-        }
-    }
-    
-    /**
-     * Update shield regeneration (moved from Player to PowerUpSystem for proper architecture)
-     */
-    _updateShieldRegeneration(player, time) {
-        if (!player || !player.shieldActive) return;
-        
-        // Shield auto-regeneration logic
-        if (player.shieldHP < player.maxShieldHP) {
-            // Start recharge if not already recharging
-            if (!player.shieldRecharging) {
-                player.shieldRecharging = true;
-                player.shieldRechargeAt = time + player.shieldRechargeTime;
-                DebugLogger.info('powerup', `[PowerUpAbilities] Shield recharge started - will regenerate in ${player.shieldRechargeTime}ms`);
-            }
-            
-            // Check if recharge time has elapsed
-            if (time >= player.shieldRechargeAt) {
-                player.shieldHP = player.maxShieldHP;
-                player.shieldRecharging = false;
-                player.shieldRechargeAt = 0;
-                
-                DebugLogger.info('powerup', `[PowerUpAbilities] ✨ SHIELD REGENERATED - HP: ${player.shieldHP}/${player.maxShieldHP}`);
-                
-                // Restore shield VFX
-                const vfxManager = this.powerUpSystem?.vfxManager;
-                if (vfxManager) {
-                    vfxManager.attachEffect(player, 'shield', {
-                        radius: 40 + (player.shieldLevel * 5),
-                        color: 0x00ffff,
-                        alpha: 0.3
-                    });
-                }
-            }
-        }
-    }
-    
     /**
      * Process damage through shield system (PR7: Moved from Player.js)
-     * @param {Player} player - Player object
+     * @param {object} player - Player object
      * @param {number} amount - Damage amount
      * @param {number} time - Current game time
      * @returns {number} Remaining damage after shield absorption
      */
     processDamageWithShield(player, amount, time) {
-        if (!player.shieldActive || player.shieldHP <= 0) {
-            return amount; // No shield, return full damage
-        }
-        
-        const absorbed = Math.min(amount, player.shieldHP);
-        player.shieldHP -= absorbed;
-        const remainingDamage = amount - absorbed;
-        
-        DebugLogger.info('powerup', `[PowerUpAbilities] 🛡️ SHIELD ABSORBED ${absorbed} damage - Shield HP: ${player.shieldHP}/${player.maxShieldHP}`);
-        
-        // If shield depleted, start recharge timer
-        if (player.shieldHP <= 0) {
-            player.shieldHP = 0;
-            player.shieldRecharging = true;
-            player.shieldRechargeAt = time + player.shieldRechargeTime;
-            DebugLogger.info('powerup', `[PowerUpAbilities] 🛡️ SHIELD DEPLETED - Recharging in ${player.shieldRechargeTime}ms`);
-            
-            // Remove shield visual effect
-            const vfxManager = this.powerUpSystem?.vfxManager;
-            if (vfxManager) {
-                vfxManager.detachEffect(player, 'shield');
-            }
-        }
-        
-        return remainingDamage;
+        return this._shieldRegen.processDamageWithShield(player, amount, time);
     }
-    
+
     /**
      * Reset timers after pause/resume
      * Called by PowerUpSystem when game resumes
@@ -559,36 +268,24 @@ export class PowerUpAbilities {
     resetTimersAfterPause() {
         const now = this.scene.time?.now || 0;
         const player = this.scene.player;
-        
-        if (!player) return;
-        
-        // Preserve remaining shield recharge time across pause (don't restart from scratch)
-        if (player.shieldActive && player.shieldRecharging && player.shieldRechargeAt > 0) {
-            const remainingTime = Math.max(0, player.shieldRechargeAt - (player._lastPauseTime || now));
-            player.shieldRechargeAt = now + remainingTime;
 
-            DebugLogger.info('powerup', `[PowerUpAbilities] Shield recharge preserved: ${remainingTime}ms remaining`);
-        }
-        
-        // Reset chain lightning timers
+        if (!player) return;
+
+        // Delegate shield timer reset
+        this._shieldRegen.resetTimersAfterPause(now, player);
+
+        // Delegate chain lightning timer reset
         const lightningAbility = this.activeAbilities.get('chain_lightning');
-        if (lightningAbility) {
-            lightningAbility.nextTriggerAt = now + (lightningAbility.config?.interval || 2000);
-            DebugLogger.info('powerup', '[PowerUpAbilities] Chain lightning timer reset');
-        }
+        this._chainLightning.resetTimersAfterPause(now, lightningAbility);
     }
-    
+
     /**
      * Cleanup
      */
     destroy() {
-        this._destroyAuraZone();
-        this._destroyChemoCloud();
-        // Cancel pending chain lightning timers
-        if (this._chainTimers) {
-            for (const t of this._chainTimers) { if (t?.destroy) t.destroy(); }
-            this._chainTimers = [];
-        }
+        this._damageZones.destroy();
+        this._chainLightning.destroy();
+        this._shieldRegen.destroy();
         this.activeAbilities.clear();
         this.scene = null;
         this.powerUpSystem = null;
