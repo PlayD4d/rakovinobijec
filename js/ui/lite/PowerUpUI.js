@@ -104,16 +104,18 @@ export class PowerUpUI {
       const iconBg = new Phaser.GameObjects.Arc(s, 0, -70, 32, 0, 360, false, rarityColor, 0.2)
         .setStrokeStyle(2, rarityColor, 0.6);
       const icon = new Phaser.GameObjects.Text(s, 0, -70, pu.icon || '⚡', { fontSize: '42px' }).setOrigin(0.5);
+      const cPrimary = `#${UI_THEME.colors.text.primary.toString(16).padStart(6, '0')}`;
+      const cSecondary = `#${UI_THEME.colors.text.secondary.toString(16).padStart(6, '0')}`;
       const name = new Phaser.GameObjects.Text(s, 0, -20, pu.name || 'Power-up', {
-        fontFamily: UI_THEME.fonts.primary, fontSize: '18px', color: '#ffffff',
+        fontFamily: UI_THEME.fonts.primary, fontSize: '18px', color: cPrimary,
         stroke: '#000000', strokeThickness: 2, wordWrap: { width: 260 }, align: 'center'
       }).setOrigin(0.5);
       const desc = new Phaser.GameObjects.Text(s, 0, 25, pu.description || '', {
-        fontFamily: UI_THEME.fonts.primary, fontSize: '13px', color: '#bbbbbb',
+        fontFamily: UI_THEME.fonts.primary, fontSize: '13px', color: cSecondary,
         align: 'center', wordWrap: { width: 250 }, lineSpacing: 2
       }).setOrigin(0.5);
       const stats = new Phaser.GameObjects.Text(s, 0, 80, pu.stats || '', {
-        fontFamily: UI_THEME.fonts.primary, fontSize: '14px', color: '#ffffff',
+        fontFamily: UI_THEME.fonts.primary, fontSize: '14px', color: cPrimary,
         fontStyle: 'bold', stroke: '#000000', strokeThickness: 2
       }).setOrigin(0.5);
 

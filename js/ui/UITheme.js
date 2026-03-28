@@ -95,24 +95,16 @@ export const UI_THEME = {
         heavy: 4
     },
     
-    // Stíny a depth
-    shadows: {
-        small: '0 2px 4px rgba(0,0,0,0.3)',
-        medium: '0 4px 8px rgba(0,0,0,0.4)', 
-        large: '0 8px 16px rgba(0,0,0,0.5)'
-    },
-    
-    // Z-index hodnoty (převzato z UiConstants.js)
-    // Updated for proper UI layering above gameplay
+    // Depth layering (Phaser setDepth values)
     depth: {
         background: 0,
         game: 1000,
         hud: 10003,
         panel: 10001,
         content: 10002,
-        overlay: 250000,    // High depth for modal overlay (below modal)
-        modal: 250100,      // Very high depth for modals (above everything)
-        tooltip: 200010     // Above modals
+        overlay: 250000,    // Modal overlay (below modal content)
+        modal: 250100,      // Modals (above everything except tooltip)
+        tooltip: 260000     // Tooltips (above modals)
     }
 };
 

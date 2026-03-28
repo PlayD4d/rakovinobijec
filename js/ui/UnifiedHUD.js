@@ -307,10 +307,14 @@ export class UnifiedHUD {
     }
 
     hideBoss() {
-        if (this._destroyed || !this.bossContainer) return;
+        if (this._destroyed || !this.bossContainer || this._hidingBoss) return;
+        this._hidingBoss = true;
         this.scene.tweens.add({
             targets: this.bossContainer, alpha: 0, duration: 500,
-            onComplete: () => { this.bossContainer?.setVisible(false); }
+            onComplete: () => {
+                this._hidingBoss = false;
+                this.bossContainer?.setVisible(false);
+            }
         });
     }
 

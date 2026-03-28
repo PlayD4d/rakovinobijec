@@ -4,9 +4,6 @@
  */
 import { UI_THEME } from './UITheme.js';
 
-// Zachováváme původní UI_DEPTH pro kompatibilitu, ale odkazujeme na UI_THEME
-export const UI_DEPTH = UI_THEME.depth;
-
 // Responsive utilities pro komponenty
 export const RESPONSIVE = {
     // Adaptivní velikosti karet (PowerUpSystem, atd.)
@@ -69,15 +66,6 @@ export function isMobile() {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
 }
 
-export function getFontScale(camera) {
-  const w = camera?.width || window.innerWidth;
-  // Integrovaný s novým responsive systémem
-  const screenType = RESPONSIVE.getScreenType(w);
-  switch(screenType) {
-    case 'mobile': return 1.1;
-    case 'tablet': return 1.0;
-    default: return 1.0;
-  }
-}
+// getFontScale removed — unused, font sizes come from UITheme
 
 

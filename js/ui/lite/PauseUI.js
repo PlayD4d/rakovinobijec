@@ -75,7 +75,7 @@ export class PauseUI {
     }).setOrigin(0.5);
     this.modal.addChild(this.instructions);
 
-    this.visible = false;
+    // modal starts hidden (SimpleModal constructor sets visible=false)
   }
 
   /**
@@ -83,7 +83,6 @@ export class PauseUI {
    */
   show() {
     this.modal.show(true, 200);
-    this.visible = true;
   }
 
   /**
@@ -92,7 +91,6 @@ export class PauseUI {
   hide() {
     if (this._hiding) return; // Prevent double-hide during fade animation
     this._hiding = true;
-    this.visible = false;
     this.modal.hide(true, 180, () => { this._hiding = false; });
   }
 
@@ -100,15 +98,15 @@ export class PauseUI {
    * Check if pause menu is visible
    */
   isVisible() {
-    return this.visible;
+    // Delegate to modal's Phaser visible state — single source of truth
+    return this.modal?.visible ?? false;
   }
 
   /**
    * Clean destroy
    */
   destroy() {
-    this._hiding = false; // Reset guard to prevent closure firing on dead object
-    this.visible = false;
+    this._hiding = false;
     this.modal?.destroy();
     this.modal = null;
     this.title = null;
