@@ -19,6 +19,12 @@ export function processEnemyWaves(director) {
 
     // Read enemy count ONCE per frame
     let enemyCount = director.scene.enemiesGroup ? director.scene.enemiesGroup.countActive() : 0;
+
+    // Debug: log spawn state every 5 seconds
+    if (Math.floor(now / 5000) !== Math.floor((now - 16) / 5000)) {
+        DebugLogger.info('spawn', `[SpawnWaves] t=${Math.floor(now/1000)}s enemies=${enemyCount}/${maxEnemies} waves=${director.currentTable.enemyWaves.length}`);
+    }
+
     if (enemyCount >= maxEnemies) return;
 
     // Iterate waves inline instead of allocating a filtered array
