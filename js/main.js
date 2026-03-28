@@ -26,7 +26,8 @@ async function initializeGame() {
     parent: 'game',
     scale: {
         mode: Phaser.Scale.NONE,
-        fullscreenTarget: 'game-container'
+        fullscreenTarget: 'game-container',
+        snap: { width: 1, height: 1 }  // Phaser 3.80: pixel-perfect integer scaling
     },
     render: {
         pixelArt: true,      // Zapnout pro pixel font

@@ -43,6 +43,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         const radius = (CR.get('stats.size', { blueprint }) ?? this.width) * 0.5;
         this.body.setCircle(radius);
         this.body.setCollideWorldBounds(true);
+        // Phaser 3.90 collision categories
+        const CC = scene.COLLISION_CATEGORIES;
+        if (CC) {
+            this.body.setCollisionCategory(CC.PLAYER);
+            this.body.setCollidesWith(CC.ENEMY | CC.BOSS | CC.ENEMY_PROJECTILE | CC.LOOT);
+        }
         
         // PR7: Vizuální efekty jsou nyní zpracovávány PowerUpVFXManager
 
@@ -213,7 +219,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
         
         // IMPORTANT: Don't take damage during pause (e.g., during level-up power-up selection)
-        if (this.scene.isPaused || this.scene.scene.isPaused()) {
+        if (this.scene.isPaused || this.scene.scene.isPaused('GameScene')) {
             DebugLogger.info('general', `[Player] Ignoring damage during pause - amount: ${amount}`);
             return 0;
         }
@@ -321,7 +327,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
         
         // IMPORTANT: Don't die during pause (e.g., during level-up power-up selection)
-        if (this.scene.isPaused || this.scene.scene.isPaused()) {
+        if (this.scene.isPaused || this.scene.scene.isPaused('GameScene')) {
             DebugLogger.warn('general', `[Player] Attempted to die during pause - ignoring! Source: ${source?.constructor?.name || source}`);
             // Heal player to 1 HP to prevent death during pause
             this.hp = 1;
@@ -353,7 +359,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         // Deactivate via Phaser methods (proper group bookkeeping)
         this.setActive(false);
         this.setVisible(false);
-        if (this.body) this.body.enable = false;
+        if (this.body) this.body.setEnable(false);
     }
 
     // ================ API pro modifikátory ================

@@ -325,7 +325,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         // Deactivate immediately to prevent double-die and further collision
         this.setActive(false);
         this.setVisible(false);
-        if (this.body) this.body.enable = false;
+        if (this.body) this.body.setEnable(false);
 
         // Process death (XP, loot, stats, VFX, SFX) — all in one place
         if (this.scene?.handleEnemyDeath) {
@@ -338,21 +338,17 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      */
     flashEffect() {
         if (this.flashTween) return;
-        
+
         const originalTint = this.tintTopLeft;
         this.setTint(0xffffff);
-        
-        // GUARD COMPLIANCE: Delegace na VFXSystem místo přímého tweens volání
-        if (this.scene.vfxSystem && this.scene.vfxSystem.animateFlash) {
-            this.flashTween = this.scene.vfxSystem.animateFlash(this, {
-                originalTint,
-                duration: 100,
-                onComplete: () => {
-                    this.flashTween = null;
-                }
+
+        // Use scene.time for pause-aware flash reset (no tween needed for simple tint toggle)
+        if (this.scene?.time) {
+            this.flashTween = this.scene.time.delayedCall(100, () => {
+                this.flashTween = null;
+                if (this.active) this.setTint(originalTint || 0xffffff);
             });
         } else {
-            // Fallback - simple tint change without animation
             this.setTint(originalTint);
         }
     }

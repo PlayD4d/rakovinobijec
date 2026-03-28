@@ -286,11 +286,11 @@ export class SimplifiedVFXSystem {
                 emitter.stop();
                 if (this.scene && this.scene.time) {  // Check if scene and time exist
                     this.scene.time.delayedCall(1000, () => {
-                        if (emitter && !emitter.destroyed) {
+                        if (emitter && emitter.active) {
                             emitter.destroy();
                         }
                     });
-                } else if (emitter && !emitter.destroyed) {
+                } else if (emitter && emitter.active) {
                     // If no time system, destroy immediately
                     emitter.destroy();
                 }

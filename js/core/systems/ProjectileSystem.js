@@ -25,18 +25,23 @@ export class ProjectileSystem {
     const playerPoolSize = ConfigResolver ? ConfigResolver.get('projectiles.player.poolSize', { defaultValue: 256 }) : 256;
     const enemyPoolSize = ConfigResolver ? ConfigResolver.get('projectiles.enemy.poolSize', { defaultValue: 256 }) : 256;
     
-    // Skupina hráčských projektilů s vestavěným poolingem
+    // Skupina hráčských projektilů s vestavěným poolingem + collision categories (Phaser 3.90)
+    const CC = scene.COLLISION_CATEGORIES || {};
     this.playerBullets = scene.physics.add.group({
       classType: PlayerProjectile,
       maxSize: playerPoolSize,
-      runChildUpdate: true // Automatické volání preUpdate() pro každý projektil
+      runChildUpdate: true,
+      collisionCategory: CC.PLAYER_PROJECTILE || 0x0004,
+      collidesWith: (CC.ENEMY || 0x0002) | (CC.BOSS || 0x0020)
     });
-    
+
     // Skupina nepřátelských projektilů s vestavěným poolingem
     this.enemyBullets = scene.physics.add.group({
       classType: EnemyProjectile,
       maxSize: enemyPoolSize,
-      runChildUpdate: true // Automatické volání preUpdate() pro každý projektil
+      runChildUpdate: true,
+      collisionCategory: CC.ENEMY_PROJECTILE || 0x0008,
+      collidesWith: CC.PLAYER || 0x0001
     });
     
     // PR7: Use ConfigResolver for all configuration values

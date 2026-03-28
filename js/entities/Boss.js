@@ -310,7 +310,7 @@ export class Boss extends BossCore {
         // NOW deactivate — prevents further damage/updates
         this.setActive(false);
         this.setVisible(false);
-        if (this.body) this.body.enable = false;
+        if (this.body) this.body.setEnable(false);
 
         // Clean up boss sub-systems (cleanup, not destroy — destroy doesn't exist on these)
         if (this.abilitiesSystem) {

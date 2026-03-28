@@ -15,9 +15,21 @@ import { PowerUpSystem } from '../core/systems/powerup/PowerUpSystem.js';
 import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
 import { SpawnDirector } from '../core/spawn/SpawnDirector.js';
 
+// Phaser 3.90 collision categories — broadphase filtering at engine level
+export const COLLISION_CATEGORIES = {
+    PLAYER:             0x0001,
+    ENEMY:              0x0002,
+    PLAYER_PROJECTILE:  0x0004,
+    ENEMY_PROJECTILE:   0x0008,
+    LOOT:               0x0010,
+    BOSS:               0x0020
+};
+
 export class SystemsInitializer {
     constructor(scene) {
         this.scene = scene;
+        // Expose collision categories on scene for easy access
+        this.scene.COLLISION_CATEGORIES = COLLISION_CATEGORIES;
     }
 
     /**
@@ -158,12 +170,20 @@ export class SystemsInitializer {
      */
     initializeEnemyManager() {
         try {
-            // Create physics groups here (PR7: SystemsInitializer owns Phaser API setup)
+            // Create physics groups with collision categories (Phaser 3.90)
+            const CC = COLLISION_CATEGORIES;
             if (!this.scene.enemiesGroup) {
-                this.scene.enemiesGroup = this.scene.physics.add.group({ runChildUpdate: false, maxSize: 60 });
+                this.scene.enemiesGroup = this.scene.physics.add.group({
+                    runChildUpdate: false, maxSize: 60,
+                    collisionCategory: CC.ENEMY,
+                    collidesWith: CC.PLAYER | CC.PLAYER_PROJECTILE
+                });
             }
             if (!this.scene.bossGroup) {
-                this.scene.bossGroup = this.scene.physics.add.group();
+                this.scene.bossGroup = this.scene.physics.add.group({
+                    collisionCategory: CC.BOSS,
+                    collidesWith: CC.PLAYER | CC.PLAYER_PROJECTILE
+                });
             }
             this.scene.enemyManager = new EnemyManager(this.scene);
             DebugLogger.info('enemy', '[EnemyManager] Initialized');

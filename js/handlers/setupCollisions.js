@@ -192,54 +192,7 @@ export function setupCollisions(scene) {
         );
     }
 
-    // Additional collision for spawned health/XP orbs (will be removed in step 3)
-    // These will be migrated to SimpleLootSystem
-    
-    // Add global world overlap debug listener
-    if (scene.physics && scene.physics.world) {
-        const debugListener = (event, bodyA, bodyB) => {
-            const objA = bodyA.gameObject;
-            const objB = bodyB.gameObject;
-            
-            DebugLogger.debug('collision', '[Physics World] Overlap detected:', {
-                objectA: {
-                    type: objA?.constructor?.name || 'Unknown',
-                    active: objA?.active,
-                    pos: objA ? { x: objA.x, y: objA.y } : null,
-                    bodyType: bodyA?.type || 'none',
-                    collisionCategory: bodyA?.collisionCategory || 'none',
-                    collidesWith: bodyA?.collidesWith || 'none',
-                    bodySize: { width: bodyA.width, height: bodyA.height }
-                },
-                objectB: {
-                    type: objB?.constructor?.name || 'Unknown', 
-                    active: objB?.active,
-                    pos: objB ? { x: objB.x, y: objB.y } : null,
-                    bodyType: bodyB?.type || 'none',
-                    collisionCategory: bodyB?.collisionCategory || 'none',
-                    collidesWith: bodyB?.collidesWith || 'none',
-                    bodySize: { width: bodyB.width, height: bodyB.height }
-                },
-                event: event,
-                timestamp: Date.now()
-            });
-        };
-        
-        // Listen to all overlap events
-        scene.physics.world.on('overlap', debugListener);
-        
-        // Track for cleanup
-        colliders.push({
-            name: 'worldOverlapDebugListener',
-            cleanup: () => {
-                if (scene.physics && scene.physics.world) {
-                    scene.physics.world.off('overlap', debugListener);
-                }
-            }
-        });
-    }
-
-    DebugLogger.debug('collision', `[setupCollisions] Registered ${colliders.length} collisions + debug listeners`);
+    DebugLogger.debug('collision', `[setupCollisions] Registered ${colliders.length} collisions`);
     return colliders;
 }
 
