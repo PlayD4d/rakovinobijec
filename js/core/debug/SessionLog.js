@@ -176,8 +176,36 @@ if (typeof window !== 'undefined') {
         sessions.forEach(s => SessionLog.printSummary(s));
         return sessions;
     };
-    window.DEV.exportSession = () => SessionLog.exportLatest();
+    window.DEV.exportSession = () => {
+        // Export CURRENT running session if available, otherwise last saved
+        if (currentSession && currentSession.events.length > 0) {
+            const data = {
+                id: currentSession.sessionId,
+                meta: { ...currentSession.meta, exportedAt: new Date().toISOString(), status: 'running' },
+                events: currentSession.events
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `session_${currentSession.sessionId}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            console.log(`Session exported (${currentSession.events.length} events)`, a.download);
+            return;
+        }
+        SessionLog.exportLatest();
+    };
     window.DEV.sessionLog = () => {
+        // Show current running session if available
+        if (currentSession) {
+            console.log(`=== Current Session ${currentSession.sessionId} (running) ===`);
+            console.log(`Events: ${currentSession.events.length}, Duration: ${((Date.now() - currentSession.startTime) / 1000).toFixed(1)}s`);
+            const counts = {};
+            currentSession.events.forEach(e => { counts[e.cat] = (counts[e.cat] || 0) + 1; });
+            console.log('Event counts:', counts);
+            return currentSession;
+        }
         const s = SessionLog.getLatest();
         if (s) SessionLog.printSummary(s);
         return s;
