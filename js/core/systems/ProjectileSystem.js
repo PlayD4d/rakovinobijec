@@ -420,14 +420,13 @@ export class ProjectileSystem {
    * Důležité pro výkon - nedochází k dealokaci a realokaci paměti
    */
   clearAll() {
-    // Použití getChildren() API pro konzistentní přístup
-    this.getPlayerBullets().forEach(bullet => {
-      if (bullet?.kill) bullet.kill();
-    });
-    
-    this.getEnemyBullets().forEach(bullet => {
-      if (bullet?.kill) bullet.kill();
-    });
+    // for-loop: consistent with pauseAll/resumeAll pattern (no forEach closure)
+    const groups = [this.getPlayerBullets(), this.getEnemyBullets()];
+    for (const bullets of groups) {
+      for (let i = 0, len = bullets.length; i < len; i++) {
+        if (bullets[i]?.kill) bullets[i].kill();
+      }
+    }
     
     // Pozn: NEPOUŽÍVÁME clear() který ničí instance
     // Pooly zůstávají připravené k okamžitému použití
@@ -487,7 +486,7 @@ export class ProjectileSystem {
     const radiusSquared = radius * radius; // Vyhnout se sqrt při výpočtu vzdálenosti
     
     // Generovat unikátní ID exploze pro prevenci duplicitních zásahů
-    const explosionId = `exp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const explosionId = `exp_${this.scene.time?.now || 0}_${Math.random().toString(36).substr(2, 5)}`;
     
     enemies.forEach(enemy => {
       if (!enemy.active) return;

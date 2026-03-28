@@ -41,9 +41,10 @@ export class ProgressionSystem {
 
         // Process ONE level-up per call to prevent stacking
         if (this.gameStats.xp >= this.gameStats.xpToNext) {
-            // If paused (e.g., power-up selection), defer excess as pending XP
+            // If paused (e.g., power-up selection), defer only EXCESS as pending XP
             if (this.scene.isPaused) {
-                this._pendingXP += this.gameStats.xp;
+                const excessXP = this.gameStats.xp - this.gameStats.xpToNext;
+                this._pendingXP += Math.max(0, excessXP);
                 this.gameStats.xp = 0;
                 if (this.scene.player) this.scene.player.xp = 0;
                 return;
@@ -132,7 +133,7 @@ export class ProgressionSystem {
         const growthPerMinute = cr?.get('loot.xpScaling.growthPerMinute', { defaultValue: 0.03 });
         const maxMultiplier   = cr?.get('loot.xpScaling.maxMultiplier',   { defaultValue: 2.0  });
 
-        const minutesAlive = (this.scene.time.now - this.scene.startTime) / 60000;
+        const minutesAlive = (this.scene.time.now - (this.scene.startTime ?? this.scene.time.now)) / 60000;
         const scalingMultiplier = Math.min(1 + (growthPerMinute * minutesAlive), maxMultiplier);
 
         return Math.round(rawAmount * scalingMultiplier);

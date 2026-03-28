@@ -422,10 +422,13 @@ export class PowerUpAbilities {
             return;
         }
 
-        const tickDamage = player.auraDamage * 0.1;
-
-        // Lazy-create physics zone on first call
+        // Lazy-create physics zone on first call (damage computed dynamically in overlap callback)
+        // Recreate zone if radius changed (level-up)
+        if (this._auraZone && this._auraRadius !== player.auraRadius) {
+            this._destroyAuraZone();
+        }
         if (!this._auraZone && this.scene.physics) {
+            this._auraRadius = player.auraRadius;
             const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
             if (enemiesGroup) {
                 const ad = player.auraRadius * 2;

@@ -303,12 +303,10 @@ export class SimpleLootSystem {
                     break;
                 }
                 
-                // If still overlapping after attempts, use spiral pattern
-                if (attempt === 9) {
-                    const angle = (attempt / 10) * Math.PI * 2;
-                    finalX = x + Math.cos(angle) * (this.minSpacing + 5);
-                    finalY = y + Math.sin(angle) * (this.minSpacing + 5);
-                }
+                // Spiral fallback: each attempt tries a different angle around the origin
+                const angle = (attempt / 10) * Math.PI * 2;
+                finalX = x + Math.cos(angle) * (this.minSpacing + 5);
+                finalY = y + Math.sin(angle) * (this.minSpacing + 5);
             }
         } else {
             // XP orbs can have random positions

@@ -70,8 +70,8 @@ export class MobileControlsSystem {
     
     // PR7: Získat depth hodnoty z ConfigResolver
     const CR = this.scene.configResolver || window.ConfigResolver;
-    const baseDepth = CR?.get('mobile.joystick.baseDepth', { defaultValue: 1000 }) || 1000;
-    const knobDepth = CR?.get('mobile.joystick.knobDepth', { defaultValue: 1001 }) || 1001;
+    const baseDepth = CR?.get('mobile.joystick.baseDepth', { defaultValue: 4000 }) || 4000;
+    const knobDepth = CR?.get('mobile.joystick.knobDepth', { defaultValue: 4001 }) || 4001;
     
     // PR7 compliant: Use GraphicsFactory if available
     if (s.graphicsFactory) {
