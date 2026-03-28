@@ -121,6 +121,7 @@ export class EnemyBehaviors {
      * Main update — runs ALL active layers in parallel
      */
     update(time, delta) {
+        if (!this.enemy || !this._layerEntries) return; // destroyed guard
         if (!this.enemy.active || this.enemy.hp <= 0) return;
 
         const dt = delta / 1000;

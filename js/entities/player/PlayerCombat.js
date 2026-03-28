@@ -14,14 +14,11 @@ export class PlayerCombat {
         const player = this.player;
         const time = player.scene.time?.now || 0;
 
-        if (!player.scene) {
-            DebugLogger.error('general', `[Player] takeDamage called but player has no scene!`);
-            return 0;
-        }
+        if (!player.scene || !player.scene.sys?.settings?.active) return 0;
         if (!player.active) return 0;
 
-        // Don't take damage during pause
-        if (player.scene.isPaused || player.scene.scene.isPaused()) return 0;
+        // Don't take damage during pause (safe optional chain for shutdown race)
+        if (player.scene.isPaused || player.scene.scene?.isPaused?.()) return 0;
 
         if (player._iFramesMsLeft > 0) return 0;
 

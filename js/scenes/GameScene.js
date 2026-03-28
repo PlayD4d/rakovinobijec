@@ -210,7 +210,11 @@ export class GameScene extends Phaser.Scene {
         });
     }
     
-    setupCollisions() { return setupCollisions(this); }
+    setupCollisions() {
+        // Track colliders for proper cleanup on level transition/restart
+        this._colliders = setupCollisions(this);
+        return this._colliders;
+    }
 
     initializeUpdateManager() {
         this.updateManager = new UpdateManager(this);
@@ -424,6 +428,13 @@ export class GameScene extends Phaser.Scene {
             try { this.enemiesGroup?.clear(true, true); } catch (_) {}
             try { this.bossGroup?.clear(true, true); } catch (_) {}
             try { this.physics?.pause(); } catch (_) {}
+            // Remove tracked colliders before killing physics
+            if (this._colliders && this.physics?.world) {
+                for (const c of this._colliders) {
+                    try { this.physics.world.removeCollider(c); } catch (_) {}
+                }
+                this._colliders = null;
+            }
             try { this.tweens?.killAll(); } catch (_) {}
             try { this.time?.removeAllEvents(); } catch (_) {}
 

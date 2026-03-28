@@ -25,9 +25,10 @@ export class ExplosionHandler {
    * @returns {number} Number of enemies hit
    */
   create(x, y, damage, radius, _level) {
-    if (!this.scene.enemyManager?.enemies) return 0;
+    const enemiesGroup = this.scene.enemiesGroup;
+    if (!enemiesGroup) return 0;
 
-    const enemies = this.scene.enemyManager.enemies.getChildren?.() || [];
+    const enemies = enemiesGroup.getChildren?.() || [];
     const radiusSquared = radius * radius;
     // Timestamp as cheap unique ID to prevent double-hit in the same explosion
     const explosionId = this.scene.time?.now || 0;

@@ -359,10 +359,9 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * Clean up
      */
     cleanup() {
-        // Cancel tweens
+        // Cancel flash timer (try/catch for scene teardown race)
         if (this.flashTween) {
-            if (this.flashTween.destroy) this.flashTween.destroy();
-            else if (this.flashTween.remove) this.flashTween.remove();
+            try { this.flashTween.destroy?.(); } catch (_) {}
             this.flashTween = null;
         }
         

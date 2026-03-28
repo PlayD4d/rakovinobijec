@@ -140,7 +140,10 @@ export function executeRadiationStorm(bossAbilities, abilityData, params) {
     // DoT damage in radius over duration
     const damage = abilityData.damage || 3;
     const radius = abilityData.radius || 250;
-    const ticks = Math.floor((abilityData.stormDuration || 3000) / (abilityData.tickInterval || 500));
+    const ticks = Math.min(
+        Math.floor((abilityData.stormDuration || 3000) / Math.max(abilityData.tickInterval || 500, 100)),
+        30 // hard cap to prevent OOM from misconfigured blueprints
+    );
 
     for (let i = 0; i < ticks; i++) {
         bossAbilities._schedule(i * (abilityData.tickInterval || 500), () => {

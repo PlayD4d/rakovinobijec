@@ -153,6 +153,9 @@ export class RadiotherapyEffect {
         // Rotate beams via graphics.rotation (no redraw needed)
         this.currentAngle += (this.rotationSpeed * delta) / 1000;
         if (this.currentAngle > Math.PI * 2) this.currentAngle -= Math.PI * 2;
+
+        // Guard: graphics may be null if detach() fired mid-frame
+        if (!this.graphics) return;
         this.graphics.rotation = this.currentAngle;
 
         // Draw beams only once (on first frame or config change)
@@ -160,7 +163,7 @@ export class RadiotherapyEffect {
             this.graphics.clear();
             const angleStep = (Math.PI * 2) / this.beamCount;
             for (let i = 0; i < this.beamCount; i++) {
-                this._drawBeam(angleStep * i); // Draw at base angles, rotation handles the rest
+                this._drawBeam(angleStep * i);
             }
             this._beamsDrawn = true;
         }
