@@ -157,9 +157,14 @@ export function setupCollisions(scene) {
 function handlePlayerEnemyCollision(player, enemy) {
     if (!player.active || !enemy.active) return;
 
-    if (player.canTakeDamage && player.canTakeDamage()) {
-        const damage = enemy.contactDamage || enemy.damage || 10;
-        getSession()?.log('collision', 'player_enemy', { enemyId: enemy.blueprintId || enemy.type, damage, playerHP: player.hp });
+    const damage = enemy.contactDamage || enemy.damage || 10;
+    const canTake = player.canTakeDamage?.() ?? true;
+    getSession()?.log('collision', 'player_enemy', {
+        enemyId: enemy.blueprintId || enemy.type, damage, playerHP: player.hp,
+        canTakeDmg: canTake, iFrames: Math.round(player._iFramesMsLeft || 0)
+    });
+
+    if (canTake) {
         player.takeDamage(damage);
     }
 }

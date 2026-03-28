@@ -32,8 +32,10 @@ export class PlayerCombat {
 
         // Process through shield (PowerUpSystem)
         if (player.scene.powerUpSystem?.processDamage) {
+            const preShield = amount;
             amount = player.scene.powerUpSystem.processDamage(player, amount, time);
             if (amount <= 0) {
+                getSession()?.log('player', 'shield_absorb', { rawDamage: preShield, shieldHP: player.shieldHP, maxShieldHP: player.maxShieldHP });
                 player._iFramesMsLeft = 150;
                 return 0;
             }

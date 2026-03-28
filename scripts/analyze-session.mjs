@@ -154,7 +154,13 @@ if (showAll || flags.has('--xp')) {
     if (xpEvents.length > 0) {
         console.log('\n  XP flow:');
         for (const e of xpEvents.slice(0, 20)) {
-            console.log(`    [${fmt(e.t)}] ${e.act}: raw=${e.rawAmount} scaled=${e.scaledAmount} total=${e.totalXP}/${e.xpToNext}`);
+            if (e.act === 'add') {
+                console.log(`    [${fmt(e.t)}] +${e.raw ?? '?'}→${e.scaled ?? '?'} XP (total: ${e.totalXP ?? '?'}/${e.xpToNext ?? '?'})${e.willLevelUp ? ' ★LEVELUP' : ''}`);
+            } else if (e.act === 'level_up') {
+                console.log(`    [${fmt(e.t)}] ★ LEVEL ${e.newLevel} (next: ${e.xpToNext}, excess: ${e.excessXP})`);
+            } else if (e.act === 'deferred') {
+                console.log(`    [${fmt(e.t)}] ⏸ deferred ${e.deferredAmount} XP (pending: ${e.pendingTotal})`);
+            }
         }
     }
 
