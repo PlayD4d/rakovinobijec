@@ -289,7 +289,7 @@ export class PowerUpAbilities {
         
         for (const enemy of enemies) {
             if (!enemy?.active) continue;
-            const dist = Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y);
+            const dist = Math.sqrt((player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2);
             if (dist < minDist) {
                 minDist = dist;
                 closest = enemy;
@@ -328,7 +328,7 @@ export class PowerUpAbilities {
             
             for (const e of enemies) {
                 if (!e?.active || hitList.has(e)) continue;
-                const dist = Phaser.Math.Distance.Between(enemy.x, enemy.y, e.x, e.y);
+                const dist = Math.sqrt((enemy.x - e.x) ** 2 + (enemy.y - e.y) ** 2);
                 if (dist < minDist) {
                     minDist = dist;
                     next = e;

@@ -479,7 +479,10 @@ export class GameScene extends Phaser.Scene {
 
     restartGame() {
         this._cleanupForTransition();
-        if (this.analyticsManager?.resetSession) this.analyticsManager.resetSession();
+        // Reset analytics for fresh session on restart
+        if (this.analyticsManager) {
+            try { this.analyticsManager.shutdown(); } catch (_) {}
+        }
         this.scene.stop('GameUIScene');
         this.scene.restart();
     }

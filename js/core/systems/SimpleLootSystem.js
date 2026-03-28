@@ -75,7 +75,7 @@ export class SimpleLootSystem {
         this.recentDrops.push({
             x: adjustedPos.x,
             y: adjustedPos.y,
-            time: this.scene?.time?.now || Date.now()
+            time: this.scene?.time?.now || 0
         });
         
         // Clean up old positions
@@ -338,7 +338,8 @@ export class SimpleLootSystem {
      * Clean up old position records
      */
     cleanupOldPositions() {
-        const now = this.scene?.time?.now || Date.now();
+        const now = this.scene?.time?.now || 0;
+        if (!now) return; // Scene time unavailable — skip cleanup
         this.recentDrops = this.recentDrops.filter(drop =>
             now - drop.time < this.dropCleanupTime
         );

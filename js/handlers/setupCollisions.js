@@ -26,10 +26,10 @@ export function setupCollisions(scene) {
     DebugLogger.verbose('collision', '  - Player collision category:', scene.player?.body?.collisionCategory || 'none');
     DebugLogger.verbose('collision', '  - Player collides with:', scene.player?.body?.collidesWith || 'none');
     
-    DebugLogger.verbose('collision', '  - Enemies group exists:', !!scene.enemies);
-    DebugLogger.verbose('collision', '  - Enemies group type:', scene.enemies?.constructor?.name);
-    DebugLogger.verbose('collision', '  - Enemies count:', scene.enemies?.getLength?.() || 0);
-    DebugLogger.verbose('collision', '  - Enemies active count:', scene.enemies?.countActive?.() || 0);
+    DebugLogger.verbose('collision', '  - Enemies group exists:', !!scene.enemiesGroup);
+    DebugLogger.verbose('collision', '  - Enemies group type:', scene.enemiesGroup?.constructor?.name);
+    DebugLogger.verbose('collision', '  - Enemies count:', scene.enemiesGroup?.getLength?.() || 0);
+    DebugLogger.verbose('collision', '  - Enemies active count:', scene.enemiesGroup?.countActive?.() || 0);
     
     DebugLogger.verbose('collision', '  - Boss group exists:', !!scene.bossGroup);
     DebugLogger.verbose('collision', '  - Boss group type:', scene.bossGroup?.constructor?.name);
@@ -49,10 +49,10 @@ export function setupCollisions(scene) {
     const colliders = [];
 
     // Player vs Enemies collision
-    if (scene.player && scene.enemies) {
+    if (scene.player && scene.enemiesGroup) {
         const collider = scene.physics.add.overlap(
             scene.player,
-            scene.enemies,
+            scene.enemiesGroup,
             (player, enemy) => {
                 DebugLogger.debug('collision', '[Collision] Player-Enemy collision detected!', {
                     playerPos: { x: player.x, y: player.y },
@@ -83,7 +83,7 @@ export function setupCollisions(scene) {
     }
 
     // Player bullets vs Enemies
-    if (scene.projectileSystem?.playerBullets && scene.enemies) {
+    if (scene.projectileSystem?.playerBullets && scene.enemiesGroup) {
         DebugLogger.info('collision', '[setupCollisions] Setting up Player bullets vs Enemies collision:');
         DebugLogger.verbose('collision', '  - PlayerBullets group exists:', !!scene.projectileSystem.playerBullets);
         DebugLogger.verbose('collision', '  - PlayerBullets type:', scene.projectileSystem.playerBullets?.constructor?.name);
@@ -91,7 +91,7 @@ export function setupCollisions(scene) {
         
         const collider = scene.physics.add.overlap(
             scene.projectileSystem.playerBullets,
-            scene.enemies,
+            scene.enemiesGroup,
             (bullet, enemy) => {
                 DebugLogger.debug('collision', '[Collision] Player bullet hit enemy!', {
                     bulletPos: { x: bullet.x, y: bullet.y },

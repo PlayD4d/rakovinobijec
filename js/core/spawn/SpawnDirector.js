@@ -145,10 +145,27 @@ export class SpawnDirector {
     }
     
     /**
+     * Reset timers after pause — re-anchor startTime to prevent spawn burst
+     */
+    resetTimersAfterPause() {
+        if (!this.running) return;
+        // Re-anchor: keep elapsed gameTime but shift startTime to current moment
+        const now = this.scene.time?.now || 0;
+        if (now > 0) {
+            this.startTime = now - this.gameTime;
+        }
+    }
+
+    /**
      * Stop spawning
      */
     stop() {
         this.running = false;
+        // Cancel pending boss spawn timer
+        if (this._pendingBossTimer) {
+            this._pendingBossTimer.destroy();
+            this._pendingBossTimer = null;
+        }
         DebugLogger.info('spawn', 'Stopped');
     }
     
@@ -408,8 +425,11 @@ export class SpawnDirector {
             this.scene.enemiesGroup.clear(true, true);
         }
         
-        // Spawn boss after delay
-        this.scene.time.delayedCall(spawnDelay, () => {
+        // Spawn boss after delay — tracked for cleanup on shutdown
+        if (this._pendingBossTimer) this._pendingBossTimer.destroy();
+        this._pendingBossTimer = this.scene.time.delayedCall(spawnDelay, () => {
+            this._pendingBossTimer = null;
+            if (!this.running || !this.scene) return;
             this.spawnEnemy(bossId, { boss: true });
             this.lastBossSpawn = this.gameTime;
             this.stats.bossSpawnCount++;

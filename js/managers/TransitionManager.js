@@ -540,7 +540,7 @@ export class TransitionManager {
         
         // Reset spawn director for new level
         if (this.scene.spawnDirector) {
-            await this.scene.spawnDirector.loadSpawnTable(`level${level}`);
+            await this.scene.spawnDirector.loadSpawnTable(`spawnTable.level${level}`);
             this.scene.spawnDirector.start();
         }
         

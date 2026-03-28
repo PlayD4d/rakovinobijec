@@ -152,8 +152,9 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         const player = this.scene.player;
         if (!player || !this.active) return;
         
-        // Check cooldown (use scene time — respects pause)
-        const now = this.scene.time?.now || Date.now();
+        // Check cooldown (use scene time only — Date.now is incompatible with pause)
+        const now = this.scene.time?.now || 0;
+        if (!now) return;
         const cooldown = opts.cooldown || 500;
         if (now - this.lastShootTime < cooldown) return;
 

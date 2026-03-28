@@ -52,7 +52,7 @@ export class ProgressionSystem {
 
             this.gameStats.xpToNext = this.getXPToNextLevel(this.gameStats.level);
 
-            this._pendingXP = excessXP;
+            this._pendingXP += excessXP;
 
             DebugLogger.log('progression', 'DEBUG',
                 `Level up → ${this.gameStats.level}  (xpToNext=${this.gameStats.xpToNext}, pending=${this._pendingXP})`);
