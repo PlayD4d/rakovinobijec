@@ -14,17 +14,18 @@
  * @param {Function} setState - State transition function
  */
 export function flee(cap, cfg, dt, mem, setState) {
-    // Get configuration with defaults
-    const config = {
-        speed: cfg?.speed || 120,
-        safeDistance: cfg?.safeDistance || 300,
-        panicDistance: cfg?.panicDistance || 100,
-        hysteresis: {
-            exitFactor: cfg?.hysteresis?.exitFactor ?? 1.2,  // Exit at 120% safe distance
-            ...cfg?.hysteresis
-        },
-        ...cfg
-    };
+    // Cache merged config on first call (avoids per-frame spread allocation)
+    if (!mem._config) {
+        mem._config = {
+            speed: cfg?.speed || 120,
+            safeDistance: cfg?.safeDistance || 300,
+            panicDistance: cfg?.panicDistance || 100,
+            hysteresis: {
+                exitFactor: cfg?.hysteresis?.exitFactor ?? 1.2
+            }
+        };
+    }
+    const config = mem._config;
     
     // Initialize flee memory if needed
     if (!mem.flee) {

@@ -14,17 +14,18 @@
  * @param {Function} setState - State transition function
  */
 export function orbit(cap, cfg, dt, mem, setState) {
-    // Get configuration with defaults
-    const config = {
-        speed: cfg?.speed || 100,
-        orbitRadius: cfg?.orbitRadius || 150,
-        orbitSpeed: cfg?.orbitSpeed || 1.5,
-        shootChance: cfg?.shootChance || 0.02,
-        shootCooldownMs: cfg?.shootCooldownMs || 1000,
-        fleeDistance: cfg?.fleeDistance || 50,
-        angleSnapThreshold: cfg?.angleSnapThreshold || 0.087, // ~5 degrees
-        ...cfg
-    };
+    // Cache merged config on first call (avoids per-frame spread allocation)
+    if (!mem._config) {
+        mem._config = {
+            speed: cfg?.speed || 100,
+            orbitRadius: cfg?.orbitRadius || 150,
+            orbitSpeed: cfg?.orbitSpeed || 1.5,
+            shootChance: cfg?.shootChance || 0.02,
+            shootCooldownMs: cfg?.shootCooldownMs || 1000,
+            fleeDistance: cfg?.fleeDistance || 50
+        };
+    }
+    const config = mem._config;
     
     // Initialize orbit memory
     if (!mem.orbit?.initialized) {

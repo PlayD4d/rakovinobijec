@@ -499,49 +499,34 @@ export class ProjectileSystem {
   createExplosion(x, y, damage, radius, level) {
     if (!this.scene.enemyManager?.enemies) return 0;
     
-    // Najít nepřátele v poloměru exploze - AABB pre-filter pro výkon
+    // Single-pass explosion: AABB pre-filter + damage in one loop, no intermediate array
     const enemies = this.scene.enemyManager?.enemies?.getChildren() || [];
-    const hitEnemies = [];
-    const radiusSquared = radius * radius; // Vyhnout se sqrt při výpočtu vzdálenosti
-    
-    // Generovat unikátní ID exploze pro prevenci duplicitních zásahů
-    const explosionId = `exp_${this.scene.time?.now || 0}_${Math.random().toString(36).substr(2, 5)}`;
-    
-    enemies.forEach(enemy => {
-      if (!enemy.active) return;
-      
-      // Prevence duplicitních zásahů exploze na stejného nepřítele
-      if (enemy._lastExplosionId === explosionId) return;
-      
-      // Rychlá AABB kontrola nejdřív (rychlejší než vzdálenost)
+    const radiusSquared = radius * radius;
+    const explosionId = this.scene.time?.now || 0; // Timestamp as unique ID (cheaper than random string)
+    let hitCount = 0;
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const enemy = enemies[i];
+      if (!enemy.active) continue;
+      if (enemy._lastExplosionId === explosionId) continue;
+
+      // AABB pre-filter
       const dx = Math.abs(enemy.x - x);
       const dy = Math.abs(enemy.y - y);
-      if (dx > radius || dy > radius) return;
-      
-      // Přesná kontrola kruhu pomocí kvadratické vzdálenosti
-      const distanceSquared = dx * dx + dy * dy;
-      if (distanceSquared <= radiusSquared) {
-        enemy._lastExplosionId = explosionId; // Označit jako zasažený touto explozí
-        hitEnemies.push(enemy);
-      }
-    });
-    
-    // Aplikovat poškození exploze
-    hitEnemies.forEach(enemy => {
-      if (enemy.takeDamage && typeof enemy.takeDamage === 'function') {
+      if (dx > radius || dy > radius) continue;
+
+      // Circle check
+      if (dx * dx + dy * dy > radiusSquared) continue;
+
+      enemy._lastExplosionId = explosionId;
+      hitCount++;
+
+      if (enemy.takeDamage) {
         enemy.takeDamage(damage);
-        
-        // Analytics sledování pro zásahy explozí
-        try {
-          this.scene.recordDamageDealt?.(damage, enemy);
-        } catch (_) {}
-        
-        // Zpracovat smrt nepřítele
-        if (enemy.hp <= 0) {
-          this.scene.handleEnemyDeath?.(enemy);
-        }
+        try { this.scene.recordDamageDealt?.(damage, enemy); } catch (_) {}
+        if (enemy.hp <= 0) this.scene.handleEnemyDeath?.(enemy);
       }
-    });
+    }
     
     // VFX/SFX for explosion (single call, no duplicates)
     if (this.scene.vfxSystem) {
@@ -552,7 +537,7 @@ export class ProjectileSystem {
     }
     // Legacy audioManager path removed — audioSystem handles explosion SFX above
     
-    return hitEnemies.length; // Vrátit počet zasažených nepřátel
+    return hitCount;
   }
   
   /**

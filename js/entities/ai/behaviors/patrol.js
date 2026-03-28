@@ -14,20 +14,21 @@
  * @param {Function} setState - State transition function
  */
 export function patrol(cap, cfg, dt, mem, setState) {
-    // Get configuration with defaults
-    const config = {
-        speed: cfg?.speed || 60,
-        radius: cfg?.radius || 100,
-        detectRange: cfg?.detectRange || 150,
-        pattern: cfg?.pattern || 'circle', // circle, square, random
-        changeInterval: cfg?.changeInterval || 2000,
-        waypointDeadZone: cfg?.waypointDeadZone || 10,
-        hysteresis: {
-            detectEnterFactor: cfg?.hysteresis?.detectEnterFactor ?? 0.9,
-            ...cfg?.hysteresis
-        },
-        ...cfg
-    };
+    // Cache merged config on first call (avoids per-frame spread allocation)
+    if (!mem._config) {
+        mem._config = {
+            speed: cfg?.speed || 60,
+            radius: cfg?.radius || 100,
+            detectRange: cfg?.detectRange || 150,
+            pattern: cfg?.pattern || 'circle',
+            changeInterval: cfg?.changeInterval || 2000,
+            waypointDeadZone: cfg?.waypointDeadZone || 10,
+            hysteresis: {
+                detectEnterFactor: cfg?.hysteresis?.detectEnterFactor ?? 0.9
+            }
+        };
+    }
+    const config = mem._config;
     
     // Check for player in range with hysteresis
     const detectRange = config.detectRange * config.hysteresis.detectEnterFactor;

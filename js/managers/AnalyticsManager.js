@@ -292,8 +292,11 @@ export class AnalyticsManager {
         this.scene = scene;
         this.eventBusConnected = !!(eventBus && this.enabled);
         if (this.eventBusConnected) {
-            this.eventBus.on('drop.metotrexat.pickup', (d) => this._handleSpecialDropPickup(d));
-            this.eventBus.on('game.over', (d) => this._handleGameOver(d));
+            // Store handler references for proper removal in disconnectEventBus
+            this._onMetotrexat = (d) => this._handleSpecialDropPickup(d);
+            this._onGameOver = (d) => this._handleGameOver(d);
+            this.eventBus.on('drop.metotrexat.pickup', this._onMetotrexat);
+            this.eventBus.on('game.over', this._onGameOver);
             DebugLogger.info('general', '[AnalyticsManager] Connected to EventBus');
         }
     }
@@ -302,12 +305,11 @@ export class AnalyticsManager {
 
     disconnectEventBus() {
         if (this.eventBus && this.eventBusConnected) {
-            [
-                'player.hit', 'player.death', 'npc.spawn', 'npc.hit', 'npc.death',
-                'weapon.fire', 'projectile.impact', 'powerup.select',
-                'boss.spawn', 'boss.phase', 'boss.action', 'boss.defeat',
-                'drop.pickup', 'drop.metotrexat.pickup', 'game.levelup', 'game.over'
-            ].forEach(e => this.eventBus.off(e));
+            // Remove only the handlers we actually registered (with stored references)
+            if (this._onMetotrexat) this.eventBus.off('drop.metotrexat.pickup', this._onMetotrexat);
+            if (this._onGameOver) this.eventBus.off('game.over', this._onGameOver);
+            this._onMetotrexat = null;
+            this._onGameOver = null;
             this.eventBusConnected = false;
         }
     }
