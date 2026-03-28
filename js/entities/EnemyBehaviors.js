@@ -88,10 +88,33 @@ export class EnemyBehaviors {
         // Pre-create capability object
         this._capability = this._buildCapability();
 
-        // Cache layer entries to avoid Object.entries() per frame per enemy
-        this._layerEntries = Object.entries(this.layers);
+        // Cache layer entries and pre-build setLayer callbacks (avoid closures per frame)
+        this._rebuildLayerCache();
 
         DebugLogger.info('enemy', `[EnemyBehaviors] ${blueprint.id}: layers=${JSON.stringify(this.layers)}`);
+    }
+
+    /**
+     * Rebuild cached layer entries and pre-built setLayer callbacks (called on init and layer change)
+     */
+    _rebuildLayerCache() {
+        this._layerEntries = Object.entries(this.layers);
+        this._setLayerFns = {};
+        for (const [layer] of this._layerEntries) {
+            this._setLayerFns[layer] = (newBehavior, opts) => {
+                if (newBehavior && BEHAVIORS[newBehavior]) {
+                    if (opts?.stickyMs) {
+                        const now = this.enemy.scene?.time?.now || 0;
+                        const stickKey = `_stickyUntil_${layer}`;
+                        if (this.mem._shared[stickKey] && now < this.mem._shared[stickKey]) return;
+                        this.mem._shared[stickKey] = now + opts.stickyMs;
+                    }
+                    this.layers[layer] = newBehavior;
+                    this._rebuildLayerCache();
+                    if (layer === 'movement') this.state = newBehavior;
+                }
+            };
+        }
     }
 
     /**
@@ -104,35 +127,14 @@ export class EnemyBehaviors {
         const cap = this.createCapability();
         cap.now = time;
 
-        // Run each active layer (use cached entries — avoid Object.entries per frame)
+        // Run each active layer (cached entries + pre-built setLayer — zero per-frame allocations)
         for (const [layer, behaviorName] of this._layerEntries) {
             if (!behaviorName) continue;
             const fn = BEHAVIORS[behaviorName];
             if (!fn) continue;
 
-            const cfg = this.config[layer] || {};
-            const mem = this.mem[layer] || {};
-
-            // setState for this layer only (supports optional stickyMs hysteresis)
-            const setLayer = (newBehavior, opts) => {
-                if (newBehavior && BEHAVIORS[newBehavior]) {
-                    // stickyMs prevents rapid state oscillation
-                    if (opts?.stickyMs) {
-                        const now = this.enemy.scene?.time?.now || 0;
-                        const stickKey = `_stickyUntil_${layer}`;
-                        if (this.mem._shared[stickKey] && now < this.mem._shared[stickKey]) {
-                            return; // Still in sticky period, ignore transition
-                        }
-                        this.mem._shared[stickKey] = now + opts.stickyMs;
-                    }
-                    this.layers[layer] = newBehavior;
-                    this._layerEntries = Object.entries(this.layers); // Rebuild cache
-                    if (layer === 'movement') this.state = newBehavior;
-                }
-            };
-
             try {
-                fn(cap, cfg, dt, mem, setLayer);
+                fn(cap, this.config[layer] || {}, dt, this.mem[layer] || {}, this._setLayerFns[layer]);
             } catch (error) {
                 DebugLogger.error('enemy', `[EnemyBehaviors] Error in ${layer}/${behaviorName}:`, error);
             }

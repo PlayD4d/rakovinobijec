@@ -229,8 +229,11 @@ export class UpdateManager {
         }
         const sortedPhases = this._sortedPhasesCache;
 
-        // Cache debug flag once per frame (avoid deep property traversal per-phase)
-        const isDebug = this._isDebug ??= !!this.scene.game?.config?.physics?.arcade?.debug;
+        // Cache debug flag (set once, avoids deep property traversal per-phase)
+        if (this._isDebug === undefined) {
+            this._isDebug = !!this.scene.game?.config?.physics?.arcade?.debug;
+        }
+        const isDebug = this._isDebug;
 
         // Execute each phase
         for (const phase of sortedPhases) {

@@ -110,13 +110,15 @@ export function setupCollisions(scene) {
         DebugLogger.info('collision', '[setupCollisions] SKIPPED Player bullets vs Enemies - missing components');
     }
 
-    // Player bullets vs Boss
+    // Player bullets vs Boss — use .call(scene) for consistency with enemy handler
     if (scene.projectileSystem?.playerBullets && scene.bossGroup) {
         colliders.push(
             scene.physics.add.overlap(
                 scene.projectileSystem.playerBullets,
                 scene.bossGroup,
-                handlePlayerBulletBossCollision,
+                (bullet, boss) => {
+                    handlePlayerBulletBossCollision.call(scene, bullet, boss);
+                },
                 null,
                 scene
             )

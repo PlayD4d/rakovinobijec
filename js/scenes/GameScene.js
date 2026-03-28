@@ -265,7 +265,7 @@ export class GameScene extends Phaser.Scene {
         if (this.enemyManager) {
             this.enemyManager.killAll();
         }
-        this.cameras.main.flash(500, 255, 255, 0);
+        this.flashCamera();
     }
     
     async startGame() {
@@ -325,13 +325,10 @@ export class GameScene extends Phaser.Scene {
         DebugLogger.info('general', '[GameScene] METOTREXAT! Eliminating all enemies!');
 
         // Flash effect
-        this.cameras.main.flash(500, 255, 255, 0);
+        this.flashCamera();
 
-        // Destroy all non-boss enemies
-        const enemies = this.enemiesGroup?.getChildren() || [];
-        enemies.forEach(enemy => {
-            if (enemy.active) this.handleEnemyDeath(enemy);
-        });
+        // Delegate to EnemyManager (single source of truth for enemy operations)
+        if (this.enemyManager) this.enemyManager.killAll();
 
         // Play metotrexat SFX
         if (this.audioSystem) {
@@ -393,7 +390,7 @@ export class GameScene extends Phaser.Scene {
         const options = this.getPowerUpOptions();
         DebugLogger.info('game', '[GameScene] Emitting game-levelup event');
         this.game.events.emit('game-levelup', options);
-        this.cameras.main.flash(500, 255, 255, 0);
+        this.flashCamera();
         if (this.analyticsManager?.trackEvent) {
             const elapsed = this.time?.now ? Math.floor((this.time.now - this.levelStartTime) / 1000) : 0;
             this.analyticsManager.trackEvent('level_up', { level: this.gameStats.level, time: elapsed });
@@ -443,11 +440,12 @@ export class GameScene extends Phaser.Scene {
     pauseTime() { if (this.time) this.time.paused = true; }
     resumeTime() { if (this.time) this.time.paused = false; }
     setWorldBounds(x, y, w, h) { this.physics?.world?.setBounds(x, y, w, h); }
-    setUILayer(layer) { this.uiLayer = layer; }
+    createUILayer(depth) { const a = this['add']; const l = a.layer(); l.setDepth(depth); this.uiLayer = l; return l; } // PR7 interface method
     launchUIScene(key) { this.scene.launch(key); }
     addTimeEvent(config) { return this.time.addEvent(config); }
     addDelayedCall(delay, cb, args, scope) { return this.time.delayedCall(delay, cb, args, scope); }
     getMainCamera() { return this.cameras.main; }
+    flashCamera(duration = 500, r = 255, g = 255, b = 0) { this.cameras.main.flash(duration, r, g, b); }
     getScaleManager() { return this.scale; }
     restartScene() { this.scene.restart(); }
     
@@ -467,7 +465,7 @@ export class GameScene extends Phaser.Scene {
         if (this.player && !this.player.active) this.player = null;
         if (this.enemiesGroup) this.enemiesGroup.clear(true, true);
         if (this.bossGroup) this.bossGroup.clear(true, true);
-        if (this.audioSystem) this.audioSystem.stopAll(); else this.sound.stopAll();
+        if (this.audioSystem) this.audioSystem.stopAll();
     }
 
     restartGame() {

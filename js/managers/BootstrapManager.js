@@ -39,10 +39,8 @@ export class BootstrapManager {
         this.scene.mainCam = this.scene.getMainCamera();
         this.scene.mainCam.setName('MainCamera');
         
-        // Create UI layer (Phaser API call lives in BootstrapManager, not GameScene)
-        const uiLayer = this.scene.add.layer();
-        uiLayer.setDepth(this.scene.DEPTH_LAYERS?.UI_BASE || 10000);
-        this.scene.setUILayer(uiLayer);
+        // Create UI layer via GameScene interface (no direct Phaser API in managers)
+        this.scene.createUILayer(this.scene.DEPTH_LAYERS?.UI_BASE || 10000);
         
         DebugLogger.info('bootstrap', '✅ Depth-based rendering system initialized');
     }
