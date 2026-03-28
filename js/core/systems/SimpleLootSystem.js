@@ -130,36 +130,106 @@ export class SimpleLootSystem {
     }
     
     /**
-     * Handle enemy death - create drops from blueprint
+     * Handle enemy death - create drops from spawn table lootTables + per-enemy blueprint drops
+     *
+     * Flow:
+     * 1. Determine enemy category (boss/elite/unique/normal)
+     * 2. Roll spawn table lootTable for that category → create drops
+     * 3. Roll per-enemy blueprint.drops (bonus/unique drops) → create bonus drops
+     * 4. XP orbs are handled separately by EnemyManager.onEnemyDeath
      */
     handleEnemyDeath(enemy) {
-        DebugLogger.debug('loot', '🎯 handleEnemyDeath called for:', enemy.blueprintId || enemy.type);
-        DebugLogger.verbose('loot', '   Blueprint exists:', !!enemy.blueprint);
-        DebugLogger.verbose('loot', '   Blueprint ID:', enemy.blueprint?.id);
-        DebugLogger.verbose('loot', '   Has drops array:', !!enemy.blueprint?.drops);
-        DebugLogger.verbose('loot', '   Drops array length:', enemy.blueprint?.drops?.length);
-        DebugLogger.verbose('loot', '   Drops content:', enemy.blueprint?.drops);
-        
-        // PR7: Drops pouze z blueprintů - žádné loot tables
-        if (!enemy.blueprint?.drops || enemy.blueprint.drops.length === 0) {
-            DebugLogger.debug('loot', '❌ No drops defined for enemy:', enemy.blueprint?.id || enemy.blueprintId);
-            // No drops defined - this is fine for enemies that only drop XP
-            return;
+        const enemyId = enemy.blueprintId || enemy.blueprint?.id || enemy.type;
+        DebugLogger.debug('loot', '🎯 handleEnemyDeath called for:', enemyId);
+
+        // --- Step 1: Determine enemy category ---
+        let category = 'normal';
+        const bpType = enemy.blueprint?.type;
+        if (bpType === 'boss') {
+            category = 'boss';
+        } else if (enemy.isElite || bpType === 'elite') {
+            category = 'elite';
+        } else if (enemy.isUnique || bpType === 'unique') {
+            category = 'elite'; // unique uses elite loot table
         }
 
-        // Zpracovat drops z blueprintu
-        DebugLogger.debug('loot', `✅ Processing ${enemy.blueprint.drops.length} drops`);
-        for (const drop of enemy.blueprint.drops) {
-            const roll = Math.random();
-            DebugLogger.verbose('loot', `🎲 Drop roll for ${drop.itemId}: chance=${drop.chance}, roll=${roll.toFixed(3)}, will drop=${roll < drop.chance}`);
-            
-            if (roll < drop.chance) {
-                // Use itemId as-is - blueprints already use correct format
-                DebugLogger.debug('loot', '💎 Creating drop:', drop.itemId);
-                const dropObject = this.createDrop(enemy.x, enemy.y, drop.itemId);
-                DebugLogger.debug('loot', '💎 Drop created:', !!dropObject);
+        // --- Step 2: Roll spawn table lootTable drops ---
+        const spawnDirector = this.scene.spawnDirector;
+        const lootTables = spawnDirector?.currentTable?.lootTables;
+
+        if (lootTables && lootTables[category]) {
+            const table = lootTables[category];
+            DebugLogger.debug('loot', `📋 Rolling lootTable [${category}] with ${Object.keys(table).length} entries`);
+
+            for (const [itemRef, chance] of Object.entries(table)) {
+                // Skip XP — handled separately by EnemyManager.onEnemyDeath → createXPOrbs
+                if (itemRef.startsWith('drop.xp')) continue;
+
+                // Chances in lootTables are percentages (0-100)
+                if (Math.random() * 100 >= chance) continue;
+
+                const itemId = this._resolveItemId(itemRef);
+                if (!itemId) {
+                    DebugLogger.verbose('loot', `⚠️ Unresolved lootTable ref: ${itemRef}`);
+                    continue;
+                }
+
+                DebugLogger.debug('loot', `💎 LootTable drop: ${itemRef} → ${itemId}`);
+                this.createDrop(enemy.x, enemy.y, itemId);
+                getSession()?.log('loot', 'table_drop', { category, itemRef, itemId, enemy: enemyId });
+            }
+        } else {
+            DebugLogger.verbose('loot', `No lootTable found for category [${category}]`);
+        }
+
+        // --- Step 3: Roll per-enemy blueprint drops (bonus drops) ---
+        if (enemy.blueprint?.drops?.length > 0) {
+            DebugLogger.debug('loot', `🎁 Rolling ${enemy.blueprint.drops.length} per-enemy blueprint drops`);
+            for (const drop of enemy.blueprint.drops) {
+                // Blueprint drop chances are fractions (0-1)
+                const roll = Math.random();
+                DebugLogger.verbose('loot', `🎲 Drop roll for ${drop.itemId}: chance=${drop.chance}, roll=${roll.toFixed(3)}, will drop=${roll < drop.chance}`);
+
+                if (roll < drop.chance) {
+                    DebugLogger.debug('loot', '💎 Blueprint drop:', drop.itemId);
+                    this.createDrop(enemy.x, enemy.y, drop.itemId);
+                    getSession()?.log('loot', 'blueprint_drop', { itemId: drop.itemId, enemy: enemyId });
+                }
             }
         }
+    }
+
+    /**
+     * Resolve a lootTable item reference to an actual blueprint ID.
+     * Handles legacy 'drop.*' format → 'item.*' mapping.
+     * @param {string} ref - Item reference from lootTable (e.g. 'drop.xp.small', 'item.health_small', 'powerup.damage_boost')
+     * @returns {string|null} Resolved blueprint ID or null if not found
+     */
+    _resolveItemId(ref) {
+        // Direct match — already a valid blueprint ID
+        if (this.blueprintLoader?.get(ref)) return ref;
+
+        // Map legacy spawn table drop.* IDs to actual item blueprint IDs
+        const LEGACY_MAP = {
+            'drop.xp.small': 'item.xp_small',
+            'drop.xp.medium': 'item.xp_medium',
+            'drop.xp.large': 'item.xp_large',
+            'drop.leukocyte_pack': 'item.health_small',
+            'drop.protein_cache': 'item.protein_cache',
+            'drop.metotrexat': 'item.metotrexat',
+            'drop.adrenal_surge': 'item.energy_cell',
+        };
+
+        const mapped = LEGACY_MAP[ref];
+        if (mapped && this.blueprintLoader?.get(mapped)) return mapped;
+
+        // Try converting drop.X to item.X as a generic fallback
+        if (ref.startsWith('drop.')) {
+            const itemId = 'item.' + ref.replace('drop.', '').replace(/\./g, '_');
+            if (this.blueprintLoader?.get(itemId)) return itemId;
+        }
+
+        return null; // Unknown item — powerup refs or missing blueprints
     }
     
     /**
