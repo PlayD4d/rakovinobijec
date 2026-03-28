@@ -2,6 +2,7 @@
 // Same optimizations: extends Sprite, preUpdate lifecycle, zero-GC
 
 import { GameConstants } from '../GameConstants.js';
+import { DebugLogger } from '../debug/DebugLogger.js';
 
 export class EnemyProjectile extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
@@ -54,7 +55,7 @@ export class EnemyProjectile extends Phaser.Physics.Arcade.Sprite {
       this._blueprint = GameConstants.HOMING[blueprintName.toUpperCase()];
       
       if (!this._blueprint) {
-        console.warn(`[EnemyProjectile] Unknown homing blueprint: ${blueprintName}, using DEFAULT`);
+        DebugLogger.warn('projectile', `[EnemyProjectile] Unknown homing blueprint: ${blueprintName}, using DEFAULT`);
         this._blueprint = GameConstants.HOMING.DEFAULT;
       }
     }

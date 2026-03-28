@@ -13,11 +13,10 @@ async function initializeGame() {
     // Nejprve inicializovat ConfigResolver s externími konfiguracemi
     try {
         await ConfigResolver.initialize();
-        console.log('[Main] ConfigResolver inicializován s externími konfiguracemi');
     } catch (err) {
-        console.warn('[Main] ConfigResolver inicializace selhala:', err);
+        console.warn('[Main] ConfigResolver init failed:', err);
     }
-    
+
     const config = {
     type: Phaser.AUTO,
     width: GameConfig.width,
@@ -48,41 +47,7 @@ async function initializeGame() {
     scene: [MainMenu, GameScene, GameUIScene]
     };
 
-    // Debug: Check container before game creation
-    console.log('=== PRE-GAME DEBUG ===');
-    const gameContainer = document.getElementById('game');
-    console.log('Game container element:', gameContainer);
-    console.log('Game container computed style:', getComputedStyle(gameContainer));
-    console.log('Game container offset dimensions:', gameContainer.offsetWidth, 'x', gameContainer.offsetHeight);
-    console.log('Game container client dimensions:', gameContainer.clientWidth, 'x', gameContainer.clientHeight);
-
     const game = new Phaser.Game(config);
-
-    // Debug: Check after game creation
-    console.log('=== POST-GAME DEBUG ===');
-    console.log('Phaser game canvas:', game.canvas);
-    console.log('Canvas parent:', game.canvas.parentElement);
-
-    // Phaser scale events
-    game.scale.on('orientationchange', () => {
-        console.log('Orientation changed');
-    });
-
-    game.scale.on('resize', (gameSize) => {
-        console.log('Game resized to:', gameSize.width, 'x', gameSize.height);
-        console.log('Canvas actual size:', game.canvas.width, 'x', game.canvas.height);
-        console.log('Canvas display size:', game.canvas.style.width, 'x', game.canvas.style.height);
-        console.log('Parent container size:', document.getElementById('game').offsetWidth, 'x', document.getElementById('game').offsetHeight);
-    });
-
-    game.scale.on('enterfullscreen', () => {
-        console.log('Entered fullscreen');
-    });
-
-    game.scale.on('leavefullscreen', () => {
-        console.log('Left fullscreen - let it work naturally');
-        // Nechat menu tam, kde je - možná je to vlastně v pořádku
-    });
 }
 
 // Spustit inicializaci hry

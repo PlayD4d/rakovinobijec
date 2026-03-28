@@ -110,6 +110,9 @@ export class SpawnDirector {
         this.startTime = this.scene.time.now; // Record absolute start time
         this.gameTime = 0; // Reset for compatibility
 
+        // Cache per-frame config values (avoid ConfigResolver.get on every frame)
+        this._maxEnemies = this.config?.get('spawn.maxEnemies', { defaultValue: 50 }) || 50;
+
         // Clear NG+ cache on level start to avoid stale scaling
         if (this._ngCache) this._ngCache.clear();
         
@@ -214,7 +217,7 @@ export class SpawnDirector {
         if (!this.currentTable.enemyWaves) return;
 
         const now = this.gameTime;
-        const maxEnemies = this.config?.get('spawn.maxEnemies', { defaultValue: 50 }) || 50;
+        const maxEnemies = this._maxEnemies;
 
         // Read enemy count ONCE per frame
         let enemyCount = this.scene.enemiesGroup ? this.scene.enemiesGroup.countActive() : 0;
@@ -259,7 +262,7 @@ export class SpawnDirector {
         
         // PR7: Check if we can spawn more enemies
         const currentEnemyCount = this.scene.enemiesGroup ? this.scene.enemiesGroup.countActive() : 0;
-        const maxEnemies = this.config?.get('spawn.maxEnemies', { defaultValue: 50 }) || 50;
+        const maxEnemies = this._maxEnemies;
         
         if (currentEnemyCount >= maxEnemies - 5) { // Leave room for regular spawns
             return; // Skip elite spawns if near limit
@@ -294,8 +297,7 @@ export class SpawnDirector {
         if (!this.currentTable.uniqueSpawns) return;
         
         const now = this.gameTime;
-        const player = this.scene.player;
-        
+
         for (const unique of this.currentTable.uniqueSpawns) {
             // Check if in window
             if (now < unique.startAt || now > unique.endAt) continue;
@@ -420,9 +422,13 @@ export class SpawnDirector {
         
         DebugLogger.info('spawn', `Boss spawn triggered: ${bossId}`);
         
-        // Clear existing enemies if requested
-        if (clearEnemies && this.scene.enemiesGroup) {
-            this.scene.enemiesGroup.clear(true, true);
+        // Clear existing enemies if requested (use EnemyManager for proper flag reset)
+        if (clearEnemies) {
+            if (this.scene.enemyManager) {
+                this.scene.enemyManager.clearAll();
+            } else if (this.scene.enemiesGroup) {
+                this.scene.enemiesGroup.clear(true, true);
+            }
         }
         
         // Spawn boss after delay — tracked for cleanup on shutdown
@@ -476,21 +482,10 @@ export class SpawnDirector {
                 });
 
                 if (enemy?.setDepth) {
-                    const enemyDepth = this.config?.get?.('layers.enemies', { defaultValue: 20 }) || 20;
+                    const enemyDepth = this.scene.DEPTH_LAYERS?.ENEMIES || 1000;
                     enemy.setDepth(enemyDepth);
                 }
                 this._trackSpawn(enemyId);
-                
-                // Play spawn VFX/SFX (temporarily disabled - blueprint IDs don't match registry)
-                /*
-                if (blueprint.vfx?.spawn && this.vfx) {
-                    this.vfx.play(blueprint.vfx.spawn, pos.x, pos.y);
-                }
-                if (blueprint.sfx?.spawn && this.sfx) {
-                    this.sfx.play(blueprint.sfx.spawn);
-                }
-                */
-                
                 return enemy;
             } else {
                 // No fallback - PR7 compliance requires createEnemyFromBlueprint
@@ -532,7 +527,7 @@ export class SpawnDirector {
                 
                 // Ensure proper depth for spawned enemies
                 if (enemy && enemy.setDepth) {
-                    const enemyDepth = this.config?.get?.('layers.enemies', { defaultValue: 20 }) || 20;
+                    const enemyDepth = this.scene.DEPTH_LAYERS?.ENEMIES || 1000;
                     enemy.setDepth(enemyDepth);
                 }
                 
