@@ -197,11 +197,14 @@ export class SpawnDirector {
             DebugLogger.verbose('spawn', `Game time: ${Math.floor(this.gameTime / 1000)}s`);
         }
 
-        // Check for boss spawn (delegated to BossSpawnController)
-        if (shouldSpawnBoss(this)) {
-            DebugLogger.info('spawn', `Boss spawn condition met!`);
-            spawnBoss(this);
-            return;
+        // Check for boss spawn once per second (no need for per-frame checks)
+        if (!this._lastBossCheck || gameTime - this._lastBossCheck >= 1000) {
+            this._lastBossCheck = gameTime;
+            if (shouldSpawnBoss(this)) {
+                DebugLogger.info('spawn', `Boss spawn condition met!`);
+                spawnBoss(this);
+                return;
+            }
         }
 
         // Skip normal spawns if paused (e.g., during boss fight)
