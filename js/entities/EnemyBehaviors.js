@@ -193,7 +193,7 @@ export class EnemyBehaviors {
         const cap = this._capability;
         cap.damage = this.enemy.damage;
         cap.speed = this.enemy.speed;
-        cap.scene = this.enemy.scene;
+        // cap.scene set once in _buildCapability — no per-frame write needed
         return cap;
     }
 

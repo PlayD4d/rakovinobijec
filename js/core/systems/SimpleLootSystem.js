@@ -232,25 +232,19 @@ export class SimpleLootSystem {
         
         // Apply magnet effect to XP orbs
         const children = this.lootGroup?.getChildren();
-        if (children && Array.isArray(children)) {
-            children.forEach(loot => {
-                if (!loot?.active || loot.dropType !== 'xp') return;
-            
-            // Verify physics body exists
-            if (!loot.body) {
-                if (Math.random() < 0.01) {
-                    DebugLogger.error('loot', `❌ XP orb missing physics body:`, loot.dropId);
-                }
-                return;
-            }
-            
-            const dx = player.x - loot.x;
-            const dy = player.y - loot.y;
-            const distSq = dx * dx + dy * dy;
+        if (children) {
             const radiusSq = magnetRadius * magnetRadius;
+            // for-loop: no closure allocation per frame (hot path optimization)
+            for (let i = 0, len = children.length; i < len; i++) {
+                const loot = children[i];
+                if (!loot?.active || loot.dropType !== 'xp') continue;
+                if (!loot.body) continue;
+
+                const dx = player.x - loot.x;
+                const dy = player.y - loot.y;
+                const distSq = dx * dx + dy * dy;
 
             if (distSq < radiusSq && distSq > 1) {
-                // Only compute sqrt when inside range (most orbs are outside)
                 const distance = Math.sqrt(distSq);
                 const normalizedDistance = distance / magnetRadius;
                 const force = 0.3 + (0.7 * (1 - normalizedDistance));
@@ -259,7 +253,7 @@ export class SimpleLootSystem {
             } else if (distSq >= radiusSq) {
                 loot.body.setVelocity(0, 0);
             }
-        });
+            }
         }
     }
     

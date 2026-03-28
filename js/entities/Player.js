@@ -504,8 +504,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         const stats = {};
         let hasChanges = false;
         
-        // Copy base stats
-        for (const key in this.baseStats) {
+        // Copy base stats (use cached keys array — no prototype traversal)
+        if (!this._baseStatKeys) this._baseStatKeys = Object.keys(this.baseStats);
+        for (const key of this._baseStatKeys) {
             const baseValue = this.baseStats[key];
             const modifiedValue = this.applyModifiers(baseValue, key);
             stats[key] = modifiedValue;

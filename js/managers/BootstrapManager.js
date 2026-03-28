@@ -204,7 +204,8 @@ export class BootstrapManager {
      * Start game timer
      */
     startGameTimer() {
-        this.scene.addTimeEvent({
+        // Store reference for resilient cleanup (not just removeAllEvents)
+        this.scene._gameTimerEvent = this.scene.addTimeEvent({
             delay: 1000,
             callback: this.scene.updateTime,
             callbackScope: this.scene,

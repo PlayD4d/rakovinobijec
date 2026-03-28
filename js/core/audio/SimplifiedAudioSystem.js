@@ -418,12 +418,13 @@ export class SimplifiedAudioSystem {
      */
     _checkCooldown(soundKey) {
         const lastTime = this.lastPlayTimes.get(soundKey);
-        const now = Date.now();
-        
+        const now = this.scene?.time?.now || 0;
+        if (!now) return true; // Scene time unavailable — allow sound
+
         if (lastTime && (now - lastTime) < this.minSoundInterval) {
             return false;
         }
-        
+
         this.lastPlayTimes.set(soundKey, now);
         return true;
     }

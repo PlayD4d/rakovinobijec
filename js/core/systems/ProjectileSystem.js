@@ -382,40 +382,32 @@ export class ProjectileSystem {
    * PR7: Pause all projectiles - stop their movement
    */
   pauseAll() {
-    this.getPlayerBullets().forEach(bullet => {
-      if (bullet?.body) {
-        // Store current velocity for resume
-        bullet._pausedVelocity = { x: bullet.body.velocity.x, y: bullet.body.velocity.y };
-        bullet.body.setVelocity(0, 0);
+    // for-loop: avoid forEach closure overhead with 200+ bullets
+    const groups = [this.getPlayerBullets(), this.getEnemyBullets()];
+    for (const bullets of groups) {
+      for (let i = 0, len = bullets.length; i < len; i++) {
+        const b = bullets[i];
+        if (b?.body) {
+          b._pvx = b.body.velocity.x;
+          b._pvy = b.body.velocity.y;
+          b.body.setVelocity(0, 0);
+        }
       }
-    });
-    
-    this.getEnemyBullets().forEach(bullet => {
-      if (bullet?.body) {
-        // Store current velocity for resume
-        bullet._pausedVelocity = { x: bullet.body.velocity.x, y: bullet.body.velocity.y };
-        bullet.body.setVelocity(0, 0);
-      }
-    });
+    }
   }
-  
-  /**
-   * PR7: Resume all projectiles - restore their movement
-   */
+
   resumeAll() {
-    this.getPlayerBullets().forEach(bullet => {
-      if (bullet?.body && bullet._pausedVelocity) {
-        bullet.body.setVelocity(bullet._pausedVelocity.x, bullet._pausedVelocity.y);
-        delete bullet._pausedVelocity;
+    const groups = [this.getPlayerBullets(), this.getEnemyBullets()];
+    for (const bullets of groups) {
+      for (let i = 0, len = bullets.length; i < len; i++) {
+        const b = bullets[i];
+        if (b?.body && b._pvx !== undefined) {
+          b.body.setVelocity(b._pvx, b._pvy);
+          b._pvx = undefined;
+          b._pvy = undefined;
+        }
       }
-    });
-    
-    this.getEnemyBullets().forEach(bullet => {
-      if (bullet?.body && bullet._pausedVelocity) {
-        bullet.body.setVelocity(bullet._pausedVelocity.x, bullet._pausedVelocity.y);
-        delete bullet._pausedVelocity;
-      }
-    });
+    }
   }
   
   /**
