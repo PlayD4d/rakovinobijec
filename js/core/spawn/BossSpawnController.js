@@ -65,11 +65,8 @@ export function shouldSpawnBoss(director) {
 
     const now = director.gameTime;
 
-    // Already spawned recently
-    if (now - director.lastBossSpawn < 60000) {
-        getSession()?.log('boss', 'check_cooldown', { cooldownRemaining: Math.floor((60000 - (now - director.lastBossSpawn)) / 1000) });
-        return false; // 1 minute cooldown
-    }
+    // Already spawned recently (1 minute cooldown)
+    if (now - director.lastBossSpawn < 60000) return false;
 
     // Check array of triggers
     for (const trigger of director.currentTable.bossTriggers) {
