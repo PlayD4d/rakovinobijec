@@ -127,6 +127,8 @@ export class HighScoreModal {
     /** Show result modal (placement) */
     showResult(position) {
         if (!this.scene?.scale) return;
+        // Destroy previous modal to prevent leak
+        if (this.modal) { this.modal.destroy(); this.modal = null; }
 
         const cam = this.scene.cameras.main;
         const cx = cam.width / 2;

@@ -29,25 +29,20 @@ export class SimpleModal extends Phaser.GameObjects.Container {
       ...config
     };
     
-    // Overlay - blocks clicks
-    this.overlay = scene.add.rectangle(w/2, h/2, w, h, 
-      this.config.overlayColor, this.config.overlayAlpha)
-      .setInteractive() // Block clicks
-      .on('pointerdown', () => {}); // Consume click events
-    
+    // Overlay — blocks clicks. Created without scene.add to avoid double display-list entry.
+    this.overlay = new Phaser.GameObjects.Rectangle(
+      scene, w/2, h/2, w, h, this.config.overlayColor, this.config.overlayAlpha
+    ).setInteractive().on('pointerdown', () => {});
+
     // Panel background
     const panelW = this.config.width;
     const panelH = this.config.height;
-    this.panel = scene.add.rectangle(w/2, h/2, panelW, panelH, 
-      this.config.panelColor, this.config.panelAlpha)
-      .setStrokeStyle(2, this.config.strokeColor, this.config.strokeAlpha);
-    
-    // Add to container
-    this.add([this.overlay, this.panel]);
+    this.panel = new Phaser.GameObjects.Rectangle(
+      scene, w/2, h/2, panelW, panelH, this.config.panelColor, this.config.panelAlpha
+    ).setStrokeStyle(2, this.config.strokeColor, this.config.strokeAlpha);
 
-    // Pin overlay and panel to camera (Container.setScrollFactor doesn't propagate to children)
-    this.overlay.setScrollFactor(0);
-    this.panel.setScrollFactor(0);
+    // Add to container only (not to scene display list — Container owns rendering)
+    this.add([this.overlay, this.panel]);
 
     // List of added children for cleanup
     this._childObjects = [];

@@ -72,10 +72,13 @@ export class MainMenuUI {
         // Try to close window (works only in Electron/desktop)
         if (window.close) {
           window.close();
-        } else {
-          DebugLogger.info('ui', 'Cannot close browser window - showing alert');
-          alert('Pro ukončení hry zavřete okno prohlížeče.');
         }
+        // Show in-game toast instead of alert() (prohibited by project guidelines)
+        const toast = scene.add.text(scene.cameras.main.width / 2, scene.cameras.main.height - 60,
+          'Pro ukončení hry zavřete okno prohlížeče.', {
+            fontFamily: 'Arial', fontSize: '14px', color: '#aaaaaa'
+          }).setOrigin(0.5).setDepth(999999);
+        scene.tweens.add({ targets: toast, alpha: 0, delay: 3000, duration: 1000, onComplete: () => toast.destroy() });
       },
       240, 56,
       { bgColor: 0x4a2a2a }

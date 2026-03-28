@@ -154,9 +154,15 @@ export class UpdateManager {
         // HUD updates — only setText when values actually change
         let _lastHudLevel = -1;
         let _lastHudStage = -1;
+        let _lastHudRefresh = 0;
         this.addTask('hud', (time, delta) => {
             if (scene.unifiedHUD) {
-                scene.unifiedHUD.update();
+                scene.unifiedHUD.update(); // Only time (per-frame)
+                // Refresh HP/XP/score/kills at 2Hz (not 60fps)
+                if (time - _lastHudRefresh > 500) {
+                    _lastHudRefresh = time;
+                    scene.unifiedHUD.refresh();
+                }
 
                 const lvl = scene.gameStats.level;
                 const stg = scene.currentLevel;

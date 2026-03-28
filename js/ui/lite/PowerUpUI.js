@@ -72,8 +72,9 @@ export class PowerUpUI {
    * Show power-up selection with 3 options
    */
   show(powerUps, onPick) {
+    this._selecting = false; // Reset guard from previous cycle
     const callback = onPick || this.onSelection;
-    
+
     // Clear old cards
     this.cards.forEach(card => card.destroy());
     this.cards = [];
@@ -254,10 +255,9 @@ export class PowerUpUI {
    * Clean destroy
    */
   destroy() {
-    // Stop the infinite tween first
+    // Stop the infinite tween first (try/catch: scene may be mid-teardown)
     if (this.hintTween) {
-      this.hintTween.stop();
-      // Do NOT call remove() - let Phaser handle cleanup
+      try { this.hintTween.stop(); } catch (_) {}
       this.hintTween = null;
     }
     

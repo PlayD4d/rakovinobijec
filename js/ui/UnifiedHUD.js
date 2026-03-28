@@ -381,16 +381,25 @@ export class UnifiedHUD extends BaseUIComponent {
      * Update method called from GameScene
      */
     update() {
-        // Update player stats if available
+        // Only time needs per-frame polling — all other stats are event-driven via refresh()
+        if (this.scene.gameStats) {
+            const t = this.scene.gameStats.time;
+            const minutes = Math.floor(t / 60);
+            const seconds = Math.floor(t % 60);
+            this.timeText?.setText(`Čas: ${minutes}:${seconds.toString().padStart(2, '0')}`);
+        }
+    }
+
+    /**
+     * Refresh all HUD values — call on discrete events (damage, XP, kill, level-up)
+     * Much cheaper than polling every frame
+     */
+    refresh() {
         if (this.scene.player) {
             this.setPlayerHealth(this.scene.player.hp, this.scene.player.maxHp);
         }
-        
-        // Update XP if available
         if (this.scene.gameStats) {
             this.setPlayerXP(this.scene.gameStats.xp, this.scene.gameStats.xpToNext);
-            
-            // Update other stats
             this.updateStats({
                 level: this.scene.gameStats.level,
                 score: this.scene.gameStats.score,

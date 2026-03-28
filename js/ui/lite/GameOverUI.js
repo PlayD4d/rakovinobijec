@@ -62,12 +62,7 @@ export class GameOverUI {
       '🔄 Zkusit znovu', 
       () => {
         this.hide(() => {
-          // Clean up GameScene before restarting
-          const gameScene = scene.scene.get('GameScene');
-          if (gameScene && gameScene.shutdown) {
-            gameScene.shutdown();
-          }
-          
+          // scene.stop triggers GameScene.shutdown automatically — no manual call needed
           scene.scene.stop('GameUIScene');
           scene.scene.stop('GameScene');
           scene.scene.start('GameScene');
@@ -87,13 +82,6 @@ export class GameOverUI {
       '🏠 Hlavní menu', 
       () => {
         this.hide(() => {
-          // Clean up GameScene before stopping
-          const gameScene = scene.scene.get('GameScene');
-          if (gameScene && gameScene.shutdown) {
-            gameScene.shutdown();
-          }
-          
-          // Stop both scenes and return to menu
           scene.scene.stop('GameUIScene');
           scene.scene.stop('GameScene');
           scene.scene.start('MainMenu');
@@ -151,5 +139,8 @@ export class GameOverUI {
    */
   destroy() {
     this.modal?.destroy();
+    this.modal = null; // Prevent double-destroy
+    this.retryBtn = null;
+    this.menuBtn = null;
   }
 }

@@ -89,8 +89,10 @@ export class PauseUI {
    * Hide pause menu
    */
   hide() {
-    this.visible = false; // Set immediately to prevent double-toggle during fade
-    this.modal.hide(true, 180);
+    if (this._hiding) return; // Prevent double-hide during fade animation
+    this._hiding = true;
+    this.visible = false;
+    this.modal.hide(true, 180, () => { this._hiding = false; });
   }
   
   /**
@@ -105,6 +107,7 @@ export class PauseUI {
    */
   destroy() {
     this.modal?.destroy();
+    this.modal = null; // Prevent double-destroy
     this.resumeBtn = null;
     this.settingsBtn = null;
     this.quitBtn = null;
