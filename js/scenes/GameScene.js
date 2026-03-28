@@ -344,14 +344,37 @@ export class GameScene extends Phaser.Scene {
     }
 
     async transitionToNextLevel() {
-        if (this.currentLevel >= this.maxLevel) {
+        const nextLevel = (this.currentLevel || 1) + 1;
+
+        if (nextLevel > (this.maxLevel || 99)) {
             DebugLogger.info('game', 'All levels completed - victory!');
             this.showVictory();
             return;
         }
-        if (this.transitionManager) {
-            await this.transitionManager.transitionToNextLevel(this.currentLevel + 1);
+
+        // Seamless transition — no pause, no clear, just load next spawn table
+        DebugLogger.info('game', `Seamless transition to level ${nextLevel}`);
+        getSession()?.log('game', 'level_transition', { from: this.currentLevel, to: nextLevel });
+
+        this.currentLevel = nextLevel;
+
+        // Load and start next spawn table (enemies keep spawning, no interruption)
+        if (this.spawnDirector) {
+            const loaded = await this.spawnDirector.loadSpawnTable(`spawnTable.level${nextLevel}`);
+            if (loaded) {
+                this.spawnDirector.start({ ngPlusLevel: this.spawnDirector.ngPlusLevel });
+                DebugLogger.info('game', `Level ${nextLevel} spawn table loaded and started`);
+
+                // Switch music if defined
+                const table = this.spawnDirector.currentTable;
+                if (table?.music?.ambient && this.audioSystem) {
+                    this.audioSystem.switchMusicCategory?.('game', { fadeOut: 500, fadeIn: 1000 });
+                }
+            }
         }
+
+        // Brief flash to indicate new level
+        this.flashCamera?.(300, 255, 255, 255);
     }
 
     async showVictory() {
