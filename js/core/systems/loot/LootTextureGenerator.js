@@ -20,39 +20,62 @@ export function generateLootTextures(scene) {
         return;
     }
 
-    // XP Orb - Small (cyan, 12px)
+    // XP Gem - Small (bright cyan diamond, 8px)
     if (!textures.exists('item_xp_small')) {
         const graphics = graphicsFactory.create();
-        const size = 12;
-        graphics.fillStyle(0x00E8FC, 1.0);
-        graphics.fillCircle(size/2, size/2, size/2);
-        graphics.fillStyle(0xFFFFFF, 1);
-        graphics.fillCircle(size/2, size/2, 2);
-        graphics.generateTexture('item_xp_small', size, size);
+        const s = 8;
+        // Diamond shape — distinct from circular enemies
+        graphics.fillStyle(0x00F0FF, 1.0);
+        graphics.fillPoints([
+            { x: s/2, y: 0 }, { x: s, y: s/2 },
+            { x: s/2, y: s }, { x: 0, y: s/2 }
+        ], true);
+        // Bright center highlight
+        graphics.fillStyle(0xFFFFFF, 0.9);
+        graphics.fillCircle(s/2, s/2, 1.5);
+        graphics.generateTexture('item_xp_small', s, s);
         graphicsFactory.release(graphics);
     }
 
-    // XP Orb - Medium (blue, 16px)
+    // XP Gem - Medium (green diamond, 10px)
     if (!textures.exists('item_xp_medium')) {
         const graphics = graphicsFactory.create();
-        const size = 16;
-        graphics.fillStyle(0x0080FF, 1.0);
-        graphics.fillCircle(size/2, size/2, size/2);
-        graphics.fillStyle(0xFFFFFF, 1);
-        graphics.fillCircle(size/2, size/2, 3);
-        graphics.generateTexture('item_xp_medium', size, size);
+        const s = 10;
+        graphics.fillStyle(0x00FF88, 1.0);
+        graphics.fillPoints([
+            { x: s/2, y: 0 }, { x: s, y: s/2 },
+            { x: s/2, y: s }, { x: 0, y: s/2 }
+        ], true);
+        // Inner facet
+        graphics.fillStyle(0x88FFCC, 0.6);
+        graphics.fillPoints([
+            { x: s/2, y: 2 }, { x: s-2, y: s/2 },
+            { x: s/2, y: s-2 }, { x: 2, y: s/2 }
+        ], true);
+        graphics.fillStyle(0xFFFFFF, 0.9);
+        graphics.fillCircle(s/2, s/2, 2);
+        graphics.generateTexture('item_xp_medium', s, s);
         graphicsFactory.release(graphics);
     }
 
-    // XP Orb - Large (dark blue, 20px)
+    // XP Gem - Large (golden diamond, 14px)
     if (!textures.exists('item_xp_large')) {
         const graphics = graphicsFactory.create();
-        const size = 20;
-        graphics.fillStyle(0x0040CC, 1.0);
-        graphics.fillCircle(size/2, size/2, size/2);
-        graphics.fillStyle(0xFFFFFF, 1);
-        graphics.fillCircle(size/2, size/2, 4);
-        graphics.generateTexture('item_xp_large', size, size);
+        const s = 14;
+        graphics.fillStyle(0xFFDD00, 1.0);
+        graphics.fillPoints([
+            { x: s/2, y: 0 }, { x: s, y: s/2 },
+            { x: s/2, y: s }, { x: 0, y: s/2 }
+        ], true);
+        // Inner facet
+        graphics.fillStyle(0xFFEE66, 0.6);
+        graphics.fillPoints([
+            { x: s/2, y: 2 }, { x: s-2, y: s/2 },
+            { x: s/2, y: s-2 }, { x: 2, y: s/2 }
+        ], true);
+        graphics.fillStyle(0xFFFFFF, 0.9);
+        graphics.fillCircle(s/2, s/2, 3);
+        graphics.generateTexture('item_xp_large', s, s);
         graphicsFactory.release(graphics);
     }
 

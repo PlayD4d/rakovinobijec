@@ -219,6 +219,43 @@ export class SpawnDirector {
     }
 
     /**
+     * Get difficulty multipliers for current game time
+     * Uses spawn table difficulty config + progressive scaling over time
+     */
+    getDifficultyMultipliers() {
+        const diff = this.currentTable?.difficulty || {};
+        const prog = diff.progressiveScaling || {};
+        const elapsedSec = this.gameTime / 1000;
+
+        // Base multipliers from spawn table
+        const hpMul = (diff.enemyHpMultiplier || 1) + (prog.hpGrowth || 0) * elapsedSec;
+        const dmgMul = (diff.enemyDamageMultiplier || 1) + (prog.damageGrowth || 0) * elapsedSec;
+        const spdMul = diff.enemySpeedMultiplier || 1;
+
+        return { hp: hpMul, damage: dmgMul, speed: spdMul };
+    }
+
+    /**
+     * Apply difficulty scaling to a spawned enemy entity
+     * EnemyCore uses: hp, maxHp, damage, speed
+     */
+    _applyDifficultyScaling(enemy) {
+        if (!enemy) return;
+        const mul = this.getDifficultyMultipliers();
+        if (mul.hp > 1 && enemy.hp != null) {
+            const scaledHp = Math.ceil(enemy.hp * mul.hp);
+            enemy.hp = scaledHp;
+            if (enemy.maxHp != null) enemy.maxHp = scaledHp;
+        }
+        if (mul.damage > 1 && enemy.damage != null) {
+            enemy.damage = Math.ceil(enemy.damage * mul.damage);
+        }
+        if (mul.speed > 1 && enemy.speed != null) {
+            enemy.speed = Math.ceil(enemy.speed * mul.speed);
+        }
+    }
+
+    /**
      * Spawn an enemy from blueprint
      */
     spawnEnemy(enemyId, params = {}) {
@@ -244,7 +281,11 @@ export class SpawnDirector {
                     this.scene.enemyManager.spawnBoss(enemyId, pos) :
                     this.scene.enemyManager.spawnEnemy(enemyId, pos);
 
-                if (enemy) this._trackSpawn(enemyId);
+                if (enemy) {
+                    // Apply progressive difficulty scaling to live entity
+                    this._applyDifficultyScaling(enemy);
+                    this._trackSpawn(enemyId);
+                }
                 return enemy;
             } else if (this.scene.createEnemyFromBlueprint) {
                 // Fallback to scene method if available
@@ -256,6 +297,7 @@ export class SpawnDirector {
                     const enemyDepth = this.scene.DEPTH_LAYERS?.ENEMIES || 1000;
                     enemy.setDepth(enemyDepth);
                 }
+                if (enemy) this._applyDifficultyScaling(enemy);
                 this._trackSpawn(enemyId);
                 return enemy;
             } else {

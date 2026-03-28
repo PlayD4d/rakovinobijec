@@ -202,12 +202,28 @@ export class EnemyManager {
     /**
      * Kill all enemies (for special effects)
      */
-    killAll() {
+    killAll({ includeBosses = false } = {}) {
         const enemies = [
-            ...(this.scene.enemiesGroup?.getChildren() || []),
-            ...(this.scene.bossGroup?.getChildren() || [])
+            ...(this.scene.enemiesGroup?.getChildren() || [])
         ];
-        
+
+        // Bosses are immune to instant-kill effects (metotrexat) by default
+        // Only include bosses when explicitly requested (e.g. DEV.killAll)
+        if (includeBosses) {
+            enemies.push(...(this.scene.bossGroup?.getChildren() || []));
+        } else {
+            // Deal 25% max HP damage to bosses instead of instant kill
+            const bosses = this.scene.bossGroup?.getChildren() || [];
+            for (const boss of bosses) {
+                if (boss?.active && boss?.takeDamage) {
+                    const bossMaxHp = boss.maxHp || boss.bp?.stats?.maxHp || 1000;
+                    const chunkDmg = Math.ceil(bossMaxHp * 0.25);
+                    boss.takeDamage(chunkDmg);
+                    getSession()?.log('boss', 'metotrexat_chunk', { bossId: boss.blueprintId, damage: chunkDmg, remainingHP: boss.hp });
+                }
+            }
+        }
+
         enemies.forEach(enemy => {
             if (enemy?.active && enemy?.takeDamage) {
                 enemy.takeDamage(99999);

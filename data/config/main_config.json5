@@ -93,7 +93,7 @@
     maxEnemies: 100,
     maxProjectiles: 200,
     maxParticles: 500,
-    maxDrops: 50,
+    maxDrops: 150,  // Raised to 150 — XP orb merging keeps effective count low
     cullDistance: 1500,
     updateRate: 60
   },

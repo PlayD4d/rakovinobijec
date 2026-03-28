@@ -37,9 +37,10 @@ class SessionLog {
             ...data
         });
 
-        // Cap at 5000 events per session to prevent memory issues
-        if (this.events.length > 5000) {
-            this.events = this.events.slice(-4000);
+        // Cap at 50000 events per session to prevent memory issues
+        // (5min session with 12 events/s ≈ 3600 events; 50k gives ~10× headroom)
+        if (this.events.length > 50000) {
+            this.events = this.events.slice(-40000);
         }
     }
 

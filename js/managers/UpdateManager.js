@@ -200,10 +200,17 @@ export class UpdateManager {
             DebugLogger.error('general', `[UpdateManager] Phase '${phaseName}' not found`);
             return;
         }
-        
+
+        // Prevent duplicate task registration
+        const resolvedName = taskName || `task_${phase.tasks.length}`;
+        if (taskName && phase.tasks.some(t => t.name === taskName)) {
+            DebugLogger.warn('general', `[UpdateManager] Task '${taskName}' already registered in phase '${phaseName}', skipping`);
+            return;
+        }
+
         phase.tasks.push({
             fn,
-            name: taskName || `task_${phase.tasks.length}`,
+            name: resolvedName,
             enabled: true
         });
     }

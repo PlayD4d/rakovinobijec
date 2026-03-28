@@ -356,10 +356,17 @@ export class SimpleLootSystem {
             }
         }
 
+        // Periodic XP orb merging + field cap enforcement (every 2s)
+        if (!this._lastMergeCheck || time - this._lastMergeCheck >= 2000) {
+            this._lastMergeCheck = time;
+            this._mergeNearbyXPOrbs();
+            this._enforceFieldCap();
+        }
+
         // XP magnet attraction
         const magnetRadius = player._stats?.()?.xpMagnetRadius || player.baseStats?.xpMagnetRadius || 0;
         if (magnetRadius <= 0) return;
-        
+
         // Apply magnet attraction to XP orbs (pickup handled above)
         const radiusSq = magnetRadius * magnetRadius;
         for (let i = 0, len = children.length; i < len; i++) {
@@ -380,6 +387,94 @@ export class SimpleLootSystem {
             } else if (distSq >= radiusSq) {
                 loot.body.setVelocity(0, 0);
             }
+        }
+    }
+
+    /**
+     * Merge nearby XP orbs into higher tiers (Vampire Survivors style)
+     * small (1 XP) × 5 → medium (5 XP), medium × 2 → large (10 XP)
+     */
+    _mergeNearbyXPOrbs() {
+        const children = this.lootGroup?.getChildren();
+        if (!children || children.length < 10) return; // Only merge when many orbs exist
+
+        const mergeRadiusSq = 30 * 30; // 30px radius for merge detection
+        const smalls = [];
+        const mediums = [];
+
+        for (const loot of children) {
+            if (!loot?.active || loot.dropType !== 'xp') continue;
+            if (loot.dropId === 'item.xp_small') smalls.push(loot);
+            else if (loot.dropId === 'item.xp_medium') mediums.push(loot);
+        }
+
+        // Merge 5 nearby smalls → 1 medium
+        let merged = 0;
+        for (let i = 0; i < smalls.length && merged < 10; i++) {
+            const anchor = smalls[i];
+            if (!anchor.active) continue;
+            const cluster = [anchor];
+            for (let j = i + 1; j < smalls.length && cluster.length < 5; j++) {
+                const other = smalls[j];
+                if (!other.active) continue;
+                const dx = anchor.x - other.x;
+                const dy = anchor.y - other.y;
+                if (dx * dx + dy * dy < mergeRadiusSq) {
+                    cluster.push(other);
+                }
+            }
+            if (cluster.length >= 5) {
+                // Destroy 5 smalls, create 1 medium at anchor position
+                for (const orb of cluster) orb.destroy();
+                this.createDrop(anchor.x, anchor.y, 'item.xp_medium');
+                merged++;
+            }
+        }
+
+        // Merge 2 nearby mediums → 1 large
+        for (let i = 0; i < mediums.length && merged < 15; i++) {
+            const anchor = mediums[i];
+            if (!anchor.active) continue;
+            for (let j = i + 1; j < mediums.length; j++) {
+                const other = mediums[j];
+                if (!other.active) continue;
+                const dx = anchor.x - other.x;
+                const dy = anchor.y - other.y;
+                if (dx * dx + dy * dy < mergeRadiusSq) {
+                    anchor.destroy();
+                    other.destroy();
+                    this.createDrop(anchor.x, anchor.y, 'item.xp_large');
+                    merged++;
+                    break;
+                }
+            }
+        }
+
+        if (merged > 0) {
+            getSession()?.log('loot', 'xp_merged', { merged, remaining: this.lootGroup.children.size });
+        }
+    }
+
+    /**
+     * Enforce max loot items on field — destroy oldest XP orbs if over cap
+     */
+    _enforceFieldCap() {
+        const maxDrops = this.scene.configResolver?.get('performance.maxDrops', { defaultValue: 150 }) || 150;
+        const children = this.lootGroup?.getChildren();
+        if (!children || children.length <= maxDrops) return;
+
+        // Remove oldest XP orbs first (lowest value items)
+        const excess = children.length - maxDrops;
+        let removed = 0;
+        for (let i = 0; i < children.length && removed < excess; i++) {
+            const loot = children[i];
+            if (loot?.active && loot.dropType === 'xp' && loot.dropId === 'item.xp_small') {
+                loot.destroy();
+                removed++;
+            }
+        }
+        if (removed > 0) {
+            getSession()?.log('loot', 'field_cap_trim', { removed, remaining: this.lootGroup.children.size, maxDrops });
         }
     }
     

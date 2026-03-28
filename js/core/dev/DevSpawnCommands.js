@@ -72,8 +72,8 @@ export function registerSpawnCommands(DEV, getScene) {
             const scene = getScene();
             if (!scene) { console.warn('[DEV] No active scene'); return; }
             if (!scene.enemyManager) { console.warn('[DEV] enemyManager not available'); return; }
-            scene.enemyManager.killAll();
-            console.log('All enemies killed');
+            scene.enemyManager.killAll({ includeBosses: true });
+            console.log('All enemies + bosses killed');
         } catch (e) { console.error('[DEV] killAll failed:', e); }
     };
 
