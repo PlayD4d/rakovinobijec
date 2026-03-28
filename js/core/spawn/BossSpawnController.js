@@ -6,6 +6,7 @@
  */
 
 import { DebugLogger } from '../debug/DebugLogger.js';
+import { getSession } from '../debug/SessionLog.js';
 
 /**
  * Check individual boss trigger
@@ -65,11 +66,15 @@ export function shouldSpawnBoss(director) {
     const now = director.gameTime;
 
     // Already spawned recently
-    if (now - director.lastBossSpawn < 60000) return false; // 1 minute cooldown
+    if (now - director.lastBossSpawn < 60000) {
+        getSession()?.log('boss', 'check_cooldown', { cooldownRemaining: Math.floor((60000 - (now - director.lastBossSpawn)) / 1000) });
+        return false; // 1 minute cooldown
+    }
 
     // Check array of triggers
     for (const trigger of director.currentTable.bossTriggers) {
         if (checkBossTrigger(director, trigger)) {
+            getSession()?.log('boss', 'trigger_met', { bossId: trigger.bossId, condition: trigger.condition, value: trigger.value });
             director.pendingBossTrigger = trigger;
             return true;
         }
@@ -98,6 +103,7 @@ export function spawnBoss(director) {
     trigger._triggered = true;
     director.pendingBossTrigger = null;
 
+    getSession()?.log('boss', 'spawn', { bossId, clearEnemies, spawnDelay });
     DebugLogger.info('spawn', `Boss spawn triggered: ${bossId}`);
 
     // Clear existing enemies if requested (use EnemyManager for proper flag reset)

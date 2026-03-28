@@ -13,6 +13,7 @@ export class PlayerCombat {
     takeDamage(amount, source) {
         const player = this.player;
         const time = player.scene.time?.now || 0;
+        const rawAmount = amount;
 
         if (!player.scene || !player.scene.sys?.settings?.active) return 0;
         if (!player.active) return 0;
@@ -41,7 +42,9 @@ export class PlayerCombat {
         const dmg = Math.max(0, amount | 0);
         if (dmg <= 0) return 0;
 
+        const shieldAbsorbed = Math.max(0, rawAmount - dmg);
         player.hp = Math.max(0, player.hp - dmg);
+        getSession()?.log('player', 'take_damage', { source: source?.blueprintId || 'enemy', rawAmount, finalAmount: dmg, shieldAbsorbed, newHP: player.hp });
         getSession()?.damage(source?.blueprintId || 'enemy', 'player', dmg, 'hit');
 
         player._iFramesMsLeft = player._stats().iFramesMs;
@@ -72,6 +75,7 @@ export class PlayerCombat {
         player.hp = Math.min(player.maxHp, player.hp + a);
 
         if (player.hp > before) {
+            getSession()?.log('player', 'heal', { amount: player.hp - before, newHP: player.hp });
             player._playVfx(player.vfx.heal, player.x, player.y);
             player._playSfx(player.sfx.heal);
             player.scene.frameworkDebug?.onPlayerHeal?.(player, player.hp - before);
@@ -95,6 +99,7 @@ export class PlayerCombat {
             return;
         }
 
+        getSession()?.log('player', 'death', { source: source?.blueprintId || 'unknown', hp: player.hp, x: Math.round(player.x), y: Math.round(player.y) });
         player._playVfx(player.vfx.death, player.x, player.y);
         player._playSfx(player.sfx.death);
         player.scene.events.emit('player:die', { player, source });

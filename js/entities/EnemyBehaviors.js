@@ -12,6 +12,7 @@
 
 import { idle } from './ai/behaviors/idle.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
+import { getSession } from '../core/debug/SessionLog.js';
 import { chase } from './ai/behaviors/chase.js';
 import { shoot } from './ai/behaviors/shoot.js';
 import { flee } from './ai/behaviors/flee.js';
@@ -109,9 +110,11 @@ export class EnemyBehaviors {
                         if (this.mem._shared[stickKey] && now < this.mem._shared[stickKey]) return;
                         this.mem._shared[stickKey] = now + opts.stickyMs;
                     }
+                    const oldBehavior = this.layers[layer];
                     this.layers[layer] = newBehavior;
                     this._rebuildLayerCache();
                     if (layer === 'movement') this.state = newBehavior;
+                    if (Math.random() < 0.1) getSession()?.log('ai', 'behavior_change', { enemyId: this.enemy.blueprintId, layer, oldBehavior, newBehavior });
                 }
             };
         }

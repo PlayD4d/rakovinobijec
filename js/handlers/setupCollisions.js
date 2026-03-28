@@ -4,6 +4,7 @@
  */
 
 import { DebugLogger } from '../core/debug/DebugLogger.js';
+import { getSession } from '../core/debug/SessionLog.js';
 
 // ===== DRY helpers (shared between enemy and boss collision handlers) =====
 
@@ -158,6 +159,7 @@ function handlePlayerEnemyCollision(player, enemy) {
 
     if (player.canTakeDamage && player.canTakeDamage()) {
         const damage = enemy.contactDamage || enemy.damage || 10;
+        getSession()?.log('collision', 'player_enemy', { enemyId: enemy.blueprintId || enemy.type, damage, playerHP: player.hp });
         player.takeDamage(damage);
     }
 }
@@ -167,10 +169,11 @@ function handlePlayerEnemyCollision(player, enemy) {
  */
 function handlePlayerBossCollision(player, boss) {
     if (!player.active || !boss.active) return;
-    
+
     // Check if player can take damage
     if (player.canTakeDamage && player.canTakeDamage()) {
         const damage = boss.contactDamage || boss.damage || 20;
+        getSession()?.log('collision', 'player_boss', { bossId: boss.blueprintId || boss.type, damage, playerHP: player.hp });
         player.takeDamage(damage);
     }
 }
@@ -194,6 +197,7 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
     
     // Apply damage with piercing reduction (DRY helper)
     let damage = applyPiercingReduction(bullet, bullet.damage || scene.player?.baseStats?.projectileDamage || 10);
+    if (Math.random() < 0.1) getSession()?.log('collision', 'bullet_enemy', { enemyId: enemy.blueprintId || enemy.type, damage, enemyHP: enemy.hp });
     enemy.takeDamage(damage);
     
     // Handle explosive bullets from chemo_reservoir power-up
@@ -263,7 +267,9 @@ function handleEnemyBulletPlayerCollision(bullet, player) {
     
     // Apply damage if player can take it
     if (player.canTakeDamage?.()) {
-        player.takeDamage(bullet.damage || 5);
+        const damage = bullet.damage || 5;
+        getSession()?.log('collision', 'enemy_bullet_player', { damage, playerHP: player.hp });
+        player.takeDamage(damage);
     }
     // Always destroy bullet (DRY helper handles kill vs destroy)
     killBullet(bullet);

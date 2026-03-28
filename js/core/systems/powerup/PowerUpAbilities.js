@@ -1,4 +1,5 @@
 import { DebugLogger } from '../../debug/DebugLogger.js';
+import { getSession } from '../../debug/SessionLog.js';
 import { ChainLightningAbility } from './abilities/ChainLightningAbility.js';
 import { DamageZoneAbilities } from './abilities/DamageZoneAbilities.js';
 import { ShieldRegeneration } from './abilities/ShieldRegeneration.js';
@@ -121,6 +122,7 @@ export class PowerUpAbilities {
      * Apply specific ability to player
      */
     _applyAbility(player, config) {
+        getSession()?.log('powerup', 'ability_applied', { abilityType: config.type, level: config.level });
         const vfxManager = this.powerUpSystem.vfxManager;
 
         switch (config.type) {

@@ -6,6 +6,7 @@
  */
 
 import { DebugLogger } from '../debug/DebugLogger.js';
+import { getSession } from '../debug/SessionLog.js';
 
 /**
  * Process regular enemy waves
@@ -23,6 +24,7 @@ export function processEnemyWaves(director) {
     // Debug: log spawn state every 5 seconds
     if (Math.floor(now / 5000) !== Math.floor((now - 16) / 5000)) {
         DebugLogger.info('spawn', `[SpawnWaves] t=${Math.floor(now/1000)}s enemies=${enemyCount}/${maxEnemies} waves=${director.currentTable.enemyWaves.length}`);
+        getSession()?.log('spawn', 'wave_tick', { gameTime: Math.floor(now / 1000), enemyCount, maxEnemies, waveCount: director.currentTable.enemyWaves.length });
     }
 
     if (enemyCount >= maxEnemies) return;
@@ -38,7 +40,10 @@ export function processEnemyWaves(director) {
         if (timeSinceLastSpawn < interval) continue;
 
         const weight = wave.weight || 100;
-        if (Math.random() * 100 >= weight) continue;
+        if (Math.random() * 100 >= weight) {
+            if (Math.floor(now / 5000) !== Math.floor((now - 16) / 5000)) getSession()?.log('spawn', 'wave_skip_weight', { enemyId: wave.enemyId, weight });
+            continue;
+        }
 
         const remainingSlots = maxEnemies - enemyCount;
         if (remainingSlots <= 0) break;
@@ -52,6 +57,7 @@ export function processEnemyWaves(director) {
         wave.lastSpawn = now;
         enemyCount += count;
 
+        getSession()?.log('spawn', 'wave_spawned', { enemyId: wave.enemyId, count, gameTime: Math.floor(now / 1000) });
         DebugLogger.debug('spawn', `Spawned ${count} ${wave.enemyId} at time ${Math.floor(now/1000)}s`);
     }
 }
@@ -70,6 +76,7 @@ export function processEliteWindows(director) {
     const maxEnemies = director._maxEnemies;
 
     if (currentEnemyCount >= maxEnemies - 5) { // Leave room for regular spawns
+        if (Math.floor(now / 5000) !== Math.floor((now - 16) / 5000)) getSession()?.log('spawn', 'elite_skip_cap', { currentEnemyCount, maxEnemies });
         return; // Skip elite spawns if near limit
     }
 
@@ -91,6 +98,7 @@ export function processEliteWindows(director) {
             }
             director.eliteCooldowns.set(elite.enemyId, now);
             director.stats.eliteSpawnCount++;
+            getSession()?.log('spawn', 'elite_spawned', { enemyId: elite.enemyId, count, gameTime: Math.floor(now / 1000) });
         }
     }
 }
@@ -139,6 +147,7 @@ export function processUniqueSpawns(director) {
             }
             director.uniqueCooldowns.set(unique.enemyId, now);
             director.stats.uniqueSpawnCount++;
+            getSession()?.log('spawn', 'unique_spawned', { enemyId: unique.enemyId, count, gameTime: Math.floor(now / 1000) });
         }
     }
 }

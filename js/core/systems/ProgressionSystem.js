@@ -8,6 +8,7 @@
  */
 
 import { DebugLogger } from '../debug/DebugLogger.js';
+import { getSession } from '../debug/SessionLog.js';
 
 export class ProgressionSystem {
     /**
@@ -39,14 +40,18 @@ export class ProgressionSystem {
             this.scene.player.xp = this.gameStats.xp;
         }
 
+        const willLevelUp = this.gameStats.xp >= this.gameStats.xpToNext;
+        getSession()?.log('xp', 'add', { raw: baseAmount, scaled: amount, totalXP: this.gameStats.xp, xpToNext: this.gameStats.xpToNext, willLevelUp });
+
         // Process ONE level-up per call to prevent stacking
-        if (this.gameStats.xp >= this.gameStats.xpToNext) {
+        if (willLevelUp) {
             // If paused (e.g., power-up selection), defer ALL XP — don't consume any
             // The level-up will be processed after unpause via _pendingXP
             if (this.scene.isPaused) {
                 this._pendingXP += amount;
                 this.gameStats.xp -= amount; // Undo the add above
                 if (this.scene.player) this.scene.player.xp = this.gameStats.xp;
+                getSession()?.log('xp', 'deferred', { deferredAmount: amount, pendingTotal: this._pendingXP });
                 return;
             }
             const excessXP = this.gameStats.xp - this.gameStats.xpToNext;
@@ -62,6 +67,7 @@ export class ProgressionSystem {
 
             this._pendingXP += excessXP;
 
+            getSession()?.log('xp', 'level_up', { newLevel: this.gameStats.level, xpToNext: this.gameStats.xpToNext, excessXP });
             DebugLogger.log('progression', 'DEBUG',
                 `Level up → ${this.gameStats.level}  (xpToNext=${this.gameStats.xpToNext}, pending=${this._pendingXP})`);
 

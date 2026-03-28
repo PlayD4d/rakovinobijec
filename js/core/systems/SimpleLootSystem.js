@@ -6,6 +6,7 @@
  */
 
 import { DebugLogger } from '../debug/DebugLogger.js';
+import { getSession } from '../debug/SessionLog.js';
 import { generateLootTextures } from './loot/LootTextureGenerator.js';
 
 export class SimpleLootSystem {
@@ -83,6 +84,8 @@ export class SimpleLootSystem {
         // Clean up old positions
         this.cleanupOldPositions();
         
+        getSession()?.log('loot', 'drop_created', { dropId, dropType, value: drop.value, x: Math.round(adjustedPos.x), y: Math.round(adjustedPos.y) });
+
         // Add to group
         this.lootGroup.add(drop);
         
@@ -165,7 +168,8 @@ export class SimpleLootSystem {
     handlePickup(player, loot) {
         if (!loot.active) return;
         DebugLogger.info('loot', `[LootPickup] Picking up ${loot.dropId} type=${loot.dropType} value=${loot.value}`);
-        
+        getSession()?.log('loot', 'pickup', { dropId: loot.dropId, dropType: loot.dropType, value: loot.value });
+
         const blueprint = loot.blueprint;
         const dropType = loot.dropType;
         
