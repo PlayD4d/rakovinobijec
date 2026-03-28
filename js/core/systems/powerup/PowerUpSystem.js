@@ -301,37 +301,4 @@ export class PowerUpSystem {
     
 }
 
-// Register DEV commands for testing
-if (typeof window !== 'undefined') {
-    window.DEV = window.DEV || {};
-    
-    window.DEV.applyPowerUp = (id, level = 1) => {
-        const scene = window.game?.scene?.getScene('GameScene');
-        if (!scene?.powerUpSystem) {
-            DebugLogger.error('powerup', 'PowerUpSystem not initialized');
-            return;
-        }
-        
-        const success = scene.powerUpSystem.applyPowerUp(id, level);
-        DebugLogger.info('powerup', success ? `✅ Applied ${id} at level ${level}` : `❌ Failed to apply ${id}`);
-    };
-    
-    window.DEV.powerUpStatus = () => {
-        const scene = window.game?.scene?.getScene('GameScene');
-        const player = scene?.player;
-        if (!player) {
-            DebugLogger.error('powerup', 'Player not found');
-            return;
-        }
-        
-        DebugLogger.info('powerup', '========== 🎯 Power-Up Status ==========');
-        DebugLogger.info('powerup', 'XP Magnet Level:', player.xpMagnetLevel || 0);
-        DebugLogger.info('powerup', 'Shield Active:', player.shieldActive || false);
-        DebugLogger.info('powerup', 'Shield Hits:', player.shieldHits || 0);
-        DebugLogger.info('powerup', 'Piercing Level:', player.piercingLevel || 0);
-        DebugLogger.info('powerup', 'Active Power-Ups:', scene.powerUpSystem?.getActivePowerUps() || []);
-        DebugLogger.info('powerup', '=========================================');
-    };
-}
-
 export default PowerUpSystem;

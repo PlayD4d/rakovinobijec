@@ -194,14 +194,19 @@ export class BootstrapManager {
     /**
      * Setup development tools
      */
-    setupDevTools() {
-        const isDev = window.DEV_MODE === true || 
+    async setupDevTools() {
+        const isDev = window.DEV_MODE === true ||
                       window.location.search.includes('debug=true');
-        
+
         if (isDev) {
-            const { installDevConsole } = window;
-            if (installDevConsole) {
-                installDevConsole(this.scene);
+            try {
+                const { DevConsole } = await import('../core/dev/DevConsole.js');
+                const devConsole = DevConsole.getInstance();
+                devConsole.attachScene(this.scene);
+                // Auto-cleanup on scene shutdown
+                this.scene.events.once('shutdown', () => devConsole.detachScene());
+            } catch (e) {
+                DebugLogger.warn('dev', '[DevConsole] Failed to load:', e);
             }
         }
     }
@@ -381,7 +386,7 @@ export class BootstrapManager {
         await this.scene.startGame();
         
         // Phase 11: Dev tools
-        this.setupDevTools();
+        await this.setupDevTools();
         
         // Phase 12: Timer
         this.startGameTimer();

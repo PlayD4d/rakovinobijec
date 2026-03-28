@@ -48,6 +48,7 @@ async function initializeGame() {
     };
 
     const game = new Phaser.Game(config);
+    window.game = game;
 }
 
 // Spustit inicializaci hry
