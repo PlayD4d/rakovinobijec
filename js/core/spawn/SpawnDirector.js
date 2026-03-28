@@ -71,7 +71,7 @@ export class SpawnDirector {
         }
         
         // Deep-clone to prevent in-place mutation of cached blueprint data
-        this.currentTable = JSON.parse(JSON.stringify(table));
+        this.currentTable = structuredClone(table);
         this.scenarioId = scenarioId;
         
         // PR7: Apply XP retuning if xpPlan exists — use cloned table, not original
@@ -563,7 +563,7 @@ export class SpawnDirector {
         if (this._ngCache.has(cacheKey)) return this._ngCache.get(cacheKey);
 
         // Clone blueprint once and cache the result
-        const scaled = JSON.parse(JSON.stringify(blueprint));
+        const scaled = structuredClone(blueprint);
 
         if (scaled.stats) {
             if (scaled.stats.hp && scaling.hp) {

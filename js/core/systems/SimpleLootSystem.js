@@ -248,15 +248,15 @@ export class SimpleLootSystem {
                 const dy = player.y - loot.y;
                 const distSq = dx * dx + dy * dy;
 
-            if (distSq < radiusSq && distSq > 1) {
-                const distance = Math.sqrt(distSq);
-                const normalizedDistance = distance / magnetRadius;
-                const force = 0.3 + (0.7 * (1 - normalizedDistance));
-                const speed = 300 * force;
-                loot.body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
-            } else if (distSq >= radiusSq) {
-                loot.body.setVelocity(0, 0);
-            }
+                if (distSq < radiusSq && distSq > 1) {
+                    const distance = Math.sqrt(distSq);
+                    const normalizedDistance = distance / magnetRadius;
+                    const force = 0.3 + (0.7 * (1 - normalizedDistance));
+                    const speed = 300 * force;
+                    loot.body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
+                } else if (distSq >= radiusSq) {
+                    loot.body.setVelocity(0, 0);
+                }
             }
         }
     }

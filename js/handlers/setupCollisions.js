@@ -42,34 +42,7 @@ export function setupCollisions(scene) {
         return [];
     }
     
-    // Debug: Comprehensive physics and collision verification
-    DebugLogger.info('collision', '[setupCollisions] === COLLISION SYSTEM DEBUG ===');
-    DebugLogger.verbose('collision', '  - Player exists:', !!scene.player);
-    DebugLogger.verbose('collision', '  - Player physics body:', !!scene.player?.body);
-    DebugLogger.verbose('collision', '  - Player active:', scene.player?.active);
-    DebugLogger.verbose('collision', '  - Player body size:', scene.player?.body ? { width: scene.player.body.width, height: scene.player.body.height } : null);
-    DebugLogger.verbose('collision', '  - Player collision category:', scene.player?.body?.collisionCategory || 'none');
-    DebugLogger.verbose('collision', '  - Player collides with:', scene.player?.body?.collidesWith || 'none');
-    
-    DebugLogger.verbose('collision', '  - Enemies group exists:', !!scene.enemiesGroup);
-    DebugLogger.verbose('collision', '  - Enemies group type:', scene.enemiesGroup?.constructor?.name);
-    DebugLogger.verbose('collision', '  - Enemies count:', scene.enemiesGroup?.getLength?.() || 0);
-    DebugLogger.verbose('collision', '  - Enemies active count:', scene.enemiesGroup?.countActive?.() || 0);
-    
-    DebugLogger.verbose('collision', '  - Boss group exists:', !!scene.bossGroup);
-    DebugLogger.verbose('collision', '  - Boss group type:', scene.bossGroup?.constructor?.name);
-    DebugLogger.verbose('collision', '  - Boss count:', scene.bossGroup?.getLength?.() || 0);
-    
-    DebugLogger.verbose('collision', '  - Player bullets group exists:', !!scene.projectileSystem?.playerBullets);
-    DebugLogger.verbose('collision', '  - Player bullets type:', scene.projectileSystem?.playerBullets?.constructor?.name);
-    DebugLogger.verbose('collision', '  - Player bullets count:', scene.projectileSystem?.playerBullets?.getLength?.() || 0);
-    
-    DebugLogger.verbose('collision', '  - Enemy bullets group exists:', !!scene.projectileSystem?.enemyBullets);
-    DebugLogger.verbose('collision', '  - Enemy bullets type:', scene.projectileSystem?.enemyBullets?.constructor?.name);
-    DebugLogger.verbose('collision', '  - Enemy bullets count:', scene.projectileSystem?.enemyBullets?.getLength?.() || 0);
-    
-    DebugLogger.verbose('collision', '  - Physics world exists:', !!scene.physics?.world);
-    DebugLogger.verbose('collision', '  - Physics world active:', scene.physics?.world?.active || false);
+    DebugLogger.info('collision', '[setupCollisions] Setting up collisions...');
     
     const colliders = [];
 
@@ -106,21 +79,10 @@ export function setupCollisions(scene) {
 
     // Player bullets vs Enemies
     if (scene.projectileSystem?.playerBullets && scene.enemiesGroup) {
-        DebugLogger.info('collision', '[setupCollisions] Setting up Player bullets vs Enemies collision:');
-        DebugLogger.verbose('collision', '  - PlayerBullets group exists:', !!scene.projectileSystem.playerBullets);
-        DebugLogger.verbose('collision', '  - PlayerBullets type:', scene.projectileSystem.playerBullets?.constructor?.name);
-        DebugLogger.verbose('collision', '  - PlayerBullets children:', scene.projectileSystem.playerBullets?.getLength?.() || 0);
-        
         const collider = scene.physics.add.overlap(
             scene.projectileSystem.playerBullets,
             scene.enemiesGroup,
             (bullet, enemy) => {
-                DebugLogger.debug('collision', '[Collision] Player bullet hit enemy!', {
-                    bulletPos: { x: bullet.x, y: bullet.y },
-                    enemyPos: { x: enemy.x, y: enemy.y },
-                    bulletActive: bullet.active,
-                    enemyActive: enemy.active
-                });
                 handlePlayerBulletEnemyCollision.call(scene, bullet, enemy);
             },
             activeFilter,
@@ -151,23 +113,10 @@ export function setupCollisions(scene) {
     // CRITICAL: Player (sprite) must be first parameter, enemyBullets (group) second
     // This ensures Phaser passes parameters in correct order
     if (scene.projectileSystem?.enemyBullets && scene.player) {
-        DebugLogger.info('collision', '[setupCollisions] Setting up Enemy bullets vs Player collision:');
-        DebugLogger.verbose('collision', '  - Player exists:', !!scene.player);
-        DebugLogger.verbose('collision', '  - Player type:', scene.player?.constructor?.name);
-        DebugLogger.verbose('collision', '  - EnemyBullets group exists:', !!scene.projectileSystem.enemyBullets);
-        DebugLogger.verbose('collision', '  - EnemyBullets type:', scene.projectileSystem.enemyBullets?.constructor?.name);
-        DebugLogger.verbose('collision', '  - EnemyBullets children:', scene.projectileSystem.enemyBullets?.getLength?.() || 0);
-        
         const collider = scene.physics.add.overlap(
             scene.player,                          // Sprite first (Phaser convention)
             scene.projectileSystem.enemyBullets,   // Group second
-            (player, bullet) => {                  // Parameters now in correct order
-                DebugLogger.debug('collision', '[Collision] Enemy bullet hit player!', {
-                    bulletPos: { x: bullet.x, y: bullet.y },
-                    playerPos: { x: player.x, y: player.y },
-                    bulletActive: bullet.active,
-                    playerActive: player.active
-                });
+            (player, bullet) => {
                 handleEnemyBulletPlayerCollision(bullet, player);
             },
             activeFilter,
@@ -200,22 +149,11 @@ export function setupCollisions(scene) {
  * Handle player-enemy collision
  */
 function handlePlayerEnemyCollision(player, enemy) {
-    DebugLogger.debug('collision', '[handlePlayerEnemyCollision] Called with:', {
-        playerActive: player?.active,
-        enemyActive: enemy?.active,
-        canTakeDamage: !!player?.canTakeDamage,
-        enemyDamage: enemy?.damage
-    });
-    
     if (!player.active || !enemy.active) return;
-    
-    // Check if player can take damage
+
     if (player.canTakeDamage && player.canTakeDamage()) {
         const damage = enemy.contactDamage || enemy.damage || 10;
-        DebugLogger.debug('collision', '[handlePlayerEnemyCollision] Applying damage:', damage);
         player.takeDamage(damage);
-    } else {
-        DebugLogger.debug('collision', '[handlePlayerEnemyCollision] Player cannot take damage (iframes or shield)');
     }
 }
 
@@ -258,25 +196,15 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
         const explosionRadius = scene.player.getExplosionRadius ? scene.player.getExplosionRadius() : 35;
         let explosionDamage = scene.player.getExplosionDamage ? scene.player.getExplosionDamage() : damage * 0.5;
         explosionDamage = Number(explosionDamage) || (damage * 0.5);
-        
-        // Create explosion effect
+
+        // createExplosion handles VFX+SFX internally — no duplicate calls here
         if (scene.projectileSystem?.createExplosion) {
             scene.projectileSystem.createExplosion(
-                bullet.x, bullet.y, 
-                explosionDamage, 
-                explosionRadius, 
+                bullet.x, bullet.y,
+                explosionDamage,
+                explosionRadius,
                 1
             );
-        }
-        
-        // Play explosion VFX
-        if (scene.vfxSystem) {
-            scene.vfxSystem.play('vfx.explosion.small', bullet.x, bullet.y);
-        }
-        
-        // Play explosion SFX  
-        if (scene.audioSystem) {
-            scene.audioSystem.play('sound/explosion_small.mp3');
         }
     }
     

@@ -97,6 +97,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.hp = this.maxHp;
         this._iFramesMsLeft = 0; // Zbývající čas nezranitelnosti
         this.activeModifiers = []; // Aktivní modifikátory z PowerUpSystem
+        this._statsDirty = true; // Dirty flag for _stats() cache
         
         // Shield state — managed by PowerUpSystem
         this.shieldActive = false;
@@ -375,11 +376,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             throw new Error('[Player] setActiveModifiers expects an array');
         }
         this.activeModifiers = modArray;
+        this._statsDirty = true;
     }
 
     addModifier(mod) {
         if (!mod) return;
         this.activeModifiers.push(mod);
+        this._statsDirty = true;
     }
 
     removeModifierById(id) {
@@ -387,6 +390,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         for (let i = 0; i < a.length; i++) {
             if (a[i]?.id === id) {
                 a.splice(i, 1);
+                this._statsDirty = true;
                 return true;
             }
         }
@@ -395,6 +399,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     clearModifiers() {
         this.activeModifiers = [];
+        this._statsDirty = true;
     }
     
     /**
@@ -502,44 +507,38 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
      * Used for compatibility with existing code
      */
     _stats() {
-        // Cache stats — invalidated by time or modifier changes
-        const now = this.scene?.time?.now || 0;
-        if (this._statsCache && this._statsCacheTime && (now - this._statsCacheTime < 100)) {
+        // Return cached stats if nothing changed (dirty flag set by modifier methods)
+        if (this._statsCache && !this._statsDirty) {
             return this._statsCache;
         }
-        
+
         // Build stats object with all modifiers applied
         const stats = {};
-        let hasChanges = false;
-        
+
         // Copy base stats (use cached keys array — no prototype traversal)
         if (!this._baseStatKeys) this._baseStatKeys = Object.keys(this.baseStats);
         for (const key of this._baseStatKeys) {
-            const baseValue = this.baseStats[key];
-            const modifiedValue = this.applyModifiers(baseValue, key);
-            stats[key] = modifiedValue;
-            
-            // Track if we have any changes
-            if (Math.abs(modifiedValue - baseValue) > 0.01) {
-                hasChanges = true;
+            stats[key] = this.applyModifiers(this.baseStats[key], key);
+        }
+
+        // Log once when modifiers actually change
+        if (this._statsDirty && this.activeModifiers?.length > 0) {
+            const now = this.scene?.time?.now || 0;
+            if (!this._lastModifierLogTime || now - this._lastModifierLogTime > 1000) {
+                DebugLogger.info('powerup', `[Player] Stats recalculated:`, {
+                    activeModifiers: this.activeModifiers.length,
+                    attackInterval: stats.attackIntervalMs,
+                    damage: stats.projectileDamage,
+                    speed: stats.moveSpeed
+                });
+                this._lastModifierLogTime = now;
             }
         }
-        
-        // Only log once when modifiers change, not every frame
-        if (hasChanges && (!this._lastModifierLogTime || now - this._lastModifierLogTime > 1000)) {
-            DebugLogger.info('powerup', `[Player] Stats with modifiers:`, {
-                activeModifiers: this.activeModifiers?.length || 0,
-                attackInterval: stats.attackIntervalMs,
-                damage: stats.projectileDamage,
-                speed: stats.moveSpeed
-            });
-            this._lastModifierLogTime = now;
-        }
-        
+
         // Cache the result
         this._statsCache = stats;
-        this._statsCacheTime = now;
-        
+        this._statsDirty = false;
+
         return stats;
     }
 
@@ -598,9 +597,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         // Use a small delay to prevent immediate shooting
         this._nextAttackAt = now + Math.min(stats.attackIntervalMs, 500);
         
-        // Clear stats cache to force recalculation
-        this._statsCache = null;
-        this._statsCacheTime = null;
+        // Force stats recalculation
+        this._statsDirty = true;
         
         DebugLogger.info('player', '[Player] Timers reset after pause - next attack at:', this._nextAttackAt);
     }

@@ -282,11 +282,8 @@ export class PowerUpSystem {
         // Apply abilities
         this.abilities.applyToPlayer(player, abilities);
         
-        // Force stats recalculation
-        if (player._statsCache) {
-            player._statsCache = null;
-            player._statsCacheTime = null;
-        }
+        // Force stats recalculation via dirty flag
+        player._statsDirty = true;
         
         DebugLogger.info('powerup', `[PowerUpSystem] 📊 Player stats after application:`);
         DebugLogger.info('powerup', `  - Active modifiers: ${player.activeModifiers?.length || 0}`);

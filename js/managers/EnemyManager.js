@@ -117,24 +117,7 @@ export class EnemyManager {
             hud.showBoss(bossName, boss.hp, boss.maxHp);
         }
         
-        // DEBUG: Log spawned boss with physics verification
-        DebugLogger.info('spawn', '[EnemyManager] Boss spawned:', {
-            blueprintId: blueprint.id,
-            position: { x, y },
-            hasBody: !!boss.body,
-            bodyEnabled: boss.body?.enable,
-            bodySize: boss.body ? { width: boss.body.width, height: boss.body.height } : null,
-            bodyType: boss.body?.type || 'none',
-            collisionCategory: boss.body?.collisionCategory || 'none',
-            collidesWith: boss.body?.collidesWith || 'none',
-            active: boss.active,
-            visible: boss.visible,
-            hp: boss.hp,
-            inGroup: this.scene.bossGroup.contains(boss),
-            inEnemiesGroup: this.scene.enemiesGroup.contains(boss),
-            groupType: this.scene.bossGroup.constructor.name,
-            texture: boss.texture?.key || 'none'
-        });
+        DebugLogger.info('spawn', `[EnemyManager] Boss spawned: ${blueprint.id} at (${Math.round(x)},${Math.round(y)}) HP=${boss.hp}`);
         
         return boss;
     }
@@ -182,23 +165,7 @@ export class EnemyManager {
         // Set depth
         enemy.setDepth(this.scene.DEPTH_LAYERS?.ENEMIES || 1000);
         
-        // DEBUG: Log spawned enemy with physics verification
-        DebugLogger.info('spawn', '[EnemyManager] Enemy spawned:', {
-            blueprintId,
-            position: { x, y },
-            hasBody: !!enemy.body,
-            bodyEnabled: enemy.body?.enable,
-            bodySize: enemy.body ? { width: enemy.body.width, height: enemy.body.height } : null,
-            bodyType: enemy.body?.type || 'none',
-            collisionCategory: enemy.body?.collisionCategory || 'none',
-            collidesWith: enemy.body?.collidesWith || 'none',
-            active: enemy.active,
-            visible: enemy.visible,
-            hp: enemy.hp,
-            inGroup: this.scene.enemiesGroup.contains(enemy),
-            groupType: this.scene.enemiesGroup.constructor.name,
-            texture: enemy.texture?.key || 'none'
-        });
+        DebugLogger.verbose('spawn', `[EnemyManager] Spawned ${blueprintId} at (${Math.round(x)},${Math.round(y)})`);
         
         return enemy;
     }

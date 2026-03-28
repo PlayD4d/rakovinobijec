@@ -198,18 +198,29 @@ export class ProjectileSystem {
   }
   
   /**
-   * Vystřelí hráčský projektil - Zero-GC API pouze se skaláry
+   * Vystřelí hráčský projektil - Zero-GC API
    * @param {number} x - X pozice hráče
    * @param {number} y - Y pozice hráče
-   * @param {number} dirX - Směr X (automaticky normalizováno)
-   * @param {number} dirY - Směr Y (automaticky normalizováno)  
-   * @param {number} speedMultiplier - Násobič rychlosti (výchozí 1.0)
-   * @param {number} rangeMultiplier - Násobič dosahu (výchozí 1.0)
-   * @param {number} damageMultiplier - Násobič poškození (výchozí 1.0)
-   * @param {number} tint - Barevný odstín (výchozí bílá)
-   * @returns {boolean} - True pokud byl projektil vystřelen, false pokud je pool plný
+   * @param {number} dirX - Směr X (normalizováno)
+   * @param {number} dirY - Směr Y (normalizováno)
+   * @param {Object} [opts] - { speedMul, rangeMul, damageMul, tint, projectileId }
+   * @returns {boolean} True pokud byl projektil vystřelen
    */
-  firePlayer(x, y, dirX, dirY, speedMultiplier = 1.0, rangeMultiplier = 1.0, damageMultiplier = 1.0, tint = 0xffffff, projectileId = 'projectile.cytotoxin') {
+  firePlayer(x, y, dirX, dirY, opts = {}) {
+    // Backwards compat: if 5th arg is a number, use legacy positional signature
+    if (typeof opts === 'number') {
+      const args = arguments;
+      opts = {
+        speedMul: args[4], rangeMul: args[5], damageMul: args[6],
+        tint: args[7], projectileId: args[8]
+      };
+    }
+    const speedMultiplier = opts.speedMul ?? 1.0;
+    const rangeMultiplier = opts.rangeMul ?? 1.0;
+    const damageMultiplier = opts.damageMul ?? 1.0;
+    const tint = opts.tint ?? 0xffffff;
+    const projectileId = opts.projectileId ?? 'projectile.cytotoxin';
+
     const bullet = this.playerBullets.get();
     if (!bullet) {
       // Pool vyčerpán - elegantní degradace, bez spamu
@@ -274,23 +285,31 @@ export class ProjectileSystem {
   
   /**
    * Vystřelí nepřátelský projektil - Zero-GC API pouze se skaláry  
+   * Vystřelí nepřátelský projektil
    * @param {number} x - X pozice nepřítele
    * @param {number} y - Y pozice nepřítele
-   * @param {number} dirX - Směr X (automaticky normalizováno)
-   * @param {number} dirY - Směr Y (automaticky normalizováno)
-   * @param {number} speed - Rychlost v px/s (výchozí z konfigurace)
-   * @param {number} range - Dosah v px (výchozí z konfigurace) 
-   * @param {number} damage - Hodnota poškození
-   * @param {boolean|string} tracking - Naváděný projektil (false/true/'DEFAULT'/'TRACKING'/'AGGRESSIVE'/'LAZY')
-   * @param {string} sourceType - Identifikátor zdroje (např. 'boss:metastaza')
-   * @param {number} tint - Barevný odstín (výchozí červená)
-   * @returns {boolean} - True pokud byl projektil vystřelen, false pokud je pool plný
+   * @param {number} dirX - Směr X (normalizováno)
+   * @param {number} dirY - Směr Y (normalizováno)
+   * @param {Object} [opts] - { speed, range, damage, tracking, sourceType, tint, projectileId }
+   * @returns {boolean} True pokud byl projektil vystřelen
    */
-  fireEnemy(x, y, dirX, dirY, speed = null, range = null, damage = null, tracking = false, sourceType = null, tint = 0xff0000, projectileId = 'projectile.cytotoxin_enhanced') {
+  fireEnemy(x, y, dirX, dirY, opts = {}) {
+    // Backwards compat: if 5th arg is a number/null, use legacy positional signature
+    if (opts === null || typeof opts === 'number') {
+      const args = arguments;
+      opts = {
+        speed: args[4], range: args[5], damage: args[6],
+        tracking: args[7], sourceType: args[8], tint: args[9], projectileId: args[10]
+      };
+    }
     // PR7: Use values from config if not provided, with proper fallbacks
-    speed = speed || this.config.enemySpeed || 150;
-    range = range || this.config.enemyRange || 400;
-    damage = damage || this.config.enemyDamage || 8; // CRITICAL FIX: Fallback damage value
+    const speed = opts.speed || this.config.enemySpeed || 150;
+    const range = opts.range || this.config.enemyRange || 400;
+    const damage = opts.damage || this.config.enemyDamage || 8;
+    const tracking = opts.tracking || false;
+    const sourceType = opts.sourceType || null;
+    const tint = opts.tint ?? 0xff0000;
+    const projectileId = opts.projectileId ?? 'projectile.cytotoxin_enhanced';
     const bullet = this.enemyBullets.get();
     if (!bullet) {
       // Pool vyčerpán - elegantní degradace, bez spamu

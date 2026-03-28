@@ -448,15 +448,9 @@ export class GameScene extends Phaser.Scene {
     restartScene() { this.scene.restart(); }
     
     findNearestEnemy() {
-        if (!this.player || !this.enemiesGroup) return null;
-        const { x: px, y: py } = this.player;
-        let closest = null, bestDist = Infinity;
-        for (const enemy of this.enemiesGroup.getChildren()) {
-            if (!enemy.active) continue;
-            const d = (px - enemy.x) ** 2 + (py - enemy.y) ** 2;
-            if (d < bestDist) { bestDist = d; closest = enemy; }
-        }
-        return closest;
+        // Delegate to TargetingSystem (single source of truth)
+        if (this.targetingSystem) return this.targetingSystem.findTarget(this.player);
+        return null;
     }
 
     _cleanupForTransition() {

@@ -222,7 +222,7 @@ export class SimplifiedVFXSystem {
      * Detach power-up effect from entity
      */
     detachEffect(entity, effectType) {
-        if (!entity._vfxUid) entity._vfxUid = ++SimplifiedVFXSystem._uidCounter;
+        if (!entity._vfxUid) return; // No effects were ever attached
         const effectKey = `${entity._vfxUid}_${effectType}`;
         
         const effect = this.powerUpEffects.get(effectKey);
@@ -242,14 +242,17 @@ export class SimplifiedVFXSystem {
      */
     detachAllEffectsForEntity(entity) {
         if (!entity) return 0;
-        
-        const entityId = entity.id || 'entity';
+
+        // Use _vfxUid to match keys — same prefix used by attachEffect/detachEffect
+        const uid = entity._vfxUid;
+        if (!uid) return 0; // No effects were ever attached
+
         let removedCount = 0;
-        
+
         // Find and remove all effects for this entity
         const keysToRemove = [];
         for (const [key, effect] of this.powerUpEffects) {
-            if (key.startsWith(`${entityId}_`)) {
+            if (key.startsWith(`${uid}_`)) {
                 // Stop/destroy the effect
                 if (effect) {
                     if (effect.stop) {
@@ -262,14 +265,14 @@ export class SimplifiedVFXSystem {
                 removedCount++;
             }
         }
-        
+
         // Remove from map
-        keysToRemove.forEach(key => this.powerUpEffects.delete(key));
-        
+        for (const key of keysToRemove) this.powerUpEffects.delete(key);
+
         if (removedCount > 0) {
-            DebugLogger.debug('vfx', `[VFX] Cleaned up ${removedCount} effects for entity ${entityId}`);
+            DebugLogger.debug('vfx', `[VFX] Cleaned up ${removedCount} effects for entity uid=${uid}`);
         }
-        
+
         return removedCount;
     }
     

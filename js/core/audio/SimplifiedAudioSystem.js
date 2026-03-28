@@ -12,8 +12,9 @@ export class SimplifiedAudioSystem {
     constructor(scene) {
         this.scene = scene;
         
-        // Sound tracking
+        // Sound tracking — keyed by unique play ID to avoid overwrite collisions
         this.activeSounds = new Map();
+        this._playIdCounter = 0;
         this.loopingSounds = new Map();
         this.soundPool = new Map(); // Reuse sound objects
         
@@ -128,6 +129,9 @@ export class SimplifiedAudioSystem {
         try {
             const sound = this._playSound(soundKey, soundPath, options);
             if (sound) {
+                // Commit cooldown only after successful play
+                const now = this.scene?.time?.now || 0;
+                if (now) this.lastPlayTimes.set(soundKey, now);
                 this._trackSound(soundKey, sound);
                 return sound;
             }
@@ -425,7 +429,7 @@ export class SimplifiedAudioSystem {
             return false;
         }
 
-        this.lastPlayTimes.set(soundKey, now);
+        // Don't set lastPlayTimes here — set it after successful play in play()
         return true;
     }
     
@@ -469,17 +473,18 @@ export class SimplifiedAudioSystem {
     }
     
     /**
-     * Track active sound
+     * Track active sound with unique play ID to avoid Map key collisions
      */
-    _trackSound(key, sound) {
-        this.activeSounds.set(key, sound);
+    _trackSound(soundKey, sound) {
+        const playId = `${soundKey}_${this._playIdCounter++}`;
+        this.activeSounds.set(playId, sound);
 
         // Unified cleanup — prevents double pool-return from both complete+stop
         const cleanup = () => {
             if (sound._poolReturned) return; // Guard against double return
             sound._poolReturned = true;
-            this.activeSounds.delete(key);
-            this._returnSoundToPool(key, sound);
+            this.activeSounds.delete(playId);
+            this._returnSoundToPool(soundKey, sound);
             sound.off('complete', cleanup);
             sound.off('stop', cleanup);
         };
