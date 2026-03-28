@@ -50,9 +50,10 @@ export class RadiotherapyEffect {
         this._damageZone = null;
         this._overlapCollider = null;
 
-        // Per-tick tracking to prevent double damage (WeakSet allows dead enemies to be GC'd)
-        this._hitThisTick = new WeakSet();
+        // Per-tick tracking to prevent double damage (Set + clear() avoids per-tick allocation)
+        this._hitThisTick = new Set();
         this._canDamage = false; // flipped by tick timer in update()
+        this._beamsDrawn = false; // draw beams once, rotate via graphics.rotation
     }
 
     // ==================== Lifecycle ====================
@@ -101,10 +102,11 @@ export class RadiotherapyEffect {
             this.loopId = null;
         }
 
-        this._hitThisTick = new WeakSet();
+        this._hitThisTick.clear();
     }
 
     updateConfig(config) {
+        this._beamsDrawn = false; // Force redraw on next frame
         if (config.beamCount !== undefined) {
             this.beamCount = config.beamCount;
             const maxSafeWidth = ((Math.PI * 2) / Math.max(1, this.beamCount)) * 0.8;
@@ -148,24 +150,28 @@ export class RadiotherapyEffect {
             this._damageZone.setPosition(ex, ey);
         }
 
-        // Rotate beams
+        // Rotate beams via graphics.rotation (no redraw needed)
         this.currentAngle += (this.rotationSpeed * delta) / 1000;
         if (this.currentAngle > Math.PI * 2) this.currentAngle -= Math.PI * 2;
+        this.graphics.rotation = this.currentAngle;
 
-        // Redraw beams
-        this.graphics.clear();
-        const angleStep = (Math.PI * 2) / this.beamCount;
-        for (let i = 0; i < this.beamCount; i++) {
-            this._drawBeam(this.currentAngle + angleStep * i);
+        // Draw beams only once (on first frame or config change)
+        if (!this._beamsDrawn) {
+            this.graphics.clear();
+            const angleStep = (Math.PI * 2) / this.beamCount;
+            for (let i = 0; i < this.beamCount; i++) {
+                this._drawBeam(angleStep * i); // Draw at base angles, rotation handles the rest
+            }
+            this._beamsDrawn = true;
         }
 
         // Damage tick — open window for one frame, then close
         if (time - this.lastDamageTick > this.tickRate * 1000) {
             this._canDamage = true;
-            this._hitThisTick = new WeakSet();
+            if (!this._hitThisTick) this._hitThisTick = new Set();
+            this._hitThisTick.clear(); // Reuse Set instead of allocating new WeakSet
             this.lastDamageTick = time;
         } else {
-            // Close the damage window after the tick frame
             this._canDamage = false;
         }
     }

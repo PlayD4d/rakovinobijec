@@ -327,9 +327,12 @@ export class UnifiedHUD {
     update() {
         if (!this.gameScene?.gameStats) return;
         const t = this.gameScene.gameStats.time;
+        // Only update text when the integer second changes (avoids 60/s string allocation)
+        if (t === this._lastTimeSec) return;
+        this._lastTimeSec = t;
         const minutes = Math.floor(t / 60);
         const seconds = Math.floor(t % 60);
-        this.timeText?.setText(`\u010cas: ${minutes}:${seconds.toString().padStart(2, '0')}`);
+        this.timeText?.setText(`Čas: ${minutes}:${seconds.toString().padStart(2, '0')}`);
     }
 
     /**

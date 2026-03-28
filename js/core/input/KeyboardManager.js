@@ -1,6 +1,8 @@
+import { DebugLogger } from '../debug/DebugLogger.js';
+
 /**
  * KeyboardManager - Centralizovaný management keyboard inputů
- * 
+ *
  * PR7 kompatibilní systém pro správu klávesových zkratek s:
  * - Automatickým cleanup
  * - Kontext-based organizací
@@ -16,7 +18,7 @@ export class KeyboardManager {
         /** @type {Map<string, {key: Phaser.Input.Keyboard.Key, handler: Function}>} */
         this.handlers = new Map();
         
-        console.log('[KeyboardManager] Initialized');
+        DebugLogger.info('input', '[KeyboardManager] Initialized');
     }
     
     /**
@@ -45,7 +47,7 @@ export class KeyboardManager {
             key.on('down', handler);
             this.handlers.set(id, { key, handler });
             
-            console.log(`[KeyboardManager] Registered ${keyCode} -> ${eventName} (${context})`);
+            DebugLogger.info('input', `[KeyboardManager] Registered ${keyCode} -> ${eventName} (${context})`);
         } catch (error) {
             console.warn(`[KeyboardManager] Failed to register ${keyCode}:`, error);
         }
@@ -71,7 +73,7 @@ export class KeyboardManager {
             key.on('down', handler);
             this.handlers.set(id, { key, handler });
             
-            console.log(`[KeyboardManager] Registered direct ${keyCode} (${context})`);
+            DebugLogger.info('input', `[KeyboardManager] Registered direct ${keyCode} (${context})`);
         } catch (error) {
             console.warn(`[KeyboardManager] Failed to register direct ${keyCode}:`, error);
         }
@@ -90,7 +92,7 @@ export class KeyboardManager {
             try {
                 entry.key.off('down', entry.handler);
                 this.handlers.delete(id);
-                console.log(`[KeyboardManager] Unregistered ${keyCode} (${context})`);
+                DebugLogger.info('input', `[KeyboardManager] Unregistered ${keyCode} (${context})`);
             } catch (error) {
                 console.warn(`[KeyboardManager] Failed to unregister ${keyCode}:`, error);
             }
@@ -118,7 +120,7 @@ export class KeyboardManager {
         toRemove.forEach(id => this.handlers.delete(id));
         
         if (toRemove.length > 0) {
-            console.log(`[KeyboardManager] Cleaned up ${toRemove.length} keys from context '${context}'`);
+            DebugLogger.info('input', `[KeyboardManager] Cleaned up ${toRemove.length} keys from context '${context}'`);
         }
     }
     
@@ -157,7 +159,7 @@ export class KeyboardManager {
                 handler 
             });
             
-            console.log(`[KeyboardManager] Registered text input for modal ${modalId}`);
+            DebugLogger.info('input', `[KeyboardManager] Registered text input for modal ${modalId}`);
         } catch (error) {
             console.warn(`[KeyboardManager] Failed to register text input for ${modalId}:`, error);
         }
@@ -204,7 +206,7 @@ export class KeyboardManager {
         this.scene = null;
         this.eventBus = null;
         
-        console.log(`[KeyboardManager] Destroyed - cleaned up ${count} handlers`);
+        DebugLogger.info('input', `[KeyboardManager] Destroyed - cleaned up ${count} handlers`);
     }
     
     /**
@@ -226,9 +228,9 @@ export class KeyboardManager {
     setupGameKeys() {
         // Herní klávesy - movement je zpracován přímo v GameScene update loop
         // Pouze utility klávesy půjdou přes EventBus
-        this.register('R', 'game.restart', 'game');
-        
-        console.log('[KeyboardManager] Game keys registered');
+        this.register('R', 'game:restart', 'game');
+
+        DebugLogger.info('input', '[KeyboardManager] Game keys registered');
     }
     
     /**
@@ -248,7 +250,7 @@ export class KeyboardManager {
                 console.warn(`[KeyboardManager] Failed to register debug key ${keyCode}:`, e);
             }
         }
-        console.log('[KeyboardManager] Debug keys registered:', Object.keys(handlers).join(', '));
+        DebugLogger.info('input', '[KeyboardManager] Debug keys registered:', Object.keys(handlers).join(', '));
     }
     
     /**
@@ -257,7 +259,7 @@ export class KeyboardManager {
     setupUIKeys() {
         this.register('ESC', 'ui:escape', 'ui');
         
-        console.log('[KeyboardManager] UI keys registered - ESC mapped to ui:escape event');
-        console.log('[KeyboardManager] Active handlers:', this.handlers.size);
+        DebugLogger.info('input', '[KeyboardManager] UI keys registered - ESC mapped to ui:escape event');
+        DebugLogger.info('input', '[KeyboardManager] Active handlers:', this.handlers.size);
     }
 }

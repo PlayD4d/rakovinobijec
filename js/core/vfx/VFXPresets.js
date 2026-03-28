@@ -169,88 +169,56 @@ export class VFXPresets {
      * Get preset by name with optional color override
      * Maintains backward compatibility while delegating to modules
      */
+    // Static lookup: name → [methodName, ...fixedArgs] (built once, no per-call allocation)
+    static _presetMap = {
+        'hit.small': ['smallHit'], 'hit.medium': ['mediumHit'], 'hit.large': ['largeHit'],
+        'small': ['smallHit'], 'medium': ['mediumHit'], 'enemy.hit': ['enemyHit'],
+        'explosion.small': ['explosion', 'small'], 'explosion.medium': ['explosion', 'medium'],
+        'explosion.large': ['explosion', 'large'], 'explosion.toxic': ['explosion', 'medium', 0x00FF00],
+        'trail': ['trail'], 'trail.small': ['trail', null, 100], 'trail.toxic': ['trail', 0x00FF00, 50],
+        'death.small': ['deathBurst', 'small'], 'death.medium': ['deathBurst', 'medium'], 'death.large': ['deathBurst', 'large'],
+        'spawn': ['spawn'], 'pickup': ['pickup'], 'powerup': ['powerupEffect'],
+        'powerup.epic': ['powerupEpic'], 'levelup': ['levelup'], 'heal': ['heal'],
+        'shield.hit': ['shieldHit'], 'shield.break': ['shieldBreak'], 'shield.activate': ['shieldActivate'],
+        'boss.spawn': ['bossSpawn'], 'boss.death': ['bossDeath'], 'boss.phase': ['bossPhase'],
+        'boss.special': ['bossSpecial'], 'boss.victory': ['bossVictory'],
+        'boss.radiation.pulse': ['radiationPulse'], 'boss.beam.warning': ['bossBeamWarning'],
+        'boss.overload.charge': ['bossOverloadCharge'], 'boss.overload.explosion': ['bossOverloadExplosion'],
+        'boss.radiation.storm': ['bossRadiationStorm'],
+        'effect': ['genericEffect'], 'special': ['specialEffect'], 'telegraph': ['telegraph'],
+        'aura': ['aura'], 'muzzle': ['muzzleFlash'], 'flash': ['flash'], 'victory': ['victory'],
+        'enemy.shoot': ['enemyShoot'],
+        'powerup.levelup.text': ['powerupEffect', 0xFFFF00], 'lightning.chain.bolt': ['smallHit', 0x4444FF],
+        'powerup.epic.timeslow': ['powerupEpic', 0xFF00FF], 'aura.damage': ['aura', 0x00FF00],
+        'lightning.strike': ['smallHit', 0x8888FF],
+        'shoot': ['enemyShoot'], 'hit': ['enemyHit']
+    };
+
     static getPreset(name, color = null) {
-        const presets = {
-            // Basic hit effects (Combat)
-            'hit.small': () => this.smallHit(color),
-            'hit.medium': () => this.mediumHit(color),
-            'hit.large': () => this.largeHit(color),
-            'small': () => this.smallHit(color), // Alias
-            'medium': () => this.mediumHit(color), // Alias
-            'enemy.hit': () => this.enemyHit(color),
-            
-            // Explosion effects (Combat)
-            'explosion.small': () => this.explosion('small', color),
-            'explosion.medium': () => this.explosion('medium', color),
-            'explosion.large': () => this.explosion('large', color),
-            'explosion.toxic': () => this.explosion('medium', 0x00FF00),
-            
-            // Trail effects (Utility)
-            'trail': () => this.trail(color),
-            'trail.small': () => this.trail(color || 0xFFFFFF, 100),
-            'trail.toxic': () => this.trail(0x00FF00, 50),
-            
-            // Death effects (Combat)
-            'death.small': () => this.deathBurst('small', color),
-            'death.medium': () => this.deathBurst('medium', color),
-            'death.large': () => this.deathBurst('large', color),
-            
-            // Special effects (PowerUp & Utility)
-            'spawn': () => this.spawn(color),
-            'pickup': () => this.pickup(color),
-            'powerup': () => this.powerupEffect(color),
-            'powerup.epic': () => this.powerupEpic(color),
-            'levelup': () => this.levelup(color),
-            'heal': () => this.heal(color),
-            
-            // Shield effects (PowerUp)
-            'shield.hit': () => this.shieldHit(color),
-            'shield.break': () => this.shieldBreak(color),
-            'shield.activate': () => this.shieldActivate(color),
-            
-            // Boss effects (Boss)
-            'boss.spawn': () => this.bossSpawn(color),
-            'boss.death': () => this.bossDeath(color),
-            'boss.phase': () => this.bossPhase(color),
-            'boss.special': () => this.bossSpecial(color),
-            'boss.victory': () => this.bossVictory(color),
-            'boss.radiation.pulse': () => this.radiationPulse(color),
-            'boss.beam.warning': () => this.bossBeamWarning(color),
-            'boss.overload.charge': () => this.bossOverloadCharge(color),
-            'boss.overload.explosion': () => this.bossOverloadExplosion(color),
-            'boss.radiation.storm': () => this.bossRadiationStorm(color),
-            
-            // Generic effects (Utility)
-            'effect': () => this.genericEffect(color),
-            'special': () => this.specialEffect(color),
-            'telegraph': () => this.telegraph(color),
-            'aura': () => this.aura(color),
-            'muzzle': () => this.muzzleFlash(color),
-            'flash': () => this.flash(),
-            'victory': () => this.victory(color),
-            'enemy.shoot': () => this.enemyShoot(color),
-            
-            // PowerUp refactor compatibility
-            'powerup.levelup.text': () => this.powerupEffect(0xFFFF00),
-            'lightning.chain.bolt': () => this.smallHit(0x4444FF),
-            'powerup.epic.timeslow': () => this.powerupEpic(0xFF00FF),
-            'aura.damage': () => this.aura(0x00FF00),
-            
-            // Lightning effects
-            'lightning.strike': () => this.smallHit(0x8888FF),
-            
-            // Fallback mappings
-            'shoot': () => this.enemyShoot(color),
-            'hit': () => this.enemyHit(color)
-        };
-        
-        const presetFn = presets[name];
-        if (!presetFn) {
+        const entry = this._presetMap[name];
+        if (!entry) {
             DebugLogger.warn('vfx', `[VFXPresets] Unknown preset: ${name}`);
             return null;
         }
-        
-        return presetFn();
+
+        // Call the method with fixed args, using color override where appropriate
+        const [method, ...fixedArgs] = entry;
+        const fn = this[method];
+        if (!fn) return null;
+
+        // Apply: first arg is color (or fixed override), rest are fixed args
+        if (fixedArgs.length === 0) {
+            return fn.call(this, color);
+        } else if (fixedArgs.length === 1) {
+            // Could be size string or fixed color
+            const arg1 = fixedArgs[0];
+            if (typeof arg1 === 'string') return fn.call(this, arg1, color); // e.g. explosion('small', color)
+            return fn.call(this, arg1 ?? color); // fixed color or fallback
+        } else {
+            // Multiple fixed args — use them directly (color overrides handled by fixed values)
+            return fn.call(this, fixedArgs[0] ?? color, fixedArgs[1]);
+        }
+
     }
 }
 

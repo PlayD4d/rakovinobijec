@@ -129,6 +129,8 @@ export class HighScoreModal {
     /** Show result modal (placement) */
     showResult(position) {
         if (!this.scene?.scale) return;
+        // Clean up input handlers before destroying modal
+        this._cleanupInput?.();
         // Destroy previous modal to prevent leak
         if (this.modal) { this.modal.destroy(); this.modal = null; }
 

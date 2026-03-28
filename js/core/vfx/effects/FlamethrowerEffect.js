@@ -37,7 +37,7 @@ export class FlamethrowerEffect {
         // Phaser physics zone for broadphase overlap
         this._damageZone = null;
         this._overlapCollider = null;
-        this._hitThisTick = new WeakSet();
+        this._hitThisTick = new Set();
         this._canDamage = false;
         
         DebugLogger.info('vfx', `[FlamethrowerEffect] Created - damage: ${this.damage}, tick rate: ${this.tickRate}s`);
@@ -126,7 +126,7 @@ export class FlamethrowerEffect {
             this._damageZone.destroy();
             this._damageZone = null;
         }
-        this._hitThisTick = new WeakSet();
+        this._hitThisTick = new Set();
         
         // Stop looping flame sound - PR7: používáme audioSystem
         if (this.loopId && this.scene.audioSystem) {
@@ -162,18 +162,25 @@ export class FlamethrowerEffect {
         // Emit flame particles + recompute tongue geometry per tick (not per frame)
         if (this.particleTimer >= this.particleInterval) {
             this._emitFlameParticle();
-            this._tongues = Array.from({ length: 3 }, () => ({
-                offset: (Math.random() - 0.5) * this.coneAngle * 2,
-                lenFactor: 0.6 + Math.random() * 0.4,
-                radius: 8 + Math.random() * 4
-            }));
+            // Mutate pre-allocated tongue objects instead of allocating new array
+            if (!this._tongues) {
+                this._tongues = [{ offset: 0, lenFactor: 1, radius: 10 },
+                                 { offset: 0, lenFactor: 1, radius: 10 },
+                                 { offset: 0, lenFactor: 1, radius: 10 }];
+            }
+            for (let i = 0; i < 3; i++) {
+                this._tongues[i].offset = (Math.random() - 0.5) * this.coneAngle * 2;
+                this._tongues[i].lenFactor = 0.6 + Math.random() * 0.4;
+                this._tongues[i].radius = 8 + Math.random() * 4;
+            }
             this.particleTimer = 0;
         }
 
-        // Damage tick — open window for one frame, then close
+        // Damage tick — reuse Set instead of allocating new WeakSet per tick
         if (time - this.lastDamageTick > this.tickRate * 1000) {
             this._canDamage = true;
-            this._hitThisTick = new WeakSet();
+            if (!this._hitThisTick) this._hitThisTick = new Set();
+            this._hitThisTick.clear();
             this.lastDamageTick = time;
         } else {
             this._canDamage = false;
