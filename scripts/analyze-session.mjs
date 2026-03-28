@@ -193,6 +193,51 @@ if (showAll || flags.has('--xp')) {
 // ============================================================
 // FULL TIMELINE
 // ============================================================
+// PERFORMANCE
+// ============================================================
+if (showAll || flags.has('--perf')) {
+    console.log('\n━━━ PERFORMANCE ━━━');
+
+    const perfSnaps = events.filter(e => e.cat === 'perf' && e.act === 'snapshot');
+    const fpsDrops = events.filter(e => e.cat === 'perf' && e.act === 'fps_drop');
+    const entityOverloads = events.filter(e => e.cat === 'perf' && e.act === 'entity_overload');
+
+    if (perfSnaps.length > 0) {
+        const fpsValues = perfSnaps.map(e => e.fps).filter(v => v > 0);
+        const avgFps = fpsValues.length > 0 ? Math.round(fpsValues.reduce((a,b) => a+b, 0) / fpsValues.length) : 0;
+        const minFps = fpsValues.length > 0 ? Math.min(...fpsValues) : 0;
+        const maxFps = fpsValues.length > 0 ? Math.max(...fpsValues) : 0;
+
+        console.log(`  Snapshots: ${perfSnaps.length}`);
+        console.log(`  FPS: avg=${avgFps}, min=${minFps}, max=${maxFps}`);
+        console.log(`  FPS drops (<30): ${fpsDrops.length}`);
+        console.log(`  Entity overloads (>100): ${entityOverloads.length}`);
+
+        console.log('\n  Timeline:');
+        for (const e of perfSnaps) {
+            const warn = e.fps < 30 ? ' ⚠️' : e.fps < 50 ? ' ⚡' : '';
+            console.log(`    [${fmt(e.t)}] ${e.fps} FPS | ${e.frameMs}ms | enemies=${e.enemies}(${e.enemiesActive} active) proj=${e.projectiles} loot=${e.loot}${warn}`);
+        }
+
+        // Detect bottlenecks
+        const highEnemyFrames = perfSnaps.filter(e => e.enemies > 50);
+        const highProjFrames = perfSnaps.filter(e => e.projectiles > 100);
+        const highLootFrames = perfSnaps.filter(e => e.loot > 50);
+
+        if (highEnemyFrames.length > 0 || highProjFrames.length > 0 || highLootFrames.length > 0) {
+            console.log('\n  Potential bottlenecks:');
+            if (highEnemyFrames.length > 0) console.log(`    Enemies >50: ${highEnemyFrames.length} snapshots`);
+            if (highProjFrames.length > 0) console.log(`    Projectiles >100: ${highProjFrames.length} snapshots`);
+            if (highLootFrames.length > 0) console.log(`    Loot >50: ${highLootFrames.length} snapshots`);
+        }
+    } else {
+        console.log('  No performance data (update to v0.5.75+)');
+    }
+}
+
+// ============================================================
+// FULL TIMELINE
+// ============================================================
 if (flags.has('--timeline') || flags.has('--full')) {
     console.log('\n━━━ FULL TIMELINE ━━━');
     for (const e of events) {

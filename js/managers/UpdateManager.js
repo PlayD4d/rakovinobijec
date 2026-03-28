@@ -1,4 +1,5 @@
 import { DebugLogger } from '../core/debug/DebugLogger.js';
+import { getSession } from '../core/debug/SessionLog.js';
 
 /**
  * UpdateManager - Centralized update orchestration for GameScene
@@ -218,6 +219,22 @@ export class UpdateManager {
 
     update(time, delta) {
         if (!this.enabled) return;
+
+        // Lightweight perf snapshot every 5s → session log
+        if (!this._lastPerfLog || time - this._lastPerfLog >= 5000) {
+            this._lastPerfLog = time;
+            const fps = Math.round(this.scene.game?.loop?.actualFps || 0);
+            const frameMs = Math.round(delta);
+            const enemies = this.scene.enemiesGroup?.children?.size || 0;
+            const enemiesActive = this.scene.enemiesGroup?.countActive?.() || 0;
+            const projectiles = (this.scene.projectileSystem?.playerBullets?.countActive?.() || 0) +
+                                (this.scene.projectileSystem?.enemyBullets?.countActive?.() || 0);
+            const loot = this.scene.lootSystem?.lootGroup?.children?.size || 0;
+            getSession()?.log('perf', 'snapshot', { fps, frameMs, enemies, enemiesActive, projectiles, loot });
+            // Warn on perf issues
+            if (fps < 30) getSession()?.log('perf', 'fps_drop', { fps, enemies, projectiles, loot });
+            if (enemies > 100) getSession()?.log('perf', 'entity_overload', { enemies, enemiesActive });
+        }
 
         // Use cached sorted phases (rebuilt only when phases change)
         if (!this._sortedPhasesCache) {
