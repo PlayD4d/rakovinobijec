@@ -173,7 +173,8 @@ export class SystemsInitializer {
             // Create physics groups (Arcade Physics uses overlap registration, not broadphase categories)
             if (!this.scene.enemiesGroup) {
                 this.scene.enemiesGroup = this.scene.physics.add.group({
-                    runChildUpdate: false, maxSize: 60
+                    runChildUpdate: false
+                    // No maxSize — killed enemies are deactivated, not pooled
                 });
             }
             if (!this.scene.bossGroup) {
