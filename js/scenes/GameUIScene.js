@@ -5,6 +5,7 @@
 import { PauseUI } from '../ui/lite/PauseUI.js';
 import { PowerUpUI } from '../ui/lite/PowerUpUI.js';
 import { GameOverUI } from '../ui/lite/GameOverUI.js';
+import { UnifiedHUD } from '../ui/UnifiedHUD.js';
 import { UI_THEME } from '../ui/UITheme.js';
 
 export class GameUIScene extends Phaser.Scene {
@@ -14,9 +15,13 @@ export class GameUIScene extends Phaser.Scene {
         this.pauseUI = null;
         this.powerUpUI = null;
         this.gameOverUI = null;
+        this.hud = null;
     }
 
     create() {
+        // Initialize HUD (lives in UI scene, reads from GameScene via connect)
+        this.hud = new UnifiedHUD(this);
+
         // Initialize UI components
         this.pauseUI = new PauseUI(this,
             () => this.handleResume(),
@@ -31,6 +36,16 @@ export class GameUIScene extends Phaser.Scene {
 
         // Listen for events from GameScene
         this.setupEventListeners();
+    }
+
+    /**
+     * Called by BootstrapManager after GameScene is ready.
+     * Wires the HUD to the game scene so it can read player/stats.
+     */
+    connectToGameScene(gameScene) {
+        if (this.hud) {
+            this.hud.connect(gameScene);
+        }
     }
 
     setupEventListeners() {
@@ -157,20 +172,17 @@ export class GameUIScene extends Phaser.Scene {
     }
 
     /**
-     * Update HUD even when GameScene is paused
-     * (paused scenes still render but don't get update calls)
+     * Update HUD every frame (time display) — works even when GameScene is paused
      */
     update() {
-        const gameScene = this.scene.get('GameScene');
-        if (gameScene?.unifiedHUD && gameScene.scene.isPaused()) {
-            gameScene.unifiedHUD.update();
-        }
+        this.hud?.update();
     }
 
     shutdown() {
         // Restore input state before destroying UI
         this.input.setTopOnly(false);
 
+        this.hud?.destroy();
         this.pauseUI?.destroy();
         this.powerUpUI?.destroy();
         this.gameOverUI?.destroy();

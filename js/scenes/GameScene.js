@@ -2,8 +2,7 @@ import { Player } from '../entities/Player.js';
 import { startSession, getSession } from '../core/debug/SessionLog.js';
 import { Boss } from '../entities/Boss.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
-import { UnifiedHUD } from '../ui/UnifiedHUD.js';
-import { MobileControlsSystem } from '../core/systems/MobileControlsSystem.js';
+import { MobileControlsSystem} from '../core/systems/MobileControlsSystem.js';
 import { SimpleLootSystem } from '../core/systems/SimpleLootSystem.js';
 import { EventBus } from '../core/events/EventBus.js';
 import { TelemetryLogger } from '../core/TelemetryLogger.js';
@@ -34,7 +33,6 @@ export class GameScene extends Phaser.Scene {
         this.currentBoss = null;
 
         // UI & controls
-        this.unifiedHUD = null;
         this.mobileControls = null;
 
         // Systems (assigned in create/bootstrap)
@@ -427,7 +425,6 @@ export class GameScene extends Phaser.Scene {
         const { width, height } = gameSize;
         this.mainCam?.setSize(width, height);
         this.uiCam?.setSize(width, height);
-        this.unifiedHUD?.onResize?.(width, height);
         this.pauseMenu?.onResize?.(width, height);
         if (this.mobileControls?.enabled) this.mobileControls.handleResize(width, height);
     }
@@ -517,7 +514,6 @@ export class GameScene extends Phaser.Scene {
                 { name: 'playerShieldEffect', ref: this.playerShieldEffect },
                 { name: 'debugOverlay', ref: this.debugOverlay },
                 { name: 'telemetryLogger', ref: this.telemetryLogger, method: 'destroy' },
-                { name: 'unifiedHUD', ref: this.unifiedHUD },
                 { name: 'graphicsFactory', ref: this.graphicsFactory },
             ];
             
@@ -541,7 +537,7 @@ export class GameScene extends Phaser.Scene {
             const refs = ['player','spawnDirector','projectileSystem','lootSystem','powerUpSystem',
                 'vfxSystem','audioSystem','keyboardManager','analyticsManager','updateManager',
                 'transitionManager','enemiesGroup','bossGroup','debugOverlay','telemetryLogger',
-                'unifiedHUD','graphicsFactory','targetingSystem','mobileControls','frameworkDebug',
+                'graphicsFactory','targetingSystem','mobileControls','frameworkDebug',
                 'blueprintLoader','uiLayer','enemies'];
             for (const k of refs) this[k] = null;
 

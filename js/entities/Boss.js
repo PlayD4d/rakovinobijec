@@ -269,8 +269,9 @@ export class Boss extends BossCore {
         const damageDealt = super.takeDamage({ amount, source });
 
         // Update boss HP bar if damage was dealt
-        if (damageDealt > 0 && this.scene?.unifiedHUD) {
-            this.scene.unifiedHUD.setBossHealth(this.hp, this.maxHp);
+        if (damageDealt > 0) {
+            const hud = this.scene?.scene?.get('GameUIScene')?.hud;
+            if (hud) hud.setBossHealth(this.hp, this.maxHp);
         }
 
         // Trigger boss decision after taking damage (tracked timer)
@@ -297,9 +298,8 @@ export class Boss extends BossCore {
         this.playSfx('death');
 
         // Hide boss HP bar
-        if (this.scene.unifiedHUD) {
-            this.scene.unifiedHUD.hideBoss();
-        }
+        const hud = this.scene.scene?.get('GameUIScene')?.hud;
+        if (hud) hud.hideBoss();
 
         // Process loot/XP BEFORE deactivating (handleEnemyDeath needs position)
         // Boss flags (currentBoss, bossActive) are managed by EnemyManager.onEnemyDeath

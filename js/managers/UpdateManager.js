@@ -52,18 +52,6 @@ export class UpdateManager {
             if (!scene.isPaused) {
                 scene.sceneTimeSec += delta / 1000;
                 scene.gameStats.time = Math.floor(scene.sceneTimeSec);
-                
-                const currentSec = Math.floor(scene.sceneTimeSec);
-                if (scene._lastTimeUi !== currentSec) {
-                    scene._lastTimeUi = currentSec;
-                    const minutes = Math.floor(currentSec / 60);
-                    const seconds = currentSec % 60;
-                    const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                    
-                    if (scene.unifiedHUD?.timeText) {
-                        scene.unifiedHUD.timeText.setText(timeStr);
-                    }
-                }
             }
         }, 'game_timer');
         
@@ -151,26 +139,27 @@ export class UpdateManager {
             }
         }, 'powerup_system');
         
-        // HUD updates — only setText when values actually change
+        // HUD updates — now handled by GameUIScene.update()
+        // Refresh at 2Hz via GameUIScene
+        let _lastHudRefresh = 0;
         let _lastHudLevel = -1;
         let _lastHudStage = -1;
-        let _lastHudRefresh = 0;
         this.addTask('hud', (time, delta) => {
-            if (scene.unifiedHUD) {
-                scene.unifiedHUD.update(); // Only time (per-frame)
-                // Refresh HP/XP/score/kills at 2Hz (not 60fps)
-                if (time - _lastHudRefresh > 500) {
-                    _lastHudRefresh = time;
-                    scene.unifiedHUD.refresh();
-                }
+            const hud = scene.scene.get('GameUIScene')?.hud;
+            if (!hud) return;
 
-                const lvl = scene.gameStats.level;
-                const stg = scene.currentLevel;
-                if (scene.unifiedHUD.levelText && (lvl !== _lastHudLevel || stg !== _lastHudStage)) {
-                    _lastHudLevel = lvl;
-                    _lastHudStage = stg;
-                    scene.unifiedHUD.levelText.setText(`Level: ${lvl} | Stage: ${stg}`);
-                }
+            // Refresh HP/XP/score/kills at 2Hz (not 60fps)
+            if (time - _lastHudRefresh > 500) {
+                _lastHudRefresh = time;
+                hud.refresh();
+            }
+
+            const lvl = scene.gameStats.level;
+            const stg = scene.currentLevel;
+            if (hud.levelText && (lvl !== _lastHudLevel || stg !== _lastHudStage)) {
+                _lastHudLevel = lvl;
+                _lastHudStage = stg;
+                hud.levelText.setText(`Level: ${lvl} | Stage: ${stg}`);
             }
         }, 'hud_update');
         

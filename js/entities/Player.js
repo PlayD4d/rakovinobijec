@@ -262,9 +262,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         
         this.scene.frameworkDebug?.onPlayerHit?.(this, dmg, source);
 
-        // Update HUD
-        if (this.scene.unifiedHUD?.setPlayerHealth) {
-            this.scene.unifiedHUD.setPlayerHealth(this.hp, this.maxHp);
+        // Update HUD (lives in GameUIScene)
+        {
+            const hud = this.scene.scene?.get('GameUIScene')?.hud;
+            if (hud?.setPlayerHealth) hud.setPlayerHealth(this.hp, this.maxHp);
         }
 
         // CRITICAL DEBUG: Track HP and death conditions
@@ -302,9 +303,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             this._playSfx(this.sfx.heal);
             this.scene.frameworkDebug?.onPlayerHeal?.(this, this.hp - before);
             
-            // Update HUD
-            if (this.scene.unifiedHUD?.setPlayerHealth) {
-                this.scene.unifiedHUD.setPlayerHealth(this.hp, this.maxHp);
+            // Update HUD (lives in GameUIScene)
+            {
+                const hud = this.scene.scene?.get('GameUIScene')?.hud;
+                if (hud?.setPlayerHealth) hud.setPlayerHealth(this.hp, this.maxHp);
             }
         }
         return this.hp - before;

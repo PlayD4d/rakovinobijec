@@ -836,9 +836,10 @@ export function installDevConsole(scene) {
         } else if (targetHp < currentHp) {
           // For reducing health, we still need direct access
           scene.player.hp = targetHp;
-          // Update HUD through proper method
-          if (scene.unifiedHUD?.setPlayerHealth) {
-            scene.unifiedHUD.setPlayerHealth(targetHp, scene.player.maxHp);
+          // Update HUD through proper method (HUD lives in GameUIScene)
+          {
+            const hud = scene.scene?.get('GameUIScene')?.hud;
+            if (hud?.setPlayerHealth) hud.setPlayerHealth(targetHp, scene.player.maxHp);
           }
         }
         
@@ -863,9 +864,10 @@ export function installDevConsole(scene) {
         scene.player.maxHp = newMaxHp;
         scene.player.hp = Math.min(scene.player.hp, newMaxHp);
         
-        // Update HUD through proper method
-        if (scene.unifiedHUD?.setPlayerHealth) {
-          scene.unifiedHUD.setPlayerHealth(scene.player.hp, newMaxHp);
+        // Update HUD through proper method (HUD lives in GameUIScene)
+        {
+          const hud = scene.scene?.get('GameUIScene')?.hud;
+          if (hud?.setPlayerHealth) hud.setPlayerHealth(scene.player.hp, newMaxHp);
         }
         
         console.log(`✅ Player max health set to ${newMaxHp} (current: ${scene.player.hp})`);

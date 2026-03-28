@@ -111,9 +111,10 @@ export class EnemyManager {
         boss.setDisplaySize(size, size);
         
         // Show boss health bar
-        if (this.scene.unifiedHUD?.showBoss) {
+        const hud = this.scene.scene.get('GameUIScene')?.hud;
+        if (hud?.showBoss) {
             const bossName = blueprint.display?.devNameFallback || boss.bossName || blueprint.id;
-            this.scene.unifiedHUD.showBoss(bossName, boss.hp, boss.maxHp);
+            hud.showBoss(bossName, boss.hp, boss.maxHp);
         }
         
         // DEBUG: Log spawned boss with physics verification

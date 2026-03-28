@@ -6,7 +6,6 @@
 
 import { Player } from '../entities/Player.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
-import { UnifiedHUD } from '../ui/UnifiedHUD.js';
 import { SystemsInitializer } from './SystemsInitializer.js';
 
 export class BootstrapManager {
@@ -78,11 +77,14 @@ export class BootstrapManager {
      * Setup UI components
      */
     initializeUI() {
-        // Create HUD using imported class (ES6 module)
-        this.scene.unifiedHUD = new UnifiedHUD(this.scene);
-        
         // Launch UI overlay scene using interface method
         this.scene.launchUIScene('GameUIScene');
+
+        // Connect HUD in GameUIScene to this GameScene so it can read player/stats
+        const uiScene = this.scene.scene.get('GameUIScene');
+        if (uiScene) {
+            uiScene.connectToGameScene(this.scene);
+        }
     }
 
     /**
