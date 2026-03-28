@@ -50,8 +50,8 @@ export class RadiotherapyEffect {
         this._damageZone = null;
         this._overlapCollider = null;
 
-        // Per-tick tracking to prevent double damage
-        this._hitThisTick = new Set();
+        // Per-tick tracking to prevent double damage (WeakSet allows dead enemies to be GC'd)
+        this._hitThisTick = new WeakSet();
         this._canDamage = false; // flipped by tick timer in update()
     }
 
@@ -101,7 +101,7 @@ export class RadiotherapyEffect {
             this.loopId = null;
         }
 
-        this._hitThisTick.clear();
+        this._hitThisTick = new WeakSet();
     }
 
     updateConfig(config) {
@@ -162,7 +162,7 @@ export class RadiotherapyEffect {
         // Damage tick — open window for one frame, then close
         if (time - this.lastDamageTick > this.tickRate * 1000) {
             this._canDamage = true;
-            this._hitThisTick.clear();
+            this._hitThisTick = new WeakSet();
             this.lastDamageTick = time;
         } else {
             // Close the damage window after the tick frame

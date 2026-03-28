@@ -347,8 +347,13 @@ export class PowerUpAbilities {
                     });
                 }
                 
-                // Continue chain after delay — tracked for cleanup
+                // Continue chain after delay — tracked for cleanup, self-removing on completion
                 const timer = this.scene.time?.delayedCall(150, () => {
+                    // Remove from tracking on completion
+                    if (this._chainTimers) {
+                        const idx = this._chainTimers.indexOf(timer);
+                        if (idx !== -1) this._chainTimers.splice(idx, 1);
+                    }
                     if (!next?.active || !this.scene) return;
                     this._chainToEnemy(next, damage * 0.8, jumpsLeft - 1, jumpRange, hitList);
                 });
@@ -428,14 +433,19 @@ export class PowerUpAbilities {
                 this.scene.physics.add.existing(this._auraZone, false);
                 this._auraZone.body.setCircle(player.auraRadius);
                 this._auraZone.body.setOffset(-player.auraRadius + ad/2, -player.auraRadius + ad/2);
+                // Throttle aura damage per-enemy (same pattern as chemo cloud)
+                this._auraHitTimes = new WeakMap();
                 this._auraOverlap = this.scene.physics.add.overlap(
                     this._auraZone,
                     enemiesGroup,
                     (zone, enemy) => {
                         if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
-                        // Read current auraDamage each tick so level-ups take effect
+                        const now = this.scene.time?.now || 0;
+                        const lastHit = this._auraHitTimes.get(enemy) || 0;
+                        if (now - lastHit < 100) return; // ~10 ticks/sec per enemy (not every physics step)
                         const currentDmg = (player.auraDamage || 0) * 0.1;
                         enemy.takeDamage(currentDmg, 'aura');
+                        this._auraHitTimes.set(enemy, now);
                     }
                 );
             }

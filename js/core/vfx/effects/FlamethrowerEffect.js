@@ -37,7 +37,7 @@ export class FlamethrowerEffect {
         // Phaser physics zone for broadphase overlap
         this._damageZone = null;
         this._overlapCollider = null;
-        this._hitThisTick = new Set();
+        this._hitThisTick = new WeakSet();
         this._canDamage = false;
         
         DebugLogger.info('vfx', `[FlamethrowerEffect] Created - damage: ${this.damage}, tick rate: ${this.tickRate}s`);
@@ -125,7 +125,7 @@ export class FlamethrowerEffect {
             this._damageZone.destroy();
             this._damageZone = null;
         }
-        this._hitThisTick.clear();
+        this._hitThisTick = new WeakSet();
         
         // Stop looping flame sound - PR7: používáme audioSystem
         if (this.loopId && this.scene.audioSystem) {
@@ -167,7 +167,7 @@ export class FlamethrowerEffect {
         // Damage tick — open window for one frame, then close
         if (time - this.lastDamageTick > this.tickRate * 1000) {
             this._canDamage = true;
-            this._hitThisTick.clear();
+            this._hitThisTick = new WeakSet();
             this.lastDamageTick = time;
         } else {
             this._canDamage = false;

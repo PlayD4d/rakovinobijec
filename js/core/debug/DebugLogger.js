@@ -158,20 +158,39 @@ export class DebugLogger {
      * Get effective config (with runtime overrides)
      * @private
      */
+    // Cached config to avoid ConfigResolver.get + object allocation on every log call
+    static _cachedConfig = null;
+    static _cachedConfigTime = 0;
+
     static getEffectiveConfig() {
-        const baseConfig = ConfigResolver.get('debug', { defaultValue: {} });
-        
+        // Refresh cache every 2 seconds (not every call — called thousands of times/sec)
+        const now = Date.now();
+        if (this._cachedConfig && now - this._cachedConfigTime < 2000) {
+            // Apply runtime overrides on top of cached base (overrides change immediately)
+            const c = this._cachedConfig;
+            return {
+                enabled: this.runtimeOverrides.enabled !== null ? this.runtimeOverrides.enabled : c.enabled,
+                logLevel: this.runtimeOverrides.logLevel || c.logLevel,
+                categories: { ...c.categories, ...this.runtimeOverrides.categories }
+            };
+        }
+
+        const baseConfig = ConfigResolver.get('debug', { defaultValue: DebugLogger._defaultDebugConfig });
+        this._cachedConfig = {
+            enabled: baseConfig.enabled !== undefined ? baseConfig.enabled : true,
+            logLevel: baseConfig.logLevel || 'WARN',
+            categories: baseConfig.categories || {}
+        };
+        this._cachedConfigTime = now;
+
         return {
-            enabled: this.runtimeOverrides.enabled !== null ? 
-                this.runtimeOverrides.enabled : 
-                (baseConfig.enabled !== undefined ? baseConfig.enabled : true),
-            logLevel: this.runtimeOverrides.logLevel || baseConfig.logLevel || 'WARN',
-            categories: {
-                ...baseConfig.categories,
-                ...this.runtimeOverrides.categories
-            }
+            enabled: this.runtimeOverrides.enabled !== null ? this.runtimeOverrides.enabled : this._cachedConfig.enabled,
+            logLevel: this.runtimeOverrides.logLevel || this._cachedConfig.logLevel,
+            categories: { ...this._cachedConfig.categories, ...this.runtimeOverrides.categories }
         };
     }
+
+    static _defaultDebugConfig = {};
     
     // === Runtime control methods ===
     

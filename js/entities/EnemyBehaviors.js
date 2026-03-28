@@ -213,6 +213,9 @@ export class EnemyBehaviors {
 
     destroy() {
         this.enemy = null;
+        this._capability = null; // Release closures holding enemy reference
+        this._setLayerFns = null;
+        this._layerEntries = null;
     }
 }
 

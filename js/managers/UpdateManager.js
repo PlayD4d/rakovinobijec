@@ -90,20 +90,20 @@ export class UpdateManager {
         // Enemy updates
         this.addTask('enemies', (time, delta) => {
             if (!scene.isPaused) {
-                if (scene.enemiesGroup) {
-                    scene.enemiesGroup.getChildren().forEach(enemy => {
-                        if (enemy.active && enemy.update) {
-                            enemy.update(time, delta);
-                        }
-                    });
+                // Use for-loop on live array — no forEach closure allocation per frame
+                const enemies = scene.enemiesGroup?.getChildren();
+                if (enemies) {
+                    for (let i = 0, len = enemies.length; i < len; i++) {
+                        const e = enemies[i];
+                        if (e.active && e.update) e.update(time, delta);
+                    }
                 }
-                
-                if (scene.bossGroup) {
-                    scene.bossGroup.getChildren().forEach(boss => {
-                        if (boss.active && boss.update) {
-                            boss.update(time, delta);
-                        }
-                    });
+                const bosses = scene.bossGroup?.getChildren();
+                if (bosses) {
+                    for (let i = 0, len = bosses.length; i < len; i++) {
+                        const b = bosses[i];
+                        if (b.active && b.update) b.update(time, delta);
+                    }
                 }
             }
         }, 'enemy_updates');

@@ -104,7 +104,9 @@ export class BossPhases {
                 this.isTransitioning = false;
             });
         } else if (this.scene?.time) {
-            this.scene.time.delayedCall(500, () => {
+            // Tracked fallback timer — cancelled in cleanup()
+            this._transitionTimer = this.scene.time.delayedCall(500, () => {
+                this._transitionTimer = null;
                 if (!this.boss || !this.scene) return;
                 this.executePostTransitionEffects(newPhase);
                 this.isTransitioning = false;
@@ -338,6 +340,11 @@ export class BossPhases {
      */
     cleanup() {
         this.isTransitioning = false;
+        // Cancel any pending transition timer
+        if (this._transitionTimer) {
+            this._transitionTimer.destroy();
+            this._transitionTimer = null;
+        }
         this.transitionCallbacks.clear();
         this.hpThresholds = [];
         this.boss = null;
