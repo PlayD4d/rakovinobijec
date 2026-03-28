@@ -15,10 +15,11 @@ function applyPiercingReduction(bullet, baseDamage) {
     return baseDamage;
 }
 
-/** Handle bullet after hit: destroy or increment hitCount for piercing */
+/** Handle bullet after hit: return to pool (kill) or increment hitCount for piercing */
 function handleBulletAfterHit(bullet) {
     if (!bullet.piercing || bullet.hitCount >= bullet.maxPiercing) {
-        bullet.destroy();
+        // Use kill() for pool recycling (disableBody), fallback to destroy for non-pooled
+        if (bullet.kill) bullet.kill(); else bullet.destroy();
     } else {
         bullet.hitCount = (bullet.hitCount || 0) + 1;
     }
@@ -72,21 +73,18 @@ export function setupCollisions(scene) {
     
     const colliders = [];
 
+    // Shared processCallback: skip inactive objects BEFORE allocating callback frame
+    const activeFilter = (a, b) => a.active && b.active;
+
     // Player vs Enemies collision
     if (scene.player && scene.enemiesGroup) {
         const collider = scene.physics.add.overlap(
             scene.player,
             scene.enemiesGroup,
             (player, enemy) => {
-                DebugLogger.debug('collision', '[Collision] Player-Enemy collision detected!', {
-                    playerPos: { x: player.x, y: player.y },
-                    enemyPos: { x: enemy.x, y: enemy.y },
-                    playerActive: player.active,
-                    enemyActive: enemy.active
-                });
                 handlePlayerEnemyCollision(player, enemy);
             },
-            null,
+            activeFilter,
             scene
         );
         colliders.push(collider);
@@ -100,7 +98,7 @@ export function setupCollisions(scene) {
                 scene.player,
                 scene.bossGroup,
                 handlePlayerBossCollision,
-                null,
+                activeFilter,
                 scene
             )
         );
@@ -125,7 +123,7 @@ export function setupCollisions(scene) {
                 });
                 handlePlayerBulletEnemyCollision.call(scene, bullet, enemy);
             },
-            null,
+            activeFilter,
             scene
         );
         colliders.push(collider);
@@ -134,7 +132,7 @@ export function setupCollisions(scene) {
         DebugLogger.info('collision', '[setupCollisions] SKIPPED Player bullets vs Enemies - missing components');
     }
 
-    // Player bullets vs Boss — use .call(scene) for consistency with enemy handler
+    // Player bullets vs Boss
     if (scene.projectileSystem?.playerBullets && scene.bossGroup) {
         colliders.push(
             scene.physics.add.overlap(
@@ -143,7 +141,7 @@ export function setupCollisions(scene) {
                 (bullet, boss) => {
                     handlePlayerBulletBossCollision.call(scene, bullet, boss);
                 },
-                null,
+                activeFilter,
                 scene
             )
         );
@@ -172,7 +170,7 @@ export function setupCollisions(scene) {
                 });
                 handleEnemyBulletPlayerCollision(bullet, player);
             },
-            null,
+            activeFilter,
             scene
         );
         colliders.push(collider);
@@ -188,7 +186,7 @@ export function setupCollisions(scene) {
                 scene.player,
                 scene.lootSystem.lootGroup,
                 (player, loot) => scene.lootSystem.handlePickup(player, loot),
-                null,
+                activeFilter,
                 scene
             )
         );

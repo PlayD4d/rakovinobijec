@@ -160,7 +160,7 @@ export class SystemsInitializer {
         try {
             // Create physics groups here (PR7: SystemsInitializer owns Phaser API setup)
             if (!this.scene.enemiesGroup) {
-                this.scene.enemiesGroup = this.scene.physics.add.group({ runChildUpdate: false });
+                this.scene.enemiesGroup = this.scene.physics.add.group({ runChildUpdate: false, maxSize: 60 });
             }
             if (!this.scene.bossGroup) {
                 this.scene.bossGroup = this.scene.physics.add.group();

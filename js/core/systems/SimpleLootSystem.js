@@ -482,27 +482,18 @@ export class SimpleLootSystem {
      * Handles pause fallback - immediately moves item if time is paused
      */
     animateAttraction(item, target, onComplete) {
-        if (!item || !item.active || !target) return null;
-        
-        // If time is paused, immediately move to target
-        if (this.scene.time?.paused) {
-            item.x = target.x;
-            item.y = target.y;
+        if (!item?.active || !target || !item.body) {
             if (onComplete) onComplete();
             return null;
         }
-        
-        // Normal tween animation
-        return this.scene.tweens.add({
-            targets: item,
-            x: target.x,
-            y: target.y,
-            duration: 800,
-            ease: 'Power2',
-            onComplete: () => {
-                if (onComplete) onComplete();
-            }
-        });
+
+        // Use physics velocity instead of tweening x/y (tweens conflict with Arcade Physics)
+        const speed = 400;
+        this.scene.physics.moveTo(item, target.x, target.y, speed);
+
+        // Store callback — will be resolved when item overlaps player (via handlePickup)
+        item._attractionCallback = onComplete;
+        return null;
     }
     
     shutdown() {
