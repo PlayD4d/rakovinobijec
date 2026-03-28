@@ -88,6 +88,9 @@ export class EnemyBehaviors {
         // Pre-create capability object
         this._capability = this._buildCapability();
 
+        // Cache layer entries to avoid Object.entries() per frame per enemy
+        this._layerEntries = Object.entries(this.layers);
+
         DebugLogger.info('enemy', `[EnemyBehaviors] ${blueprint.id}: layers=${JSON.stringify(this.layers)}`);
     }
 
@@ -101,8 +104,8 @@ export class EnemyBehaviors {
         const cap = this.createCapability();
         cap.now = time;
 
-        // Run each active layer
-        for (const [layer, behaviorName] of Object.entries(this.layers)) {
+        // Run each active layer (use cached entries — avoid Object.entries per frame)
+        for (const [layer, behaviorName] of this._layerEntries) {
             if (!behaviorName) continue;
             const fn = BEHAVIORS[behaviorName];
             if (!fn) continue;
@@ -123,6 +126,7 @@ export class EnemyBehaviors {
                         this.mem._shared[stickKey] = now + opts.stickyMs;
                     }
                     this.layers[layer] = newBehavior;
+                    this._layerEntries = Object.entries(this.layers); // Rebuild cache
                     if (layer === 'movement') this.state = newBehavior;
                 }
             };

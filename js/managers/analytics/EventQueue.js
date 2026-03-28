@@ -49,6 +49,9 @@ export class EventQueue {
     /** Flush all queued events to Supabase. */
     async flushEvents() {
         if (this.queue.length === 0 || !this._supabase) return;
+        // Prevent concurrent flushes (timer can fire while previous is in-flight)
+        if (this._flushing) return;
+        this._flushing = true;
 
         // Wait for session row to exist (foreign key constraint)
         if (!this._isSessionReady()) {
@@ -99,6 +102,7 @@ export class EventQueue {
 
         // Clear queue
         this.queue = [];
+        this._flushing = false;
     }
 
     /** Stop flush timer and do a final best-effort flush. */
@@ -107,10 +111,19 @@ export class EventQueue {
             clearInterval(this._flushTimer);
             this._flushTimer = null;
         }
-        // Best-effort sync flush of remaining events
-        if (this.queue.length > 0) {
-            try { this.flushEvents(); } catch (_) {}
-        }
+        // Snapshot remaining events before clearing — flushEvents is async so we capture first
+        const remaining = [...this.queue];
         this.queue = [];
+        if (remaining.length > 0 && this._supabase) {
+            // Fire-and-forget with captured snapshot
+            const eventsByTable = {};
+            for (const event of remaining) {
+                if (!eventsByTable[event.table]) eventsByTable[event.table] = [];
+                eventsByTable[event.table].push(event.data);
+            }
+            for (const [table, events] of Object.entries(eventsByTable)) {
+                this._supabase.from(table).insert(events, { returning: 'minimal' }).catch(() => {});
+            }
+        }
     }
 }

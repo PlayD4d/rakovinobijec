@@ -2,6 +2,8 @@
  * DisposableRegistry - Unified resource cleanup management
  * PR7 compliant - single registry for all disposable resources
  */
+import { DebugLogger } from '../core/debug/DebugLogger.js';
+
 export class DisposableRegistry {
     constructor() {
         this._items = [];
@@ -102,7 +104,7 @@ export class DisposableRegistry {
      * Dispose all registered items
      */
     disposeAll() {
-        console.log(`[DisposableRegistry] Disposing ${this._items.length} items...`);
+        DebugLogger.info('general', `[DisposableRegistry] Disposing ${this._items.length} items...`);
         
         let disposed = 0;
         let errors = 0;
@@ -117,12 +119,12 @@ export class DisposableRegistry {
                 if (item?.remove) item.remove(false);
                 disposed++;
             } catch (e) {
-                console.warn('[DisposableRegistry] dispose error:', e);
+                DebugLogger.warn('general', '[DisposableRegistry] dispose error:', e);
                 errors++;
             }
         }
         
-        console.log(`[DisposableRegistry] Disposed ${disposed} items, ${errors} errors`);
+        DebugLogger.info('general', `[DisposableRegistry] Disposed ${disposed} items, ${errors} errors`);
         this._items.length = 0;
     }
 }

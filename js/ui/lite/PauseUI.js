@@ -48,7 +48,7 @@ export class PauseUI {
       scene, cx, cy + 40, 
       '⚙️ Nastavení', 
       () => {
-        console.log('Settings - TODO');
+        // Settings not yet implemented
       },
       200, 50
     );

@@ -85,22 +85,6 @@ export class PlayerAttackController {
     }
 
     /**
-     * Find target using TargetingSystem (alternative targeting)
-     * @returns {object|null} The target or null
-     */
-    _findTarget() {
-        const scene = this.player.scene;
-
-        // PR7: Delegate to TargetingSystem for proper separation of concerns
-        if (scene.targetingSystem?.findTarget) {
-            return scene.targetingSystem.findTarget(this.player);
-        }
-
-        // Fallback if TargetingSystem not available
-        return null;
-    }
-
-    /**
      * Roll crit damage
      * @param {number} baseDamage - Base damage value
      * @param {object} stats - Current player stats

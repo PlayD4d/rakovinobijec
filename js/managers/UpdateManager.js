@@ -228,15 +228,16 @@ export class UpdateManager {
             this._rebuildSortedPhases();
         }
         const sortedPhases = this._sortedPhasesCache;
-        
+
+        // Cache debug flag once per frame (avoid deep property traversal per-phase)
+        const isDebug = this._isDebug ??= !!this.scene.game?.config?.physics?.arcade?.debug;
+
         // Execute each phase
         for (const phase of sortedPhases) {
             if (!phase.enabled || phase.tasks.length === 0) continue;
-            
-            const isDebug = this.scene.game?.config?.physics?.arcade?.debug;
+
             const startTime = isDebug ? performance.now() : 0;
 
-            // Execute all tasks in this phase
             for (const task of phase.tasks) {
                 if (task.enabled) {
                     try {
@@ -247,14 +248,12 @@ export class UpdateManager {
                 }
             }
 
-            // Track metrics only in DEV mode
             if (isDebug) {
                 this.trackPhaseMetrics(phase.name, performance.now() - startTime);
             }
         }
-        
-        // Report metrics periodically in DEV mode
-        if (this.scene.game?.config?.physics?.arcade?.debug) {
+
+        if (isDebug) {
             this.reportMetrics(time);
         }
     }

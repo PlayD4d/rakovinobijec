@@ -68,7 +68,7 @@ export class XpRetuner {
         table.enemyWaves?.forEach((wave, index) => {
             const enemyXp = getEnemyXp(wave.enemyId);
             const avgCount = wave.countRange ? (wave.countRange[0] + wave.countRange[1]) / 2 : 1;
-            const spawnsPerMinute = 60000 / wave.interval;
+            const spawnsPerMinute = wave.interval > 0 ? 60000 / wave.interval : 0;
 
             // Base expected XP/min for this wave
             wave._baseXpPerMinute = enemyXp * avgCount * spawnsPerMinute;

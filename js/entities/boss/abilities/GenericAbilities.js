@@ -190,14 +190,15 @@ export function executeRageMode(bossAbilities, abilityData, params) {
     // Apply rage bonuses
     bossAbilities.boss.moveSpeed *= speedMultiplier;
     bossAbilities.boss.damageMultiplier = originalDamage * damageMultiplier;
-    bossAbilities.boss.setTint(0xFF4444); // Red tint for rage
+    // Visual indicator via capability — setTint is a Phaser sprite method on BossCore
+    if (bossAbilities.boss.setTint) bossAbilities.boss.setTint(0xFF4444);
 
     // Restore after duration (tracked for cleanup)
     bossAbilities._schedule(duration, () => {
         if (bossAbilities.boss) {
             bossAbilities.boss.moveSpeed = originalSpeed;
             bossAbilities.boss.damageMultiplier = originalDamage;
-            bossAbilities.boss.clearTint();
+            if (bossAbilities.boss.clearTint) bossAbilities.boss.clearTint();
         }
     });
 

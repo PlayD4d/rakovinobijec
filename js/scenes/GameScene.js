@@ -261,20 +261,15 @@ export class GameScene extends Phaser.Scene {
      * Kill all enemies (for special items)
      */
     killAllEnemies() {
-        if (!this.enemies) return;
-        
-        this.enemies.getChildren().forEach(enemy => {
-            if (enemy && enemy.active) {
-                this.handleEnemyDeath(enemy);
-            }
-        });
-        
-        // Flash effect
+        // Delegate to EnemyManager (single source of truth for enemy operations)
+        if (this.enemyManager) {
+            this.enemyManager.killAll();
+        }
         this.cameras.main.flash(500, 255, 255, 0);
     }
     
     async startGame() {
-        this.levelStartTime = Date.now();
+        this.levelStartTime = this.time?.now || 0;
         
         // Start spawn director with first level spawn table
         if (this.spawnDirector) {
@@ -332,12 +327,10 @@ export class GameScene extends Phaser.Scene {
         // Flash effect
         this.cameras.main.flash(500, 255, 255, 0);
 
-        // Destroy all enemies
-        const enemies = this.enemies?.getChildren() || [];
+        // Destroy all non-boss enemies
+        const enemies = this.enemiesGroup?.getChildren() || [];
         enemies.forEach(enemy => {
-            if (enemy.active && !(enemy instanceof Boss)) {
-                this.handleEnemyDeath(enemy);
-            }
+            if (enemy.active) this.handleEnemyDeath(enemy);
         });
 
         // Play metotrexat SFX
@@ -394,16 +387,16 @@ export class GameScene extends Phaser.Scene {
 
     levelUp() {
         this._session?.log('game', 'level_up', { level: this.gameStats.level, time: Math.floor(this.sceneTimeSec) });
-        this.player.heal(20);
+        // Heal from config (default 20) — no hardcoded magic number
+        const healAmount = window.ConfigResolver?.get('progression.levelUpHeal', { defaultValue: 20 }) ?? 20;
+        this.player.heal(healAmount);
         const options = this.getPowerUpOptions();
         DebugLogger.info('game', '[GameScene] Emitting game-levelup event');
         this.game.events.emit('game-levelup', options);
         this.cameras.main.flash(500, 255, 255, 0);
-        if (this.analyticsManager && typeof this.analyticsManager.trackEvent === 'function') {
-            this.analyticsManager.trackEvent('level_up', {
-                level: this.gameStats.level,
-                time: Math.floor((Date.now() - this.levelStartTime) / 1000)
-            });
+        if (this.analyticsManager?.trackEvent) {
+            const elapsed = this.time?.now ? Math.floor((this.time.now - this.levelStartTime) / 1000) : 0;
+            this.analyticsManager.trackEvent('level_up', { level: this.gameStats.level, time: elapsed });
         }
     }
 
@@ -459,10 +452,10 @@ export class GameScene extends Phaser.Scene {
     restartScene() { this.scene.restart(); }
     
     findNearestEnemy() {
-        if (!this.player || !this.enemies) return null;
+        if (!this.player || !this.enemiesGroup) return null;
         const { x: px, y: py } = this.player;
         let closest = null, bestDist = Infinity;
-        for (const enemy of this.enemies.getChildren()) {
+        for (const enemy of this.enemiesGroup.getChildren()) {
             if (!enemy.active) continue;
             const d = (px - enemy.x) ** 2 + (py - enemy.y) ** 2;
             if (d < bestDist) { bestDist = d; closest = enemy; }

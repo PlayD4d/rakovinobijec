@@ -40,7 +40,14 @@ export class ProgressionSystem {
         }
 
         // Process ONE level-up per call to prevent stacking
-        if (this.gameStats.xp >= this.gameStats.xpToNext && !this.scene.isPaused) {
+        if (this.gameStats.xp >= this.gameStats.xpToNext) {
+            // If paused (e.g., power-up selection), defer excess as pending XP
+            if (this.scene.isPaused) {
+                this._pendingXP += this.gameStats.xp;
+                this.gameStats.xp = 0;
+                if (this.scene.player) this.scene.player.xp = 0;
+                return;
+            }
             const excessXP = this.gameStats.xp - this.gameStats.xpToNext;
 
             this.gameStats.xp = 0;
@@ -81,8 +88,8 @@ export class ProgressionSystem {
         let effExp = level - 1;
 
         if (level >= softcapStart) {
-            const pre = softcapStart - 2;                   // exponent at (softcapStart - 1)
-            const inc = level - softcapStart + 1;           // steps past softcap
+            const pre = softcapStart - 1;                   // exponent at softcapStart (continuous)
+            const inc = level - softcapStart;               // 0 at first post-softcap level
             effExp = pre + postSlope * inc;                 // flattened exponent growth
         }
 

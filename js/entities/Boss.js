@@ -301,11 +301,8 @@ export class Boss extends BossCore {
             this.scene.unifiedHUD.hideBoss();
         }
 
-        // Clear boss reference and flag
-        this.scene.currentBoss = null;
-        this.scene.bossActive = false;
-
         // Process loot/XP BEFORE deactivating (handleEnemyDeath needs position)
+        // Boss flags (currentBoss, bossActive) are managed by EnemyManager.onEnemyDeath
         if (this.scene.handleEnemyDeath) {
             this.scene.handleEnemyDeath(this);
         }

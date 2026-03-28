@@ -263,20 +263,7 @@ export class SimpleLootSystem {
         }
     }
     
-    /**
-     * Kill all enemies (for Metotrexat effect)
-     */
-    killAllEnemies() {
-        const enemies = this.scene.enemiesGroup?.getChildren() || [];
-        enemies.forEach(enemy => {
-            if (enemy.active && enemy.takeDamage) {
-                enemy.takeDamage(99999);
-            }
-        });
-        
-        // Flash effect
-        this.scene.cameras.main.flash(300, 255, 255, 0);
-    }
+    // killAllEnemies removed — use EnemyManager.killAll() (single responsibility)
     
     /**
      * Find a non-overlapping position for a new drop
