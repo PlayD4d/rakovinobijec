@@ -2,8 +2,8 @@
   id: 'boss.karcinogenni_kral',
   type: 'boss',
   stats: {
-    hp: 350,
-    maxHp: 350,
+    hp: 1050,
+    maxHp: 1050,
     speed: 0.7,
     damage: 25,
     xp: 400,

@@ -4,7 +4,7 @@
   inherits: 'enemy.viral_swarm',
   stats: {
     hp: 20,
-    damage: 7,
+    damage: 15,
     speed: 100,
     size: 22,
     armor: 1,
@@ -75,7 +75,7 @@
   drops: [
     {
       itemId: 'item.health_small',
-      chance: 0.08,
+      chance: 0.03,
     },
   ],
   display: {

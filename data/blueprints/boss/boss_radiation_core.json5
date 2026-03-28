@@ -2,7 +2,7 @@
   id: 'boss.radiation_core',
   type: 'boss',
   stats: {
-    hp: 400,
+    hp: 1200,
     damage: 10,
     speed: 30,
     size: 60,

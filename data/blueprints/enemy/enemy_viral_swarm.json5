@@ -3,7 +3,7 @@
   type: 'enemy',
   stats: {
     hp: 12,
-    damage: 4,
+    damage: 8,
     speed: 100,
     size: 18,
     armor: 0,
@@ -32,7 +32,7 @@
   drops: [
     {
       itemId: 'item.health_small',
-      chance: 0.05,
+      chance: 0.02,
     },
   ],
   graphics: {

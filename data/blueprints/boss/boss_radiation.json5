@@ -2,8 +2,8 @@
   id: 'boss.radiation',
   type: 'boss',
   stats: {
-    hp: 608,
-    maxHp: 608,
+    hp: 1800,
+    maxHp: 1800,
     speed: 0.5,
     damage: 60,
     xp: 500,

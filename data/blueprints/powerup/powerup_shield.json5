@@ -20,8 +20,8 @@
   },
   ability: {
     type: 'shield',
-    baseShieldHP: 50,  // Base HP value for calculations
-    rechargeTimePerLevel: [10000, 9000, 8000, 7000, 6000],  // 10s, 9s, 8s, 7s, 6s
+    baseShieldHP: 25,  // Base HP value for calculations
+    rechargeTimePerLevel: [15000, 13000, 11000, 9000, 7000],  // 15s, 13s, 11s, 9s, 7s
   },
   vfx: {
     pickup: 'vfx.pickup',

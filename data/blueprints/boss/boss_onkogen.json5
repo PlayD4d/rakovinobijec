@@ -2,8 +2,8 @@
   id: 'boss.onkogen',
   type: 'boss',
   stats: {
-    hp: 350,
-    maxHp: 350,
+    hp: 1050,
+    maxHp: 1050,
     speed: 0.8,
     damage: 25,
     xp: 380,
