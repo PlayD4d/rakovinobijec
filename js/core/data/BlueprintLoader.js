@@ -470,7 +470,7 @@ export class BlueprintLoader {
         
         for (const [id, blueprint] of this.blueprints) {
             try {
-                const isValid = await validator.BlueprintValidator.validate(blueprint);
+                const isValid = await validator.BlueprintValidator.validate(blueprint, blueprint.type || 'unknown');
                 results.push({ id, valid: isValid });
             } catch (error) {
                 results.push({ id, valid: false, error: error.message });

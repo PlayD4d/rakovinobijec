@@ -162,32 +162,37 @@ export class DebugLogger {
     static _cachedConfig = null;
     static _cachedConfigTime = 0;
 
+    // Pre-allocated merged config object — mutated in place, never re-created
+    static _mergedConfig = { enabled: true, logLevel: 'WARN', categories: {} };
+    static _overridesVersion = 0; // bumped when runtimeOverrides change
+
     static getEffectiveConfig() {
-        // Refresh cache every 2 seconds (not every call — called thousands of times/sec)
+        // Refresh base config every 2 seconds
         const now = Date.now();
-        if (this._cachedConfig && now - this._cachedConfigTime < 2000) {
-            // Apply runtime overrides on top of cached base (overrides change immediately)
-            const c = this._cachedConfig;
-            return {
-                enabled: this.runtimeOverrides.enabled !== null ? this.runtimeOverrides.enabled : c.enabled,
-                logLevel: this.runtimeOverrides.logLevel || c.logLevel,
-                categories: { ...c.categories, ...this.runtimeOverrides.categories }
+        if (!this._cachedConfig || now - this._cachedConfigTime >= 2000) {
+            const baseConfig = ConfigResolver.get('debug', { defaultValue: DebugLogger._defaultDebugConfig });
+            this._cachedConfig = {
+                enabled: baseConfig.enabled !== undefined ? baseConfig.enabled : true,
+                logLevel: baseConfig.logLevel || 'WARN',
+                categories: baseConfig.categories || {}
             };
+            this._cachedConfigTime = now;
+            this._lastMergedVersion = -1; // force re-merge
         }
 
-        const baseConfig = ConfigResolver.get('debug', { defaultValue: DebugLogger._defaultDebugConfig });
-        this._cachedConfig = {
-            enabled: baseConfig.enabled !== undefined ? baseConfig.enabled : true,
-            logLevel: baseConfig.logLevel || 'WARN',
-            categories: baseConfig.categories || {}
-        };
-        this._cachedConfigTime = now;
+        // Only rebuild merged config when base or overrides change
+        if (this._lastMergedVersion !== this._overridesVersion) {
+            const c = this._cachedConfig;
+            this._mergedConfig.enabled = this.runtimeOverrides.enabled !== null ? this.runtimeOverrides.enabled : c.enabled;
+            this._mergedConfig.logLevel = this.runtimeOverrides.logLevel || c.logLevel;
+            // Merge categories in-place
+            const merged = this._mergedConfig.categories;
+            for (const key in merged) delete merged[key];
+            Object.assign(merged, c.categories, this.runtimeOverrides.categories);
+            this._lastMergedVersion = this._overridesVersion;
+        }
 
-        return {
-            enabled: this.runtimeOverrides.enabled !== null ? this.runtimeOverrides.enabled : this._cachedConfig.enabled,
-            logLevel: this.runtimeOverrides.logLevel || this._cachedConfig.logLevel,
-            categories: { ...this._cachedConfig.categories, ...this.runtimeOverrides.categories }
-        };
+        return this._mergedConfig;
     }
 
     static _defaultDebugConfig = {};

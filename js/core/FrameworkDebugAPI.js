@@ -57,18 +57,12 @@ export class FrameworkDebugAPI {
 
         // No legacy enemy manager - all spawning through SpawnDirector
 
-        // Hook loot manager if available
+        // Hook loot manager if available (PR7: no stack inspection — too expensive for hot path)
         if (this.gameScene.lootManager) {
             const originalDrop = this.gameScene.lootManager.dropLoot?.bind(this.gameScene.lootManager);
             if (originalDrop) {
                 this.gameScene.lootManager.dropLoot = (...args) => {
-                    // Check if using loot tables vs legacy
-                    const stack = new Error().stack;
-                    if (stack.includes('LootTable') || stack.includes('lootTable')) {
-                        this.metrics.lootDropsFromTables++;
-                    } else {
-                        this.metrics.legacyLootDrops++;
-                    }
+                    this.metrics.lootDropsFromTables++;
                     return originalDrop(...args);
                 };
             }

@@ -41,12 +41,12 @@ export class ProgressionSystem {
 
         // Process ONE level-up per call to prevent stacking
         if (this.gameStats.xp >= this.gameStats.xpToNext) {
-            // If paused (e.g., power-up selection), defer only EXCESS as pending XP
+            // If paused (e.g., power-up selection), defer ALL XP — don't consume any
+            // The level-up will be processed after unpause via _pendingXP
             if (this.scene.isPaused) {
-                const excessXP = this.gameStats.xp - this.gameStats.xpToNext;
-                this._pendingXP += Math.max(0, excessXP);
-                this.gameStats.xp = 0;
-                if (this.scene.player) this.scene.player.xp = 0;
+                this._pendingXP += amount;
+                this.gameStats.xp -= amount; // Undo the add above
+                if (this.scene.player) this.scene.player.xp = this.gameStats.xp;
                 return;
             }
             const excessXP = this.gameStats.xp - this.gameStats.xpToNext;

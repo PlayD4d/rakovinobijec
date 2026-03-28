@@ -68,10 +68,14 @@ export class TelemetryLogger {
         
         // Setup periodic damage stats logging
         this.setupPeriodicLogging();
-        
+
         // Setup automatic flushing
         this.setupAutoFlush();
-        
+
+        // Auto-cleanup on scene shutdown to prevent interval leaks
+        this.gameScene.events?.once('shutdown', () => this.destroy());
+        this.gameScene.events?.once('destroy', () => this.destroy());
+
         // Expose to debug API
         this.exposeDebugAPI();
     }

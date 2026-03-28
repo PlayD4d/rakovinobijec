@@ -90,53 +90,20 @@ export class HotReload {
      * Registrovat blueprint soubory pro sledování
      */
     _registerBlueprintFiles() {
-        // Enemy blueprinty
-        const enemyFiles = [
-            'js/data/enemies/basic_cell.js',
-            'js/data/enemies/orange_tumor.js',
-            'js/data/enemies/green_heavy.js',
-            'js/data/enemies/purple_support.js',
-            'js/data/enemies/brown_shooter.js'
+        // PR7: Watch JSON5 blueprint directories instead of legacy JS files
+        const blueprintDirs = [
+            { dir: 'data/blueprints/enemy/', type: 'enemy' },
+            { dir: 'data/blueprints/boss/', type: 'boss' },
+            { dir: 'data/blueprints/powerup/', type: 'powerup' },
+            { dir: 'data/blueprints/spawn/', type: 'spawn' },
+            { dir: 'data/blueprints/items/', type: 'item' },
+            { dir: 'data/blueprints/projectile/', type: 'projectile' }
         ];
-        
-        enemyFiles.forEach(file => {
-            this.watchFile(file, 'enemy');
-        });
-        
-        // Boss blueprinty
-        const bossFiles = [
-            'js/data/bosses/metastaza.js',
-            'js/data/bosses/radiation_lord.js',
-            'js/data/bosses/oncogen_overlord.js',
-            'js/data/bosses/carcinogenic_king.js',
-            'js/data/bosses/mutant_destroyer.js',
-            'js/data/bosses/cellular_nightmare.js'
-        ];
-        
-        bossFiles.forEach(file => {
-            this.watchFile(file, 'boss');
-        });
-        
-        // Drop blueprinty
-        const dropFiles = [
-            'js/data/drops/metotrexat.js'
-        ];
-        
-        dropFiles.forEach(file => {
-            this.watchFile(file, 'drop');
-        });
-        
-        // Power-up blueprinty
-        const powerupFiles = [
-            'js/data/powerups/damage_boost.js',
-            'js/data/powerups/fire_rate.js',
-            'js/data/powerups/projectile_count.js',
-            // ... další power-up soubory
-        ];
-        
-        powerupFiles.forEach(file => {
-            this.watchFile(file, 'powerup');
-        });
+
+        // Note: File-level watching requires a file list; directory watching
+        // is not supported by the HEAD-request mechanism. HotReload is primarily
+        // useful during dev with the dev server which handles this natively.
+        // Legacy file paths removed — they no longer exist in PR7 structure.
         
         console.log(`[HotReload] Watching ${this.watchedFiles.size} blueprint files`);
     }

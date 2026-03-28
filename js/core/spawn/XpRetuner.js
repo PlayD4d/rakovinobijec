@@ -116,12 +116,14 @@ export class XpRetuner {
                 wave.weight = newWeight;
 
                 // Optionally adjust spawn rate if weight alone isn't enough
+                // Use _originalInterval to prevent cumulative drift on repeated calls
+                if (!wave._originalInterval) wave._originalInterval = wave.interval;
                 if (adjustmentFactor > 2.0) {
-                    // Also decrease interval to spawn faster
-                    wave.interval = Math.max(1000, wave.interval / 1.5);
+                    wave.interval = Math.max(1000, wave._originalInterval / 1.5);
                 } else if (adjustmentFactor < 0.5) {
-                    // Increase interval to spawn slower
-                    wave.interval = Math.min(10000, wave.interval * 1.5);
+                    wave.interval = Math.min(10000, wave._originalInterval * 1.5);
+                } else {
+                    wave.interval = wave._originalInterval;
                 }
             });
         }
