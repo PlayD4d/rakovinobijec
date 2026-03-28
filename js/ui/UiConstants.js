@@ -64,64 +64,6 @@ export const RESPONSIVE = {
     }
 };
 
-// Component factory utilities
-export const UI_COMPONENTS = {
-    /**
-     * Vytvoří standardní RexUI panel s theme styling
-     */
-    createThemedPanel: (scene, config = {}) => {
-        const defaultConfig = {
-            width: 400,
-            height: 300,
-            color: UI_THEME.colors.background.panel,
-            strokeColor: UI_THEME.colors.borders.default,
-            strokeWidth: UI_THEME.borderWidth.normal,
-            radius: UI_THEME.borderRadius.medium,
-            ...config
-        };
-        
-        return scene.rexUI.add.roundRectangle(0, 0, 
-            defaultConfig.width, 
-            defaultConfig.height, 
-            defaultConfig.radius, 
-            defaultConfig.color
-        ).setStrokeStyle(defaultConfig.strokeWidth, defaultConfig.strokeColor);
-    },
-    
-    /**
-     * Vytvoří standardní button s theme styling
-     */
-    createThemedButton: (scene, text, config = {}) => {
-        const isMobileDevice = isMobile();
-        const size = RESPONSIVE.getTouchTargetSize();
-        
-        const defaultConfig = {
-            width: Math.max(size.recommended * 3, 120),
-            height: size.recommended,
-            backgroundColor: UI_THEME.colors.primary,
-            textColor: UI_THEME.colors.text.primary,
-            fontSize: UI_THEME.fontSizes.normal[isMobileDevice ? 'mobile' : 'desktop'],
-            ...config
-        };
-        
-        return scene.rexUI.add.label({
-            background: scene.rexUI.add.roundRectangle(0, 0, 
-                defaultConfig.width, 
-                defaultConfig.height, 
-                UI_THEME.borderRadius.small, 
-                defaultConfig.backgroundColor
-            ),
-            text: scene.add.text(0, 0, text, {
-                fontFamily: UI_THEME.fonts.primary,
-                fontSize: `${defaultConfig.fontSize}px`,
-                color: UI_THEME.colorToHex(defaultConfig.textColor)
-            }),
-            space: { left: UI_THEME.spacing.m, right: UI_THEME.spacing.m },
-            align: 'center'
-        });
-    }
-};
-
 // Zachováváme původní funkce pro kompatibilitu
 export function isMobile() {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');

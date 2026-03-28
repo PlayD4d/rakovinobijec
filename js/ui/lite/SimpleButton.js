@@ -1,6 +1,6 @@
 /**
  * SimpleButton - Minimalistické interaktivní tlačítko pro LiteUI
- * Žádné závislosti na RexUI, jen čistý Phaser
+ * Čistý Phaser, žádné externí závislosti
  * UITheme integrace pro konzistentní styling
  */
 import { UI_THEME } from '../UITheme.js';

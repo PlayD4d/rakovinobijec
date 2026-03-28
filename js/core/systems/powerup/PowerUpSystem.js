@@ -32,8 +32,6 @@ export class PowerUpSystem {
         // VFX Manager reference (optional)
         this.vfxManager = null;
         
-        // Selection modal reference
-        this._selectionModal = null;
         
         DebugLogger.info('powerup', '[PowerUpSystem] Initialized with modular architecture');
     }
@@ -123,43 +121,14 @@ export class PowerUpSystem {
     }
     
     /**
-     * Show power-up selection modal
+     * Power-up selection is handled by GameUIScene via the 'game-levelup' event.
+     * This method is kept as a no-op for backward compatibility.
      */
     async showPowerUpSelection(callback) {
-        try {
-            // Validate scene is still valid
-            if (!this.scene || !this.scene.scene || !this.scene.scene.isActive()) {
-                DebugLogger.error('powerup', '[PowerUpSystem] Cannot show modal - scene is inactive');
-                callback?.();
-                return;
-            }
-            
-            // Get available power-ups
-            const options = this._generatePowerUpOptions();
-            
-            // Create or reuse modal
-            if (!this._selectionModal || this._selectionModal.isDestroyed) {
-                const { PowerUpSelectionModal } = await import('../../../ui/PowerUpSelectionModal.js');
-                this._selectionModal = new PowerUpSelectionModal(this.scene, [], null);
-                this.scene.add.existing(this._selectionModal);
-            }
-            
-            // Update and show
-            this._selectionModal.updatePowerUps(options);
-            this._selectionModal.onSelectionCallback = (selected) => {
-                if (selected) {
-                    const currentLevel = this.appliedPowerUps.get(selected.id)?.level || 0;
-                    this.applyPowerUp(selected.id, currentLevel + 1);
-                }
-                this._selectionModal?.hideModal();
-                callback?.();
-            };
-            
-            await this._selectionModal.show();
-        } catch (error) {
-            DebugLogger.error('powerup', '[PowerUpSystem] Failed to show selection modal:', error);
-            callback?.();
-        }
+        // Power-up selection UI is handled by GameUIScene (LiteUI PowerUpUI).
+        // If called directly, just invoke the callback to avoid blocking.
+        DebugLogger.warn('powerup', '[PowerUpSystem] showPowerUpSelection is deprecated - selection handled by GameUIScene');
+        callback?.();
     }
     
     /**
@@ -264,12 +233,6 @@ export class PowerUpSystem {
      * Cleanup method
      */
     destroy() {
-        // Destroy modal
-        if (this._selectionModal && !this._selectionModal.isDestroyed) {
-            this._selectionModal.destroy();
-        }
-        this._selectionModal = null;
-        
         // Cleanup modules
         this.abilities.destroy();
         this.effects.destroy();

@@ -184,33 +184,6 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
     }
     
     /**
-     * Vytvoří standardní pozadí komponenty
-     */
-    createBackground(width = this.config.width, height = this.config.height, options = {}) {
-        const config = {
-            color: this.backgroundColor,
-            strokeColor: this.borderColor,
-            strokeWidth: UI_THEME.borderWidth.normal,
-            radius: UI_THEME.borderRadius.medium,
-            alpha: 1,
-            ...options
-        };
-        
-        const background = this.scene.rexUI.add.roundRectangle(
-            0, 0, width, height, config.radius, config.color
-        );
-        
-        if (config.strokeWidth > 0) {
-            background.setStrokeStyle(config.strokeWidth, config.strokeColor);
-        }
-        
-        background.setAlpha(config.alpha);
-        this.add(background);
-        
-        return background;
-    }
-    
-    /**
      * Vytvoří text s theme styling
      */
     createThemedText(text, x = 0, y = 0, style = {}) {
@@ -225,67 +198,6 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
         this.add(textObject);
         
         return textObject;
-    }
-    
-    /**
-     * Vytvoří button s theme styling a touch optimization
-     */
-    createThemedButton(text, x = 0, y = 0, callback = null, config = {}) {
-        const touchSize = RESPONSIVE.getTouchTargetSize();
-        
-        const defaultConfig = {
-            width: Math.max(touchSize.recommended * 3, 120),
-            height: touchSize.recommended,
-            backgroundColor: UI_THEME.colors.primary,
-            textColor: UI_THEME.colors.text.primary,
-            fontSize: UIThemeUtils.getFontSize('normal', this.isMobileDevice),
-            borderRadius: UI_THEME.borderRadius.small,
-            ...config
-        };
-        
-        // Vytvoření button pomocí RexUI
-        const button = this.scene.rexUI.add.label({
-            x: x,
-            y: y,
-            background: this.scene.rexUI.add.roundRectangle(
-                0, 0, 
-                defaultConfig.width, 
-                defaultConfig.height, 
-                defaultConfig.borderRadius, 
-                defaultConfig.backgroundColor
-            ),
-            text: this.scene.add.text(0, 0, text, {
-                fontFamily: UI_THEME.fonts.primary,
-                fontSize: `${defaultConfig.fontSize}px`,
-                color: UIThemeUtils.colorToHex(defaultConfig.textColor)
-            }),
-            space: { 
-                left: UI_THEME.spacing.m, 
-                right: UI_THEME.spacing.m,
-                top: UI_THEME.spacing.s,
-                bottom: UI_THEME.spacing.s
-            },
-            align: 'center'
-        });
-        
-        // Touch/click handling
-        if (callback) {
-            button.setInteractive();
-            button.on('pointerdown', callback);
-            
-            // Hover effects pro desktop
-            if (!this.isMobileDevice) {
-                button.on('pointerover', () => {
-                    button.getElement('background').setFillStyle(UI_THEME.colors.borders.active);
-                });
-                button.on('pointerout', () => {
-                    button.getElement('background').setFillStyle(defaultConfig.backgroundColor);
-                });
-            }
-        }
-        
-        this.add(button);
-        return button;
     }
     
     /**
@@ -404,19 +316,6 @@ export class BaseUIComponent extends Phaser.GameObjects.Container {
     destroy() {
         this.cleanup();
         super.destroy();
-    }
-    
-    /**
-     * Utility: Vytvoří separator line
-     */
-    createSeparator(width = 200, color = UI_THEME.colors.borders.default, thickness = 1) {
-        const separator = this.scene.add.graphics();
-        separator.lineStyle(thickness, color, 0.6);
-        separator.lineTo(width, 0);
-        separator.strokePath();
-        
-        this.add(separator);
-        return separator;
     }
     
 }

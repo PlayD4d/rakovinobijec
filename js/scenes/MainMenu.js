@@ -6,7 +6,7 @@ import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
 import { EventBus } from '../core/events/EventBus.js';
 import { KeyboardManager } from '../core/input/KeyboardManager.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
-// LiteUI components - replacing RexUI modals
+// LiteUI components
 import { MainMenuUI } from '../ui/lite/MainMenuUI.js';
 import { loadGameVersion, getCachedVersion } from '../utils/version.js';
 
@@ -264,7 +264,6 @@ export class MainMenu extends Phaser.Scene {
         this.sfxSystem = null;
         this.vfxSystem = null;
         this.eventBus = null;
-        // RexUI modals removed - using LiteUI now
     }
 }
 

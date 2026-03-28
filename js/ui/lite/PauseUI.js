@@ -1,6 +1,6 @@
 /**
  * PauseUI - Pause menu with Resume/Quit options
- * Simple and reliable, no RexUI dependencies
+ * Simple and reliable, pure Phaser implementation
  */
 import { SimpleModal } from './SimpleModal.js';
 import { SimpleButton } from './SimpleButton.js';
@@ -89,9 +89,8 @@ export class PauseUI {
    * Hide pause menu
    */
   hide() {
-    this.modal.hide(true, 180, () => {
-      this.visible = false;
-    });
+    this.visible = false; // Set immediately to prevent double-toggle during fade
+    this.modal.hide(true, 180);
   }
   
   /**

@@ -24,8 +24,6 @@ export class UnifiedHUD extends BaseUIComponent {
         this.scoreText = null;
         this.timeText = null;
         this.enemiesText = null;
-        this.debugText = null; // HOTFIX V3: Debug info
-        
         // Boss HUD
         this.bossContainer = null;
         this.bossNameText = null;
@@ -305,6 +303,7 @@ export class UnifiedHUD extends BaseUIComponent {
      * Update XP bar
      */
     updateXP(current, max) {
+        if (!max || max <= 0) return; // Guard against division by zero / NaN
         const percentage = Math.min(1, current / max);
         this.xpBar.width = (this.BAR_WIDTH - 4) * percentage;
         this.xpText.setText(`${Math.floor(current)}/${max}`);

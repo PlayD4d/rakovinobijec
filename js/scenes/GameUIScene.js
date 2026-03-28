@@ -168,6 +168,9 @@ export class GameUIScene extends Phaser.Scene {
     }
 
     shutdown() {
+        // Restore input state before destroying UI
+        this.input.setTopOnly(false);
+
         this.pauseUI?.destroy();
         this.powerUpUI?.destroy();
         this.gameOverUI?.destroy();

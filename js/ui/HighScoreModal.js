@@ -1,401 +1,229 @@
 /**
- * HighScoreModal - unified high score dialog komponenta
- * Nahrazuje starý inline high score dialog v GameScene
+ * HighScoreModal - Pure Phaser LiteUI high score dialog
+ * Pure Phaser implementation using SimpleModal + SimpleButton pattern.
  */
-import { BaseUIComponent } from './BaseUIComponent.js';
+import { SimpleModal } from './lite/SimpleModal.js';
+import { SimpleButton } from './lite/SimpleButton.js';
 import { UI_THEME, UIThemeUtils } from './UITheme.js';
-import { RESPONSIVE } from './UiConstants.js';
 
-export class HighScoreModal extends BaseUIComponent {
+export class HighScoreModal {
     constructor(scene, gameStats, onSubmitCallback = null) {
-        // Validate scene before using it
-        const width = scene?.scale?.width || 800;
-        const height = scene?.scale?.height || 600;
-        
-        super(scene, 0, 0, {
-            width: width,
-            height: height,
-            theme: 'modal',
-            responsive: true
-        });
-        
+        this.scene = scene;
         this.gameStats = gameStats;
         this.onSubmitCallback = onSubmitCallback;
-        this.modalContainer = null;
+        this.modal = null;
         this.playerName = '';
-        this.inputText = null;
-        this.keyboardHandler = null;
+        this.inputDisplay = null;
         this.hasSubmitted = false;
-        
-        this.setDepth(UI_THEME.depth.modal);
+        this._keyHandler = null;
+        this._cursorTimer = null;
+        this._cursorVisible = true;
     }
-    
-    getComponentDepth() {
-        return UI_THEME.depth.modal;
-    }
-    
-    /**
-     * Zobrazí high score entry modal (zadání jména)
-     */
+
+    /** Show name entry dialog */
     showEntry() {
-        // Validate scene is still valid
-        if (!this.scene || !this.scene.scale) {
+        if (!this.scene?.scale) {
             console.error('[HighScoreModal] Cannot show - invalid scene reference');
             return;
         }
-        
-        const { width, height } = this.scene.scale.gameSize;
-        
-        // Overlay
-        const overlay = this.scene.add.graphics();
-        overlay.fillStyle(UI_THEME.colors.background.overlay, 0.8);
-        overlay.fillRect(0, 0, width, height);
-        overlay.setDepth(UI_THEME.depth.overlay);
-        
-        // Add overlay to UI layer if it exists
-        if (this.scene.uiLayer) {
-            this.scene.uiLayer.add(overlay);
-        }
-        
-        // Modal size
-        const modalSize = RESPONSIVE.getModalSize(this.isMobileDevice, width, height);
-        modalSize.height = Math.min(modalSize.height, height * 0.8);
-        
-        // Main container
-        this.modalContainer = this.scene.rexUI.add.sizer({
-            x: width / 2,
-            y: height / 2,
-            width: modalSize.width,
-            height: modalSize.height,
-            orientation: 'vertical',
-            space: { item: UI_THEME.spacing.l }
+
+        const cam = this.scene.cameras.main;
+        const cx = cam.width / 2;
+        const cy = cam.height / 2;
+
+        this.modal = new SimpleModal(this.scene, {
+            width: 420,
+            height: 380,
+            strokeColor: UI_THEME.colors.success,
+            strokeAlpha: 1,
+            overlayAlpha: 0.8
         });
-        
-        // Background
-        const background = this.scene.rexUI.add.roundRectangle(
-            0, 0, modalSize.width, modalSize.height,
-            UI_THEME.borderRadius.large,
-            UI_THEME.colors.background.modal
-        ).setStrokeStyle(
-            UI_THEME.borderWidth.thick,
-            UI_THEME.colors.success
-        );
-        
-        this.modalContainer.addBackground(background);
-        
-        // Set proper depth and add to UI layer
-        this.modalContainer.setDepth(UI_THEME.depth.modal);
-        if (this.scene.uiLayer) {
-            this.scene.uiLayer.add(this.modalContainer);
-        }
-        
-        // Title - Congratulations
-        const titleText = this.scene.add.text(0, 0, 
-            '🎉 GRATULUJEME! 🎉\nZískali jste místo v TOP 10!',
-            {
-                ...UIThemeUtils.createFontConfig('large', 'success', { 
-                    stroke: true, 
-                    strokeThickness: 3,
-                    isMobile: this.isMobileDevice 
-                }),
-                align: 'center'
-            }
-        ).setOrigin(0.5);
-        
-        this.modalContainer.add(titleText, {
-            proportion: 0,
-            align: 'center',
-            padding: { top: UI_THEME.spacing.xl }
-        });
-        
-        // Stats info
-        const statsText = this.scene.add.text(0, 0,
-            `Skóre: ${this.gameStats.score}\nÚroveň: ${this.gameStats.level}\nNepřátel: ${this.gameStats.enemiesKilled}\nBossové: ${this.gameStats.bossesDefeated || 0}`,
-            {
-                ...UIThemeUtils.createFontConfig('normal', 'primary', { 
-                    stroke: true,
-                    isMobile: this.isMobileDevice 
-                }),
-                align: 'center'
-            }
-        ).setOrigin(0.5);
-        
-        this.modalContainer.add(statsText, {
-            proportion: 0,
-            align: 'center',
-            padding: { top: UI_THEME.spacing.m }
-        });
-        
-        // Name prompt
-        const namePrompt = this.scene.add.text(0, 0,
-            'Zadejte své jméno (max 8 znaků):',
-            UIThemeUtils.createFontConfig('normal', 'primary', { 
-                stroke: true,
-                isMobile: this.isMobileDevice 
-            })
-        ).setOrigin(0.5);
-        
-        this.modalContainer.add(namePrompt, {
-            proportion: 0,
-            align: 'center',
-            padding: { top: UI_THEME.spacing.l }
-        });
-        
-        // Input container
-        const inputContainer = this.scene.rexUI.add.sizer({
-            orientation: 'vertical',
-            space: { item: UI_THEME.spacing.m }
-        });
-        
-        // Input box background
-        const inputBg = this.scene.rexUI.add.roundRectangle(
-            0, 0, 240, 50,
-            UI_THEME.borderRadius.normal,
-            UI_THEME.colors.background.input
-        ).setStrokeStyle(
-            UI_THEME.borderWidth.normal,
-            UI_THEME.colors.borders.default
-        );
-        
-        // Input text
-        this.inputText = this.scene.add.text(0, 0, '_',
-            UIThemeUtils.createFontConfig('normal', 'primary', { 
-                stroke: true,
-                isMobile: this.isMobileDevice 
-            })
-        ).setOrigin(0.5);
-        
-        // Input wrapper - použít RexUI OverlapSizer
-        const inputWrapper = this.scene.rexUI.add.overlapSizer({
-            width: 240,
-            height: 50
-        })
-        .add(inputBg)
-        .add(this.inputText)
-        .layout();
-        
-        inputContainer.add(inputWrapper, { proportion: 0, align: 'center' });
-        
-        // Instructions
-        const instructions = this.scene.add.text(0, 0,
-            'Píšte na klávesnici, ENTER pro odeslání (prázdné = Anonym)',
-            UIThemeUtils.createFontConfig('small', 'secondary', { 
-                isMobile: this.isMobileDevice 
-            })
-        ).setOrigin(0.5);
-        
-        inputContainer.add(instructions, { proportion: 0, align: 'center' });
-        inputContainer.layout();
-        
-        this.modalContainer.add(inputContainer, {
-            proportion: 0,
-            align: 'center',
-            padding: { top: UI_THEME.spacing.m, bottom: UI_THEME.spacing.xl }
-        });
-        
-        // Layout modal
-        this.modalContainer.layout();
-        
-        // Add to scene
-        this.add([overlay, this.modalContainer]);
-        
-        // Setup keyboard input
-        this.setupKeyboardInput();
-        
-        // Fade in animation
-        this.modalContainer.alpha = 0;
-        this.scene.tweens.add({
-            targets: this.modalContainer,
-            alpha: 1,
-            duration: 500
-        });
-    }
-    
-    /**
-     * Zobrazí high score result modal (výsledek)
-     */
-    showResult(position) {
-        const { width, height } = this.scene.scale.gameSize;
-        
-        // Overlay
-        const overlay = this.scene.add.graphics();
-        overlay.fillStyle(UI_THEME.colors.background.overlay, 0.8);
-        overlay.fillRect(0, 0, width, height);
-        overlay.setDepth(UI_THEME.depth.overlay);
-        
-        // Add overlay to UI layer if it exists
-        if (this.scene.uiLayer) {
-            this.scene.uiLayer.add(overlay);
-        }
-        
-        // Modal size
-        const modalSize = RESPONSIVE.getModalSize(this.isMobileDevice, width, height);
-        
-        // Main container
-        this.modalContainer = this.scene.rexUI.add.sizer({
-            x: width / 2,
-            y: height / 2,
-            width: modalSize.width,
-            height: modalSize.height,
-            orientation: 'vertical',
-            space: { item: UI_THEME.spacing.l }
-        });
-        
-        // Background
-        const background = this.scene.rexUI.add.roundRectangle(
-            0, 0, modalSize.width, modalSize.height,
-            UI_THEME.borderRadius.large,
-            UI_THEME.colors.background.modal
-        ).setStrokeStyle(
-            UI_THEME.borderWidth.thick,
-            UI_THEME.colors.success
-        );
-        
-        this.modalContainer.addBackground(background);
-        
-        // Set proper depth and add to UI layer
-        this.modalContainer.setDepth(UI_THEME.depth.modal);
-        if (this.scene.uiLayer) {
-            this.scene.uiLayer.add(this.modalContainer);
-        }
-        
+
+        const font = (size, color = 'primary', opts = {}) =>
+            UIThemeUtils.createFontConfig(size, color, { stroke: true, ...opts });
+
         // Title
-        const titleText = this.scene.add.text(0, 0,
-            `🏆 Umístili jste se na ${position}. místě! 🏆`,
-            {
-                ...UIThemeUtils.createFontConfig('large', 'success', { 
-                    stroke: true, 
-                    strokeThickness: 3,
-                    isMobile: this.isMobileDevice 
-                }),
+        this.modal.addChild(
+            this.scene.add.text(cx, cy - 150, 'GRATULUJEME!\nTOP 10!', {
+                ...font('large', 'success', { strokeThickness: 3 }),
                 align: 'center'
+            }).setOrigin(0.5)
+        );
+
+        // Stats
+        const s = this.gameStats;
+        const statsStr = [
+            `Skore: ${s.score}`,
+            `Uroven: ${s.level}`,
+            `Nepratel: ${s.enemiesKilled}`,
+            `Bossove: ${s.bossesDefeated || 0}`
+        ].join('\n');
+
+        this.modal.addChild(
+            this.scene.add.text(cx, cy - 60, statsStr, {
+                ...font('small', 'primary'),
+                align: 'center', lineSpacing: 4
+            }).setOrigin(0.5)
+        );
+
+        // Name prompt
+        this.modal.addChild(
+            this.scene.add.text(cx, cy + 20, 'Zadejte jmeno (max 8 znaku):', {
+                ...font('small', 'secondary')
+            }).setOrigin(0.5)
+        );
+
+        // Input field background
+        this.modal.addChild(
+            this.scene.add.rectangle(cx, cy + 60, 260, 44,
+                UI_THEME.colors.background.panel, 0.95)
+                .setStrokeStyle(2, UI_THEME.colors.borders.active, 0.8)
+        );
+
+        // Input text display
+        this.inputDisplay = this.scene.add.text(cx, cy + 60, '_', {
+            ...font('normal', 'accent'),
+            align: 'center'
+        }).setOrigin(0.5);
+        this.modal.addChild(this.inputDisplay);
+
+        // Submit button
+        const submitBtn = new SimpleButton(
+            this.scene, cx, cy + 120, 'ODESLAT', () => this._submit(),
+            180, 44, {
+                bgColor: UI_THEME.colors.success,
+                bgAlpha: 0.3,
+                hoverColor: UI_THEME.colors.success,
+                strokeColor: UI_THEME.colors.success,
+                strokeAlpha: 0.6
             }
-        ).setOrigin(0.5);
-        
-        this.modalContainer.add(titleText, {
-            proportion: 0,
-            align: 'center',
-            padding: { top: UI_THEME.spacing.xl }
-        });
-        
-        // Score info
-        const scoreText = this.scene.add.text(0, 0,
-            `Skóre: ${this.gameStats.score}`,
-            {
-                ...UIThemeUtils.createFontConfig('normal', 'primary', { 
-                    stroke: true,
-                    isMobile: this.isMobileDevice 
-                }),
-                align: 'center'
+        );
+        this.modal.addChild(submitBtn);
+
+        // Instructions
+        this.modal.addChild(
+            this.scene.add.text(cx, cy + 160,
+                'ENTER = odeslat | prazdne = Anonym',
+                UIThemeUtils.createFontConfig('tiny', 'secondary')
+            ).setOrigin(0.5)
+        );
+
+        // Keyboard input
+        this._setupKeyboard();
+
+        // Blinking cursor
+        this._cursorTimer = this.scene.time.addEvent({
+            delay: 500, loop: true,
+            callback: () => {
+                this._cursorVisible = !this._cursorVisible;
+                this._refreshInput();
             }
-        ).setOrigin(0.5);
-        
-        this.modalContainer.add(scoreText, {
-            proportion: 1,
-            align: 'center',
-            padding: { top: UI_THEME.spacing.m }
         });
-        
-        // Controls info
-        const controlsText = this.scene.add.text(0, 0,
-            'R - Restart | ESC - Menu',
-            UIThemeUtils.createFontConfig('small', 'secondary', { 
-                isMobile: this.isMobileDevice 
-            })
-        ).setOrigin(0.5);
-        
-        this.modalContainer.add(controlsText, {
-            proportion: 0,
-            align: 'center',
-            padding: { bottom: UI_THEME.spacing.xl }
-        });
-        
-        // Layout modal
-        this.modalContainer.layout();
-        
-        // Add to scene
-        this.add([overlay, this.modalContainer]);
-        
-        // Fade in animation
-        this.modalContainer.alpha = 0;
-        this.scene.tweens.add({
-            targets: this.modalContainer,
-            alpha: 1,
-            duration: 500
-        });
+
+        // Show with animation
+        this.modal.show(true, 400);
     }
-    
-    /**
-     * Setup keyboard input for name entry
-     */
-    setupKeyboardInput() {
-        // Register keyboard handler via KeyboardManager when shown
-        if (this.scene.keyboardManager) {
-            this.scene.keyboardManager.registerTextInput('highscore', (event) => {
-                if (this.hasSubmitted) return;
-                
-                if (event.key === 'Enter') {
-                    // Odeslat jméno (i když je prázdné - použije se "Anonym" v GameScene)
-                    this.hasSubmitted = true;
-                    
-                    // Cleanup keyboard handler
-                    this.scene.keyboardManager.cleanupModal('highscore');
-                    
-                    if (this.onSubmitCallback) {
-                        // Poslat prázdný string nebo trimované jméno
-                        this.onSubmitCallback(this.playerName.trim());
-                    }
-                } else if (event.key === 'Backspace') {
-                    if (this.playerName.length > 0) {
-                        this.playerName = this.playerName.slice(0, -1);
-                        this.inputText.setText(this.playerName + '_');
-                    }
-                } else if (event.key.length === 1 && this.playerName.length < 8) {
-                    // Přidat znak (pouze písmena, číslice a základní znaky)
-                    if (/[a-zA-Z0-9čďěščřžýáíéúů]/i.test(event.key)) {
-                        this.playerName += event.key;
-                        this.inputText.setText(this.playerName + '_');
-                    }
+
+    /** Show result modal (placement) */
+    showResult(position) {
+        if (!this.scene?.scale) return;
+
+        const cam = this.scene.cameras.main;
+        const cx = cam.width / 2;
+        const cy = cam.height / 2;
+
+        this.modal = new SimpleModal(this.scene, {
+            width: 400,
+            height: 260,
+            strokeColor: UI_THEME.colors.success,
+            strokeAlpha: 1,
+            overlayAlpha: 0.8
+        });
+
+        const font = (size, color = 'primary', opts = {}) =>
+            UIThemeUtils.createFontConfig(size, color, { stroke: true, ...opts });
+
+        this.modal.addChild(
+            this.scene.add.text(cx, cy - 60,
+                `Umisteni: ${position}. misto!`, {
+                ...font('large', 'success', { strokeThickness: 3 }),
+                align: 'center'
+            }).setOrigin(0.5)
+        );
+
+        this.modal.addChild(
+            this.scene.add.text(cx, cy, `Skore: ${this.gameStats.score}`, {
+                ...font('normal', 'primary'), align: 'center'
+            }).setOrigin(0.5)
+        );
+
+        this.modal.addChild(
+            this.scene.add.text(cx, cy + 60, 'R - Restart | ESC - Menu',
+                UIThemeUtils.createFontConfig('small', 'secondary')
+            ).setOrigin(0.5)
+        );
+
+        this.modal.show(true, 400);
+    }
+
+    // --- Private ---
+
+    _setupKeyboard() {
+        this._keyHandler = (event) => {
+            if (this.hasSubmitted) return;
+
+            if (event.key === 'Enter') {
+                this._submit();
+            } else if (event.key === 'Backspace') {
+                event.preventDefault();
+                if (this.playerName.length > 0) {
+                    this.playerName = this.playerName.slice(0, -1);
+                    this._refreshInput();
                 }
-            });
+            } else if (event.key.length === 1 && this.playerName.length < 8) {
+                if (/[a-zA-Z0-9]/.test(event.key)) {
+                    this.playerName += event.key;
+                    this._refreshInput();
+                }
+            }
+        };
+        this.scene.input.keyboard.on('keydown', this._keyHandler);
+    }
+
+    _refreshInput() {
+        if (!this.inputDisplay) return;
+        const cursor = this._cursorVisible ? '_' : '';
+        this.inputDisplay.setText(this.playerName + cursor);
+    }
+
+    _submit() {
+        if (this.hasSubmitted) return;
+        this.hasSubmitted = true;
+        this._cleanupInput();
+        if (this.onSubmitCallback) {
+            this.onSubmitCallback(this.playerName.trim());
         }
     }
-    
-    /**
-     * Resize handler
-     */
-    onResize(gameSize, baseSize, displaySize) {
-        super.onResize(gameSize, baseSize, displaySize);
-        
-        if (this.modalContainer) {
-            this.modalContainer.x = gameSize.width / 2;
-            this.modalContainer.y = gameSize.height / 2;
+
+    _cleanupInput() {
+        if (this._keyHandler && this.scene?.input?.keyboard) {
+            this.scene.input.keyboard.off('keydown', this._keyHandler);
+            this._keyHandler = null;
+        }
+        if (this._cursorTimer) {
+            this._cursorTimer.destroy();
+            this._cursorTimer = null;
         }
     }
-    
-    /**
-     * Cleanup
-     */
-    onCleanup() {
-        // Cleanup modal keyboard handlers
-        if (this.scene && this.scene.keyboardManager) {
-            this.scene.keyboardManager.cleanupModal('highscore');
-        }
-        
-        this.onSubmitCallback = null;
-        
-        if (this.modalContainer) {
-            this.modalContainer.destroy();
-            this.modalContainer = null;
-        }
-    }
-    
-    /**
-     * Destroy modal
-     */
+
     destroy() {
-        this.onCleanup();
-        super.destroy();
+        this._cleanupInput();
+        this.onSubmitCallback = null;
+        if (this.modal) {
+            this.modal.destroy();
+            this.modal = null;
+        }
+        this.inputDisplay = null;
     }
 }
 

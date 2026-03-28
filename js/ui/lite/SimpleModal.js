@@ -44,13 +44,17 @@ export class SimpleModal extends Phaser.GameObjects.Container {
     
     // Add to container
     this.add([this.overlay, this.panel]);
-    
-    // List of added children for cleanup (avoid shadowing Phaser Container.children)
+
+    // Pin overlay and panel to camera (Container.setScrollFactor doesn't propagate to children)
+    this.overlay.setScrollFactor(0);
+    this.panel.setScrollFactor(0);
+
+    // List of added children for cleanup
     this._childObjects = [];
-    
-    // Set depth and scroll factor
+
+    // Set depth and scroll factor on container
     this.setDepth(this.config.depth);
-    this.setScrollFactor(0); // Pin to camera
+    this.setScrollFactor(0);
     
     // Initially hidden — use setVisible for proper Phaser visibility
     this.setVisible(false);
@@ -61,6 +65,7 @@ export class SimpleModal extends Phaser.GameObjects.Container {
    */
   addChild(gameObject) {
     this.add(gameObject);
+    if (gameObject.setScrollFactor) gameObject.setScrollFactor(0);
     this._childObjects.push(gameObject);
     return gameObject;
   }

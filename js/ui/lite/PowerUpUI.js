@@ -185,7 +185,10 @@ export class PowerUpUI {
           bgDark.setFillStyle(0xdddddd, 0.8);
         })
         .on('pointerup', () => {
-          // Click release - select power-up
+          // Guard against double-click (callback fires twice otherwise)
+          if (this._selecting) return;
+          this._selecting = true;
+
           card.setScale(1.08);
           bgDark.setFillStyle(0xffffff, 0.9);
           
@@ -229,84 +232,8 @@ export class PowerUpUI {
    */
   hide(onComplete) {
     if (this.hintTween) this.hintTween.pause();
+    this._selecting = false; // Reset double-click guard
     this.modal.hide(false, 0, onComplete);
-  }
-  
-  /**
-   * Get localized power-up name
-   */
-  getPowerUpDisplayName(id) {
-    const names = {
-      'powerup.damage_boost': '🗡️ Posilující injekce',
-      'powerup.shield': '🛡️ Buněčná bariéra', 
-      'powerup.speed_boost': '⚡ Metabolický spěch',
-      'powerup.health_regen': '❤️ Regenerace tkáně',
-      'powerup.piercing_arrows': '🏹 Průbojné šípy',
-      'powerup.flamethrower': '🔥 Plamenomet',
-      'powerup.metabolic_haste': '💨 Rychlost metabolismu',
-      'powerup.chemo_reservoir': '💉 Chemoterapie',
-      'powerup.radiotherapy': '☢️ Radioterapie',
-      'powerup.xp_magnet': '🧲 XP magnet'
-    };
-    return names[id] || 'Neznámý power-up';
-  }
-  
-  /**
-   * Get power-up description
-   */
-  getPowerUpDescription(id) {
-    const descriptions = {
-      'powerup.damage_boost': 'Zvyšuje poškození všech útoků',
-      'powerup.shield': 'Poskytuje dočasnou ochranu před zásahy',
-      'powerup.speed_boost': 'Zvyšuje rychlost pohybu a útoku',
-      'powerup.health_regen': 'Postupně obnovuje zdraví',
-      'powerup.piercing_arrows': 'Projektily pronikají skrze nepřátele',
-      'powerup.flamethrower': 'Přidává plamenný efekt k útokům',
-      'powerup.metabolic_haste': 'Zrychluje všechny procesy organismu',
-      'powerup.chemo_reservoir': 'Pravidelně aplikuje chemoterapii',
-      'powerup.radiotherapy': 'Silný radiační útok v okolí',
-      'powerup.xp_magnet': 'Přitahuje XP orby z větší vzdálenosti'
-    };
-    return descriptions[id] || 'Popis není dostupný';
-  }
-  
-  /**
-   * Get power-up effect description
-   */
-  getPowerUpEffect(id) {
-    const effects = {
-      'powerup.damage_boost': '+25% poškození\nTrvání: 30s',
-      'powerup.shield': '+50 shield bodů\nTrvání: 45s',
-      'powerup.speed_boost': '+20% rychlost\nTrvání: 25s',
-      'powerup.health_regen': '+2 HP/s\nTrvání: 60s',
-      'powerup.piercing_arrows': 'Průstřel +2\nTrvání: 40s',
-      'powerup.flamethrower': 'Oheň 10 DMG/s\nTrvání: 35s',
-      'powerup.metabolic_haste': '+30% rychlost\n+15% útok',
-      'powerup.chemo_reservoir': '5 DMG/s okolí\nTrvání: 90s',
-      'powerup.radiotherapy': 'AoE 20 DMG\nCooldown: 8s',
-      'powerup.xp_magnet': 'Dosah +150px\nTrvání: ∞'
-    };
-    return effects[id] || 'Efekt neznámý';
-  }
-  
-  /**
-   * Get max level for power-up
-   */
-  getPowerUpMaxLevel(id) {
-    // Most power-ups have 3 levels
-    const maxLevels = {
-      'powerup.damage_boost': 5,
-      'powerup.shield': 3,
-      'powerup.speed_boost': 4,
-      'powerup.health_regen': 3,
-      'powerup.piercing_arrows': 4,
-      'powerup.flamethrower': 3,
-      'powerup.metabolic_haste': 3,
-      'powerup.chemo_reservoir': 2,
-      'powerup.radiotherapy': 3,
-      'powerup.xp_magnet': 1
-    };
-    return maxLevels[id] || 3;
   }
   
   /**

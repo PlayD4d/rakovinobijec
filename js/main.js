@@ -45,15 +45,6 @@ async function initializeGame() {
             overlapBias: 8        // Anti-tunneling for fast bullets
         }
     },
-    plugins: {
-        scene: [
-            {
-                key: 'rexUI',
-                plugin: rexuiplugin,
-                mapping: 'rexUI'
-            }
-        ]
-    },
     scene: [MainMenu, GameScene, GameUIScene]
     };
 
