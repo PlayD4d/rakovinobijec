@@ -13,6 +13,8 @@ import { ShieldEffect } from './effects/ShieldEffect.js';
 import { DebugLogger } from '../debug/DebugLogger.js';
 
 export class SimplifiedVFXSystem {
+    static _uidCounter = 0; // Unique ID counter for effect key generation
+
     constructor(scene) {
         this.scene = scene;
         
@@ -165,8 +167,8 @@ export class SimplifiedVFXSystem {
     attachEffect(entity, effectType, config = {}) {
         if (!entity || !effectType) return;
         
-        const entityId = entity.id || 'entity';
-        const effectKey = `${entityId}_${effectType}`;
+        if (!entity._vfxUid) entity._vfxUid = ++SimplifiedVFXSystem._uidCounter;
+        const effectKey = `${entity._vfxUid}_${effectType}`;
         
         // Check if already active
         if (this.powerUpEffects.has(effectKey)) {
@@ -220,8 +222,8 @@ export class SimplifiedVFXSystem {
      * Detach power-up effect from entity
      */
     detachEffect(entity, effectType) {
-        const entityId = entity.id || 'entity';
-        const effectKey = `${entityId}_${effectType}`;
+        if (!entity._vfxUid) entity._vfxUid = ++SimplifiedVFXSystem._uidCounter;
+        const effectKey = `${entity._vfxUid}_${effectType}`;
         
         const effect = this.powerUpEffects.get(effectKey);
         if (effect) {
@@ -295,7 +297,7 @@ export class SimplifiedVFXSystem {
                     emitter.destroy();
                 }
             },
-            destroy: () => emitter.destroy()
+            destroy: () => { if (emitter?.active) emitter.destroy(); }
         };
     }
     
@@ -359,8 +361,8 @@ export class SimplifiedVFXSystem {
             emitter.stop();
             this.activeEmitters.delete(emitterId);
 
-            // Guard: don't pool a destroyed emitter (can happen after stopAllEffects)
-            if (emitter.active === false && emitter.scene === undefined) return;
+            // Guard: don't pool a destroyed emitter (Phaser sets scene=null on destroy)
+            if (!emitter.active || !emitter.scene) return;
 
             if (this.emitterPool.length < 10) {
                 this.emitterPool.push(emitter);

@@ -89,9 +89,10 @@ export class FlamethrowerEffect {
         // Create Phaser physics overlap zone for broadphase damage detection
         this._createPhysicsZone();
         
-        // Play looping flamethrower sound — PR7: use direct file path
+        // Play looping flamethrower sound — store PATH for stopLoop, not the sound object
+        this.loopId = 'sound/flamethrower.mp3';
         if (this.scene.audioSystem) {
-            this.loopId = this.scene.audioSystem.playLoop('sound/flamethrower.mp3');
+            this.scene.audioSystem.playLoop(this.loopId);
         }
     }
     
@@ -158,9 +159,14 @@ export class FlamethrowerEffect {
             this._damageZone.setPosition(this.entity.x, this.entity.y);
         }
 
-        // Emit flame particles
+        // Emit flame particles + recompute tongue geometry per tick (not per frame)
         if (this.particleTimer >= this.particleInterval) {
             this._emitFlameParticle();
+            this._tongues = Array.from({ length: 3 }, () => ({
+                offset: (Math.random() - 0.5) * this.coneAngle * 2,
+                lenFactor: 0.6 + Math.random() * 0.4,
+                radius: 8 + Math.random() * 4
+            }));
             this.particleTimer = 0;
         }
 
@@ -211,15 +217,14 @@ export class FlamethrowerEffect {
         this.graphics.closePath();
         this.graphics.fillPath();
         
-        // Draw flame tongues
-        for (let i = 0; i < 3; i++) {
-            const tongueAngle = rotation + (Math.random() - 0.5) * this.coneAngle * 2;
-            const tongueLength = flameLength * (0.6 + Math.random() * 0.4);
-            const tongueX = Math.cos(tongueAngle) * tongueLength;
-            const tongueY = Math.sin(tongueAngle) * tongueLength;
-            
+        // Draw flame tongues (stable per-tick, not per-frame random)
+        if (this._tongues) {
             this.graphics.fillStyle(this.color, 0.2);
-            this.graphics.fillCircle(tongueX * 0.7, tongueY * 0.7, 8 + Math.random() * 4);
+            for (const t of this._tongues) {
+                const tAngle = rotation + t.offset;
+                const tLen = flameLength * t.lenFactor;
+                this.graphics.fillCircle(Math.cos(tAngle) * tLen * 0.7, Math.sin(tAngle) * tLen * 0.7, t.radius);
+            }
         }
     }
     

@@ -178,16 +178,7 @@ export class ShieldEffect {
         
         this.graphics.strokePath();
         
-        // Add energy particles effect
-        if (Math.random() < 0.1) {
-            const particleAngle = Math.random() * Math.PI * 2;
-            const particleRadius = this.radius * (0.9 + Math.random() * 0.2);
-            const particleX = Math.cos(particleAngle) * particleRadius;
-            const particleY = Math.sin(particleAngle) * particleRadius;
-            
-            this.graphics.fillStyle(this.color, 0.6);
-            this.graphics.fillCircle(particleX, particleY, 2);
-        }
+        // Energy particle removed — draw-once optimization means this would never animate
     }
     
     /**
