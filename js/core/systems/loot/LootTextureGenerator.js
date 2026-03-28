@@ -121,5 +121,33 @@ export function generateLootTextures(scene) {
         graphicsFactory.release(graphics);
     }
 
+    // Energy Cell (yellow lightning bolt, 18px)
+    if (!textures.exists('item_energy_cell')) {
+        const graphics = graphicsFactory.create();
+        const size = 18;
+        graphics.fillStyle(0xFFDD00, 1);
+        graphics.fillCircle(size/2, size/2, size/2);
+        graphics.fillStyle(0xFFFF88, 0.8);
+        graphics.fillCircle(size/2, size/2, size/2 - 2);
+        graphics.fillStyle(0xFFFFFF, 1);
+        graphics.fillRect(size/2 - 1, size/4, 3, size/2);
+        graphics.generateTexture('item_energy_cell', size, size);
+        graphicsFactory.release(graphics);
+    }
+
+    // Research Point (blue diamond, 16px)
+    if (!textures.exists('item_research_point')) {
+        const graphics = graphicsFactory.create();
+        const size = 16;
+        graphics.fillStyle(0x4488FF, 1);
+        graphics.fillCircle(size/2, size/2, size/2);
+        graphics.fillStyle(0x88BBFF, 0.8);
+        graphics.fillCircle(size/2, size/2, size/2 - 2);
+        graphics.fillStyle(0xFFFFFF, 1);
+        graphics.fillCircle(size/2, size/2, 3);
+        graphics.generateTexture('item_research_point', size, size);
+        graphicsFactory.release(graphics);
+    }
+
     DebugLogger.info('loot', 'Item textures generated');
 }
