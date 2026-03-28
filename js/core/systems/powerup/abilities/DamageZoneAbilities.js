@@ -73,11 +73,11 @@ export class DamageZoneAbilities {
      */
     destroyChemoCloud() {
         if (this._chemoOverlap) {
-            this.scene.physics?.world?.removeCollider(this._chemoOverlap);
+            this.scene?.physics?.world?.removeCollider(this._chemoOverlap);
             this._chemoOverlap = null;
         }
         if (this._chemoZone) {
-            this._chemoZone.destroy();
+            if (this._chemoZone.active) this._chemoZone.destroy();
             this._chemoZone = null;
         }
         this._chemoPlayer = null;
@@ -150,11 +150,11 @@ export class DamageZoneAbilities {
      */
     destroyAuraZone() {
         if (this._auraOverlap) {
-            this.scene.physics?.world?.removeCollider(this._auraOverlap);
+            this.scene?.physics?.world?.removeCollider(this._auraOverlap);
             this._auraOverlap = null;
         }
         if (this._auraZone) {
-            this._auraZone.destroy();
+            if (this._auraZone.active) this._auraZone.destroy();
             this._auraZone = null;
         }
         this._auraRadius = null;

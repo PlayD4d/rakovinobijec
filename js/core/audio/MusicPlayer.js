@@ -57,17 +57,17 @@ export class MusicPlayer {
         // Stop current music with fade if specified
         if (as.currentMusic) {
             const oldMusic = as.currentMusic;
-            if (options.fadeOut && as.scene && as.scene.tweens) {
+            if (options.fadeOut && as.scene?.sys?.isActive() && as.scene.tweens) {
                 as.scene.tweens.add({
                     targets: oldMusic,
                     volume: 0,
                     duration: options.fadeOut,
                     onComplete: () => {
-                        oldMusic.stop();
+                        if (oldMusic.isPlaying) oldMusic.stop();
                     }
                 });
             } else {
-                oldMusic.stop();
+                if (oldMusic.isPlaying) oldMusic.stop();
             }
         }
 

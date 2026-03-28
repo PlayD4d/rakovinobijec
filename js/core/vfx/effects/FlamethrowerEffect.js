@@ -123,7 +123,7 @@ export class FlamethrowerEffect {
             this._overlapCollider = null;
         }
         if (this._damageZone) {
-            this._damageZone.destroy();
+            if (this._damageZone.active) this._damageZone.destroy();
             this._damageZone = null;
         }
         this._hitThisTick = new Set();

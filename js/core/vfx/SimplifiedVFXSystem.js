@@ -42,10 +42,9 @@ export class SimplifiedVFXSystem {
         // Create basic particle textures if needed
         this._createBasicTextures();
         
-        // Setup cleanup handlers
-        this.scene.events.once('shutdown', () => this.shutdown());
-        this.scene.events.once('destroy', () => this.destroy());
-        
+        // NOTE: No self-registered shutdown listener — GameScene.shutdown() calls us explicitly
+        // Self-registration causes double-shutdown race with the explicit loop
+
         this.initialized = true;
         DebugLogger.info('vfx', '[SimplifiedVFXSystem] Initialized');
     }

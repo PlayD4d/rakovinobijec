@@ -56,8 +56,8 @@ export class SimplifiedAudioSystem {
         this.loadVolumeSettings();
         this.musicPlayer.loadMusicTracks();
 
-        this.scene.events.once('shutdown', () => this.shutdown());
-        this.scene.events.once('destroy', () => this.destroy());
+        // NOTE: No self-registered shutdown listener — GameScene.shutdown() calls us explicitly
+        // Self-registration causes double-shutdown race with the explicit loop
 
         this.initialized = true;
         DebugLogger.info('audio', '[SimplifiedAudioSystem] Initialized');

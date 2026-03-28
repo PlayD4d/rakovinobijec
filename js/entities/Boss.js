@@ -330,7 +330,8 @@ export class Boss extends BossCore {
      * Override pro boss-specific cleanup
      */
     cleanup() {
-        // Cleanup ALL specialized systems (with guards for double-call safety)
+        // Cleanup order matters: cancel ability timers BEFORE phases
+        // (phase transition callbacks are scheduled through abilitiesSystem)
         if (this.behaviors) {
             try { this.behaviors.destroy?.(); } catch (_) {}
             this.behaviors = null;
@@ -339,13 +340,13 @@ export class Boss extends BossCore {
             try { this.movement.cleanup?.(); } catch (_) {}
             this.movement = null;
         }
-        if (this.phases) {
-            try { this.phases.cleanup?.(); } catch (_) {}
-            this.phases = null;
-        }
         if (this.abilitiesSystem) {
             try { this.abilitiesSystem.cleanup?.(); } catch (_) {}
             this.abilitiesSystem = null;
+        }
+        if (this.phases) {
+            try { this.phases.cleanup?.(); } catch (_) {}
+            this.phases = null;
         }
 
         // Parent cleanup

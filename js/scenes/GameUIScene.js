@@ -49,11 +49,12 @@ export class GameUIScene extends Phaser.Scene {
     }
 
     setupEventListeners() {
-        // Store handler references for proper cleanup
+        // Remove stale handlers first (prevents accumulation on scene restart)
+        this._removeEventListeners();
+
         this._onPauseRequest = () => this.showPause();
         this._onLevelUp = (options) => this.showPowerUpSelection(options);
         this._onGameOver = (stats) => this.showGameOver(stats);
-
         this._onVictoryShow = (data) => this.showVictory(data);
         this._onLevelTransitionShow = (data) => this.showLevelTransition(data);
 
@@ -62,6 +63,14 @@ export class GameUIScene extends Phaser.Scene {
         this.game.events.on('game-over', this._onGameOver);
         this.game.events.on('ui:victory:show', this._onVictoryShow);
         this.game.events.on('ui:level-transition:show', this._onLevelTransitionShow);
+    }
+
+    _removeEventListeners() {
+        if (this._onPauseRequest) this.game.events.off('game-pause-request', this._onPauseRequest);
+        if (this._onLevelUp) this.game.events.off('game-levelup', this._onLevelUp);
+        if (this._onGameOver) this.game.events.off('game-over', this._onGameOver);
+        if (this._onVictoryShow) this.game.events.off('ui:victory:show', this._onVictoryShow);
+        if (this._onLevelTransitionShow) this.game.events.off('ui:level-transition:show', this._onLevelTransitionShow);
     }
 
     togglePause() {
@@ -187,11 +196,6 @@ export class GameUIScene extends Phaser.Scene {
         this.powerUpUI?.destroy();
         this.gameOverUI?.destroy();
 
-        // Remove only OUR event listeners (not all listeners on these events)
-        if (this._onPauseRequest) this.game.events.off('game-pause-request', this._onPauseRequest);
-        if (this._onLevelUp) this.game.events.off('game-levelup', this._onLevelUp);
-        if (this._onGameOver) this.game.events.off('game-over', this._onGameOver);
-        if (this._onVictoryShow) this.game.events.off('ui:victory:show', this._onVictoryShow);
-        if (this._onLevelTransitionShow) this.game.events.off('ui:level-transition:show', this._onLevelTransitionShow);
+        this._removeEventListeners();
     }
 }
