@@ -56,21 +56,14 @@ export function orbit(cap, cfg, dt, mem, setState) {
         return;
     }
     
-    // Initialize orbit angle if needed
-    if (mem.orbit.angle === 0) {
+    // Initialize orbit angle from current position (only once via initialized flag)
+    if (!mem.orbit._angleSet) {
         mem.orbit.angle = Math.atan2(dy, dx);
-        mem.orbit.lastAngle = mem.orbit.angle;
+        mem.orbit._angleSet = true;
     }
-    
-    // Update orbit angle with snap threshold
-    const targetAngle = mem.orbit.angle + config.orbitSpeed * dt;
-    const angleDiff = Math.abs(targetAngle - mem.orbit.lastAngle);
-    
-    // Only update if change is significant
-    if (angleDiff > config.angleSnapThreshold) {
-        mem.orbit.angle = targetAngle;
-        mem.orbit.lastAngle = targetAngle;
-    }
+
+    // Advance orbit angle continuously
+    mem.orbit.angle += config.orbitSpeed * dt;
     
     // Calculate desired orbit position
     const targetX = player.x + Math.cos(mem.orbit.angle) * config.orbitRadius;

@@ -41,9 +41,6 @@ export class Enemy extends EnemyCore {
         if (this.behaviors) {
             this.behaviors.update(time, delta);
         }
-        
-        // Update core systems
-        super.update(delta / 1000);
     }
     
     /**

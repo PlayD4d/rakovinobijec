@@ -240,14 +240,19 @@ export class BossPhases {
      */
     activateSpecialBehavior(behavior) {
         DebugLogger.info('boss', `[BossPhases] Activating special behavior: ${behavior}`);
-        
+
+        // Save original speed on first activation to prevent double-multiply
+        if (this._originalMoveSpeed == null) {
+            this._originalMoveSpeed = this.boss.moveSpeed;
+        }
+
         switch (behavior) {
             case 'berserker':
-                this.boss.moveSpeed *= 1.5;
+                this.boss.moveSpeed = this._originalMoveSpeed * 1.5;
                 this.boss.setTint(0xFF0000);
                 break;
             case 'defensive':
-                this.boss.moveSpeed *= 0.7;
+                this.boss.moveSpeed = this._originalMoveSpeed * 0.7;
                 this.boss.setTint(0x4444FF);
                 break;
         }

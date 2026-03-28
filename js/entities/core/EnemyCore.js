@@ -50,8 +50,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         // AI state
         this.aiState = blueprint.ai?.initialState || 'idle';
         
-        // Setup Phaser sprite
-        this.setTexture(textureKey);
+        // Setup Phaser sprite (texture already set by super() constructor)
         this.setOrigin(0.5, 0.5);
         this.setDisplaySize(this.size, this.size);
         
@@ -91,6 +90,9 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         // Store spawn position for patrol behavior
         this.spawnX = x;
         this.spawnY = y;
+
+        // Reusable position buffer — avoids allocating {x,y} every getPos() call
+        this._posBuffer = { x: 0, y: 0 };
         
         // Cooldowns
         this.lastShootTime = 0;
@@ -104,7 +106,9 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * @returns {{x: number, y: number}}
      */
     getPos() {
-        return { x: this.x, y: this.y };
+        this._posBuffer.x = this.x;
+        this._posBuffer.y = this.y;
+        return this._posBuffer;
     }
     
     /**
@@ -353,13 +357,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         }
     }
     
-    /**
-     * Update core systems
-     * @param {number} dt - Delta time in seconds
-     */
-    update(dt) {
-        // Shooting is now handled by the combat layer in EnemyBehaviors
-    }
+    // update(dt) removed — empty stub was called every frame from Enemy/Boss for no effect
     
     /**
      * Clean up

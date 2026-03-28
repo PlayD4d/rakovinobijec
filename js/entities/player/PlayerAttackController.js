@@ -62,8 +62,8 @@ export class PlayerAttackController {
                 // Debug log attack interval
                 DebugLogger.info('player', `[Player] Attack fired. Interval: ${attackInterval}ms, Next at: ${player._nextAttackAt}`);
             } else {
-                // No target - advance timer slightly to prevent rapid checking
-                player._nextAttackAt = time + 100;
+                // No target — defer next check by half attack interval (not 100ms)
+                player._nextAttackAt = time + Math.max(attackInterval * 0.5, 250);
             }
         }
     }

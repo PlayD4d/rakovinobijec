@@ -48,10 +48,10 @@ export function flee(cap, cfg, dt, mem, setState) {
     const dy = player.y - pos.y;
     const rawDist = Math.sqrt(dx * dx + dy * dy);
     
-    // EMA smoothing
+    // EMA smoothing (scoped under mem.flee to avoid namespace pollution)
     const alpha = 0.25;
-    mem.prevDist = (mem.prevDist == null) ? rawDist : (mem.prevDist * (1 - alpha) + rawDist * alpha);
-    const distance = mem.prevDist;
+    mem.flee.prevDist = (mem.flee.prevDist == null) ? rawDist : (mem.flee.prevDist * (1 - alpha) + rawDist * alpha);
+    const distance = mem.flee.prevDist;
     
     // Check if at safe distance with hysteresis
     const exitDistance = config.safeDistance * config.hysteresis.exitFactor;

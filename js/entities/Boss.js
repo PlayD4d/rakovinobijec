@@ -162,9 +162,6 @@ export class Boss extends BossCore {
             this.behaviors.update(time, delta);
         }
         
-        // BUGFIX: Parent update - EnemyCore očekává jen delta čas
-        super.update(delta / 1000);
-        
         // Boss-specific system updates
         if (this.phases) {
             this.phases.update(time, delta);
@@ -263,6 +260,12 @@ export class Boss extends BossCore {
      * Override damage handling pro phase transitions
      */
     takeDamage(amount, source = null) {
+        // Shield ability blocks all damage while active
+        if (this._shielded) {
+            this.spawnVfx('hit');
+            return 0;
+        }
+
         // Parent expects {amount, source} object or plain number
         const damageDealt = super.takeDamage({ amount, source });
 
@@ -311,23 +314,8 @@ export class Boss extends BossCore {
         this.setVisible(false);
         if (this.body) this.body.setEnable(false);
 
-        // Clean up ALL boss sub-systems
-        if (this.behaviors) {
-            try { this.behaviors.destroy?.(); } catch (_) {}
-            this.behaviors = null;
-        }
-        if (this.movement) {
-            try { this.movement.cleanup?.(); } catch (_) {}
-            this.movement = null;
-        }
-        if (this.abilitiesSystem) {
-            try { this.abilitiesSystem.cleanup?.(); } catch (_) {}
-            this.abilitiesSystem = null;
-        }
-        if (this.phases) {
-            try { this.phases.cleanup?.(); } catch (_) {}
-            this.phases = null;
-        }
+        // Cleanup subsystems via single cleanup() method (DRY)
+        this.cleanup();
 
         // Emit boss-specific event for level transition (after cleanup)
         if (this.scene?.events) {
@@ -342,30 +330,26 @@ export class Boss extends BossCore {
      * Override pro boss-specific cleanup
      */
     cleanup() {
-        // Cleanup ALL specialized systems
+        // Cleanup ALL specialized systems (with guards for double-call safety)
         if (this.behaviors) {
-            try { this.behaviors.destroy(); } catch (_) {}
+            try { this.behaviors.destroy?.(); } catch (_) {}
             this.behaviors = null;
         }
         if (this.movement) {
-            this.movement.cleanup();
+            try { this.movement.cleanup?.(); } catch (_) {}
             this.movement = null;
         }
-        
         if (this.phases) {
-            this.phases.cleanup();
+            try { this.phases.cleanup?.(); } catch (_) {}
             this.phases = null;
         }
-        
         if (this.abilitiesSystem) {
-            this.abilitiesSystem.cleanup();
+            try { this.abilitiesSystem.cleanup?.(); } catch (_) {}
             this.abilitiesSystem = null;
         }
-        
+
         // Parent cleanup
         super.cleanup();
-        
-        DebugLogger.info('boss', '[Boss] Thin composer cleanup completed');
     }
     
     /**

@@ -21,7 +21,10 @@ export function shoot(cap, cfg, dt, mem, setState) {
     const now = cap.now > 0 ? cap.now : (cap.scene?.time?.now || 1);
     const cooldown = cfg?.cooldown || 3000;
 
-    if (now - (mem.lastShotAt || -Infinity) >= cooldown) {
+    // Initialize lastShotAt to current time on first call (prevents instant shot on spawn)
+    if (mem.lastShotAt == null) mem.lastShotAt = now;
+
+    if (now - mem.lastShotAt >= cooldown) {
         const angle = Math.atan2(dy, dx);
         const burstCount = cfg?.burstCount || 1;
         const burstDelay = cfg?.burstDelay || 100;
