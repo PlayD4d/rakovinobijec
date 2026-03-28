@@ -230,7 +230,11 @@ export class UpdateManager {
             const projectiles = (this.scene.projectileSystem?.playerBullets?.countActive?.() || 0) +
                                 (this.scene.projectileSystem?.enemyBullets?.countActive?.() || 0);
             const loot = this.scene.lootSystem?.lootGroup?.children?.size || 0;
-            getSession()?.log('perf', 'snapshot', { fps, frameMs, enemies, enemiesActive, projectiles, loot });
+            const vfxEffects = this.scene.vfxSystem?.activeEmitters?.size || 0;
+            const vfxPowerUp = this.scene.vfxSystem?.powerUpEffects?.size || 0;
+            // Chrome-only JS heap (MB), 0 if unavailable
+            const heapMB = Math.round((performance.memory?.usedJSHeapSize || 0) / 1048576);
+            getSession()?.log('perf', 'snapshot', { fps, frameMs, enemies, enemiesActive, projectiles, loot, vfxEffects, vfxPowerUp, heapMB: heapMB || undefined });
             // Warn on perf issues
             if (fps < 30) getSession()?.log('perf', 'fps_drop', { fps, enemies, projectiles, loot });
             if (enemies > 100) getSession()?.log('perf', 'entity_overload', { enemies, enemiesActive });
