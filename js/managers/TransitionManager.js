@@ -192,9 +192,16 @@ export class TransitionManager {
                         this.scene,
                         this.scene.gameStats,  // Pass full gameStats object, not just score
                         async (name) => {
-                            await this.scene.highScoreManager.addScore(name, finalScore);
+                            const gs = this.scene.gameStats;
+                            await this.scene.highScoreManager.addHighScore(
+                                name, finalScore, gs.level, gs.enemiesKilled,
+                                gs.time, gs.bossesDefeated
+                            );
                             if (this.scene.globalHighScoreManager) {
-                                await this.scene.globalHighScoreManager.submitScore(name, finalScore);
+                                await this.scene.globalHighScoreManager.submitScore(
+                                    name, finalScore, gs.level, gs.enemiesKilled,
+                                    gs.time, gs.bossesDefeated
+                                );
                             }
                             this.scene.highScoreModal = null;
                         }

@@ -525,7 +525,9 @@ export class GameScene extends Phaser.Scene {
             // Clean up game-level event listeners
             this._bootstrapGameListeners?.forEach(({ event, fn }) => this.game.events.off(event, fn));
             this._bootstrapGameListeners = null;
-            try { this.scale.off('resize', this.handleResize, this); } catch (_) {}
+            try {
+                if (this._resizeHandler) this.scale.off('resize', this._resizeHandler);
+            } catch (_) {}
             if (this.mobileControls?.enabled) try { this.mobileControls.disable(); } catch (_) {}
 
             // Nullify references

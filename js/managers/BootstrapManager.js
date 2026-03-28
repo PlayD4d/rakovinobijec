@@ -134,9 +134,10 @@ export class BootstrapManager {
             { event: 'powerup-selected', fn: this._onPowerUpSelected }
         ];
 
-        // Resize event
+        // Resize event (game-level — tracked for cleanup in GameScene.shutdown)
         const scale = this.scene.getScaleManager();
-        scale.on('resize', this.scene.handleResize, this.scene);
+        this.scene._resizeHandler = this.scene.handleResize.bind(this.scene);
+        scale.on('resize', this.scene._resizeHandler);
     }
 
     /**

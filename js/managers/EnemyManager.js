@@ -80,16 +80,7 @@ export class EnemyManager {
         if (!this.scene.textures.exists(textureKey) && this.scene.graphicsFactory) {
             this.scene.graphicsFactory.generateEnemyTexture(textureKey, color, size, blueprint);
         }
-        
-        const bossConfig = {
-            ...blueprint.stats,
-            ...blueprint.mechanics,
-            texture: textureKey,
-            color: color,
-            sfx: blueprint.sfx,
-            vfx: blueprint.vfx
-        };
-        
+
         const boss = new Boss(this.scene, x, y, blueprint, options);
         this.scene.bossGroup.add(boss);
         this.scene.currentBoss = boss;
@@ -325,6 +316,7 @@ export class EnemyManager {
             if (enemy instanceof Boss) {
                 scene.gameStats.bossesDefeated++;
                 scene.currentBoss = null;
+                scene.bossActive = false;
             }
 
         } catch (error) {

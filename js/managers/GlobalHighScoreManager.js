@@ -24,24 +24,32 @@ export class GlobalHighScoreManager {
         this.lastFetchTime = 0;
         this.cacheTimeout = 60000; // 1 minuta cache
         
-        this.isOnline = navigator.onLine;
-        this.setupNetworkListeners();
+        // Combine Supabase availability with network status
+        this.isOnline = this.isOnline && navigator.onLine;
+        this._setupNetworkListeners();
 
         // Idempotence proti dvojímu submitu (např. autorepeat klávesy)
         this.lastSubmitKey = null;
         this.lastSubmitResult = null;
     }
     
-    setupNetworkListeners() {
-        window.addEventListener('online', () => {
-            this.isOnline = true;
-            DebugLogger.info('general', '🌐 Connected to internet - global scores available');
-        });
-        
-        window.addEventListener('offline', () => {
+    _setupNetworkListeners() {
+        this._onOnline = () => {
+            this.isOnline = SupabaseClient.isAvailable();
+            if (this.isOnline) DebugLogger.info('general', 'Connected - global scores available');
+        };
+        this._onOffline = () => {
             this.isOnline = false;
-            DebugLogger.info('general', '📡 Offline - using local scores only');
-        });
+        };
+        window.addEventListener('online', this._onOnline);
+        window.addEventListener('offline', this._onOffline);
+    }
+
+    shutdown() {
+        if (this._onOnline) window.removeEventListener('online', this._onOnline);
+        if (this._onOffline) window.removeEventListener('offline', this._onOffline);
+        this._onOnline = null;
+        this._onOffline = null;
     }
     
     setLocalFallback(localHighScoreManager) {
