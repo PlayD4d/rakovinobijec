@@ -283,15 +283,17 @@ export class PowerUpAbilities {
         const enemies = this.scene.enemiesGroup?.getChildren() || [];
         if (enemies.length === 0) return;
         
-        // Find closest enemy
+        // Find closest enemy (squared distance avoids Math.sqrt)
         let closest = null;
-        let minDist = config.range;
-        
+        let minDistSq = config.range * config.range;
+
         for (const enemy of enemies) {
             if (!enemy?.active) continue;
-            const dist = Math.sqrt((player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2);
-            if (dist < minDist) {
-                minDist = dist;
+            const dx = player.x - enemy.x;
+            const dy = player.y - enemy.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < minDistSq) {
+                minDistSq = distSq;
                 closest = enemy;
             }
         }
@@ -327,13 +329,15 @@ export class PowerUpAbilities {
         if (jumpsLeft > 1) {
             const enemies = this.scene.enemiesGroup?.getChildren() || [];
             let next = null;
-            let minDist = jumpRange;
-            
+            let minDistSq = jumpRange * jumpRange;
+
             for (const e of enemies) {
                 if (!e?.active || hitList.has(e)) continue;
-                const dist = Math.sqrt((enemy.x - e.x) ** 2 + (enemy.y - e.y) ** 2);
-                if (dist < minDist) {
-                    minDist = dist;
+                const dx = enemy.x - e.x;
+                const dy = enemy.y - e.y;
+                const distSq = dx * dx + dy * dy;
+                if (distSq < minDistSq) {
+                    minDistSq = distSq;
                     next = e;
                 }
             }

@@ -96,9 +96,12 @@ export class BootstrapManager {
             DebugLogger.info('bootstrap', '[GameScene] Player died, triggering game over');
             this.scene.gameOver();
         };
-        this._onBossDie = async (data) => {
+        this._onBossDie = (data) => {
             DebugLogger.info('bootstrap', '[GameScene] Boss defeated! Transitioning to next level...');
-            await this.scene.transitionToNextLevel();
+            // Catch async errors to prevent unhandled rejections (Phaser events are sync)
+            this.scene.transitionToNextLevel().catch(err => {
+                DebugLogger.error('bootstrap', '[GameScene] Level transition failed:', err);
+            });
         };
         this._onResume = () => {
             DebugLogger.info('bootstrap', '[GameScene] Scene resumed');

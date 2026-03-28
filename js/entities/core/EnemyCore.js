@@ -223,12 +223,12 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * @param {Object} opts - Additional options
      */
     spawnVfx(id, at, opts = {}) {
-        if (!this.scene.vfxSystem && !this.scene.newVFXSystem) return;
+        const vfxSystem = this.scene.vfxSystem;
+        if (!vfxSystem) return;
 
         // Accept both {x,y} object and (x, y) number arguments
         let pos;
         if (typeof at === 'number') {
-            // Called as spawnVfx(id, x, y) — opts is actually the y coordinate
             pos = { x: at, y: opts };
             opts = {};
         } else {
@@ -236,12 +236,8 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         }
 
         const vfxId = this._vfx[id] || id;
-        const vfxSystem = this.scene.newVFXSystem || this.scene.vfxSystem;
-
-        if (vfxId && vfxSystem) {
+        if (vfxId) {
             vfxSystem.play(vfxId, pos.x, pos.y, opts);
-        } else if (vfxSystem?.playPlaceholder) {
-            vfxSystem.playPlaceholder(`vfx.placeholder.${id}`, pos.x, pos.y, opts);
         }
     }
     
