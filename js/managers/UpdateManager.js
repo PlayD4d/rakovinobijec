@@ -220,6 +220,12 @@ export class UpdateManager {
     update(time, delta) {
         if (!this.enabled) return;
 
+        // Periodic cleanup of dead (inactive) sprites from groups — prevents memory leak
+        if (!this._lastCleanup || time - this._lastCleanup >= 10000) {
+            this._lastCleanup = time;
+            this._cleanupDeadSprites();
+        }
+
         // Lightweight perf snapshot every 5s → session log
         if (!this._lastPerfLog || time - this._lastPerfLog >= 5000) {
             this._lastPerfLog = time;
@@ -365,6 +371,57 @@ export class UpdateManager {
         }
     }
     
+    /**
+     * Remove inactive (dead) sprites from physics groups to prevent memory buildup.
+     * Called every 10 seconds. Inactive sprites are destroyed and removed from groups.
+     */
+    _cleanupDeadSprites() {
+        let cleaned = 0;
+
+        // Cleanup dead enemies
+        const enemiesGroup = this.scene.enemiesGroup;
+        if (enemiesGroup) {
+            const children = enemiesGroup.getChildren();
+            for (let i = children.length - 1; i >= 0; i--) {
+                const child = children[i];
+                if (child && !child.active) {
+                    child.destroy();
+                    cleaned++;
+                }
+            }
+        }
+
+        // Cleanup dead bosses
+        const bossGroup = this.scene.bossGroup;
+        if (bossGroup) {
+            const children = bossGroup.getChildren();
+            for (let i = children.length - 1; i >= 0; i--) {
+                const child = children[i];
+                if (child && !child.active) {
+                    child.destroy();
+                    cleaned++;
+                }
+            }
+        }
+
+        // Cleanup old loot (inactive items left on field)
+        const lootGroup = this.scene.lootSystem?.lootGroup;
+        if (lootGroup) {
+            const children = lootGroup.getChildren();
+            for (let i = children.length - 1; i >= 0; i--) {
+                const child = children[i];
+                if (child && !child.active) {
+                    child.destroy();
+                    cleaned++;
+                }
+            }
+        }
+
+        if (cleaned > 0) {
+            getSession()?.log('perf', 'cleanup', { cleaned, enemies: enemiesGroup?.children?.size || 0, loot: lootGroup?.children?.size || 0 });
+        }
+    }
+
     /**
      * Pause all updates
      */
