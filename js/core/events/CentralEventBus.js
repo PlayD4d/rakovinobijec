@@ -30,35 +30,42 @@ export class CentralEventBus {
     /**
      * Emit namespaced event
      */
+    // Pre-allocated event object reused across emits (avoids per-emit allocation)
+    _eventObj = { name: '', data: null, timestamp: 0 };
+
     emit(eventName, data = null) {
-        const timestamp = Date.now();
-        
-        // Validate event format
-        if (!this.isValidEventName(eventName)) {
+        // Single split for both validation and namespace extraction
+        const colonIdx = eventName ? eventName.indexOf(':') : -1;
+        if (colonIdx < 1) {
             DebugLogger.warn('events', `[CentralEventBus] Invalid event name: ${eventName}`);
             return;
         }
-        
+        const namespace = eventName.substring(0, colonIdx);
+
+        // Validate namespace (use cached Set for O(1) lookup instead of O(n) array scan)
+        if (!this._validNamespaces) {
+            this._validNamespaces = new Set(Object.values(this.namespaces));
+        }
+        if (!this._validNamespaces.has(namespace)) {
+            DebugLogger.warn('events', `[CentralEventBus] Invalid namespace: ${namespace}`);
+            return;
+        }
+
+        const timestamp = Date.now();
+
         // Log event
         this.logEvent(eventName, data, timestamp);
-        
-        // Emit event
-        this.eventEmitter.emit(eventName, {
-            name: eventName,
-            data: data,
-            timestamp: timestamp
-        });
-        
-        // Also emit to wildcard listeners for namespace
-        const namespace = this.getNamespace(eventName);
-        if (namespace) {
-            this.eventEmitter.emit(`${namespace}:*`, {
-                name: eventName,
-                data: data,
-                timestamp: timestamp
-            });
-        }
-        
+
+        // Reuse event object to avoid per-emit allocation
+        const evt = this._eventObj;
+        evt.name = eventName;
+        evt.data = data;
+        evt.timestamp = timestamp;
+
+        // Emit event + wildcard
+        this.eventEmitter.emit(eventName, evt);
+        this.eventEmitter.emit(`${namespace}:*`, evt);
+
         DebugLogger.debug('events', `[CentralEventBus] Emitted: ${eventName}`, data);
     }
     

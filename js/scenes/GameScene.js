@@ -450,8 +450,8 @@ export class GameScene extends Phaser.Scene {
     restartScene() { this.scene.restart(); }
     
     findNearestEnemy() {
-        // Delegate to TargetingSystem (single source of truth)
-        if (this.targetingSystem) return this.targetingSystem.findTarget(this.player);
+        // Delegate to TargetingSystem (with range filter + HP check + boss priority)
+        if (this.targetingSystem) return this.targetingSystem.findNearestEnemy(this.player);
         return null;
     }
 

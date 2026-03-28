@@ -88,52 +88,8 @@ export class TargetingSystem {
         return nearestEnemy;
     }
     
-    /**
-     * Legacy compatibility method for _findTarget
-     */
-    findTarget(player) {
-        // Use enemiesGroup from SpawnDirector
-        const g = this.scene.enemiesGroup;
-        if (!g) return null;
+    // findTarget() removed — was a legacy duplicate of findNearestEnemy without range/HP/boss checks
 
-        let best = null;
-        let bestD2 = Infinity;
-        const cx = player.x, cy = player.y;
-
-        const list = g.getChildren?.() || [];
-        
-        for (let i = 0; i < list.length; i++) {
-            const e = list[i];
-            if (!e?.active) continue;
-            const dx = e.x - cx;
-            const dy = e.y - cy;
-            const d2 = dx * dx + dy * dy;
-            if (d2 < bestD2) { 
-                bestD2 = d2; 
-                best = e; 
-            }
-        }
-        
-        // Also check boss group
-        const bossGroup = this.scene.bossGroup;
-        if (bossGroup) {
-            const bosses = bossGroup.getChildren?.() || [];
-            for (let i = 0; i < bosses.length; i++) {
-                const b = bosses[i];
-                if (!b?.active) continue;
-                const dx = b.x - cx;
-                const dy = b.y - cy;
-                const d2 = dx * dx + dy * dy;
-                if (d2 < bestD2) { 
-                    bestD2 = d2; 
-                    best = b; 
-                }
-            }
-        }
-        
-        return best;
-    }
-    
     /**
      * Update configuration from blueprints (Phase 4)
      */
