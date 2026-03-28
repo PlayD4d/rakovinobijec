@@ -391,33 +391,39 @@ export class PowerUpSystem {
             'legendary': 0.5
         };
         
-        // Calculate weighted list
-        const weightedOptions = [];
-        for (const option of options) {
-            const weight = rarityWeights[option.rarity] || 1;
-            for (let i = 0; i < weight * 10; i++) {
-                weightedOptions.push(option);
-            }
-        }
-        
-        // Randomly select 3 unique options
+        // Build pool of eligible options with their weights (prefix-sum sampling)
+        const pool = options.map(option => ({
+            option,
+            weight: rarityWeights[option.rarity] || 1
+        }));
+
+        // Randomly select 3 unique options using weighted sampling
         const selected = [];
-        const usedIds = new Set();
-        
-        while (selected.length < 3 && weightedOptions.length > 0) {
-            const index = Math.floor(Math.random() * weightedOptions.length);
-            const option = weightedOptions[index];
-            
-            if (!usedIds.has(option.id)) {
-                selected.push(option);
-                usedIds.add(option.id);
-                // Remove all instances of this option from weighted list
-                for (let i = weightedOptions.length - 1; i >= 0; i--) {
-                    if (weightedOptions[i].id === option.id) {
-                        weightedOptions.splice(i, 1);
-                    }
+
+        while (selected.length < 3 && pool.length > 0) {
+            // Compute total weight of remaining pool
+            let totalWeight = 0;
+            for (let i = 0; i < pool.length; i++) {
+                totalWeight += pool[i].weight;
+            }
+
+            // Pick random value in [0, totalWeight)
+            const r = Math.random() * totalWeight;
+
+            // Linear scan with prefix-sum to find winner
+            let cumulative = 0;
+            let winnerIndex = pool.length - 1; // fallback to last
+            for (let i = 0; i < pool.length; i++) {
+                cumulative += pool[i].weight;
+                if (r < cumulative) {
+                    winnerIndex = i;
+                    break;
                 }
             }
+
+            // Add winner to selected and remove from pool
+            selected.push(pool[winnerIndex].option);
+            pool.splice(winnerIndex, 1);
         }
         
         DebugLogger.info('powerup', `[PowerUpSystem] Selected ${selected.length} powerups for display:`, selected.map(p => `${p.id} (L${p.nextLevel})`));

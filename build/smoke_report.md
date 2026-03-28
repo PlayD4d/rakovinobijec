@@ -1,8 +1,8 @@
 # Smoke Test Report
 
 **Status**: ⚠️ PASS_WITH_WARNINGS
-**Timestamp**: 2025-08-18T04:55:54.413Z
-**Duration**: 2ms
+**Timestamp**: 2026-03-28T11:32:37.505Z
+**Duration**: 3ms
 
 ## System Validation
 
@@ -68,6 +68,7 @@
 - ⚠️ Failed to parse blueprint powerup_damage_boost.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint powerup_flamethrower.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint powerup_metabolic_haste.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
+- ⚠️ Failed to parse blueprint powerup_multi_shot.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint powerup_piercing_arrows.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint powerup_radiotherapy.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)
 - ⚠️ Failed to parse blueprint powerup_shield.json5: Expected property name or '}' in JSON at position 4 (line 2 column 3)

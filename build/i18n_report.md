@@ -1,10 +1,20 @@
 # I18n Translation Report
 
-Generated: 2026-03-27T13:20:38.641Z
+Generated: 2026-03-28T11:43:08.046Z
 
 ## Summary
-- Total i18n keys used: 89
-- Missing translations: 0
+- Total i18n keys used: 93
+- Missing translations: 6
 - TODO translations: 0
-- Coverage: 100.0%
+- Coverage: 93.5%
 
+## Missing Translations
+
+| Key | Locale | Entity | Type | Suggested |
+|-----|--------|--------|------|-----------|
+| powerup.multi_shot.name | cs | powerup.multi_shot | powerup | TODO – doplnit překlad |
+| powerup.multi_shot.name | en | powerup.multi_shot | powerup | TODO – add translation |
+| powerup.multi_shot.desc | cs | powerup.multi_shot | powerup | TODO – doplnit překlad |
+| powerup.multi_shot.desc | en | powerup.multi_shot | powerup | TODO – add translation |
+| sr.powerup.multi_shot | cs | sr.powerup | sr | TODO – doplnit překlad |
+| sr.powerup.multi_shot | en | sr.powerup | sr | TODO – add translation |

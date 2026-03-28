@@ -9,6 +9,10 @@ import { Enemy } from '../entities/Enemy.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { Boss } from '../entities/Boss.js';
 
+/**
+ * @typedef {import('../entities/Enemy.js').Enemy} Enemy
+ */
+
 export class EnemyManager {
     constructor(scene) {
         this.scene = scene;
@@ -17,7 +21,7 @@ export class EnemyManager {
         // Create groups if not exists
         if (!scene.enemiesGroup) {
             scene.enemiesGroup = scene.physics.add.group({ runChildUpdate: false });
-            scene.enemies = scene.enemiesGroup;
+            // scene.enemies alias removed — use scene.enemiesGroup consistently
         }
         if (!scene.bossGroup) {
             scene.bossGroup = scene.physics.add.group();
@@ -126,7 +130,7 @@ export class EnemyManager {
             visible: boss.visible,
             hp: boss.hp,
             inGroup: this.scene.bossGroup.contains(boss),
-            inEnemiesGroup: this.scene.enemies.contains(boss),
+            inEnemiesGroup: this.scene.enemiesGroup.contains(boss),
             groupType: this.scene.bossGroup.constructor.name,
             texture: boss.texture?.key || 'none'
         });
@@ -288,6 +292,85 @@ export class EnemyManager {
         };
     }
     
+    /**
+     * Handle enemy death - loot, XP, stats, VFX/SFX, deactivation
+     * Extracted from GameScene.handleEnemyDeath for thin-scene compliance
+     * @param {Enemy} enemy
+     */
+    onEnemyDeath(enemy) {
+        if (!enemy) return;
+        if (enemy._deathProcessed) return;
+        enemy._deathProcessed = true;
+
+        const scene = this.scene;
+
+        // Session log
+        getSession()?.kill('player', enemy.blueprintId || enemy.blueprint?.id, enemy.xp, {
+            hp: enemy.maxHp, pos: `${Math.round(enemy.x)},${Math.round(enemy.y)}`
+        });
+
+        // Clean up ALL VFX effects immediately before any other cleanup
+        if (typeof enemy.cleanupAllVFX === 'function') {
+            enemy.cleanupAllVFX();
+        }
+
+        try {
+            // Play death VFX
+            if (scene.vfxSystem && enemy._vfx?.death) {
+                scene.vfxSystem.play(enemy._vfx.death, enemy.x, enemy.y);
+            }
+
+            // Play death SFX
+            if (scene.audioSystem && enemy._sfx?.death) {
+                scene.audioSystem.play(enemy._sfx.death);
+            }
+
+            // Create XP orbs based on enemy XP value
+            if (enemy.xp && enemy.xp > 0 && scene.createXPOrbs) {
+                scene.createXPOrbs(enemy.x, enemy.y, enemy.xp);
+            }
+
+            // Handle drops using SimpleLootSystem (for consumables only, not XP)
+            if (scene.lootSystem) {
+                try {
+                    scene.lootSystem.handleEnemyDeath(enemy);
+                } catch (error) {
+                    DebugLogger.info('loot', '[Loot] Failed to handle enemy death:', error.message);
+                }
+            }
+
+            // Update statistics
+            scene.gameStats.kills = (scene.gameStats.kills || 0) + 1;
+            scene.gameStats.enemiesKilled++;
+            scene.gameStats.score += enemy.xp * 10;
+
+            // Safe analytics with proper checks
+            const enemy_type = enemy.blueprintId || enemy.type || 'unknown';
+            if (scene.analyticsManager && typeof scene.analyticsManager.trackEvent === 'function') {
+                scene.analyticsManager.trackEvent('enemy_killed', {
+                    enemy_type,
+                    level: scene.gameStats?.level ?? 1
+                });
+            }
+
+            // Handle boss death
+            if (enemy instanceof Boss) {
+                scene.gameStats.bossesDefeated++;
+                scene.currentBoss = null;
+            }
+
+        } catch (error) {
+            DebugLogger.warn('game', '[EnemyManager] enemy death handling failed:', error);
+        }
+
+        // Deactivate (don't destroy — Boss.die() still runs after this returns)
+        if (enemy.active) {
+            enemy.setActive(false);
+            enemy.setVisible(false);
+            if (enemy.body) enemy.body.enable = false;
+        }
+    }
+
     /**
      * Shutdown
      */

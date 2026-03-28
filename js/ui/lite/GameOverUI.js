@@ -64,8 +64,8 @@ export class GameOverUI {
         this.hide(() => {
           // Clean up GameScene before restarting
           const gameScene = scene.scene.get('GameScene');
-          if (gameScene && gameScene.cleanupSystems) {
-            gameScene.cleanupSystems();
+          if (gameScene && gameScene.shutdown) {
+            gameScene.shutdown();
           }
           
           scene.scene.stop('GameUIScene');
@@ -89,8 +89,8 @@ export class GameOverUI {
         this.hide(() => {
           // Clean up GameScene before stopping
           const gameScene = scene.scene.get('GameScene');
-          if (gameScene && gameScene.cleanupSystems) {
-            gameScene.cleanupSystems();
+          if (gameScene && gameScene.shutdown) {
+            gameScene.shutdown();
           }
           
           // Stop both scenes and return to menu

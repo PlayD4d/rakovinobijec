@@ -1,27 +1,19 @@
 /**
- * BootstrapManager - Simplifies GameScene.create() initialization
+ * BootstrapManager - Orchestrates GameScene.create() initialization
  * PR7 compliant - systematic initialization in clear phases
- * 
- * Extracts initialization logic from GameScene to reduce LOC
- * and improve maintainability
+ * Delegates system creation to SystemsInitializer
  */
 
 import { Player } from '../entities/Player.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { UnifiedHUD } from '../ui/UnifiedHUD.js';
-import { EnemyManager } from './EnemyManager.js';
-import { ProjectileSystem } from '../core/systems/ProjectileSystem.js';
-import { TargetingSystem } from '../core/systems/TargetingSystem.js';
-import { PowerUpSystem } from '../core/systems/powerup/PowerUpSystem.js';
-import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
-import { SpawnDirector } from '../core/spawn/SpawnDirector.js';
+import { SystemsInitializer } from './SystemsInitializer.js';
 
 export class BootstrapManager {
     constructor(scene) {
         this.scene = scene;
     }
-    
-    
+
     /**
      * Setup world physics and depth layers
      */
@@ -54,7 +46,7 @@ export class BootstrapManager {
         
         DebugLogger.info('bootstrap', '✅ Depth-based rendering system initialized');
     }
-    
+
     /**
      * Initialize analytics and score managers
      */
@@ -83,7 +75,7 @@ export class BootstrapManager {
             this.scene.analyticsManager = null;
         }
     }
-    
+
     /**
      * Setup UI components
      */
@@ -94,7 +86,7 @@ export class BootstrapManager {
         // Launch UI overlay scene using interface method
         this.scene.launchUIScene('GameUIScene');
     }
-    
+
     /**
      * Register all event listeners
      */
@@ -146,7 +138,7 @@ export class BootstrapManager {
         const scale = this.scene.getScaleManager();
         scale.on('resize', this.scene.handleResize, this.scene);
     }
-    
+
     /**
      * Handle power-up selection
      */
@@ -169,16 +161,16 @@ export class BootstrapManager {
             this.scene.projectileSystem.resumeAll();
         }
         
-        // Process pending XP
-        if (this.scene.pendingXP > 0) {
-            const xpToAdd = this.scene.pendingXP;
-            this.scene.pendingXP = 0;
+        // Process pending XP via ProgressionSystem
+        const ps = this.scene.progressionSystem;
+        if (ps && ps.getPendingXP() > 0) {
+            const xpToAdd = ps.clearPendingXP();
             this.scene.addDelayedCall(100, () => {
                 this.scene.addXP(xpToAdd);
             });
         }
     }
-    
+
     /**
      * Ensure player is active and visible
      */
@@ -194,7 +186,7 @@ export class BootstrapManager {
             }
         }
     }
-    
+
     /**
      * Setup development tools
      */
@@ -209,7 +201,7 @@ export class BootstrapManager {
             }
         }
     }
-    
+
     /**
      * Start game timer
      */
@@ -221,7 +213,7 @@ export class BootstrapManager {
             loop: true
         });
     }
-    
+
     /**
      * Get player blueprint from loader or use fallback
      */
@@ -250,100 +242,42 @@ export class BootstrapManager {
         DebugLogger.error('general', '[BootstrapManager] CRITICAL: Player blueprint not found!');
         return this.createFallbackBlueprint();
     }
-    
-    /**
-     * Create emergency fallback blueprint
-     */
+
+    /** Create emergency fallback blueprint */
     createFallbackBlueprint() {
         const CR = window.ConfigResolver;
+        const hp = CR?.get('player.stats.hp', { defaultValue: 100 }) || 100;
+        const speed = CR?.get('player.stats.speed', { defaultValue: 135 }) || 135;
+        const damage = CR?.get('player.attack.damage', { defaultValue: 10 }) || 10;
         return {
-            id: 'player_emergency',
-            type: 'player',
-            display: {
-                texture: 'player',
-                frame: 0,
-                tint: 0x4169E1
-            },
-            stats: {
-                hp: CR?.get('player.stats.hp', { defaultValue: 100 }) || 100,
-                speed: CR?.get('player.stats.speed', { defaultValue: 135 }) || 135,
-                size: 24
-            },
+            id: 'player_emergency', type: 'player',
+            display: { texture: 'player', frame: 0, tint: 0x4169E1 },
+            stats: { hp, speed, size: 24 },
             mechanics: {
                 attack: { intervalMs: 1000 },
-                projectile: {
-                    ref: 'projectile.player_basic',
-                    count: 1,
-                    spreadDeg: 15,
-                    stats: {
-                        damage: CR?.get('player.attack.damage', { defaultValue: 10 }) || 10,
-                        speed: 300,
-                        range: 600
-                    }
-                },
+                projectile: { ref: 'projectile.player_basic', count: 1, spreadDeg: 15,
+                    stats: { damage, speed: 300, range: 600 } },
                 crit: { chance: 0.05, multiplier: 2 },
                 iFrames: { ms: 1000 }
             },
-            vfx: {
-                spawn: 'vfx.player.spawn',
-                hit: 'vfx.player.hit',
-                death: 'vfx.player.death',
-                shoot: 'vfx.weapon.muzzle',
-                heal: 'vfx.player.heal'
-            },
-            sfx: {
-                spawn: 'sfx.player.spawn',
-                hit: 'sfx.player.hit',
-                death: 'sfx.player.death',
-                shoot: 'sfx.player.shoot',
-                heal: 'sfx.player.heal'
-            }
+            vfx: { spawn: 'vfx.player.spawn', hit: 'vfx.player.hit', death: 'vfx.player.death',
+                shoot: 'vfx.weapon.muzzle', heal: 'vfx.player.heal' },
+            sfx: { spawn: 'sfx.player.spawn', hit: 'sfx.player.hit', death: 'sfx.player.death',
+                shoot: 'sfx.player.shoot', heal: 'sfx.player.heal' }
         };
     }
-    
+
     /**
-     * Initialize all data-driven systems
+     * Initialize all data-driven systems via SystemsInitializer
      */
     async initializeDataDrivenSystems() {
-        DebugLogger.info('bootstrap', '[BootstrapManager] Initializing data-driven systems...');
-        
-        // Graphics Factory - must be first
-        this.initializeGraphicsFactory();
-        
-        // Core systems
-        await this.initializeAudioSystem();
-        await this.initializeVFXSystem();
-        this.initializeProjectileSystem();
-        this.initializeTargetingSystem();
-        await this.initializeLootSystem();
-        this.initializePowerUpSystem();
-        
-        // Enemy management
-        this.initializeEnemyManager();
-        
-        // Spawn and enemy management
-        this.initializeSpawnSystem();
-        
-        // Input management
-        await this.initializeKeyboardManager();
-        
-        // Framework debug API
-        this.initializeDebugAPI();
-        
-        DebugLogger.info('bootstrap', '✅ All data-driven systems initialized');
-        
-        // Verify all critical systems
-        this.verifySystemsInitialization();
-        
+        this.systemsInitializer = new SystemsInitializer(this.scene);
+        await this.systemsInitializer.initializeAll();
+
         // Additional scene-specific setup
         this.scene.currentLevel = 1;
         this.scene.maxLevel = 3;
-        
-        // Setup resume handlers
-        if (this.scene.setupResumeHandlers) {
-            this.scene.setupResumeHandlers();
-        }
-        
+
         // Initialize debug and telemetry if in dev mode
         if (window.DEV_MODE || window.location.search.includes('debug=true')) {
             if (this.scene.initializeDebugSystems) {
@@ -351,263 +285,7 @@ export class BootstrapManager {
             }
         }
     }
-    
-    /**
-     * Verify all systems were initialized correctly
-     */
-    verifySystemsInitialization() {
-        DebugLogger.info('bootstrap', '[BootstrapManager] ===== SYSTEM VERIFICATION =====');
-        DebugLogger.debug('bootstrap', '  - GraphicsFactory:', !!this.scene.graphicsFactory);
-        DebugLogger.debug('bootstrap', '  - AudioSystem:', !!this.scene.audioSystem);
-        DebugLogger.debug('bootstrap', '  - VFXSystem:', !!this.scene.vfxSystem);
-        DebugLogger.debug('bootstrap', '  - ProjectileSystem:', !!this.scene.projectileSystem);
-        DebugLogger.debug('bootstrap', '  - TargetingSystem:', !!this.scene.targetingSystem);
-        DebugLogger.debug('bootstrap', '  - SimpleLootSystem:', !!this.scene.lootSystem);
-        DebugLogger.debug('bootstrap', '  - PowerUpSystem:', !!this.scene.powerUpSystem);
-        DebugLogger.debug('bootstrap', '  - EnemyManager:', !!this.scene.enemyManager);
-        DebugLogger.debug('bootstrap', '  - SpawnDirector:', !!this.scene.spawnDirector);
-        DebugLogger.info('bootstrap', '[BootstrapManager] ===== END VERIFICATION =====');
-    }
-    
-    /**
-     * Initialize GraphicsFactory for texture generation
-     */
-    initializeGraphicsFactory() {
-        this.scene.graphicsFactory = new GraphicsFactory(this.scene);
-        this.scene.graphicsFactory.generatePlaceholderTextures();
-        DebugLogger.info('bootstrap', '[GraphicsFactory] Initialized with pooling support');
-    }
-    
-    /**
-     * Initialize simplified audio system
-     */
-    async initializeAudioSystem() {
-        try {
-            const { SimplifiedAudioSystem } = await import('../core/audio/SimplifiedAudioSystem.js');
-            this.scene.audioSystem = new SimplifiedAudioSystem(this.scene);
-            
-            if (this.scene.audioSystem.initialize) {
-                this.scene.audioSystem.initialize();
-            }
-        } catch (error) {
-            DebugLogger.error('sfx', '[AudioSystem] Failed to initialize:', error);
-        }
-    }
-    
-    /**
-     * Initialize VFX system
-     */
-    async initializeVFXSystem() {
-        try {
-            const { SimplifiedVFXSystem } = await import('../core/vfx/SimplifiedVFXSystem.js');
-            this.scene.vfxSystem = new SimplifiedVFXSystem(this.scene);
-            this.scene.newVFXSystem = this.scene.vfxSystem; // Compatibility alias
-            
-            this.scene.vfxSystem.initialize();
-            DebugLogger.info('vfx', '[SimplifiedVFXSystem] Initialized and ready');
-        } catch (error) {
-            DebugLogger.error('vfx', '[SimplifiedVFXSystem] Failed to initialize:', error);
-        }
-    }
-    
-    /**
-     * Initialize projectile system
-     */
-    initializeProjectileSystem() {
-        try {
-            this.scene.projectileSystem = new ProjectileSystem(this.scene);
-            DebugLogger.info('projectile', '[ProjectileSystem] Initialized with pooling');
-        } catch (error) {
-            DebugLogger.error('projectile', '[ProjectileSystem] Failed to initialize:', error);
-        }
-    }
-    
-    /**
-     * Initialize targeting system
-     */
-    initializeTargetingSystem() {
-        try {
-            this.scene.targetingSystem = new TargetingSystem(this.scene);
-            DebugLogger.info('targeting', '[TargetingSystem] Initialized');
-        } catch (error) {
-            DebugLogger.error('targeting', '[TargetingSystem] Failed to initialize:', error);
-        }
-    }
-    
-    /**
-     * Initialize loot system
-     */
-    async initializeLootSystem() {
-        try {
-            const { SimpleLootSystem } = await import('../core/systems/SimpleLootSystem.js');
-            this.scene.lootSystem = new SimpleLootSystem(this.scene);
-            this.scene.simpleLootSystem = this.scene.lootSystem; // Alias
-            DebugLogger.info('loot', '[SimpleLootSystem] Initialized');
-        } catch (error) {
-            DebugLogger.error('loot', '[SimpleLootSystem] Failed to initialize:', error);
-        }
-    }
-    
-    /**
-     * Initialize power-up system
-     * PR7: Direct instantiation using imported class, no window pollution
-     */
-    initializePowerUpSystem() {
-        try {
-            // PR7: Direct instantiation, consistent with ProjectileSystem pattern
-            this.scene.powerUpSystem = new PowerUpSystem(this.scene);
-            
-            if (this.scene.vfxSystem) {
-                this.scene.powerUpSystem.setVFXManager(this.scene.vfxSystem);
-                DebugLogger.info('powerup', '[PowerUpSystem] Initialized with VFX support');
-                console.log('[BootstrapManager] ✅ PowerUpSystem initialized successfully');
-            } else {
-                DebugLogger.info('powerup', '[PowerUpSystem] Initialized without VFX');
-                console.log('[BootstrapManager] ✅ PowerUpSystem initialized (no VFX)');
-            }
-        } catch (error) {
-            console.error('[BootstrapManager] ❌ Failed to initialize PowerUpSystem:', error);
-            DebugLogger.error('powerup', '[PowerUpSystem] Failed to initialize:', error);
-        }
-    }
-    
-    /**
-     * Initialize enemy manager
-     */
-    initializeEnemyManager() {
-        try {
-            this.scene.enemyManager = new EnemyManager(this.scene);
-            DebugLogger.info('enemy', '[EnemyManager] Initialized');
-        } catch (error) {
-            DebugLogger.error('enemy', '[EnemyManager] Failed to initialize:', error);
-        }
-    }
-    
-    /**
-     * Initialize spawn system
-     */
-    initializeSpawnSystem() {
-        try {
-            this.scene.spawnDirector = new SpawnDirector(this.scene, {
-                blueprints: this.scene.blueprintLoader,
-                config: this.scene.configResolver
-            });
-            DebugLogger.info('spawn', '[SpawnDirector] Initialized with blueprint loader');
-        } catch (error) {
-            DebugLogger.error('spawn', '[SpawnSystem] Failed to initialize:', error);
-        }
-    }
-    
-    /**
-     * Initialize keyboard input manager
-     */
-    async initializeKeyboardManager() {
-        console.log('[BootstrapManager] Starting KeyboardManager initialization...');
-        
-        // Import modules separately to isolate failures
-        let KeyboardManager, centralEventBus;
-        
-        // Try to import KeyboardManager
-        try {
-            const km = await import('../core/input/KeyboardManager.js');
-            KeyboardManager = km.KeyboardManager;
-            console.log('[BootstrapManager] KeyboardManager module imported successfully');
-        } catch (e) {
-            console.error('[BootstrapManager] ❌ Failed to import KeyboardManager:', e);
-            console.warn('[BootstrapManager] Continuing without keyboard support');
-            return;
-        }
-        
-        // Try to import CentralEventBus
-        try {
-            const ceb = await import('../core/events/CentralEventBus.js');
-            centralEventBus = ceb.centralEventBus;
-            console.log('[BootstrapManager] CentralEventBus module imported successfully');
-        } catch (e) {
-            console.error('[BootstrapManager] ❌ Failed to import CentralEventBus:', e);
-            console.warn('[BootstrapManager] Continuing without event bus support');
-            return;
-        }
-        
-        // Now try to initialize with imported modules
-        try {
-            // Create new KeyboardManager instance for GameScene
-            this.scene.keyboardManager = new KeyboardManager(this.scene, centralEventBus);
-            this.scene.keyboardManager.setupUIKeys();
-            
-            console.log('[BootstrapManager] KeyboardManager created and UI keys setup');
-            
-            // Register ESC key handler for pause menu
-            const escHandler = () => {
-                console.log('[BootstrapManager] ESC pressed! Emitting game-pause-request');
-                DebugLogger.info('bootstrap', '[KeyboardManager] ESC pressed, emitting game-pause-request');
-                this.scene.game.events.emit('game-pause-request');
-            };
-            
-            centralEventBus.on('ui:escape', escHandler);
-            console.log('[BootstrapManager] ESC handler registered on centralEventBus');
-            
-            // Register for cleanup
-            if (this.scene.disposableRegistry) {
-                this.scene.disposableRegistry.add({
-                    destroy: () => {
-                        console.log('[BootstrapManager] Cleaning up KeyboardManager...');
-                        centralEventBus.off('ui:escape', escHandler);
-                        this.scene.keyboardManager?.destroy();
-                    }
-                });
-            }
-            
-            // Register debug keys (DEV mode only)
-            if (window.DEV_MODE || window.location.search.includes('debug=true')) {
-                this.scene.keyboardManager.setupDebugKeys({
-                    F3: () => {
-                        if (this.scene.debugOverlay) {
-                            this.scene.debugOverlay.toggle();
-                        }
-                    },
-                    F6: () => {
-                        if (this.scene.debugOverlay) {
-                            this.scene.debugOverlay.toggleMissingAssets();
-                        }
-                    },
-                    F9: () => {
-                        // Hot-reload blueprints from server
-                        if (this.scene.blueprintLoader?.reload) {
-                            this.scene.blueprintLoader.reload().then(() => {
-                                DebugLogger.info('dev', '[F9] Blueprints hot-reloaded');
-                            });
-                        } else {
-                            DebugLogger.info('dev', '[F9] Hot-reload not available');
-                        }
-                    }
-                });
-            }
 
-            console.log('[BootstrapManager] ✅ KeyboardManager fully initialized!');
-            DebugLogger.info('bootstrap', '[KeyboardManager] Initialized with centralEventBus');
-        } catch (error) {
-            console.error('[BootstrapManager] ❌ Failed to initialize KeyboardManager:', error);
-            DebugLogger.error('bootstrap', '[KeyboardManager] Failed to initialize:', error);
-        }
-    }
-    
-    /**
-     * Initialize framework debug API
-     */
-    initializeDebugAPI() {
-        try {
-            const { FrameworkDebugAPI } = window;
-            if (FrameworkDebugAPI) {
-                this.scene.frameworkDebug = new FrameworkDebugAPI(this.scene);
-                window.__framework = this.scene.frameworkDebug;
-                DebugLogger.info('dev', '[DebugAPI] Initialized - use __framework in console');
-            }
-        } catch (error) {
-            DebugLogger.error('dev', '[DebugAPI] Failed to initialize:', error);
-        }
-    }
-    
     /**
      * Main bootstrap method - orchestrates all initialization
      */

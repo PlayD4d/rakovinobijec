@@ -1,5 +1,6 @@
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { getSession } from '../core/debug/SessionLog.js';
+import { PlayerAttackController } from './player/PlayerAttackController.js';
 
 /**
  * Player.js - Třída hráče
@@ -142,6 +143,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             heal: CR.get('sfx.heal', { blueprint })
         };
 
+        // Attack subsystem (PR7: Thin Composer - delegate to PlayerAttackController)
+        this.attackController = new PlayerAttackController(this);
+
         // Spawn feedback
         this._playVfx(this.vfx.spawn, this.x, this.y);
         this._playSfx(this.sfx.spawn);
@@ -189,25 +193,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         if (vx !== 0 || vy !== 0) {
             this.rotation = Math.atan2(vy, vx);
         }
-    }
-
-    // ================ Střelba (Consolidated) ================
-
-    _findTarget() {
-        // PR7: Delegate to TargetingSystem for proper separation of concerns
-        if (this.scene.targetingSystem?.findTarget) {
-            return this.scene.targetingSystem.findTarget(this);
-        }
-        
-        // Fallback if TargetingSystem not available
-        return null;
-    }
-
-    _rollCrit(baseDamage, stats) {
-        if (Math.random() < stats.critChance) {
-            return Math.round(baseDamage * stats.critMult);
-        }
-        return Math.round(baseDamage);
     }
 
     // ================ Boj ================
@@ -465,115 +450,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         // Handle movement (delegate to existing method)
         this._updateMovement(delta);
         
-        // Handle auto-attack
-        this._handleAutoAttack(time, delta);
+        // Handle auto-attack (PR7: delegated to PlayerAttackController)
+        this.attackController.update(time, delta);
     }
     
     // _handleMovement() removed - using _updateMovement() instead (PR7: No duplication)
-    
-    /**
-     * Handle auto-attack logic
-     */
-    _handleAutoAttack(time, delta) {
-        // Initialize next attack time if not set
-        if (!this._nextAttackAt) {
-            this._nextAttackAt = time;
-        }
-        
-        const stats = this._stats();
-        const attackInterval = stats.attackIntervalMs;
-        
-        // CRITICAL FIX: Prevent timer drift by using absolute time comparison
-        // If we're way behind (e.g., after pause), reset the timer
-        if (time - this._nextAttackAt > attackInterval * 3) {
-            DebugLogger.info('player', '[Player] Attack timer reset - was too far behind');
-            this._nextAttackAt = time;
-        }
-        
-        // Check if we can attack using absolute time
-        if (time >= this._nextAttackAt) {
-            // Find nearest enemy
-            const target = this._findNearestEnemy();
-            
-            if (target) {
-                // Fire single shot
-                this._shootAtTarget(target);
-                
-                // Set next attack time based on current time to prevent drift
-                // Use Math.max to ensure we don't go backwards in time
-                this._nextAttackAt = Math.max(this._nextAttackAt + attackInterval, time + attackInterval);
-                
-                // Debug log attack interval
-                DebugLogger.info('player', `[Player] Attack fired. Interval: ${attackInterval}ms, Next at: ${this._nextAttackAt}`);
-            } else {
-                // No target - advance timer slightly to prevent rapid checking
-                this._nextAttackAt = time + 100;
-            }
-        }
-    }
-    
-    /**
-     * Find nearest enemy for auto-targeting (PR7: Delegate to TargetingSystem)
-     */
-    _findNearestEnemy() {
-        // PR7: Delegate to TargetingSystem for proper separation of concerns
-        if (this.scene.targetingSystem?.findNearestEnemy) {
-            return this.scene.targetingSystem.findNearestEnemy(this);
-        }
-        
-        // Fallback if TargetingSystem not available
-        return null;
-    }
-    
-    /**
-     * Shoot projectile at target (PR7: Unified shooting implementation)
-     */
-    _shootAtTarget(target) {
-        if (!this.scene.projectileSystem) return;
-        
-        // Calculate direction to target
-        const baseAngle = Math.atan2(target.y - this.y, target.x - this.x);
-        const stats = this._stats();
-        const projectileCount = Math.max(1, Math.round(stats.projectileCount));
-        
-        // Only apply spread if multiple projectiles
-        if (projectileCount > 1) {
-            const spreadRad = (stats.spreadDeg * Math.PI) / 180;
-            
-            for (let i = 0; i < projectileCount; i++) {
-                // Distribute projectiles evenly around the base angle
-                const t = (i - (projectileCount - 1) / 2);
-                const angleOffset = (spreadRad / (projectileCount - 1)) * t;
-                const finalAngle = baseAngle + angleOffset;
-                
-                this.scene.projectileSystem.createPlayerProjectile({
-                    x: this.x,
-                    y: this.y,
-                    projectileBlueprintId: stats.projectileRef,
-                    damage: this._rollCrit(stats.projectileDamage, stats),
-                    speed: stats.projectileSpeed,
-                    range: stats.projectileRange,
-                    angleRad: finalAngle,
-                    owner: this
-                });
-            }
-        } else {
-            // Single projectile - shoot directly at target
-            this.scene.projectileSystem.createPlayerProjectile({
-                x: this.x,
-                y: this.y,
-                projectileBlueprintId: stats.projectileRef,
-                damage: this._rollCrit(stats.projectileDamage, stats),
-                speed: stats.projectileSpeed,
-                range: stats.projectileRange,
-                angleRad: baseAngle,
-                owner: this
-            });
-        }
-
-        this._playSfx(this.sfx.shoot);
-        this.scene.frameworkDebug?.onPlayerShoot?.(this, projectileCount);
-    }
+    // _handleAutoAttack, _findNearestEnemy, _findTarget, _rollCrit, _shootAtTarget
+    //   moved to PlayerAttackController (PR7: Thin Composer)
 
     // ================ Pomocné metody ================
 

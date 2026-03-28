@@ -1,16 +1,59 @@
 {
-  "timestamp": "2026-03-27T13:20:38.641Z",
+  "timestamp": "2026-03-28T11:43:08.046Z",
   "summary": {
-    "totalKeys": 89,
-    "missingKeys": 0,
+    "totalKeys": 93,
+    "missingKeys": 6,
     "todoKeys": 0,
     "coverage": {
-      "totalKeys": 89,
-      "missingKeys": 0,
+      "totalKeys": 93,
+      "missingKeys": 6,
       "todoKeys": 0,
-      "coverage": "100.0%"
+      "coverage": "93.5%"
     }
   },
-  "missingTranslations": [],
+  "missingTranslations": [
+    {
+      "key": "powerup.multi_shot.name",
+      "locale": "cs",
+      "entityId": "powerup.multi_shot",
+      "entityType": "powerup",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "powerup.multi_shot.name",
+      "locale": "en",
+      "entityId": "powerup.multi_shot",
+      "entityType": "powerup",
+      "suggested": "TODO – add translation"
+    },
+    {
+      "key": "powerup.multi_shot.desc",
+      "locale": "cs",
+      "entityId": "powerup.multi_shot",
+      "entityType": "powerup",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "powerup.multi_shot.desc",
+      "locale": "en",
+      "entityId": "powerup.multi_shot",
+      "entityType": "powerup",
+      "suggested": "TODO – add translation"
+    },
+    {
+      "key": "sr.powerup.multi_shot",
+      "locale": "cs",
+      "entityId": "sr.powerup",
+      "entityType": "sr",
+      "suggested": "TODO – doplnit překlad"
+    },
+    {
+      "key": "sr.powerup.multi_shot",
+      "locale": "en",
+      "entityId": "sr.powerup",
+      "entityType": "sr",
+      "suggested": "TODO – add translation"
+    }
+  ],
   "todoTranslations": []
 }
