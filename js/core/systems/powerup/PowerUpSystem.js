@@ -11,6 +11,7 @@ import { PowerUpModifiers } from './PowerUpModifiers.js';
 import { DebugLogger } from '../../debug/DebugLogger.js';
 import { PowerUpAbilities } from './PowerUpAbilities.js';
 import { PowerUpEffects } from './PowerUpEffects.js';
+import { PowerUpOptionGenerator } from './PowerUpOptionGenerator.js';
 
 export class PowerUpSystem {
     constructor(scene) {
@@ -29,10 +30,12 @@ export class PowerUpSystem {
         this.abilities = new PowerUpAbilities(scene, this);
         this.effects = new PowerUpEffects(scene, this);
         
+        // Option generator for level-up selection
+        this.optionGenerator = new PowerUpOptionGenerator(scene, this);
+
         // VFX Manager reference (optional)
         this.vfxManager = null;
-        
-        
+
         DebugLogger.info('powerup', '[PowerUpSystem] Initialized with modular architecture');
     }
     
@@ -293,212 +296,7 @@ export class PowerUpSystem {
     }
     
     _generatePowerUpOptions() {
-        const allPowerUps = this.scene.blueprintLoader.getAll('powerup') || [];
-        const options = [];
-        
-        DebugLogger.info('powerup', `[PowerUpSystem] Found ${allPowerUps.length} total powerup blueprints`);
-        
-        for (const blueprint of allPowerUps) {
-            if (!blueprint?.id) {
-                DebugLogger.warn('powerup', '[PowerUpSystem] Skipping blueprint without ID:', blueprint);
-                continue;
-            }
-            
-            // Skip templates and backup files
-            if (blueprint.id.includes('template') || blueprint.id.includes('.bak')) {
-                DebugLogger.debug('powerup', `[PowerUpSystem] Skipping template/backup: ${blueprint.id}`);
-                continue;
-            }
-            
-            const current = this.appliedPowerUps.get(blueprint.id);
-            const currentLevel = current?.level || 0;
-            const maxLevel = blueprint.stats?.maxLevel || 10;
-            
-            if (currentLevel >= maxLevel) {
-                DebugLogger.debug('powerup', `[PowerUpSystem] Skipping maxed powerup: ${blueprint.id} (${currentLevel}/${maxLevel})`);
-                continue;
-            }
-            
-            // Calculate next level value for display
-            const nextLevel = currentLevel + 1;
-            const nextValue = this._calculateValueForLevel(blueprint, nextLevel);
-            
-            DebugLogger.debug('powerup', `[PowerUpSystem] Adding powerup option: ${blueprint.id} (level ${currentLevel} -> ${nextLevel})`);
-            
-            options.push({
-                id: blueprint.id,
-                name: this._getBlueprintName(blueprint),
-                description: this._getBlueprintDescription(blueprint),
-                type: blueprint.category || 'passive',
-                level: currentLevel,
-                nextLevel: nextLevel,
-                maxLevel: maxLevel,
-                value: nextValue,
-                icon: blueprint.display?.icon,
-                color: blueprint.display?.color,
-                stats: this._formatPowerUpStats(blueprint, nextLevel),
-                rarity: blueprint.display?.rarity || 'common'
-            });
-        }
-        
-        DebugLogger.info('powerup', `[PowerUpSystem] Generated ${options.length} valid powerup options`);
-        
-        // Weighted random selection based on rarity
-        const rarityWeights = {
-            'common': 4,
-            'rare': 2,
-            'epic': 1,
-            'legendary': 0.5
-        };
-        
-        // Build pool of eligible options with their weights (prefix-sum sampling)
-        const pool = options.map(option => ({
-            option,
-            weight: rarityWeights[option.rarity] || 1
-        }));
-
-        // Randomly select 3 unique options using weighted sampling
-        const selected = [];
-
-        while (selected.length < 3 && pool.length > 0) {
-            // Compute total weight of remaining pool
-            let totalWeight = 0;
-            for (let i = 0; i < pool.length; i++) {
-                totalWeight += pool[i].weight;
-            }
-
-            // Pick random value in [0, totalWeight)
-            const r = Math.random() * totalWeight;
-
-            // Linear scan with prefix-sum to find winner
-            let cumulative = 0;
-            let winnerIndex = pool.length - 1; // fallback to last
-            for (let i = 0; i < pool.length; i++) {
-                cumulative += pool[i].weight;
-                if (r < cumulative) {
-                    winnerIndex = i;
-                    break;
-                }
-            }
-
-            // Add winner to selected and remove from pool
-            selected.push(pool[winnerIndex].option);
-            pool.splice(winnerIndex, 1);
-        }
-        
-        DebugLogger.info('powerup', `[PowerUpSystem] Selected ${selected.length} powerups for display:`, selected.map(p => `${p.id} (L${p.nextLevel})`));
-        
-        return selected;
-    }
-    
-    _getBlueprintName(blueprint) {
-        if (this.scene.displayResolver) {
-            const name = this.scene.displayResolver.getName(blueprint);
-            if (name && name !== blueprint.id) return name;
-        }
-        return blueprint.display?.devNameFallback || blueprint.id.replace('powerup.', '').replace(/_/g, ' ');
-    }
-    
-    _getBlueprintDescription(blueprint) {
-        if (this.scene.displayResolver) {
-            const desc = this.scene.displayResolver.getDescription(blueprint);
-            if (desc) return desc;
-        }
-        return blueprint.display?.devDescFallback || '';
-    }
-    
-    _extractValueFromBlueprint(blueprint) {
-        const mods = blueprint.mechanics?.modifiersPerLevel;
-        if (mods && mods.length > 0) {
-            const firstMod = mods[0];
-            if (firstMod.value !== undefined) {
-                return firstMod.value;
-            }
-        }
-        
-        if (blueprint.ability) {
-            const ability = blueprint.ability;
-            if (ability.damagePerLevel) return ability.damagePerLevel[0];
-            if (ability.rangePerLevel) return ability.rangePerLevel[0];
-            if (ability.baseDamage) return ability.baseDamage;
-        }
-        
-        return 0;
-    }
-    
-    _calculateValueForLevel(blueprint, level) {
-        const mods = blueprint.mechanics?.modifiersPerLevel;
-        if (mods && mods.length > 0) {
-            const firstMod = mods[0];
-            if (firstMod.type === 'base') {
-                // Base type: value * level
-                return firstMod.value * level;
-            } else if (firstMod.type === 'set') {
-                // Set type: use value as-is
-                return firstMod.value;
-            } else {
-                // Add/multiply: accumulate value
-                return firstMod.value * level;
-            }
-        }
-        
-        // Check ability values
-        if (blueprint.ability) {
-            const ability = blueprint.ability;
-            if (ability.baseShieldHP) return ability.baseShieldHP * level;
-            if (ability.damagePerLevel) return ability.damagePerLevel[level - 1] || ability.damagePerLevel[0];
-            if (ability.rangePerLevel) return ability.rangePerLevel[level - 1] || ability.rangePerLevel[0];
-            if (ability.baseDamage) return ability.baseDamage + (level - 1) * 5;
-        }
-        
-        return 0;
-    }
-    
-    _formatPowerUpStats(blueprint, level = 1) {
-        const parts = [];
-        const mods = blueprint.mechanics?.modifiersPerLevel || [];
-
-        // Format each modifier into a readable stat line
-        const statLabels = {
-            projectileDamage: (v) => `+${v} DMG`,
-            moveSpeed: (v) => `+${Math.round(v * 100)}% rychlost`,
-            attackIntervalMs: (v) => `-${Math.abs(Math.round(v * 100))}% interval útoku`,
-            dodgeChance: (v) => `+${Math.round(v * 100)}% úhyb`,
-            shieldHP: (v) => `${v} HP štít`,
-            xpMagnetRadius: (v) => `+${v}px dosah magnetu`,
-            explosionRadius: (v) => `+${v}px radius exploze`,
-            explosionDamage: (v) => `+${v} DMG exploze`,
-            projectilePiercing: (v) => `průstřel ${v}`,
-            projectileCount: (v) => `+${v} projektil${v > 1 ? 'y' : ''}`,
-        };
-
-        for (const mod of mods) {
-            const value = (mod.type === 'base' || mod.type === 'set')
-                ? mod.value
-                : mod.value * level;
-            const formatter = statLabels[mod.path];
-            if (formatter) {
-                parts.push(formatter(value));
-            }
-        }
-
-        // Ability-based descriptions
-        const ability = blueprint.ability;
-        if (ability?.type === 'shield') {
-            parts.push(`${(ability.baseShieldHP || 50) * level} HP štít`);
-        } else if (ability?.type === 'radiotherapy') {
-            const beams = ability.beamsPerLevel?.[level - 1] || 1;
-            const dmg = ability.damagePerLevel?.[level - 1] || 5;
-            parts.push(`${beams} paprsek${beams > 1 ? 'y' : ''} • ${dmg} DMG`);
-        } else if (ability?.type === 'flamethrower') {
-            const range = ability.rangePerLevel?.[level - 1] || 80;
-            const dmg = ability.damagePerLevel?.[level - 1] || 3;
-            parts.push(`dosah ${range}px • ${dmg} DMG`);
-        } else if (ability?.type === 'chemo_aura') {
-            parts.push(`${ability.chemoCloudDamage || 4} DMG/s oblak`);
-        }
-
-        return parts.length > 0 ? parts.join(' • ') : `Level ${level}`;
+        return this.optionGenerator.generatePowerUpOptions();
     }
     
 }
