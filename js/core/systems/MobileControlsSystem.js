@@ -52,8 +52,9 @@ export class MobileControlsSystem {
     this._reposition();
   }
 
+  // Return vector directly — callers should read x/y but not mutate
   getVector() {
-    return { ...this.vector };
+    return this.vector;
   }
 
   show(visible) {

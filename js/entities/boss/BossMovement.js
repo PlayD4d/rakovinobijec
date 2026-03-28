@@ -39,10 +39,12 @@ export class BossMovement {
         const targetX = startX + direction.x * distance;
         const targetY = startY + direction.y * distance;
         
-        // Clamp k hranicím scény
-        const bounds = this.scene.getMainCamera?.() || this.scene.cameras.main;
-        const clampedX = Math.max(50, Math.min(targetX, bounds.width - 50));
-        const clampedY = Math.max(50, Math.min(targetY, bounds.height - 50));
+        // Clamp k hranicím herního světa (ne viewport)
+        const wb = this.scene.physics?.world?.bounds;
+        const bw = wb?.width || this.scene.cameras.main.width;
+        const bh = wb?.height || this.scene.cameras.main.height;
+        const clampedX = Math.max(50, Math.min(targetX, bw - 50));
+        const clampedY = Math.max(50, Math.min(targetY, bh - 50));
         
         DebugLogger.info('boss', `[BossMovement] Executing dash: (${startX}, ${startY}) -> (${clampedX}, ${clampedY}`);
         

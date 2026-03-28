@@ -164,10 +164,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
         
-        // Debug: Check if player is unexpectedly inactive
+        // Safety: reactivate player if unexpectedly inactive with HP
         if (!this.active && this.hp > 0) {
-            DebugLogger.error('general', `[Player DEBUG] Player inactive but HP > 0! hp=${this.hp}, active=${this.active}`);
-            DebugLogger.error('general', '[Player DEBUG] Stack trace for inactive player:', new Error().stack);
+            DebugLogger.error('general', `[Player] Inactive with HP > 0 — reactivating`);
+            this.setActive(true);
+            this.setVisible(true);
+            if (this.body) this.body.setEnable(true);
         }
         
         // Skip all updates if game is paused

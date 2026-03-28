@@ -361,6 +361,8 @@ export class GameScene extends Phaser.Scene {
         this.isPaused = paused;
         if (paused) {
             this.projectileSystem?.pauseAll();
+            // Store pause timestamp for timer-aware resume
+            if (this.player) this.player._lastPauseTime = this.time?.now || 0;
             DebugLogger.info('game', 'Game paused');
         } else {
             this.projectileSystem?.resumeAll();

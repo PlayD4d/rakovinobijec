@@ -133,8 +133,9 @@ export class BossAbilities {
             return false;
         }
 
-        // Add to queue if currently executing
+        // Add to queue if currently executing (max 3 to prevent unbounded growth)
         if (this.isExecutingAbility) {
+            if (this.executionQueue.length >= 3) return false;
             this.executionQueue.push({ id: abilityId, params });
             return true;
         }

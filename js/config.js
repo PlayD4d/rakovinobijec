@@ -25,7 +25,7 @@ export const calculateGameSize = () => {
         gameHeight = Math.max(240, screenHeight - headerHeight - footerHeight);
     }
     
-    console.log(`Game size: ${gameWidth}x${gameHeight} (screen: ${screenWidth}x${screenHeight}, fullscreen: ${isFullscreen})`);
+    // Game size logging moved to DebugLogger (no bare console.log in production)
     return { width: gameWidth, height: gameHeight };
 };
 
@@ -41,12 +41,12 @@ export const GameConfig = {
         spawnLogging: false      // Disable spawn position logging
     },
     
-    // Layer depths
+    // Layer depths — must match GameScene.DEPTH_LAYERS
     layers: {
-        enemies: 20,            // Enemy sprite depth
-        projectiles: 30,        // Projectile depth
-        loot: 15,              // Loot drop depth
-        ui: 100                // UI elements depth
+        enemies: 1000,          // Enemy sprite depth
+        projectiles: 2000,      // Projectile depth
+        loot: 100,              // Loot drop depth
+        ui: 4000                // UI elements depth
     },
     
     // Feature flags

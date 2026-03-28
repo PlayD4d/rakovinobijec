@@ -555,13 +555,12 @@ export class PowerUpAbilities {
         
         if (!player) return;
         
-        // Reset shield regeneration timer if shield was recharging
+        // Preserve remaining shield recharge time across pause (don't restart from scratch)
         if (player.shieldActive && player.shieldRecharging && player.shieldRechargeAt > 0) {
-            // Calculate remaining recharge time before pause
-            const remainingTime = Math.max(0, player.shieldRechargeTime);
+            const remainingTime = Math.max(0, player.shieldRechargeAt - (player._lastPauseTime || now));
             player.shieldRechargeAt = now + remainingTime;
-            
-            DebugLogger.info('powerup', `[PowerUpAbilities] Shield recharge timer reset - new recharge at: ${player.shieldRechargeAt}`);
+
+            DebugLogger.info('powerup', `[PowerUpAbilities] Shield recharge preserved: ${remainingTime}ms remaining`);
         }
         
         // Reset chain lightning timers
