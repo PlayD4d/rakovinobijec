@@ -243,30 +243,68 @@ export class SimpleLootSystem {
         const blueprint = loot.blueprint;
         const dropType = loot.dropType;
         
-        // Apply effect based on type
-        switch(dropType) {
-            case 'xp':
-                // Use value from blueprint effect if available
+        // Apply effect based on blueprint effect.type (primary) or dropType (fallback)
+        const effectType = blueprint.effect?.type || dropType;
+
+        switch(effectType) {
+            case 'xp': {
                 const xpValue = blueprint.effect?.value || loot.value || 1;
                 if (this.scene.addXP) {
                     this.scene.addXP(xpValue);
-                } else if (player.addXP) {
-                    player.addXP(xpValue);
                 }
                 break;
+            }
 
             case 'health':
-            case 'heal':
-                const healAmount = blueprint.effect?.value || blueprint.stats?.healAmount || 20;
+            case 'heal': {
+                let healAmount = blueprint.effect?.value || blueprint.stats?.healAmount || 20;
+                // 'full' = heal to max HP
+                if (healAmount === 'full') healAmount = (player.maxHp || 100) - (player.hp || 0);
                 player.heal?.(healAmount);
                 break;
+            }
 
-            case 'special':
-                // Special effects like Metotrexat
-                if (blueprint.mechanics?.effect === 'instant_kill_all') {
-                    this.killAllEnemies();
+            case 'instant_kill_all': {
+                // Metotrexat — kill all enemies on screen
+                if (this.scene.enemyManager) {
+                    this.scene.enemyManager.killAll();
+                }
+                this.scene.flashCamera?.();
+                getSession()?.log('loot', 'metotrexat_used', {});
+                break;
+            }
+
+            case 'buff': {
+                // Temporary stat buff (e.g. energy_cell = 1.5× attack speed for 10s)
+                const stat = blueprint.effect?.stat;
+                const value = blueprint.effect?.value || 1.5;
+                const duration = blueprint.effect?.duration || 10000;
+                if (stat && player.addModifier) {
+                    const modId = `buff_${stat}_${Date.now()}`;
+                    player.addModifier({ id: modId, path: stat === 'attackSpeed' ? 'attackIntervalMs' : stat, type: 'mul', value: stat === 'attackSpeed' ? -(1 - 1/value) : value - 1 });
+                    // Auto-remove after duration
+                    if (this.scene.time) {
+                        this.scene.time.delayedCall(duration, () => {
+                            player.removeModifierById?.(modId);
+                        });
+                    }
+                    getSession()?.log('loot', 'buff_applied', { stat, value, duration });
                 }
                 break;
+            }
+
+            case 'research': {
+                // Research points — add to score
+                const points = blueprint.effect?.value || 1;
+                if (this.scene.gameStats) {
+                    this.scene.gameStats.score += points * 100;
+                }
+                getSession()?.log('loot', 'research_collected', { points });
+                break;
+            }
+
+            default:
+                DebugLogger.warn('loot', `[Pickup] Unhandled effect type: ${effectType} for ${loot.dropId}`);
         }
         
         // Play pickup VFX/SFX
