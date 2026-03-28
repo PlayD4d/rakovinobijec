@@ -39,11 +39,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         const radius = (CR.get('stats.size', { blueprint }) ?? this.width) * 0.5;
         this.body.setCircle(radius);
         this.body.setCollideWorldBounds(true);
-        const CC = scene.COLLISION_CATEGORIES;
-        if (CC) {
-            this.body.setCollisionCategory(CC.PLAYER);
-            this.body.setCollidesWith(CC.ENEMY | CC.BOSS | CC.ENEMY_PROJECTILE | CC.LOOT);
-        }
+        // Arcade Physics: overlap is managed by setupCollisions, not by per-body categories
 
         // Base stats from blueprint
         this.baseStats = {

@@ -170,20 +170,14 @@ export class SystemsInitializer {
      */
     initializeEnemyManager() {
         try {
-            // Create physics groups with collision categories (Phaser 3.90)
-            const CC = COLLISION_CATEGORIES;
+            // Create physics groups (Arcade Physics uses overlap registration, not broadphase categories)
             if (!this.scene.enemiesGroup) {
                 this.scene.enemiesGroup = this.scene.physics.add.group({
-                    runChildUpdate: false, maxSize: 60,
-                    collisionCategory: CC.ENEMY,
-                    collidesWith: CC.PLAYER | CC.PLAYER_PROJECTILE
+                    runChildUpdate: false, maxSize: 60
                 });
             }
             if (!this.scene.bossGroup) {
-                this.scene.bossGroup = this.scene.physics.add.group({
-                    collisionCategory: CC.BOSS,
-                    collidesWith: CC.PLAYER | CC.PLAYER_PROJECTILE
-                });
+                this.scene.bossGroup = this.scene.physics.add.group();
             }
             this.scene.enemyManager = new EnemyManager(this.scene);
             DebugLogger.info('enemy', '[EnemyManager] Initialized');

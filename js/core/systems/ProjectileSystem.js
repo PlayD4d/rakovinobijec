@@ -32,23 +32,18 @@ export class ProjectileSystem {
     const playerPoolSize = ConfigResolver ? ConfigResolver.get('projectiles.player.poolSize', { defaultValue: 256 }) : 256;
     const enemyPoolSize = ConfigResolver ? ConfigResolver.get('projectiles.enemy.poolSize', { defaultValue: 256 }) : 256;
 
-    // Player projectile group with built-in pooling + collision categories (Phaser 3.90)
-    const CC = scene.COLLISION_CATEGORIES || {};
+    // Player projectile group with built-in pooling
     this.playerBullets = scene.physics.add.group({
       classType: PlayerProjectile,
       maxSize: playerPoolSize,
-      runChildUpdate: true,
-      collisionCategory: CC.PLAYER_PROJECTILE || 0x0004,
-      collidesWith: (CC.ENEMY || 0x0002) | (CC.BOSS || 0x0020)
+      runChildUpdate: true
     });
 
     // Enemy projectile group with built-in pooling
     this.enemyBullets = scene.physics.add.group({
       classType: EnemyProjectile,
       maxSize: enemyPoolSize,
-      runChildUpdate: true,
-      collisionCategory: CC.ENEMY_PROJECTILE || 0x0008,
-      collidesWith: CC.PLAYER || 0x0001
+      runChildUpdate: true
     });
 
     // PR7: Use ConfigResolver for all configuration values

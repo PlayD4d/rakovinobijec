@@ -80,10 +80,18 @@ export class BootstrapManager {
         // Launch UI overlay scene using interface method
         this.scene.launchUIScene('GameUIScene');
 
-        // Connect HUD in GameUIScene to this GameScene so it can read player/stats
+        // Connect HUD after GameUIScene.create() runs (scene.launch is async)
         const uiScene = this.scene.scene.get('GameUIScene');
         if (uiScene) {
-            uiScene.connectToGameScene(this.scene);
+            // If HUD already created (scene was already running), connect immediately
+            if (uiScene.hud) {
+                uiScene.connectToGameScene(this.scene);
+            } else {
+                // Wait for create() to finish, then connect
+                uiScene.events.once('create', () => {
+                    uiScene.connectToGameScene(this.scene);
+                });
+            }
         }
     }
 

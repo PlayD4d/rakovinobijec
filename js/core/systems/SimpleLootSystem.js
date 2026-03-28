@@ -14,11 +14,8 @@ export class SimpleLootSystem {
         // Note: PowerUpSystem is optional as loot can work without power-ups
         
         this.scene = scene;
-        const CC = scene.COLLISION_CATEGORIES;
-        this.lootGroup = scene.physics.add.group({
-            collisionCategory: CC?.LOOT || 0x0010,
-            collidesWith: CC?.PLAYER || 0x0001
-        });
+        // Arcade Physics: overlap is registered in setupCollisions, no broadphase categories needed
+        this.lootGroup = scene.physics.add.group();
         this.blueprintLoader = scene.blueprintLoader;
         
         // Depth layers for different drop types
