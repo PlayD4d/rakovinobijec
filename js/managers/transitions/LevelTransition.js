@@ -29,15 +29,8 @@ export async function executeLevelTransition(tm, nextLevel) {
         message: `Úroveň ${nextLevel}`
     });
 
-    // 3. Auto-collect all loot before clearing
-    if (scene.lootSystem?.lootGroup) {
-        const lootItems = scene.lootSystem.lootGroup.getChildren().filter(l => l.active);
-        for (const loot of lootItems) {
-            if (scene.lootSystem.collectItem) {
-                try { scene.lootSystem.collectItem(loot); } catch (_) {}
-            }
-        }
-    }
+    // 3. Loot persists across levels — player picks it up manually
+    // (no auto-collect, no clearLoot — XP orbs and drops stay on the field)
 
     // 4. Clean up current level
     await cleanupLevel(tm);

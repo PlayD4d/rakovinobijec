@@ -146,7 +146,7 @@ export class SimpleLootSystem {
             // No drops defined - this is fine for enemies that only drop XP
             return;
         }
-        
+
         // Zpracovat drops z blueprintu
         DebugLogger.debug('loot', `✅ Processing ${enemy.blueprint.drops.length} drops`);
         for (const drop of enemy.blueprint.drops) {
@@ -184,12 +184,13 @@ export class SimpleLootSystem {
                     player.addXP(xpValue);
                 }
                 break;
-                
+
             case 'health':
-                const healAmount = blueprint.stats?.healAmount || 20;
+            case 'heal':
+                const healAmount = blueprint.effect?.value || blueprint.stats?.healAmount || 20;
                 player.heal?.(healAmount);
                 break;
-                
+
             case 'special':
                 // Special effects like Metotrexat
                 if (blueprint.mechanics?.effect === 'instant_kill_all') {

@@ -237,20 +237,12 @@ export class FlamethrowerEffect {
     }
     
     /**
-     * Emit flame particle
+     * Flame particle emission removed — graphics-based flame cone is sufficient.
+     * Keeping method as no-op so callers don't break.
      * @private
      */
     _emitFlameParticle() {
-        if (!this.scene.vfxSystem || !this.entity) return;
-        
-        const rotation = this.entity.rotation || 0;
-        const particleAngle = rotation + (Math.random() - 0.5) * this.coneAngle * 2;
-        const particleDistance = this.baseLength * (0.5 + Math.random() * 0.5);
-        
-        const particleX = this.entity.x + Math.cos(particleAngle) * particleDistance;
-        const particleY = this.entity.y + Math.sin(particleAngle) * particleDistance;
-        
-        this.scene.vfxSystem.play('vfx.flame.particle', particleX, particleY);
+        // No-op: spark particles removed (Bug fix — nonsensical spark effects)
     }
     
     /**
@@ -298,10 +290,6 @@ export class FlamethrowerEffect {
             this._hitThisTick.add(enemy);
             if (Math.random() < 0.1) getSession()?.log('combat', 'flamethrower_hit', { enemyId: enemy.blueprintId, damage: this.damage });
             enemy.takeDamage(this.damage, 'flamethrower');
-
-            if (this.scene.vfxSystem && Math.random() < 0.3) {
-                this.scene.vfxSystem.play('vfx.hit.fire', enemy.x, enemy.y);
-            }
         }
     }
     

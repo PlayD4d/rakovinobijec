@@ -36,7 +36,6 @@ export class TransitionManager {
             'stopSpawns',
             'clearProjectiles',
             'clearEnemies',
-            'clearLoot',
             'stopVFX',
             'unpauseTime'
         ];

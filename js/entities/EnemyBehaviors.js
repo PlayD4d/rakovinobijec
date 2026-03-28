@@ -61,13 +61,16 @@ export class EnemyBehaviors {
             if (!behaviorName) continue;
             this.config[layer] = {
                 ...DEFAULTS[behaviorName],
-                speed: blueprint.stats?.speed || DEFAULTS[behaviorName]?.speed,
                 ...aiConfig.params,
                 ...(aiConfig.layerConfig?.[layer] || {}),
                 // Legacy mechanics for shoot
                 cooldown: mechanics.shootInterval || aiConfig.params?.shootInterval || DEFAULTS[behaviorName]?.cooldown,
                 damage: mechanics.projectileDamage || enemy.damage,
             };
+            // Movement layers use enemy movement speed; combat layers keep projectile speed from defaults
+            if (layer === 'movement') {
+                this.config[layer].speed = blueprint.stats?.speed || DEFAULTS[behaviorName]?.speed;
+            }
         }
 
         // Per-layer memory
