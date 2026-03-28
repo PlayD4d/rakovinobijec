@@ -154,12 +154,12 @@ export class GameUIScene extends Phaser.Scene {
         const cy = this.cameras.main.height / 2;
         const msg = data?.message || `Level ${data?.toLevel || '?'}`;
         const text = this.add.text(cx, cy, msg, {
-            fontFamily: 'Arial Black',
+            fontFamily: UI_THEME.fonts.primary,
             fontSize: '48px',
             color: '#00ffff',
             stroke: '#000000',
             strokeThickness: 4
-        }).setOrigin(0.5).setDepth(UI_THEME.depth.modal);
+        }).setOrigin(0.5).setDepth(UI_THEME.depth.modal).setScrollFactor(0);
 
         // Auto-fade and destroy
         this.tweens.add({

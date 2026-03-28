@@ -14,52 +14,53 @@ export class GameOverUI {
       height: 500,
       depth: UI_THEME.depth.modal
     });
-    
+
     const cx = scene.cameras.main.width / 2;
     const cy = scene.cameras.main.height / 2;
-    
-    // Title
-    this.title = scene.add.text(cx, cy - 180, '💀 GAME OVER', {
-      fontFamily: 'Arial Black',
+
+    // Title (constructor — Container owns rendering, no scene.add)
+    this.title = new Phaser.GameObjects.Text(scene, cx, cy - 180, '💀 GAME OVER', {
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '36px',
-      color: '#ff0000',
+      color: `#${UI_THEME.colors.text.danger.toString(16).padStart(6, '0')}`,
       stroke: '#000000',
       strokeThickness: 3
     }).setOrigin(0.5);
     this.modal.addChild(this.title);
-    
-    // Subtitle
-    this.subtitle = scene.add.text(cx, cy - 130, 'Mard podlehl rakovině...', {
-      fontFamily: 'Arial',
+
+    // Subtitle (constructor — no scene.add)
+    this.subtitle = new Phaser.GameObjects.Text(scene, cx, cy - 130, 'Mard podlehl rakovině...', {
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '16px',
-      color: '#aaaaaa'
+      color: `#${UI_THEME.colors.text.secondary.toString(16).padStart(6, '0')}`
     }).setOrigin(0.5);
     this.modal.addChild(this.subtitle);
-    
-    // Stats container
-    this.statsContainer = scene.add.container(cx, cy - 40);
-    
-    // Stats background
-    this.statsBg = scene.add.rectangle(0, 0, 400, 120, 0x1a1a1a, 0.8)
-      .setStrokeStyle(1, 0x666666, 0.5);
+
+    // Stats container (constructor — no scene.add)
+    this.statsContainer = new Phaser.GameObjects.Container(scene, cx, cy - 40);
+
+    // Stats background (constructor — no scene.add)
+    this.statsBg = new Phaser.GameObjects.Rectangle(scene, 0, 0, 400, 120,
+      UI_THEME.colors.background.modal, 0.8)
+      .setStrokeStyle(1, UI_THEME.colors.borders.disabled, 0.5);
     this.statsContainer.add(this.statsBg);
-    
-    // Stats text
-    this.statsText = scene.add.text(0, 0, '', {
-      fontFamily: 'Courier',
+
+    // Stats text (constructor — no scene.add)
+    this.statsText = new Phaser.GameObjects.Text(scene, 0, 0, '', {
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '16px',
-      color: '#ffffff',
+      color: `#${UI_THEME.colors.text.primary.toString(16).padStart(6, '0')}`,
       align: 'center',
       lineSpacing: 8
     }).setOrigin(0.5);
     this.statsContainer.add(this.statsText);
-    
+
     this.modal.addChild(this.statsContainer);
-    
-    // Retry button
+
+    // Retry button (modal.addChild handles display-list — no scene.add needed)
     this.retryBtn = new SimpleButton(
-      scene, cx, cy + 80, 
-      '🔄 Zkusit znovu', 
+      scene, cx, cy + 80,
+      '🔄 Zkusit znovu',
       () => {
         this.hide(() => {
           // Stop GameScene first, then GameUIScene (prevents null HUD during GameScene update)
@@ -92,7 +93,7 @@ export class GameOverUI {
     );
     this.modal.addChild(this.menuBtn);
   }
-  
+
   /**
    * Show game over screen with stats
    */
@@ -100,11 +101,11 @@ export class GameOverUI {
     // Victory vs defeat — update title and subtitle accordingly
     if (stats.isVictory) {
       this.title.setText('🎉 VICTORY!');
-      this.title.setColor('#00ff00');
+      this.title.setColor(`#${UI_THEME.colors.text.success.toString(16).padStart(6, '0')}`);
       this.subtitle.setText('Rakovina byla poražena!');
     } else {
       this.title.setText('💀 GAME OVER');
-      this.title.setColor('#ff0000');
+      this.title.setColor(`#${UI_THEME.colors.text.danger.toString(16).padStart(6, '0')}`);
       this.subtitle.setText('Mard podlehl rakovině...');
     }
 
@@ -126,20 +127,25 @@ export class GameOverUI {
     // Show modal
     this.modal.show(false);
   }
-  
+
   /**
    * Hide modal
    */
   hide(onComplete) {
     this.modal.hide(true, 200, onComplete);
   }
-  
+
   /**
    * Clean destroy
    */
   destroy() {
     this.modal?.destroy();
     this.modal = null; // Prevent double-destroy
+    this.title = null;
+    this.subtitle = null;
+    this.statsContainer = null;
+    this.statsBg = null;
+    this.statsText = null;
     this.retryBtn = null;
     this.menuBtn = null;
   }

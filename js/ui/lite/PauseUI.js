@@ -17,24 +17,24 @@ export class PauseUI {
       height: 380,
       depth: UI_THEME.depth.modal
     });
-    
+
     const cx = scene.cameras.main.width / 2;
     const cy = scene.cameras.main.height / 2;
-    
-    // Title
-    this.title = scene.add.text(cx, cy - 120, '⏸️ PAUSED', {
-      fontFamily: 'Arial Black',
+
+    // Title (constructor — Container owns rendering, no scene.add)
+    this.title = new Phaser.GameObjects.Text(scene, cx, cy - 120, '⏸️ PAUSED', {
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '32px',
       color: '#ffffff',
       stroke: '#000000',
       strokeThickness: 3
     }).setOrigin(0.5);
     this.modal.addChild(this.title);
-    
-    // Resume button
+
+    // Resume button (modal.addChild handles display-list — no scene.add needed)
     this.resumeBtn = new SimpleButton(
-      scene, cx, cy - 20, 
-      '▶️ Pokračovat', 
+      scene, cx, cy - 20,
+      '▶️ Pokračovat',
       () => {
         this.hide();
         if (this.onResume) this.onResume();
@@ -42,22 +42,22 @@ export class PauseUI {
       200, 50
     );
     this.modal.addChild(this.resumeBtn);
-    
+
     // Settings button (placeholder for now)
     this.settingsBtn = new SimpleButton(
-      scene, cx, cy + 40, 
-      '⚙️ Nastavení', 
+      scene, cx, cy + 40,
+      '⚙️ Nastavení',
       () => {
         // Settings not yet implemented
       },
       200, 50
     );
     this.modal.addChild(this.settingsBtn);
-    
+
     // Quit button
     this.quitBtn = new SimpleButton(
-      scene, cx, cy + 100, 
-      '🏠 Hlavní menu', 
+      scene, cx, cy + 100,
+      '🏠 Hlavní menu',
       () => {
         this.hide();
         if (this.onQuit) this.onQuit();
@@ -66,17 +66,18 @@ export class PauseUI {
       { bgColor: 0x662222 } // Red tint for destructive action
     );
     this.modal.addChild(this.quitBtn);
-    
-    // Instructions
-    this.instructions = scene.add.text(cx, cy + 160, 'ESC pro pokračování', {
+
+    // Instructions (constructor — Container owns rendering, no scene.add)
+    this.instructions = new Phaser.GameObjects.Text(scene, cx, cy + 160, 'ESC pro pokračování', {
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '12px',
       color: '#666666'
     }).setOrigin(0.5);
     this.modal.addChild(this.instructions);
-    
+
     this.visible = false;
   }
-  
+
   /**
    * Show pause menu
    */
@@ -84,7 +85,7 @@ export class PauseUI {
     this.modal.show(true, 200);
     this.visible = true;
   }
-  
+
   /**
    * Hide pause menu
    */
@@ -94,14 +95,14 @@ export class PauseUI {
     this.visible = false;
     this.modal.hide(true, 180, () => { this._hiding = false; });
   }
-  
+
   /**
    * Check if pause menu is visible
    */
   isVisible() {
     return this.visible;
   }
-  
+
   /**
    * Clean destroy
    */
@@ -110,6 +111,8 @@ export class PauseUI {
     this.visible = false;
     this.modal?.destroy();
     this.modal = null;
+    this.title = null;
+    this.instructions = null;
     this.resumeBtn = null;
     this.settingsBtn = null;
     this.quitBtn = null;

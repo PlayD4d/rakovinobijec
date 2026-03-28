@@ -21,34 +21,32 @@ export class PowerUpUI {
     const cx = scene.cameras.main.width / 2;
     const cy = scene.cameras.main.height / 2;
     
-    // Title with glow effect
-    this.title = scene.add.text(cx, cy - 220, '🎉 LEVEL UP! 🎉', {
-      fontFamily: 'Arial Black',
+    // Title with glow effect (constructor — Container owns rendering, no scene.add)
+    this.title = new Phaser.GameObjects.Text(scene, cx, cy - 220, '🎉 LEVEL UP! 🎉', {
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '42px',
       color: '#00ffff',
       stroke: '#004444',
       strokeThickness: 4
     }).setOrigin(0.5);
-    
-    // Remove Light2D pipeline that was causing yellow overlay
-    // this.title.setPipeline('Light2D');
     this.modal.addChild(this.title);
-    
-    // Subtitle with better styling
-    this.subtitle = scene.add.text(cx, cy - 160, '🔬 Vyber vylepšení pro Marda:', {
-      fontFamily: 'Arial',
+
+    // Subtitle with better styling (constructor — no scene.add)
+    this.subtitle = new Phaser.GameObjects.Text(scene, cx, cy - 160, '🔬 Vyber vylepšení pro Marda:', {
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '22px',
       color: '#cccccc',
       stroke: '#000000',
       strokeThickness: 2
     }).setOrigin(0.5);
     this.modal.addChild(this.subtitle);
-    
+
     // Cards array for cleanup
     this.cards = [];
-    
-    // Hint text with animation
-    this.hint = scene.add.text(cx, cy + 200, '👆 Klikni na kartu pro výběr', {
+
+    // Hint text with animation (constructor — no scene.add)
+    this.hint = new Phaser.GameObjects.Text(scene, cx, cy + 200, '👆 Klikni na kartu pro výběr', {
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '16px',
       color: '#888888',
       stroke: '#000000',

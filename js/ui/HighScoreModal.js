@@ -5,6 +5,7 @@
 import { SimpleModal } from './lite/SimpleModal.js';
 import { SimpleButton } from './lite/SimpleButton.js';
 import { UI_THEME, UIThemeUtils } from './UITheme.js';
+import { DebugLogger } from '../core/debug/DebugLogger.js';
 
 export class HighScoreModal {
     constructor(scene, gameStats, onSubmitCallback = null) {
@@ -23,7 +24,7 @@ export class HighScoreModal {
     /** Show name entry dialog */
     showEntry() {
         if (!this.scene?.scale) {
-            console.error('[HighScoreModal] Cannot show - invalid scene reference');
+            DebugLogger.error('ui', '[HighScoreModal] Cannot show - invalid scene reference');
             return;
         }
 
@@ -42,13 +43,13 @@ export class HighScoreModal {
         const font = (size, color = 'primary', opts = {}) =>
             UIThemeUtils.createFontConfig(size, color, { stroke: true, ...opts });
 
-        // Title
-        this.modal.addChild(
-            this.scene.add.text(cx, cy - 150, 'GRATULUJEME!\nTOP 10!', {
+        // Title (constructor — Container owns rendering, no scene.add)
+        this.titleText = new Phaser.GameObjects.Text(
+            this.scene, cx, cy - 150, 'GRATULUJEME!\nTOP 10!', {
                 ...font('large', 'success', { strokeThickness: 3 }),
                 align: 'center'
-            }).setOrigin(0.5)
-        );
+            }).setOrigin(0.5);
+        this.modal.addChild(this.titleText);
 
         // Stats
         const s = this.gameStats;
@@ -59,36 +60,37 @@ export class HighScoreModal {
             `Bossove: ${s.bossesDefeated || 0}`
         ].join('\n');
 
-        this.modal.addChild(
-            this.scene.add.text(cx, cy - 60, statsStr, {
+        this.statsText = new Phaser.GameObjects.Text(
+            this.scene, cx, cy - 60, statsStr, {
                 ...font('small', 'primary'),
                 align: 'center', lineSpacing: 4
-            }).setOrigin(0.5)
-        );
+            }).setOrigin(0.5);
+        this.modal.addChild(this.statsText);
 
         // Name prompt
-        this.modal.addChild(
-            this.scene.add.text(cx, cy + 20, 'Zadejte jmeno (max 8 znaku):', {
+        this.promptText = new Phaser.GameObjects.Text(
+            this.scene, cx, cy + 20, 'Zadejte jmeno (max 8 znaku):', {
                 ...font('small', 'secondary')
-            }).setOrigin(0.5)
-        );
+            }).setOrigin(0.5);
+        this.modal.addChild(this.promptText);
 
-        // Input field background
-        this.modal.addChild(
-            this.scene.add.rectangle(cx, cy + 60, 260, 44,
-                UI_THEME.colors.background.panel, 0.95)
-                .setStrokeStyle(2, UI_THEME.colors.borders.active, 0.8)
-        );
+        // Input field background (constructor — no scene.add)
+        this.inputBg = new Phaser.GameObjects.Rectangle(
+            this.scene, cx, cy + 60, 260, 44,
+            UI_THEME.colors.background.panel, 0.95)
+            .setStrokeStyle(2, UI_THEME.colors.borders.active, 0.8);
+        this.modal.addChild(this.inputBg);
 
-        // Input text display
-        this.inputDisplay = this.scene.add.text(cx, cy + 60, '_', {
-            ...font('normal', 'accent'),
-            align: 'center'
-        }).setOrigin(0.5);
+        // Input text display (constructor — no scene.add)
+        this.inputDisplay = new Phaser.GameObjects.Text(
+            this.scene, cx, cy + 60, '_', {
+                ...font('normal', 'accent'),
+                align: 'center'
+            }).setOrigin(0.5);
         this.modal.addChild(this.inputDisplay);
 
-        // Submit button
-        const submitBtn = new SimpleButton(
+        // Submit button (modal.addChild handles display-list — no scene.add needed)
+        this.submitBtn = new SimpleButton(
             this.scene, cx, cy + 120, 'ODESLAT', () => this._submit(),
             180, 44, {
                 bgColor: UI_THEME.colors.success,
@@ -98,15 +100,15 @@ export class HighScoreModal {
                 strokeAlpha: 0.6
             }
         );
-        this.modal.addChild(submitBtn);
+        this.modal.addChild(this.submitBtn);
 
-        // Instructions
-        this.modal.addChild(
-            this.scene.add.text(cx, cy + 160,
-                'ENTER = odeslat | prazdne = Anonym',
-                UIThemeUtils.createFontConfig('tiny', 'secondary')
-            ).setOrigin(0.5)
-        );
+        // Instructions (constructor — no scene.add)
+        this.instructionsText = new Phaser.GameObjects.Text(
+            this.scene, cx, cy + 160,
+            'ENTER = odeslat | prazdne = Anonym',
+            UIThemeUtils.createFontConfig('tiny', 'secondary')
+        ).setOrigin(0.5);
+        this.modal.addChild(this.instructionsText);
 
         // Keyboard input
         this._setupKeyboard();
@@ -145,25 +147,28 @@ export class HighScoreModal {
         const font = (size, color = 'primary', opts = {}) =>
             UIThemeUtils.createFontConfig(size, color, { stroke: true, ...opts });
 
-        this.modal.addChild(
-            this.scene.add.text(cx, cy - 60,
-                `Umisteni: ${position}. misto!`, {
+        // Placement text (constructor — no scene.add)
+        this.resultPlacement = new Phaser.GameObjects.Text(
+            this.scene, cx, cy - 60,
+            `Umisteni: ${position}. misto!`, {
                 ...font('large', 'success', { strokeThickness: 3 }),
                 align: 'center'
-            }).setOrigin(0.5)
-        );
+            }).setOrigin(0.5);
+        this.modal.addChild(this.resultPlacement);
 
-        this.modal.addChild(
-            this.scene.add.text(cx, cy, `Skore: ${this.gameStats.score}`, {
+        // Score text (constructor — no scene.add)
+        this.resultScore = new Phaser.GameObjects.Text(
+            this.scene, cx, cy, `Skore: ${this.gameStats.score}`, {
                 ...font('normal', 'primary'), align: 'center'
-            }).setOrigin(0.5)
-        );
+            }).setOrigin(0.5);
+        this.modal.addChild(this.resultScore);
 
-        this.modal.addChild(
-            this.scene.add.text(cx, cy + 60, 'R - Restart | ESC - Menu',
-                UIThemeUtils.createFontConfig('small', 'secondary')
-            ).setOrigin(0.5)
-        );
+        // Instructions (constructor — no scene.add)
+        this.resultInstructions = new Phaser.GameObjects.Text(
+            this.scene, cx, cy + 60, 'R - Restart | ESC - Menu',
+            UIThemeUtils.createFontConfig('small', 'secondary')
+        ).setOrigin(0.5);
+        this.modal.addChild(this.resultInstructions);
 
         this.modal.show(true, 400);
     }
@@ -226,6 +231,15 @@ export class HighScoreModal {
             this.modal = null;
         }
         this.inputDisplay = null;
+        this.titleText = null;
+        this.statsText = null;
+        this.promptText = null;
+        this.inputBg = null;
+        this.submitBtn = null;
+        this.instructionsText = null;
+        this.resultPlacement = null;
+        this.resultScore = null;
+        this.resultInstructions = null;
     }
 }
 

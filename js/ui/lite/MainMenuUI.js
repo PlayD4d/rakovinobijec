@@ -4,6 +4,7 @@
  */
 import { SimpleButton } from './SimpleButton.js';
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
+import { UI_THEME } from '../UITheme.js';
 
 export class MainMenuUI {
   constructor(scene, gameVersion = 'unknown') {
@@ -15,7 +16,7 @@ export class MainMenuUI {
 
     // Title
     this.title = scene.add.text(cx, cy - 150, 'RAKOVINOBIJEC', {
-      fontFamily: 'Arial Black',
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '48px',
       color: '#ffffff',
       stroke: '#000000',
@@ -24,12 +25,12 @@ export class MainMenuUI {
 
     // Subtitle
     this.subtitle = scene.add.text(cx, cy - 90, 'Poraz všechny škodlivé buňky!', {
-      fontFamily: 'Arial',
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '16px',
       color: '#aaaaaa'
     }).setOrigin(0.5);
 
-    // Play button
+    // Play button (standalone — must add to scene display list explicitly)
     this.playBtn = new SimpleButton(
       scene, cx, cy - 20,
       '🎮 Nová hra',
@@ -44,6 +45,7 @@ export class MainMenuUI {
         fontSize: '22px'
       }
     );
+    scene.add.existing(this.playBtn);
 
     // Settings button — not yet implemented
     this.settingsBtn = new SimpleButton(
@@ -52,6 +54,7 @@ export class MainMenuUI {
       () => {},
       240, 56
     );
+    scene.add.existing(this.settingsBtn);
     this.settingsBtn.setEnabled(false);
 
     // Credits button — not yet implemented
@@ -61,6 +64,7 @@ export class MainMenuUI {
       () => {},
       240, 56
     );
+    scene.add.existing(this.creditsBtn);
     this.creditsBtn.setEnabled(false);
 
     // Quit button (only works in desktop app)
@@ -76,17 +80,19 @@ export class MainMenuUI {
         // Show in-game toast instead of alert() (prohibited by project guidelines)
         const toast = scene.add.text(scene.cameras.main.width / 2, scene.cameras.main.height - 60,
           'Pro ukončení hry zavřete okno prohlížeče.', {
-            fontFamily: 'Arial', fontSize: '14px', color: '#aaaaaa'
+            fontFamily: UI_THEME.fonts.primary, fontSize: '14px', color: '#aaaaaa'
           }).setOrigin(0.5).setDepth(999999);
         scene.tweens.add({ targets: toast, alpha: 0, delay: 3000, duration: 1000, onComplete: () => toast.destroy() });
       },
       240, 56,
       { bgColor: 0x4a2a2a }
     );
+    scene.add.existing(this.quitBtn);
 
     // Version info
     this.version = scene.add.text(10, scene.cameras.main.height - 20,
       `v${this.gameVersion} | (c) PlayD4d 2025 | playd4d.me@gmail.com`, {
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '12px',
       color: '#666666'
     });
@@ -94,6 +100,7 @@ export class MainMenuUI {
     // Controls hint
     this.controls = scene.add.text(scene.cameras.main.width - 10, scene.cameras.main.height - 20,
       'WASD = pohyb | ESC = pauza', {
+      fontFamily: UI_THEME.fonts.primary,
       fontSize: '12px',
       color: '#666666'
     }).setOrigin(1, 0);

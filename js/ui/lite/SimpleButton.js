@@ -2,13 +2,18 @@
  * SimpleButton - Minimalistické interaktivní tlačítko pro LiteUI
  * Čistý Phaser, žádné externí závislosti
  * UITheme integrace pro konzistentní styling
+ *
+ * NOTE: This constructor does NOT call scene.add.existing(this).
+ * When used standalone (e.g. MainMenuUI), the caller must call
+ * scene.add.existing(btn). When used inside a modal via
+ * modal.addChild(btn), the Container owns rendering — no scene.add needed.
  */
 import { UI_THEME } from '../UITheme.js';
 
 export class SimpleButton extends Phaser.GameObjects.Container {
   constructor(scene, x, y, text, onClick, width = 220, height = 48, style = {}) {
     super(scene, x, y);
-    
+
     // Merge default style s custom - use UI_THEME values
     const config = {
       bgColor: UI_THEME.colors.background.panel,
@@ -23,7 +28,7 @@ export class SimpleButton extends Phaser.GameObjects.Container {
       fontFamily: UI_THEME.fonts.primary,
       ...style
     };
-    
+
     // Background rectangle (constructor — no scene.add to avoid double display-list)
     this.bg = new Phaser.GameObjects.Rectangle(scene, 0, 0, width, height, config.bgColor, config.bgAlpha)
       .setStrokeStyle(config.strokeWidth, config.strokeColor, config.strokeAlpha);
@@ -36,23 +41,23 @@ export class SimpleButton extends Phaser.GameObjects.Container {
       align: 'center',
       wordWrap: { width: width - 20 }
     }).setOrigin(0.5);
-    
+
     // Add to container
     this.add([this.bg, this.label]);
     this.setSize(width, height);
-    
+
     // Store config for later use
     this.config = config;
     this.onClick = onClick;
-    
+
     // Interaktivita - make sure it's always responsive
     // Use the default hit area which matches the container size
     this.setInteractive();
-    
+
     // Ensure button is always active and responsive
     this.setActive(true);
     this.setVisible(true);
-    
+
     // Hover efekty
     this.on('pointerover', () => {
       this.bg.setFillStyle(config.hoverColor, 1);
@@ -60,21 +65,21 @@ export class SimpleButton extends Phaser.GameObjects.Container {
         scene.input.setDefaultCursor('pointer');
       }
     });
-    
+
     this.on('pointerout', () => {
       this.bg.setFillStyle(config.bgColor, config.bgAlpha);
       if (scene.input?.setDefaultCursor) {
         scene.input.setDefaultCursor('default');
       }
     });
-    
+
     // Pointerdown handler - must be before pointerup
     this.on('pointerdown', () => {
       // Visual feedback on click
       this.bg.setFillStyle(config.activeColor, 1);
       this.bg.setScale(0.98);
     });
-    
+
     // Pointerup handler - trigger onClick
     this.on('pointerup', () => {
       this.bg.setFillStyle(config.hoverColor, 1);
@@ -88,15 +93,15 @@ export class SimpleButton extends Phaser.GameObjects.Container {
         });
       }
     });
-    
-    // Přidat do scény
-    scene.add.existing(this);
+
+    // NOTE: scene.add.existing(this) removed — callers must add explicitly
+    // when using standalone (not inside a modal).
   }
-  
+
   setText(text) {
     this.label.setText(text);
   }
-  
+
   setEnabled(enabled) {
     if (enabled) {
       this.setInteractive();
@@ -106,7 +111,7 @@ export class SimpleButton extends Phaser.GameObjects.Container {
     }
     this.setAlpha(enabled ? 1 : 0.5);
   }
-  
+
   destroy() {
     // Cancel pending click timer
     if (this._pendingClick) {
