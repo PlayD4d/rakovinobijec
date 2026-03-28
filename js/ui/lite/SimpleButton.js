@@ -24,14 +24,14 @@ export class SimpleButton extends Phaser.GameObjects.Container {
       ...style
     };
     
-    // Background rectangle
-    this.bg = scene.add.rectangle(0, 0, width, height, config.bgColor, config.bgAlpha)
+    // Background rectangle (constructor — no scene.add to avoid double display-list)
+    this.bg = new Phaser.GameObjects.Rectangle(scene, 0, 0, width, height, config.bgColor, config.bgAlpha)
       .setStrokeStyle(config.strokeWidth, config.strokeColor, config.strokeAlpha);
-    
-    // Label text
-    this.label = scene.add.text(0, 0, text, { 
-      fontFamily: config.fontFamily, 
-      fontSize: config.fontSize, 
+
+    // Label text (constructor — Container owns rendering)
+    this.label = new Phaser.GameObjects.Text(scene, 0, 0, text, {
+      fontFamily: config.fontFamily,
+      fontSize: config.fontSize,
       color: config.fontColor,
       align: 'center',
       wordWrap: { width: width - 20 }

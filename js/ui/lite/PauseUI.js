@@ -106,8 +106,10 @@ export class PauseUI {
    * Clean destroy
    */
   destroy() {
+    this._hiding = false; // Reset guard to prevent closure firing on dead object
+    this.visible = false;
     this.modal?.destroy();
-    this.modal = null; // Prevent double-destroy
+    this.modal = null;
     this.resumeBtn = null;
     this.settingsBtn = null;
     this.quitBtn = null;

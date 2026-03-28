@@ -62,28 +62,28 @@ export class GameOverUI {
       '🔄 Zkusit znovu', 
       () => {
         this.hide(() => {
-          // scene.stop triggers GameScene.shutdown automatically — no manual call needed
-          scene.scene.stop('GameUIScene');
+          // Stop GameScene first, then GameUIScene (prevents null HUD during GameScene update)
           scene.scene.stop('GameScene');
+          scene.scene.stop('GameUIScene');
           scene.scene.start('GameScene');
         });
       },
       220, 56,
-      { 
+      {
         bgColor: 0x2a4a2a,
         fontSize: '20px'
       }
     );
     this.modal.addChild(this.retryBtn);
-    
+
     // Menu button
     this.menuBtn = new SimpleButton(
-      scene, cx, cy + 150, 
-      '🏠 Hlavní menu', 
+      scene, cx, cy + 150,
+      '🏠 Hlavní menu',
       () => {
         this.hide(() => {
-          scene.scene.stop('GameUIScene');
           scene.scene.stop('GameScene');
+          scene.scene.stop('GameUIScene');
           scene.scene.start('MainMenu');
         });
       },

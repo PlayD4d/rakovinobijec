@@ -89,64 +89,36 @@ export class PowerUpUI {
       const x = startX + index * spacing;
       const y = cy + 20;
       
-      // Card container
-      const card = this.scene.add.container(x, y);
-      
-      // Card dimensions
+      // Card container (constructor — no scene.add to avoid double display-list)
+      const s = this.scene;
+      const card = new Phaser.GameObjects.Container(s, x, y);
+
       const cardWidth = 280;
       const cardHeight = 220;
-      
-      // Background gradient (simulated with overlapping rectangles)
-      const bgDark = this.scene.add.rectangle(0, 0, cardWidth, cardHeight, 0x1a1a2e, 0.95)
-        .setStrokeStyle(2, 0x16213e, 0.8);
-      
-      const bgGradient = this.scene.add.rectangle(0, -cardHeight/4, cardWidth-4, cardHeight/2, 0x0f3460, 0.3);
-      
-      // Rarity border (thicker, glowing)
       const rarityColor = this.getRarityColor(pu.rarity || 'common');
-      const border = this.scene.add.rectangle(0, 0, cardWidth+4, cardHeight+4, rarityColor, 0.0)
+
+      // All children via constructors (Container owns rendering exclusively)
+      const bgDark = new Phaser.GameObjects.Rectangle(s, 0, 0, cardWidth, cardHeight, 0x1a1a2e, 0.95)
+        .setStrokeStyle(2, 0x16213e, 0.8);
+      const bgGradient = new Phaser.GameObjects.Rectangle(s, 0, -cardHeight/4, cardWidth-4, cardHeight/2, 0x0f3460, 0.3);
+      const border = new Phaser.GameObjects.Rectangle(s, 0, 0, cardWidth+4, cardHeight+4, rarityColor, 0.0)
         .setStrokeStyle(3, rarityColor, 0.8);
-      
-      // Icon with background circle
-      const iconBg = this.scene.add.circle(0, -70, 32, rarityColor, 0.2)
+      const iconBg = new Phaser.GameObjects.Arc(s, 0, -70, 32, 0, 360, false, rarityColor, 0.2)
         .setStrokeStyle(2, rarityColor, 0.6);
-      
-      const icon = this.scene.add.text(0, -70, pu.icon || '⚡', {
-        fontSize: '42px'
+      const icon = new Phaser.GameObjects.Text(s, 0, -70, pu.icon || '⚡', { fontSize: '42px' }).setOrigin(0.5);
+      const name = new Phaser.GameObjects.Text(s, 0, -20, pu.name || 'Power-up', {
+        fontFamily: UI_THEME.fonts.primary, fontSize: '18px', color: '#ffffff',
+        stroke: '#000000', strokeThickness: 2, wordWrap: { width: 260 }, align: 'center'
       }).setOrigin(0.5);
-      
-      // Name with better typography
-      const name = this.scene.add.text(0, -20, pu.name || 'Power-up', {
-        fontFamily: 'Arial Black',
-        fontSize: '18px',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 2,
-        wordWrap: { width: 260 },
-        align: 'center'
+      const desc = new Phaser.GameObjects.Text(s, 0, 25, pu.description || '', {
+        fontFamily: UI_THEME.fonts.primary, fontSize: '13px', color: '#bbbbbb',
+        align: 'center', wordWrap: { width: 250 }, lineSpacing: 2
       }).setOrigin(0.5);
-      
-      // Description with better formatting
-      const desc = this.scene.add.text(0, 25, pu.description || '', {
-        fontFamily: 'Arial',
-        fontSize: '13px',
-        color: '#bbbbbb',
-        align: 'center',
-        wordWrap: { width: 250 },
-        lineSpacing: 2
+      const stats = new Phaser.GameObjects.Text(s, 0, 80, pu.stats || '', {
+        fontFamily: UI_THEME.fonts.primary, fontSize: '14px', color: '#ffffff',
+        fontStyle: 'bold', stroke: '#000000', strokeThickness: 2
       }).setOrigin(0.5);
-      
-      // Stats with better styling - changed to white color for visibility
-      const stats = this.scene.add.text(0, 80, pu.stats || '', {
-        fontFamily: 'Courier New',
-        fontSize: '14px',
-        color: '#ffffff',  // Changed from rarityColor to white for visibility
-        fontStyle: 'bold',
-        stroke: '#000000',
-        strokeThickness: 2  // Increased stroke for better contrast
-      }).setOrigin(0.5);
-      
-      // Add all elements to card (order matters for layering)
+
       card.add([border, bgDark, bgGradient, iconBg, icon, name, desc, stats]);
       
       // Make interactive with improved hover effects

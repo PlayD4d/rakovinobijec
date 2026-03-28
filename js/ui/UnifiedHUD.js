@@ -274,7 +274,8 @@ export class UnifiedHUD {
 
     updateStats(stats) {
         if (stats.level !== undefined) {
-            this.levelText.setText(`Level: ${stats.level}`);
+            const stageStr = stats.stage ? ` | Stage: ${stats.stage}` : '';
+            this.levelText.setText(`Level: ${stats.level}${stageStr}`);
         }
         if (stats.score !== undefined) {
             this.scoreText.setText(`Sk\u00f3re: ${stats.score}`);
@@ -290,32 +291,26 @@ export class UnifiedHUD {
     }
 
     showBoss(name, hp, maxHp) {
+        if (this._destroyed || !this.bossContainer) return;
         this.bossNameText.setText(name);
         this.setBossHealth(hp, maxHp);
         this.bossContainer.setVisible(true);
-
         this.bossContainer.alpha = 0;
-        this.scene.tweens.add({
-            targets: this.bossContainer,
-            alpha: 1,
-            duration: 500
-        });
+        this.scene.tweens.add({ targets: this.bossContainer, alpha: 1, duration: 500 });
     }
 
     setBossHealth(hp, maxHp) {
+        if (this._destroyed || !this.bossBar) return;
         const percentage = Math.max(0, hp / maxHp);
         this.bossBar.width = this.BOSS_BAR_MAX_WIDTH * percentage;
         this.bossHealthText.setText(`${Math.floor(hp)}/${Math.floor(maxHp)}`);
     }
 
     hideBoss() {
+        if (this._destroyed || !this.bossContainer) return;
         this.scene.tweens.add({
-            targets: this.bossContainer,
-            alpha: 0,
-            duration: 500,
-            onComplete: () => {
-                this.bossContainer.setVisible(false);
-            }
+            targets: this.bossContainer, alpha: 0, duration: 500,
+            onComplete: () => { this.bossContainer?.setVisible(false); }
         });
     }
 
@@ -394,6 +389,7 @@ export class UnifiedHUD {
 
         this.container?.destroy();
         this.container = null;
+        this.bossContainer = null;
         this.gameScene = null;
     }
 }

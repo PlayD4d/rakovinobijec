@@ -154,12 +154,13 @@ export class UpdateManager {
                 hud.refresh();
             }
 
+            // Level/stage change detection — use HUD API, not direct text access
             const lvl = scene.gameStats.level;
             const stg = scene.currentLevel;
-            if (hud.levelText && (lvl !== _lastHudLevel || stg !== _lastHudStage)) {
+            if (lvl !== _lastHudLevel || stg !== _lastHudStage) {
                 _lastHudLevel = lvl;
                 _lastHudStage = stg;
-                hud.levelText.setText(`Level: ${lvl} | Stage: ${stg}`);
+                hud.updateStats({ level: lvl, stage: stg });
             }
         }, 'hud_update');
         
