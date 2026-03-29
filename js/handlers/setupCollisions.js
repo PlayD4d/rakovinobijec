@@ -278,6 +278,16 @@ function handlePlayerBulletBossCollision(bullet, boss) {
     if (s) s.log('combat', 'player_hit_boss', { bossId: boss.blueprintId || boss.type, damage, bossHP: boss.hp, killed: boss.hp <= damage });
     if (boss.takeDamage) boss.takeDamage(damage);
 
+    // Handle explosive bullets from chemo_reservoir power-up (same as enemy handler)
+    if (scene.player?.chemoAuraActive && scene.player.chemoAuraConfig?.enableExplosions) {
+        const explosionRadius = scene.player.getExplosionRadius ? scene.player.getExplosionRadius() : 35;
+        let explosionDamage = scene.player.getExplosionDamage ? scene.player.getExplosionDamage() : damage * 0.5;
+        explosionDamage = Number(explosionDamage) || (damage * 0.5);
+        if (scene.projectileSystem?.createExplosion) {
+            scene.projectileSystem.createExplosion(bullet.x, bullet.y, explosionDamage, explosionRadius, 1);
+        }
+    }
+
     // VFX/SFX hit feedback
     try {
         if (boss._vfx?.hit && scene?.vfxSystem) scene.vfxSystem.play(boss._vfx.hit, boss.x, boss.y);
