@@ -207,19 +207,18 @@ export class SimpleLootSystem {
                 break;
             case 'vacuum_xp': {
                 // Magnet pickup — vacuum ALL XP gems on field toward player
+                // Gradual pull: tag items for magnet attraction in update loop
                 const children = this.lootGroup?.getChildren();
+                let xpCount = 0;
                 if (children) {
                     for (const item of children) {
-                        if (!item?.active || item.dropType !== 'xp' || !item.body) continue;
-                        // Set very high velocity toward player — they'll be picked up by distance check
-                        const dx = player.x - item.x;
-                        const dy = player.y - item.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                        item.body.setVelocity((dx / dist) * 600, (dy / dist) * 600);
+                        if (!item?.active || item.dropType !== 'xp') continue;
+                        item._magnetPull = true; // Tag for gradual pull in update()
+                        xpCount++;
                     }
                 }
                 this.scene.flashCamera?.();
-                getSession()?.log('loot', 'magnet_used', { xpOnField: children?.filter(c => c?.active && c.dropType === 'xp').length || 0 });
+                getSession()?.log('loot', 'magnet_used', { xpOnField: xpCount });
                 break;
             }
             case 'buff': {
@@ -287,12 +286,11 @@ export class SimpleLootSystem {
             this._enforceFieldCap(children);
         }
 
-        // Magnet attraction — no Phaser native equivalent
+        // Magnet attraction (passive XP magnet powerup + active magnet pickup)
         const player = this.scene.player;
         const magnetRadius = player._stats?.()?.xpMagnetRadius || player.baseStats?.xpMagnetRadius || 0;
-        if (magnetRadius <= 0) return;
+        const magnetRadiusSq = magnetRadius > 0 ? magnetRadius * magnetRadius : 0;
 
-        const magnetRadiusSq = magnetRadius * magnetRadius;
         for (let i = children.length - 1; i >= 0; i--) {
             const loot = children[i];
             if (!loot.active || loot.dropType !== 'xp' || !loot.body) continue;
@@ -301,12 +299,23 @@ export class SimpleLootSystem {
             const dy = player.y - loot.y;
             const distSq = dx * dx + dy * dy;
 
-            if (distSq < magnetRadiusSq && distSq > 1) {
+            // Magnet pickup pull — gradual acceleration (beautiful vacuum effect)
+            if (loot._magnetPull) {
+                if (distSq > 1) {
+                    // Accelerate toward player: starts slow, gets faster as orb approaches
+                    const distance = Math.sqrt(distSq);
+                    const accel = 150 + (400 * Math.max(0, 1 - distance / 500)); // 150-550 px/s
+                    loot.body.setVelocity((dx / distance) * accel, (dy / distance) * accel);
+                }
+                continue; // Skip normal magnet — vacuum overrides
+            }
+
+            // Passive magnet powerup pull (proximity-based)
+            if (magnetRadiusSq > 0 && distSq < magnetRadiusSq && distSq > 1) {
                 const distance = Math.sqrt(distSq);
                 const force = 0.3 + 0.7 * (1 - distance / magnetRadius);
-                const speed = 300 * force;
-                loot.body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
-            } else if (distSq >= magnetRadiusSq && loot.body.velocity.x !== 0) {
+                loot.body.setVelocity((dx / distance) * 300 * force, (dy / distance) * 300 * force);
+            } else if (magnetRadiusSq > 0 && distSq >= magnetRadiusSq && loot.body.velocity.x !== 0) {
                 loot.body.setVelocity(0, 0);
             }
         }

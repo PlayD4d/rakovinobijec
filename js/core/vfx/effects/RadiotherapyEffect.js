@@ -175,15 +175,10 @@ export class RadiotherapyEffect {
             this._beamsDrawn = true;
         }
 
-        // Damage tick — open window for one frame, then close
-        if (time - this.lastDamageTick > this.tickRate * 1000) {
-            this._canDamage = true;
-            if (!this._hitThisTick) this._hitThisTick = new Set();
-            this._hitThisTick.clear(); // Reuse Set instead of allocating new WeakSet
-            this.lastDamageTick = time;
-        } else {
-            this._canDamage = false;
-        }
+        // Damage tick — time-based, checked in _onEnemyOverlap (not frame-dependent flag)
+        // The flag approach was broken: physics overlap fires BEFORE update(), so
+        // _canDamage was always false during overlap checks.
+        this._currentTime = time;
     }
 
     // ==================== Physics overlap (broadphase + narrowphase) ====================
@@ -234,11 +229,22 @@ export class RadiotherapyEffect {
      * This is the narrowphase — only a cheap arc angle check.
      */
     _onEnemyOverlap(enemy) {
-        if (!this.entity) return; // Guard: entity may be nulled mid-frame by detach()
-        if (!this._canDamage) return;
+        if (!this.entity) return;
         if (!enemy?.active || enemy.hp <= 0) return;
-        if (this._hitThisTick.has(enemy)) return;
         if (typeof enemy.takeDamage !== 'function') return;
+
+        // Time-based tick check (replaces broken frame-dependent _canDamage flag)
+        const now = this._currentTime || this.scene?.time?.now || 0;
+        if (now - this.lastDamageTick < this.tickRate * 1000) return;
+
+        // New tick — clear hit set and update timestamp
+        if (!this._hitThisTick) this._hitThisTick = new Set();
+        if (this._lastTickFrame !== now) {
+            this._hitThisTick.clear();
+            this._lastTickFrame = now;
+            this.lastDamageTick = now;
+        }
+        if (this._hitThisTick.has(enemy)) return;
 
         // Arc narrowphase — is enemy inside any beam wedge?
         const dx = enemy.x - this.entity.x;

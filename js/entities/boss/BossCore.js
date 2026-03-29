@@ -56,8 +56,8 @@ export class BossCore extends EnemyCore {
      */
     isAbilityReady(abilityId) {
         const cooldownEnd = this.abilityCooldowns.get(abilityId) || 0;
-        const now = this.scene?.time?.now || 0;
-        if (!now) return false; // Scene time unavailable — don't fire abilities
+        const now = this.scene?.time?.now;
+        if (now == null) return false; // Scene time truly unavailable
         return now >= cooldownEnd;
     }
 

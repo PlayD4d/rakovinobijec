@@ -102,6 +102,15 @@ export function spawnBoss(director) {
     trigger._triggered = true;
     director.pendingBossTrigger = null;
 
+    // Mark ALL triggers for this boss as triggered (prevents time+kills double-spawn)
+    for (const t of director.currentTable.bossTriggers) {
+        if (t.bossId === bossId) t._triggered = true;
+    }
+
+    // Set bossActive + cooldown IMMEDIATELY (not in delayedCall) to prevent duplicate spawns
+    director.scene.bossActive = true;
+    director.lastBossSpawn = director.gameTime;
+
     getSession()?.log('boss', 'spawn', { bossId, clearEnemies, spawnDelay });
     DebugLogger.info('spawn', `Boss spawn triggered: ${bossId}`);
 
@@ -120,12 +129,7 @@ export function spawnBoss(director) {
         director._pendingBossTimer = null;
         if (!director.running || !director.scene || !director.scene.scene?.isActive()) return;
         director.spawnEnemy(bossId, { boss: true });
-        director.lastBossSpawn = director.gameTime;
         director.stats.bossSpawnCount++;
-
-        // PR7: Notify scene that boss is active
-        if (director.scene) {
-            director.scene.bossActive = true;
-        }
+        // bossActive and lastBossSpawn already set above (before delay)
     });
 }
