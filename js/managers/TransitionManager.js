@@ -243,14 +243,13 @@ export class TransitionManager {
     }
 
     async showUIModal(eventName, data) {
-        // Migrate game.events → centralEventBus: normalize event name for namespacing
         const { centralEventBus } = await import('../core/events/CentralEventBus.js');
         centralEventBus.emit(eventName, data);
         DebugLogger.info('transition', `[TransitionManager] Emitted ${eventName}`);
 
-        return new Promise((resolve) => {
-            this.scene.time.delayedCall(1500, () => resolve(null));
-        });
+        // Use setTimeout instead of scene.time.delayedCall — scene timer can be
+        // paused during transitions, causing infinite async deadlock
+        return new Promise((resolve) => setTimeout(resolve, 1500));
     }
 
     calculateFinalStats() {

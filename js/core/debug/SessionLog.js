@@ -55,6 +55,10 @@ class SessionLog {
             act: action,
             ...data
         });
+
+        if (this.events.length > 50000) {
+            this.events = this.events.slice(-40000);
+        }
     }
 
     /**

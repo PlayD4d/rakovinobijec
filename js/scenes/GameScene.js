@@ -380,7 +380,13 @@ export class GameScene extends Phaser.Scene {
 
     async showVictory() {
         try { endSession('victory'); } catch (_) {}
-        if (this.transitionManager) await this.transitionManager.showVictory();
+        try {
+            if (this.transitionManager) await this.transitionManager.showVictory();
+        } catch (err) {
+            DebugLogger.error('game', '[GameScene] Victory sequence failed:', err);
+            // Fallback: go directly to main menu if victory UI fails
+            this.returnToMenu();
+        }
     }
 
     updateTime() {
