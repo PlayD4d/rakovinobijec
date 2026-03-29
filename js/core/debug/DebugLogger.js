@@ -5,7 +5,8 @@
  * Supports categories, log levels, and runtime control.
  */
 
-import { ConfigResolver } from '../utils/ConfigResolver.js';
+// NOTE: No direct import of ConfigResolver — avoids circular dependency.
+// Uses window.ConfigResolver (set by GameScene) for runtime config access.
 
 export class DebugLogger {
     // Log level priorities
@@ -170,7 +171,8 @@ export class DebugLogger {
         // Refresh base config every 2 seconds
         const now = Date.now();
         if (!this._cachedConfig || now - this._cachedConfigTime >= 2000) {
-            const baseConfig = ConfigResolver.get('debug', { defaultValue: DebugLogger._defaultDebugConfig });
+            const CR = window.ConfigResolver;
+            const baseConfig = CR ? CR.get('debug', { defaultValue: DebugLogger._defaultDebugConfig }) : DebugLogger._defaultDebugConfig;
             this._cachedConfig = {
                 enabled: baseConfig.enabled !== undefined ? baseConfig.enabled : true,
                 logLevel: baseConfig.logLevel || 'WARN',

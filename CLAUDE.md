@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project
+
+Rakovinobijec — 2D top-down survival shooter built on **Phaser 3.90.0** (loaded from CDN).
+100% data-driven architecture (PR7). All gameplay values in JSON5 blueprints.
+
 ## Commands
 
 ### Development
@@ -17,187 +22,113 @@ npm run audit:data       # Validate all blueprints and registry
 npm run audit:data:strict # Strict validation with i18n checks
 npm run smoke:test       # Run smoke tests
 npm run verify:all       # Complete verification (audit + smoke)
-npm run test:golden-path # Test golden path scenarios
-npm run test:leak        # Memory leak testing
-npm run validate:blueprints # Validate all blueprint files
-```
-
-### Guard Rules & Architecture Checks
-```bash
 npm run guard:check      # Check GameScene guard rules
 npm run guard:check-all  # Check all architectural guard rules
 npm run guard:phaser     # Check for prohibited Phaser API usage
-./dev/refactor/check_guards.sh # Manual guard check script
-```
-
-### CI & Build
-```bash
+npm run ci:quick         # Quick CI (guards + smoke)
 npm run ci:full          # Complete CI run
-npm run ci:full:verbose  # CI with detailed output
-npm run ci:quick         # Quick CI check (guards + smoke)
-npm run prebuild         # Pre-build tasks (generate audio manifest)
 ```
 
-### Data & Content Management
+### Data & Analytics
 ```bash
 npm run rebuild:index    # Rebuild registry index
 npm run fix:i18n         # Fix missing i18n keys
-npm run check:orphans    # Check for orphaned files
-npm run generate:audio   # Generate audio manifest
-```
-
-### Analytics & Telemetry
-```bash
 npm run analyze:latest   # Analyze latest telemetry session
-npm run analyze:pattern  # Pattern analysis
-npm run analyze:aggregate # Aggregate pattern analysis
-npm run analyze:verbose  # Verbose analysis with HTML output
-npm run compare:runs     # Compare telemetry runs
-npm run validate:telemetry # Validate telemetry analyzer
 ```
 
-## High-Level Architecture
+## Architecture
 
-### Core Principles (PR7 Compliance)
-- **100% Data-Driven**: All gameplay constants, entities, and systems read from blueprint data
-- **Single Source of Truth**: ConfigResolver is the only way to resolve gameplay values
-- **No Legacy Code**: No hardcoded constants, no feature flags for old systems
-- **Modern Systems Only**: BlueprintLoader, SpawnDirector, ProjectileSystem, VFXSystem
-- **No Direct Engine Calls**: No `scene.add.*` or `scene.sound.play` in gameplay logic
+### Layers
+1. **GameScene** — Thin hub, NO direct Phaser API. Delegates to managers/systems.
+2. **Managers** — UpdateManager, TransitionManager, BootstrapManager, EnemyManager
+3. **Systems** — ProjectileSystem, SimpleLootSystem, PowerUpSystem, VFXSystem, AudioSystem, GraphicsFactory
+4. **UI** — GameUIScene (all UI elements, modals, RexUI). Input isolation via `setTopOnly(true)`.
+5. **Data** — BlueprintLoader + ConfigResolver. All entities in `/data/blueprints/`.
 
-### Architectural Patterns
+### Event System (2 systems only)
+- **`scene.events`** — Intra-scene lifecycle (auto-cleaned by Phaser on shutdown)
+- **`CentralEventBus`** — Cross-scene communication (standalone `Phaser.Events.EventEmitter` singleton)
+- **NEVER use `game.events`** — risk of name collision with Phaser internals
 
-#### 1. Capability-based Design
-Separates Phaser API from business logic:
-- **Core classes** provide capability interface (e.g., `EnemyCore`)
-- **Behaviors** are pure functions without side-effects
-- **No direct Phaser API calls** in behaviors
-- Communication only through capability methods
+Cross-scene events: `ui:pause-request`, `game:levelup`, `game:over`, `game:powerup-selected`, `ui:victory-show`, `ui:level-transition-show`
 
-#### 2. Thin Composer Pattern
-Main classes are thin orchestrators:
-- **Minimal logic** - only compose components
-- **Delegate to specialized modules** - each has single responsibility
-- **Clean public interface** - hides internal complexity
-- Files must be **< 500 LOC** (enforced by guard rules)
+### Patterns
+- **Capability-based Design**: EnemyCore provides capabilities, behaviors are pure functions
+- **Thin Composer**: Main classes < 100 LOC, delegate to specialized modules
+- **DisposableRegistry**: Automatic cleanup of timers, listeners, tweens
+- **Files < 500 LOC** (enforced by guard rules)
 
-#### 3. DisposableRegistry Pattern
-Automatic resource management:
-- **Automatic cleanup** of timers and event listeners
-- **Memory leak prevention**
-- **Centralized management** of disposable resources
-
-### System Layers
-
-1. **GameScene** (Thin Hub)
-   - NO direct Phaser API work
-   - Only delegates to managers and systems
-   - Event-based communication with UI
-
-2. **Managers** (Orchestrators)
-   - UpdateManager: Update loop orchestration
-   - TransitionManager: Victory/defeat/level transitions
-   - BootstrapManager: Scene initialization
-   - EnemyManager: Enemy lifecycle
-
-3. **Systems** (Implementors)
-   - ProjectileSystem: Projectiles + pooling
-   - SimpleLootSystem: Loot drops + animations
-   - PowerUpSystem: Power-up management
-   - GraphicsFactory: Texture generation with pooling
-   - AudioSystem: SFX/music management
-   - VFXSystem: Visual effects with presets
-
-4. **UI Layer** (GameUIScene)
-   - ALL UI elements and modals
-   - RexUI for components
-   - CentralEventBus for events
-   - Input isolation with `setTopOnly(true)`
-
-5. **Data Layer**
-   - BlueprintLoader: Loads JSON5 blueprints
-   - ConfigResolver: Runtime configuration
-   - All entities defined in `/data/blueprints/`
+### Phaser 3.90 Key Rules
+- **Object pooling**: `group.get(x, y, key)` auto-revives dead sprites
+- **getChildren() iteration**: NEVER `forEach + destroy`. Use reverse for-loop.
+- **Overlap vs Collider**: Overlap = sensor (damage/pickup), Collider = physics push
+- **Shield hitbox**: Separate invisible sprite with circular body + `physics.add.overlap`
+- **Tweens**: `persist` defaults to `false` (3.80+) — completed tweens auto-destroy
+- **generateTexture()**: Create from Graphics, release Graphics to pool
+- Full reference: `docs/PHASER_390_REFERENCE.md`
 
 ### File Structure
 ```
 /data/blueprints/
-├── enemy/           # Enemy definitions
-├── boss/            # Boss definitions
-├── powerup/         # Power-up definitions
-├── projectile/      # Projectile definitions
-├── spawn/           # Level spawn tables
-├── items/           # Loot items (xp, health, special)
-├── unique/          # Unique/rare enemies
-├── elite/           # Elite enemy variants
-└── templates/       # Templates for quick creation
+├── enemy/       boss/       elite/       unique/
+├── powerup/     projectile/ spawn/       items/
+└── templates/   system/
 
 /js/
-├── core/            # Core systems (audio, vfx, spawn, etc.)
-├── entities/        # Game entities (Player, Enemy, Boss)
-│   ├── ai/behaviors/ # Pure function behaviors
-│   ├── core/        # Phaser integration (EnemyCore)
-│   └── boss/        # Boss-specific components
-├── managers/        # High-level orchestrators
-├── scenes/          # Phaser scenes (GameScene, GameUIScene, MainMenu)
-└── ui/              # UI components
+├── core/        # Systems (audio, vfx, spawn, events, projectiles, loot)
+├── entities/    # Player, Enemy, Boss (core/, ai/behaviors/, boss/, player/)
+├── managers/    # Orchestrators (Update, Bootstrap, Transition, Enemy)
+├── handlers/    # setupCollisions.js
+├── scenes/      # GameScene, GameUIScene, MainMenu
+└── ui/          # UI components (lite/, UnifiedHUD)
 ```
 
-### Important Rules & Anti-patterns
-
-#### ❌ PROHIBITED
-- Files larger than 500 LOC without approved exception
-- Circular dependencies between modules
-- Phaser API calls in pure functions/behaviors
-- Direct `scene.add.graphics()` - use GraphicsFactory
+### PROHIBITED
+- Files > 500 LOC
+- Phaser API in behaviors/pure functions
+- Direct `scene.add.graphics()` — use GraphicsFactory
+- Direct `scene.sound.play()` — use AudioSystem
+- Direct `scene.add.particles()` — use VFXSystem
+- `game.events` for cross-scene communication
 - Hardcoded gameplay constants
-- Global mutable state
-- Monolithic files (split using Thin Composer)
+- `forEach + destroy` on group children (use reverse for-loop)
 
-#### ✅ REQUIRED
+### REQUIRED
 - All gameplay values in blueprints
-- Capability interface for Phaser abstraction
-- Pure functions for AI behaviors
-- DisposableRegistry for resource cleanup
-- DEPTH_LAYERS constants (no magic numbers)
-- Event-based scene communication
-- Input isolation for UI overlays
+- `DEPTH_LAYERS` constants (no magic numbers)
+- Collisions only in `setupCollisions.js`
+- Event listeners cleaned up in shutdown
+- `centralEventBus.removeAllListeners(this)` on scene shutdown
+- Always bump `package.json` version with version-tagged commits
 
-### Blueprint Naming Conventions
+### Blueprint Naming
 ```
-enemy.viral_swarm       # Common enemy
-elite.tank_cell         # Elite variant
-unique.golden_cell      # Unique/rare
-boss.radiation_core     # Boss
-powerup.damage_boost    # Power-up
-projectile.player_basic # Projectile
-vfx.explosion.small     # Visual effect
-sfx.enemy.spawn         # Sound effect (or direct path: "sound/enemy_spawn.mp3")
+enemy.viral_swarm       boss.radiation_core     elite.tank_cell
+unique.golden_cell      powerup.damage_boost    projectile.player_basic
 ```
 
-### Development Console (DEV)
+### DEV Console
 ```javascript
-// In browser console
-DEV.spawnEnemy("enemy.viral_swarm")     // Spawn enemy
-DEV.spawnBoss("boss.radiation_core")    // Spawn boss
-DEV.killAll()                            // Kill all enemies
-DEV.heal(100)                            // Heal player
-DEV.givePowerUp("powerup.damage_boost") // Give power-up
-DEV.levelUp()                            // Force level up
-DEV.toggleDebug('sfx')                   // Toggle debug logging
-
-// Framework diagnostics
-__framework.healthcheck()                // Complete health check
-__framework.quickCheck()                 // Quick validation
-__framework.smokeTest()                  // Run smoke test
+DEV.spawnEnemy("enemy.viral_swarm")     DEV.spawnBoss("boss.radiation_core")
+DEV.killAll()     DEV.heal(100)     DEV.levelUp()     DEV.exportSession()
+__framework.healthcheck()     __framework.quickCheck()
 ```
 
-## Core Documentation
-- Architecture overview: @docs/ARCHITECTURE.md
-- Code standards and conventions: @docs/CODE_STANDARDS.md
-- Developer guide: @docs/DEVELOPER_GUIDE.md
-- PR7 guidelines and rules: @docs/DEV_GUIDELINES.md
-- Phaser 3 best practices: @docs/PHASER_BEST_PRACTICES.md
-- Game lifecycle documentation: @docs/lifecycle.md
-- Documentation index: @docs/README.md
+### Game Progression (7 Levels)
+| Level | Boss | HP |
+|-------|------|----|
+| 1 | radiation_core | 1200 |
+| 2 | onkogen | 1050 |
+| 3 | karcinogenni_kral | 1050 |
+| 4 | genova_mutace | 1200 |
+| 5 | onkogen_prime | 2100 |
+| 6 | radiation | 1800 |
+| 7 | chemorezistence (FINAL) | 2700 |
 
+## Documentation
+- Architecture: @docs/ARCHITECTURE.md
+- Dev guidelines: @docs/DEV_GUIDELINES.md
+- Phaser 3.90 reference: @docs/PHASER_390_REFERENCE.md
+- Game lifecycle: @docs/lifecycle.md
+- Code standards: @docs/CODE_STANDARDS.md
+- Developer guide: @docs/DEVELOPER_GUIDE.md

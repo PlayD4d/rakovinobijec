@@ -514,4 +514,4 @@ Enemy.js (93 LOC) → thin composer
 
 ---
 
-*Dokument vytvořen pro Rakovinobijec v0.4.0 | Poslední aktualizace: 2024*
+*Rakovinobijec | Phaser 3.90.0 | Poslední aktualizace: 2026*

@@ -1,143 +1,30 @@
-# 📚 Dokumentace Rakovinobijec
+# Dokumentace Rakovinobijec
 
-> **Centrální rozcestník pro všechnu dokumentaci projektu**
+> v0.5.86+ | Phaser 3.90.0
 
----
+## Hlavni dokumenty
 
-## 🚀 Hlavní průvodce
+| Dokument | Popis |
+|----------|-------|
+| [DEV_GUIDELINES.md](./DEV_GUIDELINES.md) | Pravidla vyvoje, systemy, event architektura, DO/DON'T |
+| [PHASER_390_REFERENCE.md](./PHASER_390_REFERENCE.md) | Phaser 3.90 API, best practices, gotchas, performance |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Architektonicke vzory (Capability-based, Thin Composer, DisposableRegistry) |
+| [CODE_STANDARDS.md](./CODE_STANDARDS.md) | Kodove standardy, naming conventions, limity |
+| [lifecycle.md](./lifecycle.md) | Game lifecycle, bootstrap flow, transition management |
+| [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) | Kompletni pruvodce (blueprinty, content creation, debugging) |
+| [Migration_Plan.md](./Migration_Plan.md) | Plan migrace na Godot 4.4 (budouci) |
 
-### 🎯 [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)
-**Kompletní průvodce pro vývojáře** - Všechno co potřebujete vědět:
-- Architektura a PR7 principy
-- Praktické návody (přidání enemy, boss, powerup)
-- Development tools (F3-F9 klávesové zkratky)
-- XP a progression systém
-- I18n lokalizace
-- Troubleshooting a řešení problémů
+## Quick Start
 
----
-
-## 📋 Speciální dokumenty
-
-### 🏛️ [ARCHITECTURE.md](./ARCHITECTURE.md) **NOVÉ!**
-**Kompletní architektonický přehled** - Patterns a principy:
-- Capability-based Design Pattern
-- Thin Composer Pattern  
-- Resource Management (DisposableRegistry)
-- Guard Rules a jejich implementace
-- Migrace legacy kódu
-
-### 📝 [CODE_STANDARDS.md](./CODE_STANDARDS.md) **NOVÉ!**
-**Kódové standardy a konvence**:
-- Limity velikosti souborů (max 500 LOC)
-- Naming conventions
-- Import struktura a komentáře
-- Best practices a anti-patterns
-- Code review checklist
-
-### 🔧 [Dev_Guidelines.md](../Dev_Guidelines.md) **AKTUALIZOVÁNO!**
-Pravidla PR7 compliance a architektonické vzory:
-- Nové sekce o Capability-based design
-- Anti-patterns to avoid
-- Guard rules checking
-
-### 📊 [README.md](../README.md)
-Hlavní README projektu s přehledem a instalací
-
----
-
-## 🗂️ Struktura projektu
-
-```
-docs/
-├── DEVELOPER_GUIDE.md    # 📖 Kompletní průvodce (HLAVNÍ)
-└── README.md            # 🗺️ Tento rozcestník
-
-data/
-├── blueprints/          # 🎮 Herní data
-│   ├── enemy/          # Nepřátelé
-│   ├── boss/           # Bossové
-│   ├── powerup/        # Power-upy
-│   └── templates/      # Šablony pro rychlé vytváření
-├── config/             # ⚙️ Systémové konfigurace  
-└── i18n/              # 🌍 Lokalizace (cs.json, en.json)
-
-js/
-├── core/               # 🏗️ Základní systémy
-├── entities/           # 👾 Herní entity
-├── scenes/             # 🎬 Herní scény
-└── ui/                # 🖼️ Uživatelské rozhraní
-```
-
----
-
-## ⚠️ Důležitá architektonická pravidla
-
-### 🚫 Co NIKDY nedělat
-- **Soubory > 500 LOC** - rozdělte na komponenty
-- **Phaser API v behaviors** - použijte capability interface
-- **Cyklické závislosti** - A→B→A = problém
-- **Hardcoded hodnoty** - vše do blueprintů
-- **Direct scene manipulation** - použijte systémy
-
-### ✅ Co VŽDY dodržovat
-- **Capability-based design** - oddělte Phaser od logiky
-- **Thin Composer pattern** - hlavní třída jen orchestruje
-- **Pure functions** - behaviors bez side-effects
-- **Guard rules** - spusťte `./dev/refactor/check_enemy_guards.sh`
-- **DisposableRegistry** - pro timery a eventy
-
-→ Detaily v [ARCHITECTURE.md](./ARCHITECTURE.md) a [CODE_STANDARDS.md](./CODE_STANDARDS.md)
-
----
-
-## 🎯 Quick Start
-
-**1. Začínáte s vývojem?**
-→ Čtěte [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)
-→ Prostudujte [ARCHITECTURE.md](./ARCHITECTURE.md)
-
-**2. Přidáváte nový obsah?**
-→ Použijte templates v `data/blueprints/templates/`
-→ Dodržte [CODE_STANDARDS.md](./CODE_STANDARDS.md)
-→ F9 pro hot-reload změn
-
-**3. Refaktorujete velký soubor?**
-→ Postupujte podle [ARCHITECTURE.md](./ARCHITECTURE.md#refaktoring-velkých-souborů)
-→ Použijte capability-based design
-→ Ověřte guard rules
-
-**4. Před commitem:**
 ```bash
-# Data validace
-npm run audit:data:strict
-
-# Guard rules check
-./dev/refactor/check_enemy_guards.sh
-
-# Všechny testy
-npm run verify:all
+npm run dev              # Spustit dev server
+npm run guard:check-all  # Overit architekturu
+npm run audit:data       # Validovat blueprinty
+npm run smoke:test       # Smoke test
 ```
 
----
-
-## 💡 Pro Tips
-
-- **F9** je váš nejlepší přítel pro rychlé iterace
-- **VS Code snippets** (`bossBlueprint` + Tab) pro rychlé vytváření
-- **Direct file paths** pro SFX (např. `"sound/laser.mp3"`)
-- **Console commands** (`DEV.*`, `__framework.*`) pro debugging
-- **Templates** vždy použijte místo psaní od nuly
-
----
-
-## 🆘 Potřebujete pomoc?
-
-1. Zkontrolujte [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) - sekce Troubleshooting
-2. Použijte `__framework.healthcheck()` v konzoli
-3. F6 Missing Assets panel pro chybějící soubory
-4. Validujte data: `npm run audit:data:strict`
-
----
-
-*Vytvořeno pro Rakovinobijec v0.4.0 | Poslední aktualizace: 2024*
+## Validace pred commitem
+```bash
+npm run ci:quick         # Guards + smoke (rychle)
+npm run ci:full          # Kompletni CI
+```

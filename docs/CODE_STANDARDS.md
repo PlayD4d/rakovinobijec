@@ -239,9 +239,8 @@ x = x + 1; // Kompenzace Phaser pixel-perfect renderingu
 
 ### TODO komentáře
 ```javascript
-// TODO: Refaktorovat po implementaci nového ProjectileSystem
+// TODO(#123): Brief description of what needs to change
 // FIXME: Memory leak při rychlém spawnu/despawnu
-// HACK: Workaround pro Phaser 3.60 bug, odstranit v 3.61
 // NOTE: Tento pattern je záměrný, nerefaktorovat
 ```
 
@@ -516,4 +515,4 @@ perf: optimalizace spawn rutiny
 
 ---
 
-*Dokument vytvořen pro Rakovinobijec v0.4.0 | Poslední aktualizace: 2024*
+*Rakovinobijec | Phaser 3.90.0 | Poslední aktualizace: 2026*

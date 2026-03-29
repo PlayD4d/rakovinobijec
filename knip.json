@@ -1,0 +1,28 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "js/main.js",
+    "js/scenes/GameScene.js",
+    "js/scenes/GameUIScene.js",
+    "js/scenes/MainMenu.js",
+    "scripts/*.{js,mjs}",
+    "tools/**/*.{js,mjs}"
+  ],
+  "project": [
+    "js/**/*.js",
+    "scripts/**/*.{js,mjs}",
+    "tools/**/*.{js,mjs}"
+  ],
+  "ignore": [
+    "test_*.js",
+    "dev_*.js",
+    "final_test.js",
+    "verify_integration.js",
+    "dev/**"
+  ],
+  "ignoreDependencies": [
+    "puppeteer",
+    "chart.js",
+    "chartjs-node-canvas"
+  ]
+}
