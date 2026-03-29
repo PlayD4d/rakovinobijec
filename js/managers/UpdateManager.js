@@ -415,7 +415,7 @@ export class UpdateManager {
         // Do NOT destroy them here; they are reused by lootGroup.get().
 
         if (cleaned > 0) {
-            getSession()?.log('perf', 'cleanup', { cleaned, enemies: enemiesGroup?.children?.size || 0, loot: lootGroup?.children?.size || 0 });
+            getSession()?.log('perf', 'cleanup', { cleaned, enemies: enemiesGroup?.children?.size || 0 });
         }
     }
 
