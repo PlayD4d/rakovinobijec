@@ -1,5 +1,5 @@
 import { Player } from '../entities/Player.js';
-import { startSession, getSession } from '../core/debug/SessionLog.js';
+import { startSession, getSession, endSession } from '../core/debug/SessionLog.js';
 import { Boss } from '../entities/Boss.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { MobileControlsSystem} from '../core/systems/MobileControlsSystem.js';
@@ -339,7 +339,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     async gameOver() {
-        try { getSession()?.end?.('death'); } catch (_) {}
+        try { endSession('death'); } catch (_) {}
         if (this.transitionManager) await this.transitionManager.gameOver();
     }
 
@@ -378,6 +378,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     async showVictory() {
+        try { endSession('victory'); } catch (_) {}
         if (this.transitionManager) await this.transitionManager.showVictory();
     }
 
@@ -437,6 +438,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     returnToMenu() {
+        try { endSession('quit'); } catch (_) {}
         this._cleanupForTransition();
         this.scene.stop('GameUIScene');
         this.scene.start('MainMenu');
@@ -444,6 +446,8 @@ export class GameScene extends Phaser.Scene {
 
     shutdown() {
         if (this._shutdownDone) return;
+        // Ensure session is ended if not already (e.g. browser tab close)
+        try { endSession('quit'); } catch (_) {}
         this._shutdownDone = true;
         DebugLogger.info('game', '[GameScene] Starting shutdown sequence...');
 

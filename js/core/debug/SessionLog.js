@@ -245,6 +245,13 @@ export function getSession() {
     return currentSession;
 }
 
+export function endSession(result) {
+    if (currentSession) {
+        currentSession.end(result);
+        currentSession = null;
+    }
+}
+
 // DEV commands
 if (typeof window !== 'undefined') {
     window.DEV = window.DEV || {};
