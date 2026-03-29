@@ -158,11 +158,7 @@ export function setupCollisions(scene) {
 function handlePlayerEnemyCollision(player, enemy) {
     if (!player.active || !enemy.active) return;
 
-    // Shield knockback — push enemy away if shield is active
-    if (player.shieldActive && player.shieldHP > 0 && enemy.body) {
-        const shieldRadius = 40 + (player.shieldLevel || 1) * 5;
-        _knockbackFromShield(player, enemy, shieldRadius);
-    }
+    // Shield knockback is handled per-frame in ShieldRegeneration._pushEnemiesAtBoundary()
 
     if (player.canTakeDamage?.()) {
         const damage = enemy.contactDamage || enemy.damage || 10;
@@ -179,11 +175,7 @@ function handlePlayerEnemyCollision(player, enemy) {
 function handlePlayerBossCollision(player, boss) {
     if (!player.active || !boss.active) return;
 
-    // Shield knockback for bosses too (lighter push — bosses are heavy)
-    if (player.shieldActive && player.shieldHP > 0 && boss.body) {
-        const shieldRadius = 40 + (player.shieldLevel || 1) * 5;
-        _knockbackFromShield(player, boss, shieldRadius, 0.5); // Half force for bosses
-    }
+    // Shield knockback is handled per-frame in ShieldRegeneration._pushEnemiesAtBoundary()
 
     if (player.canTakeDamage && player.canTakeDamage()) {
         const damage = boss.contactDamage || boss.damage || 20;
@@ -286,42 +278,13 @@ function handlePlayerBulletBossCollision(bullet, boss) {
 
 /**
  * Handle enemy bullet hitting player
- * If shield is active: bullet is destroyed at shield boundary with flash VFX
+ * Note: Shield intercept is handled by a separate overlap on the shield hitbox
+ * (registered in ShieldRegeneration.createShieldHitbox). Bullets that reach
+ * this handler have either bypassed the shield or shield is inactive.
  */
 function handleEnemyBulletPlayerCollision(bullet, player) {
-    if (!bullet.active || !player.active) {
-        return;
-    }
+    if (!bullet.active || !player.active) return;
 
-    // Shield intercept — destroy bullet at shield boundary, play flash
-    if (player.shieldActive && player.shieldHP > 0) {
-        const damage = bullet.damage || 5;
-        getSession()?.log('combat', 'enemy_bullet_hit_player', { damage, playerHP: player.hp, shieldIntercept: true, source: bullet.sourceType || 'unknown' });
-
-        // Calculate impact point on shield boundary
-        const shieldRadius = 40 + (player.shieldLevel || 1) * 5;
-        const dx = bullet.x - player.x;
-        const dy = bullet.y - player.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const impactX = player.x + (dx / dist) * shieldRadius;
-        const impactY = player.y + (dy / dist) * shieldRadius;
-
-        // Shield absorbs damage (through existing pipeline)
-        if (player.canTakeDamage?.()) {
-            player.takeDamage(damage);
-        }
-
-        // Flash VFX at impact point
-        const scene = player.scene;
-        if (scene?.vfxSystem) {
-            scene.vfxSystem.play('vfx.hit.spark.small', impactX, impactY);
-        }
-
-        killBullet(bullet);
-        return;
-    }
-
-    // No shield — normal damage
     if (player.canTakeDamage?.()) {
         const damage = bullet.damage || 5;
         getSession()?.log('combat', 'enemy_bullet_hit_player', { damage, playerHP: player.hp, source: bullet.sourceType || 'unknown' });
@@ -330,26 +293,7 @@ function handleEnemyBulletPlayerCollision(bullet, player) {
     killBullet(bullet);
 }
 
-/**
- * Push an entity away from player to the shield boundary
- * @param {object} player - Player sprite
- * @param {object} entity - Enemy/boss to push back
- * @param {number} shieldRadius - Shield radius in pixels
- * @param {number} forceMul - Force multiplier (0.5 for bosses)
- */
-function _knockbackFromShield(player, entity, shieldRadius, forceMul = 1.0) {
-    const dx = entity.x - player.x;
-    const dy = entity.y - player.y;
-    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-
-    // Only push if entity is inside shield radius
-    if (dist < shieldRadius + 10) {
-        const nx = dx / dist;
-        const ny = dy / dist;
-        const pushSpeed = 250 * forceMul;
-        entity.body.setVelocity(nx * pushSpeed, ny * pushSpeed);
-    }
-}
+// Shield knockback is handled per-frame in ShieldRegeneration._pushEnemiesAtBoundary()
 
 // Export callbacks for testing
 export const collisionHandlers = {

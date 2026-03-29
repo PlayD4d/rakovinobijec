@@ -4,7 +4,7 @@
   stats: {
     hp: 2700,
     maxHp: 2700,
-    speed: 0.4,
+    speed: 20,
     damage: 75,
     xp: 500,
     size: 75,

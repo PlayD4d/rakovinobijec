@@ -162,6 +162,12 @@ export class PowerUpAbilities {
 
                 DebugLogger.info('powerup', `[PowerUpAbilities] SHIELD ACTIVATED - Level: ${config.level}, HP: ${config.shieldHP}, Recharge: ${config.rechargeTime}ms`);
 
+                // Create/update shield physics hitbox for bullet interception
+                if (this.shieldRegen) {
+                    this.shieldRegen.destroyShieldHitbox(player); // Recreate with new radius
+                    this.shieldRegen.createShieldHitbox(player);
+                }
+
                 if (vfxManager) {
                     DebugLogger.info('powerup', `[PowerUpAbilities] Attaching shield VFX to player`);
                     vfxManager.attachEffect(player, 'shield', {
