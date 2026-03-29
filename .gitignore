@@ -37,11 +37,20 @@ test-basic.js
 test-runner-inline.js
 test-working.js
 *.bak
-*.pre-vfx-sfx-migration.bakdata/telemetry.db
-data/sessions/*.json
 
-# Large media files
+# Telemetry data (local only)
+data/telemetry.db
+data/sessions/
+
+# Large media — never track in git
 *.mov
 *.mp4
+*.avi
+*.mkv
 screenshot_*.png
-Screen video*
+Screen*
+*.psd
+*.ai
+
+# Session logs
+session_*.json
