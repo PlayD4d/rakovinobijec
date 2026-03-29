@@ -201,9 +201,22 @@ export class EnemyBehaviors {
             playExplosion: (x, y, opts) => enemy.scene?.vfxSystem?.playExplosionEffect?.(x, y, opts),
             schedule: (fn, ms) => enemy.schedule(fn, ms),
             getState: () => this.state,
-            // Focused accessors instead of raw scene reference (architecture rule enforcement)
-            scene: enemy.scene, // TODO: remove once all behaviors migrated to getPlayer()
+            // Focused accessors (no raw scene reference — architecture rule)
             getPlayer: () => enemy.scene?.player,
+            getEnemiesNearby: (x, y, range) => {
+                const group = enemy.scene?.enemiesGroup;
+                if (!group) return [];
+                const rangeSq = range * range;
+                const result = [];
+                const children = group.getChildren();
+                for (let i = 0; i < children.length; i++) {
+                    const e = children[i];
+                    if (!e.active) continue;
+                    const dx = e.x - x, dy = e.y - y;
+                    if (dx * dx + dy * dy < rangeSq) result.push(e);
+                }
+                return result;
+            },
             damage: enemy.damage,
             speed: enemy.speed,
             spawnX: enemy.spawnX,

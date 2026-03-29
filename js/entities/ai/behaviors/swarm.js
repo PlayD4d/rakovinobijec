@@ -43,22 +43,19 @@ export function swarm(cap, cfg, dt, mem, setState) {
         s.sepX = 0;
         s.sepY = 0;
 
-        const scene = cap.scene;
-        if (scene?.enemiesGroup) {
-            const enemies = scene.enemiesGroup.getChildren();
-            let count = 0;
-            for (let i = 0; i < enemies.length && count < 8; i++) {
-                const e = enemies[i];
-                if (!e.active || e.x === pos.x && e.y === pos.y) continue;
-                const edx = pos.x - e.x;
-                const edy = pos.y - e.y;
-                const edSq = edx * edx + edy * edy;
-                if (edSq < separationDistSq && edSq > 1) {
-                    const ed = Math.sqrt(edSq);
-                    s.sepX += (edx / ed);
-                    s.sepY += (edy / ed);
-                    count++;
-                }
+        const nearby = cap.getEnemiesNearby(pos.x, pos.y, separationDist);
+        let count = 0;
+        for (let i = 0; i < nearby.length && count < 8; i++) {
+            const e = nearby[i];
+            if (e.x === pos.x && e.y === pos.y) continue;
+            const edx = pos.x - e.x;
+            const edy = pos.y - e.y;
+            const edSq = edx * edx + edy * edy;
+            if (edSq > 1) {
+                const ed = Math.sqrt(edSq);
+                s.sepX += (edx / ed);
+                s.sepY += (edy / ed);
+                count++;
             }
         }
     }

@@ -18,24 +18,18 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
     }
     const s = mem.shieldAlly;
 
-    const scene = cap.scene;
-    if (!scene?.enemiesGroup) return;
-
     // Find nearest ally to orbit — search from PLAYER position (where combat happens)
     const player = cap.getPlayer();
     if (!s.hasTarget || cap.now - s.lastSearch > 1500) {
         s.lastSearch = cap.now;
-        const enemies = scene.enemiesGroup.getChildren();
+        const searchX = player?.x || pos.x;
+        const searchY = player?.y || pos.y;
+        const nearby = cap.getEnemiesNearby(searchX, searchY, 300);
         let bestDist = Infinity;
         s.hasTarget = false;
 
-        // Search for allies near the player (where they need protection most)
-        const searchX = player?.x || pos.x;
-        const searchY = player?.y || pos.y;
-
-        for (let i = 0; i < enemies.length; i++) {
-            const e = enemies[i];
-            if (!e.active || e === scene.player) continue;
+        for (let i = 0; i < nearby.length; i++) {
+            const e = nearby[i];
             // Don't target self or other shield allies
             if (e.blueprintId === 'enemy.shielding_helper' || e.blueprintId === 'enemy.support_bacteria') continue;
             const edx = e.x - searchX;

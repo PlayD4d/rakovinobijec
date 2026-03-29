@@ -1,5 +1,6 @@
 import { DebugLogger } from '../../../debug/DebugLogger.js';
 import { getSession } from '../../../debug/SessionLog.js';
+import { registerDynamicOverlap } from '../../../../handlers/setupCollisions.js';
 
 /**
  * ShieldRegeneration - Handles shield HP regeneration and damage absorption
@@ -147,12 +148,10 @@ export class ShieldRegeneration {
         // Register overlap: shield hitbox vs enemy bullets
         const enemyBullets = scene.projectileSystem?.enemyBullets;
         if (enemyBullets) {
-            player._shieldOverlap = scene.physics.add.overlap(
-                hitbox,
-                enemyBullets,
+            player._shieldOverlap = registerDynamicOverlap(
+                scene, hitbox, enemyBullets,
                 (shieldBody, bullet) => this._onBulletHitShield(player, bullet),
-                () => player.shieldActive && player.shieldHP > 0,
-                this
+                () => player.shieldActive && player.shieldHP > 0
             );
         }
 
@@ -170,21 +169,17 @@ export class ShieldRegeneration {
 
         // Register overlap: push zone vs enemies — Phaser calls this only for overlapping pairs
         if (scene.enemiesGroup) {
-            player._shieldEnemyOverlap = scene.physics.add.overlap(
-                pushZone,
-                scene.enemiesGroup,
+            player._shieldEnemyOverlap = registerDynamicOverlap(
+                scene, pushZone, scene.enemiesGroup,
                 (zone, enemy) => this._pushEnemyOut(player, enemy, 250),
-                () => player.shieldActive && player.shieldHP > 0,
-                this
+                () => player.shieldActive && player.shieldHP > 0
             );
         }
         if (scene.bossGroup) {
-            player._shieldBossOverlap = scene.physics.add.overlap(
-                pushZone,
-                scene.bossGroup,
+            player._shieldBossOverlap = registerDynamicOverlap(
+                scene, pushZone, scene.bossGroup,
                 (zone, boss) => this._pushEnemyOut(player, boss, 125),
-                () => player.shieldActive && player.shieldHP > 0,
-                this
+                () => player.shieldActive && player.shieldHP > 0
             );
         }
     }

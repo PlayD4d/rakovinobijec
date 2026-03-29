@@ -293,3 +293,20 @@ function handleEnemyBulletPlayerCollision(bullet, player) {
 
 // Shield knockback is handled per-frame in ShieldRegeneration._pushEnemiesAtBoundary()
 
+/**
+ * Register a dynamic overlap at runtime (e.g., power-up abilities, VFX effects).
+ * Centralizes physics.add.overlap calls per architectural contract.
+ * Caller must store the returned collider and destroy it on cleanup.
+ *
+ * @param {Phaser.Scene} scene
+ * @param {Phaser.GameObjects.GameObject} a
+ * @param {Phaser.GameObjects.Group|Phaser.GameObjects.GameObject} b
+ * @param {Function} callback
+ * @param {Function} [processCallback]
+ * @returns {Phaser.Physics.Arcade.Collider|null}
+ */
+export function registerDynamicOverlap(scene, a, b, callback, processCallback = null) {
+    if (!scene?.physics) return null;
+    return scene.physics.add.overlap(a, b, callback, processCallback, scene);
+}
+

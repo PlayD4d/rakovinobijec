@@ -1,5 +1,6 @@
 import { DebugLogger } from '../../../debug/DebugLogger.js';
 import { getSession } from '../../../debug/SessionLog.js';
+import { registerDynamicOverlap } from '../../../../handlers/setupCollisions.js';
 
 /**
  * DamageZoneAbilities - Handles chemo cloud and aura damage zones
@@ -52,9 +53,8 @@ export class DamageZoneAbilities {
 
         // Overlap — applies damage per-enemy, throttled to 2 ticks/sec per enemy
         this._chemoHitTimes = new WeakMap();
-        this._chemoOverlap = this.scene.physics.add.overlap(
-            this._chemoZone,
-            enemiesGroup,
+        this._chemoOverlap = registerDynamicOverlap(
+            this.scene, this._chemoZone, enemiesGroup,
             (zone, enemy) => {
                 const now = this.scene.time?.now || 0;
                 if (!enemy?.active || typeof enemy.takeDamage !== 'function') {
@@ -125,9 +125,8 @@ export class DamageZoneAbilities {
                 this._auraZone.body.setOffset(-radius + ad / 2, -radius + ad / 2);
 
                 this._auraHitTimes = new WeakMap();
-                this._auraOverlap = this.scene.physics.add.overlap(
-                    this._auraZone,
-                    enemiesGroup,
+                this._auraOverlap = registerDynamicOverlap(
+                    this.scene, this._auraZone, enemiesGroup,
                     (zone, enemy) => {
                         if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
                         const now = this.scene.time?.now || 0;

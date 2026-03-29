@@ -1,6 +1,7 @@
 import { DebugLogger } from '../../debug/DebugLogger.js';
 import { getSession } from '../../debug/SessionLog.js';
 import { createGraphicsForEffect } from './createGraphicsHelper.js';
+import { registerDynamicOverlap } from '../../../handlers/setupCollisions.js';
 
 /**
  * RadiotherapyEffect - Rotating radiation beams around the player
@@ -197,9 +198,8 @@ export class RadiotherapyEffect {
         this._damageZone.body.setOffset(-this.beamRange + d/2, -this.beamRange + d/2);
 
         // Register overlap — Phaser calls _onEnemyOverlap only for nearby enemies
-        this._overlapCollider = this.scene.physics.add.overlap(
-            this._damageZone,
-            enemiesGroup,
+        this._overlapCollider = registerDynamicOverlap(
+            this.scene, this._damageZone, enemiesGroup,
             (zone, enemy) => this._onEnemyOverlap(enemy)
         );
     }

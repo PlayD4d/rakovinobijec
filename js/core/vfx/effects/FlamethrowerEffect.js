@@ -1,6 +1,7 @@
 import { DebugLogger } from '../../debug/DebugLogger.js';
 import { getSession } from '../../debug/SessionLog.js';
 import { createGraphicsForEffect } from './createGraphicsHelper.js';
+import { registerDynamicOverlap } from '../../../handlers/setupCollisions.js';
 
 /**
  * FlamethrowerEffect - PR7 compliant flamethrower visual effect
@@ -261,9 +262,8 @@ export class FlamethrowerEffect {
         this._damageZone.body.setCircle(this.baseLength);
         this._damageZone.body.setOffset(-this.baseLength + d/2, -this.baseLength + d/2);
 
-        this._overlapCollider = this.scene.physics.add.overlap(
-            this._damageZone,
-            enemiesGroup,
+        this._overlapCollider = registerDynamicOverlap(
+            this.scene, this._damageZone, enemiesGroup,
             (zone, enemy) => this._onEnemyOverlap(enemy)
         );
     }
