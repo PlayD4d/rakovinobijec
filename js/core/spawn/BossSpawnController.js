@@ -60,8 +60,10 @@ function checkBossTrigger(director, trigger) {
  * @returns {boolean} True if a boss should be spawned
  */
 export function shouldSpawnBoss(director) {
-    // PR7: Only support bossTriggers format
     if (!director.currentTable.bossTriggers) return false;
+
+    // Don't spawn if a boss is already active
+    if (director.scene.bossActive) return false;
 
     const now = director.gameTime;
 

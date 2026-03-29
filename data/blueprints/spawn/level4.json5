@@ -47,11 +47,11 @@
       'drop.leukocyte_pack': 4, 'drop.metotrexat': 0.3, 'drop.adrenal_surge': 1, 'drop.protein_cache': 2,
     },
     elite: {
-      'drop.xp.large': 75, 'drop.leukocyte_pack': 20, 'drop.protein_cache': 35,
+      'drop.xp.large': 75, 'drop.leukocyte_pack': 8, 'drop.protein_cache': 12,
       'drop.adrenal_surge': 8, 'drop.metotrexat': 1.5,
     },
     boss: {
-      'drop.xp.large': 100, 'drop.leukocyte_pack': 100, 'drop.protein_cache': 90,
+      'drop.xp.large': 100, 'drop.leukocyte_pack': 35, 'drop.protein_cache': 25,
       'drop.adrenal_surge': 70, 'drop.metotrexat': 10,
     },
   },
