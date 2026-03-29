@@ -1,6 +1,6 @@
 {
   "name": "rakovinobijec",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "Arcade-style top-down shooter hra pro podporu v boji proti rakovině",
   "main": "index.html",
   "scripts": {
@@ -32,12 +32,13 @@
     "guard:check": "bash dev/refactor/check_guards.sh",
     "guard:check-all": "bash dev/refactor/check_all_guards.sh",
     "guard:phaser": "bash dev/refactor/check_phaser_api.sh",
+    "guard:arch": "bash dev/refactor/check_architecture_guards.sh",
     "test:golden-path": "node scripts/golden-path-test.mjs",
     "test:leak": "node scripts/leak-test.mjs",
     "validate:blueprints": "node scripts/validate-all-blueprints.mjs",
     "ci:full": "node scripts/ci-full.mjs",
     "ci:full:verbose": "node scripts/ci-full.mjs --verbose",
-    "ci:quick": "npm run guard:check && npm run smoke:test",
+    "ci:quick": "npm run guard:check && npm run guard:arch && npm run smoke:test",
     "check:orphans": "node scripts/check-orphans.mjs",
     "generate:audio": "node scripts/generate-audio-manifest.mjs",
     "prebuild": "npm run generate:audio",
