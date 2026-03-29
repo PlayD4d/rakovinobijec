@@ -10,7 +10,7 @@ export class TargetingSystem {
         
         // PR7: Configuration from ConfigResolver instead of hardcoded values
         const CR = scene.configResolver;
-        this.maxRange = CR?.get('player.targeting.maxRange') || 600;
+        this.maxRange = CR?.get('player.targeting.maxRange', { defaultValue: 600 }) || 600;
         this.maxRangeSquared = this.maxRange * this.maxRange;
     }
     

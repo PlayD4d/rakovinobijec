@@ -86,7 +86,7 @@
     shoot: 'vfx.effect',
     heal: 'vfx.effect',
     levelUp: 'vfx.effect',
-    shield: 'vfx.placeholder.shield',
+    shield: 'vfx.shield.activate',
   },
   sfx: {
     spawn: 'sound/player_spawn.mp3',
@@ -95,7 +95,7 @@
     shoot: 'sound/player_shoot.mp3',
     heal: 'sound/heal.mp3',
     levelUp: 'sound/levelup.mp3',
-    shield: 'sfx.placeholder.shield',
+    shield: 'sound/pickup.mp3',
   },
   display: {
     key: 'player.name',

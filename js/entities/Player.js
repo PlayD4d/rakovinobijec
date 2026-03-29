@@ -55,7 +55,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             critChance: CR.get('mechanics.attack.critChance', { blueprint }),
             critMult: CR.get('mechanics.attack.critMultiplier', { blueprint }),
             iFramesMs: CR.get('mechanics.iFrames.ms', { blueprint }),
-            xpMagnetRadius: CR.get('mechanics.xpMagnet.baseRadius', { blueprint }) || 100,
+            xpMagnetRadius: CR.get('mechanics.xpMagnet.baseRadius', { blueprint, defaultValue: 100 }) || 100,
             dodgeChance: 0, explosionRadius: 0, explosionDamage: 0,
             projectilePiercing: 0, chemoCloudFrequency: 1,
             shieldImmunityDuration: 3000, shieldRegenTimeMs: 10000
