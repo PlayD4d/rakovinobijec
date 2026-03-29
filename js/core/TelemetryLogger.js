@@ -137,6 +137,12 @@ export class TelemetryLogger {
         // Track spawn time for TTK calculation
         const trackingId = `${entityId}_${spawnTime}_${Math.random().toString(36).substr(2, 4)}`;
         this.spawnTimes.set(trackingId, spawnTime);
+
+        // Cap spawnTimes to prevent unbounded growth (logKill may not be called for all spawns)
+        if (this.spawnTimes.size > 500) {
+            const keysToDelete = [...this.spawnTimes.keys()].slice(0, 100);
+            for (const key of keysToDelete) this.spawnTimes.delete(key);
+        }
         
         // Update counters
         this.counters.spawns[entityType] = (this.counters.spawns[entityType] || 0) + 1;
@@ -488,6 +494,9 @@ export class TelemetryLogger {
 
     // Cleanup
     destroy() {
+        if (this._destroyed) return;
+        this._destroyed = true;
+
         if (this.damageStatsTimer) {
             clearInterval(this.damageStatsTimer);
         }

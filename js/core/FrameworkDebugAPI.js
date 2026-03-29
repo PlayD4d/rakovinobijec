@@ -26,32 +26,41 @@ export class FrameworkDebugAPI {
     }
 
     setupMetricsHooks() {
+        // Guard: don't double-patch if already hooked (systems are recreated on restart)
+        if (this.gameScene.vfxSystem?.play?._metricsPatched) return;
+
         // Hook VFX system if available
         if (this.gameScene.vfxSystem) {
             const originalPlay = this.gameScene.vfxSystem.play.bind(this.gameScene.vfxSystem);
-            this.gameScene.vfxSystem.play = (...args) => {
+            const wrapper = (...args) => {
                 this.metrics.vfxCalls++;
                 return originalPlay(...args);
             };
+            wrapper._metricsPatched = true;
+            this.gameScene.vfxSystem.play = wrapper;
         }
 
-        // Hook SFX system if available  
+        // Hook SFX system if available
         if (this.gameScene.sfxSystem) {
             const originalPlay = this.gameScene.sfxSystem.play.bind(this.gameScene.sfxSystem);
-            this.gameScene.sfxSystem.play = (...args) => {
+            const wrapper = (...args) => {
                 this.metrics.sfxCalls++;
                 return originalPlay(...args);
             };
+            wrapper._metricsPatched = true;
+            this.gameScene.sfxSystem.play = wrapper;
         }
 
         // Hook spawn director if available
         if (this.gameScene.spawnDirector) {
             const originalSpawn = this.gameScene.spawnDirector.spawnEnemy?.bind(this.gameScene.spawnDirector);
             if (originalSpawn) {
-                this.gameScene.spawnDirector.spawnEnemy = (...args) => {
+                const wrapper = (...args) => {
                     this.metrics.spawnedFromSpawnTables++;
                     return originalSpawn(...args);
                 };
+                wrapper._metricsPatched = true;
+                this.gameScene.spawnDirector.spawnEnemy = wrapper;
             }
         }
 
@@ -61,10 +70,12 @@ export class FrameworkDebugAPI {
         if (this.gameScene.lootManager) {
             const originalDrop = this.gameScene.lootManager.dropLoot?.bind(this.gameScene.lootManager);
             if (originalDrop) {
-                this.gameScene.lootManager.dropLoot = (...args) => {
+                const wrapper = (...args) => {
                     this.metrics.lootDropsFromTables++;
                     return originalDrop(...args);
                 };
+                wrapper._metricsPatched = true;
+                this.gameScene.lootManager.dropLoot = wrapper;
             }
         }
     }

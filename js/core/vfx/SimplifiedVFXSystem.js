@@ -475,9 +475,8 @@ export class SimplifiedVFXSystem {
         }
         this.activeEmitters.clear();
         
-        // Clear power-up effects
+        // Clear power-up effects — skip stop() during shutdown (scene may be dead), go straight to destroy()
         for (const effect of this.powerUpEffects.values()) {
-            if (effect.stop) effect.stop();
             if (effect.destroy) effect.destroy();
         }
         this.powerUpEffects.clear();

@@ -94,7 +94,7 @@ export class XpRetuner {
 
             // Find waves active in this minute
             const activeWaves = table.enemyWaves.filter(w =>
-                w.startAt < endMs && w.endAt > startMs
+                w.startAt < endMs && (w.endAt ?? Infinity) > startMs
             );
 
             if (activeWaves.length === 0) continue;

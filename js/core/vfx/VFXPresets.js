@@ -224,7 +224,8 @@ export class VFXPresets {
             if (typeof arg1 === 'string') return fn.call(this, arg1, color);
             return fn.call(this, arg1 ?? color);
         } else {
-            return fn.call(this, entry[1] ?? color, entry[2]);
+            const arg1 = entry[1] !== null ? entry[1] : (color ?? undefined);
+            return fn.call(this, arg1, entry[2]);
         }
 
     }

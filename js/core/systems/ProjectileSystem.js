@@ -363,8 +363,8 @@ export class ProjectileSystem {
    * @param {number} level - Power-up level for scaling
    * @returns {number} Number of enemies hit
    */
-  createExplosion(x, y, damage, radius, level) {
-    return this._explosionHandler.create(x, y, damage, radius, level);
+  createExplosion(x, y, damage, radius, level, opts = {}) {
+    return this._explosionHandler.create(x, y, damage, radius, level, opts);
   }
 
   /**

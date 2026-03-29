@@ -286,31 +286,6 @@ export class AnalyticsManager {
         };
     }
 
-    // --- EventBus integration ---
-    connectEventBus(eventBus, scene) {
-        this.eventBus = eventBus;
-        this.scene = scene;
-        this.eventBusConnected = !!(eventBus && this.enabled);
-        if (this.eventBusConnected) {
-            // Store handler references for proper removal in disconnectEventBus
-            this._onMetotrexat = (d) => this._handleSpecialDropPickup(d);
-            this._onGameOver = (d) => this._handleGameOver(d);
-            this.eventBus.on('drop.metotrexat.pickup', this._onMetotrexat);
-            this.eventBus.on('game.over', this._onGameOver);
-            DebugLogger.info('general', '[AnalyticsManager] Connected to EventBus');
-        }
-    }
-    _handleSpecialDropPickup(_data) { /* reserved */ }
-    _handleGameOver(_data) { /* reserved */ }
-
-    disconnectEventBus() {
-        if (this.eventBus && this.eventBusConnected) {
-            // Remove only the handlers we actually registered (with stored references)
-            if (this._onMetotrexat) this.eventBus.off('drop.metotrexat.pickup', this._onMetotrexat);
-            if (this._onGameOver) this.eventBus.off('game.over', this._onGameOver);
-            this._onMetotrexat = null;
-            this._onGameOver = null;
-            this.eventBusConnected = false;
-        }
-    }
+    // EventBus integration removed — connectEventBus/disconnectEventBus were dead code
+    // using dot-separated event names incompatible with CentralEventBus colon format.
 }

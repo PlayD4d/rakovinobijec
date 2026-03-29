@@ -139,8 +139,10 @@ export class BootstrapManager {
         this.scene.events.on('boss:die', this._onBossDie);
         this.scene.events.on('resume', this._onResume);
 
-        // Cross-scene event via CentralEventBus (auto-cleanup via context)
+        // Cross-scene events via CentralEventBus (auto-cleanup via context)
         centralEventBus.on('game:powerup-selected', this._onPowerUpSelected, this.scene);
+        centralEventBus.on('game:retry', () => this.scene.restartGame(), this.scene);
+        centralEventBus.on('game:main-menu', () => this.scene.returnToMenu(), this.scene);
 
         // Resize event (game-level — tracked for cleanup in GameScene.shutdown)
         const scale = this.scene.getScaleManager();

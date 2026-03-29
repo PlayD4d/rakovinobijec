@@ -297,7 +297,8 @@ export class Boss extends BossCore {
      * PR7: Boss emits different event than regular enemies
      */
     die(killer) {
-        if (!this.active || this._deathProcessed) return;
+        if (!this.active || this._bossDying) return;
+        this._bossDying = true; // Re-entrancy guard for die() — distinct from _deathProcessed used by EnemyManager
         try {
             getSession()?.log('boss', 'death', { bossId: this.blueprint?.id, killer });
 
@@ -316,7 +317,7 @@ export class Boss extends BossCore {
             }
 
             // Process loot/XP/stats BEFORE deactivating (needs position)
-            // _deathProcessed is NOT set yet — onEnemyDeath needs to process XP/loot/stats
+            // _deathProcessed is set by EnemyManager.onEnemyDeath — do NOT set it here
             if (this.scene.handleEnemyDeath) {
                 this.scene.handleEnemyDeath(this);
             }

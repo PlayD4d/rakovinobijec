@@ -41,7 +41,7 @@ export class SimpleLootSystem {
         // Generate item textures on initialization
         generateLootTextures(this.scene);
 
-        scene.events.once('shutdown', () => this.clearAll(), this);
+        scene.events.once('shutdown', this.clearAll, this);
     }
 
     // ==================== Drop Creation ====================

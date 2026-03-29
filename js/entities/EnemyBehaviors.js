@@ -208,7 +208,7 @@ export class EnemyBehaviors {
             speed: enemy.speed,
             spawnX: enemy.spawnX,
             spawnY: enemy.spawnY,
-            now: 0
+            now: enemy.scene?.time?.now || 0
         };
     }
 

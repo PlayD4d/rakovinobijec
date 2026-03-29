@@ -120,6 +120,7 @@ export class PowerUpUI {
       }).setOrigin(0.5);
 
       card.add([border, bgDark, bgGradient, iconBg, icon, name, desc, stats]);
+      card._bg = bgDark;
       
       // Make interactive with improved hover effects
       bgDark.setInteractive()
@@ -205,7 +206,7 @@ export class PowerUpUI {
    */
   hide(onComplete) {
     if (this.hintTween) this.hintTween.pause();
-    if (this.cards) this.cards.forEach(c => { if (c.disableInteractive) c.disableInteractive(); });
+    if (this.cards) this.cards.forEach(c => { if (c._bg?.disableInteractive) c._bg.disableInteractive(); });
     this.modal.hide(false, 0, () => {
         this._selecting = false;
         if (onComplete) onComplete();

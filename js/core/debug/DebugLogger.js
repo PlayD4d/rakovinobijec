@@ -362,6 +362,7 @@ export class DebugLogger {
             logLevel: null,
             categories: {}
         };
+        this._overridesVersion++;
         console.log('🔄 Debug settings reset to config defaults');
         return true;
     }

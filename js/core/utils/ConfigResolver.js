@@ -267,6 +267,10 @@ export class ConfigResolver {
     for (const { key, path } of configFiles) {
       try {
         const response = await fetch(path);
+        if (!response.ok) {
+            DebugLogger.warn('bootstrap', `Failed to load ${path}: ${response.status}`);
+            continue;
+        }
         const text = await response.text();
         // Použít JSON5 pro parsování (podporuje komentáře, trailing commas, atd.)
         const data = window.JSON5 ? window.JSON5.parse(text) : JSON.parse(text);

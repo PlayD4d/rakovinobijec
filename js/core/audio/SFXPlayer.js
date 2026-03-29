@@ -171,6 +171,7 @@ export class SFXPlayer {
             sound.setDetune(Phaser.Math.Between(min, max));
         }
 
+        if (sound.isPlaying) sound.stop();
         sound.play();
         return sound;
     }

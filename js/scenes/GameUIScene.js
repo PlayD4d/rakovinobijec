@@ -84,9 +84,9 @@ export class GameUIScene extends Phaser.Scene {
 
         const gameScene = this.scene.get('GameScene');
         if (gameScene) {
-            gameScene.events.off('boss:hp-update', this._onBossHpUpdate, this);
-            gameScene.events.off('boss:hide-hp', this._onBossHideHp, this);
-            gameScene.events.off('boss:show-hp', this._onBossShowHp, this);
+            if (this._onBossHpUpdate) gameScene.events.off('boss:hp-update', this._onBossHpUpdate, this);
+            if (this._onBossHideHp) gameScene.events.off('boss:hide-hp', this._onBossHideHp, this);
+            if (this._onBossShowHp) gameScene.events.off('boss:show-hp', this._onBossShowHp, this);
         }
     }
 

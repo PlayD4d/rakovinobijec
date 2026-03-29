@@ -174,6 +174,11 @@ export class MobileControlsSystem {
     this._onDown = this._onMove = this._onUp = null;
   }
 
+  destroy() {
+    this.disable();
+    this.scene = null;
+  }
+
   _reposition() {
     const w = this.scene.cameras.main.width;
     const h = this.scene.cameras.main.height;

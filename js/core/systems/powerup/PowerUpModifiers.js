@@ -85,27 +85,33 @@ export class PowerUpModifiers {
      */
     calculateStat(baseValue, statPath, modifiers) {
         let value = baseValue || 0;
+
+        // Two-pass approach: set/base modifiers first, then add/mul on top
+        // This ensures consistent results regardless of array order
+
+        // Pass 1: find any set/base modifier (last one wins)
         let hasSetModifier = false;
-        
         for (const mod of modifiers || []) {
-            if (mod.path === statPath) {
-                if (mod.type === 'set' || mod.type === 'base') {
-                    // Set/base replaces the value entirely
-                    value = mod.value;
-                    hasSetModifier = true;
-                } else if (!hasSetModifier) {
-                    // Only apply add/multiply if no set modifier was found
-                    if (mod.type === 'add') {
-                        value += mod.value;
-                    } else if (mod.type === 'multiply') {
-                        value *= mod.value;
-                    } else if (mod.type === 'mul') {
-                        value *= (1 + mod.value);
-                    }
-                }
+            if (mod.path === statPath && (mod.type === 'set' || mod.type === 'base')) {
+                value = mod.value;
+                hasSetModifier = true;
             }
         }
-        
+
+        // Pass 2: apply add/mul on top of the resolved base
+        for (const mod of modifiers || []) {
+            if (mod.path !== statPath) continue;
+            if (mod.type === 'set' || mod.type === 'base') continue;
+
+            if (mod.type === 'add') {
+                value += mod.value;
+            } else if (mod.type === 'multiply') {
+                value *= mod.value;
+            } else if (mod.type === 'mul') {
+                value *= (1 + mod.value);
+            }
+        }
+
         return value;
     }
     

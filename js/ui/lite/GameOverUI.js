@@ -5,6 +5,7 @@
 import { SimpleModal } from './SimpleModal.js';
 import { SimpleButton } from './SimpleButton.js';
 import { UI_THEME } from '../UITheme.js';
+import { centralEventBus } from '../../core/events/CentralEventBus.js';
 
 export class GameOverUI {
   constructor(scene) {
@@ -63,10 +64,7 @@ export class GameOverUI {
       '🔄 Zkusit znovu',
       () => {
         this.hide(() => {
-          // Stop GameScene first, then GameUIScene (prevents null HUD during GameScene update)
-          scene.scene.stop('GameScene');
-          scene.scene.stop('GameUIScene');
-          scene.scene.start('GameScene');
+          centralEventBus.emit('game:retry');
         });
       },
       220, 56,
@@ -83,9 +81,7 @@ export class GameOverUI {
       '🏠 Hlavní menu',
       () => {
         this.hide(() => {
-          scene.scene.stop('GameScene');
-          scene.scene.stop('GameUIScene');
-          scene.scene.start('MainMenu');
+          centralEventBus.emit('game:main-menu');
         });
       },
       220, 56,

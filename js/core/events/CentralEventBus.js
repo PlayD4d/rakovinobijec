@@ -97,14 +97,18 @@ class CentralEventBus {
      * Listen to event once
      */
     once(eventName, callback, context = null) {
+        const ctxKey = context || this._nullCtx || (this._nullCtx = {});
         const wrappedCallback = (event) => {
             // Auto-remove from tracking on fire
-            if (context && this.listeners.has(context)) {
-                const contextListeners = this.listeners.get(context);
+            if (this.listeners.has(ctxKey)) {
+                const contextListeners = this.listeners.get(ctxKey);
                 const idx = contextListeners.findIndex(l =>
                     l.eventName === eventName && l.originalCallback === callback
                 );
                 if (idx !== -1) contextListeners.splice(idx, 1);
+                if (contextListeners.length === 0) {
+                    this.listeners.delete(ctxKey);
+                }
             }
             try {
                 if (context) {
@@ -118,8 +122,6 @@ class CentralEventBus {
         };
 
         // Track in listeners map so removeAllListeners(context) can clean it up
-        // Use _nullCtx sentinel for context-free listeners so destroy() can reach them
-        const ctxKey = context || this._nullCtx || (this._nullCtx = {});
         if (!this.listeners.has(ctxKey)) {
             this.listeners.set(ctxKey, []);
         }

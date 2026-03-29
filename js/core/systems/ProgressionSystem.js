@@ -74,6 +74,13 @@ export class ProgressionSystem {
             // Delegate the actual level-up ceremony back to the scene
             this.scene.levelUp();
         }
+
+        // Re-apply excess XP from level-up if not paused (avoids waiting for unpause cycle)
+        if (this._pendingXP > 0 && !this.scene?.isPaused) {
+            const pending = this._pendingXP;
+            this._pendingXP = 0;
+            this.addXP(pending);
+        }
     }
 
     /**
