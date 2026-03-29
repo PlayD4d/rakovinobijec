@@ -24,7 +24,7 @@
   },
   graphics: {
     sprite: 'enemy_shielding_helper',
-    tint: 4149685,
+    tint: 0x33AA66,
     scale: 1,
     animation: {
       idle: 'helper_idle',

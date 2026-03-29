@@ -42,7 +42,7 @@
   ],
   graphics: {
     sprite: 'enemy_viral_swarm_alpha',
-    tint: 15277667,
+    tint: 0xDD4477,
     scale: 1.3,
     animation: {
       idle: 'alpha_idle',

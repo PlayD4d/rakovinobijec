@@ -47,7 +47,7 @@
   projectileRef: 'projectile.cytotoxin_enhanced',
   graphics: {
     sprite: 'elite_micro_shooter',
-    tint: 16750592,
+    tint: 0x4477DD,
     scale: 1.2,
     glowEffect: true,
     animation: {

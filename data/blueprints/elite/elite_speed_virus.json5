@@ -54,7 +54,7 @@
   },
   graphics: {
     sprite: 'elite_speed_virus',
-    tint: 15277667,
+    tint: 0xDD6600,
     scale: 1.2,
     glowEffect: true,
     trailEffect: true,

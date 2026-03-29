@@ -38,7 +38,7 @@
   ],
   graphics: {
     sprite: 'enemy_metastasis_runner',
-    tint: 6765239,
+    tint: 0xDD6600,
     scale: 0.7,
     animation: {
       idle: 'runner_idle',

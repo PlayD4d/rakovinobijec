@@ -37,7 +37,7 @@
   ],
   graphics: {
     sprite: 'enemy_viral_swarm',
-    tint: 0x00BCD4,
+    tint: 0xCC3366,
     scale: 0.8,
     animation: {
       idle: 'swarm_idle',

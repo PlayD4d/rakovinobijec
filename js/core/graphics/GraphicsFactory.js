@@ -133,31 +133,28 @@ export class GraphicsFactory {
         
         const graphics = this.create(); // Use pool!
         
-        // Check entity type from textureKey
+        // Check entity type from textureKey or blueprint
         const isUnique = textureKey.includes('unique');
+        const isElite = textureKey.includes('elite') || blueprint?.meta?.category === 'elite';
         const isBoss = textureKey.includes('boss');
         const isMiniboss = textureKey.includes('miniboss');
-        
-        // Determine shape
+
+        // Determine shape by role
         let shape = 'circle';
+        if (isBoss) shape = 'star';
+        else if (isUnique) shape = 'diamond';
+
+        // Border color by rarity tier — visual role indicator
+        let strokeColor = 0x333333; // Regular: subtle dark outline
+        let strokeWidth = 1;
         if (isBoss) {
-            shape = 'star';
-        } else if (isUnique || isMiniboss) {
-            shape = 'diamond';
-        }
-        
-        // Determine border color and width based on type
-        let strokeColor = 0x000000;
-        let strokeWidth = 2;
-        if (isBoss) {
-            strokeColor = 0xFFD700; // Gold border for bosses
-            strokeWidth = 3;
+            strokeColor = 0xFF0000; strokeWidth = 3; // Boss: red thick border
+        } else if (isElite) {
+            strokeColor = 0xFFD700; strokeWidth = 2; // Elite: gold border
         } else if (isUnique) {
-            strokeColor = 0xFF00FF; // Purple border for unique
-            strokeWidth = 3;
+            strokeColor = 0xC0C0C0; strokeWidth = 2; // Unique: silver border
         } else if (isMiniboss) {
-            strokeColor = 0xFF8800; // Orange border for miniboss
-            strokeWidth = 3;
+            strokeColor = 0xFF8800; strokeWidth = 2;
         }
         
         // Draw shape - try to use ShapeRenderer if available in window

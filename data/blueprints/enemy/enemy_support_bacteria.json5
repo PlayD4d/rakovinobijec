@@ -11,7 +11,7 @@
   },
   graphics: {
     sprite: 'enemy.support_bacteria',
-    tint: 0x90CAF9,
+    tint: 0x33AA66,
     scale: 1,
     animation: {
       idle: 'support_idle',

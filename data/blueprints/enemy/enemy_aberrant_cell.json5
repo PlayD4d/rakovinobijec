@@ -65,7 +65,7 @@
   ],
   graphics: {
     sprite: 'enemy_aberrant_cell',
-    tint: 0xE040FB,
+    tint: 0x9966CC,
     scale: 1.2,
     animation: {
       idle: 'aberrant_idle',

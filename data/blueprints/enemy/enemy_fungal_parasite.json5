@@ -11,7 +11,7 @@
   },
   graphics: {
     sprite: 'enemy.fungal_parasite',
-    tint: 9159498,
+    tint: 0x882233,
     scale: 1,
     animation: {
       idle: 'parasite_idle',
