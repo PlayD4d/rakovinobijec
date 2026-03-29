@@ -158,6 +158,7 @@ export class ProjectileSystem {
         bullet.maxPiercing = player.piercingMaxPierces || 1;
         bullet.hitCount = 0;
         bullet.damageReduction = player.piercingDamageReduction || 0.1;
+        bullet._hitEnemies = new Set(); // Track hit enemies to prevent double-counting
 
         if (Math.random() < 0.01) {
             DebugLogger.info('projectile', `[ProjectileSystem] PIERCING - Max pierces: ${bullet.maxPiercing}, damage reduction: ${(bullet.damageReduction * 100).toFixed(1)}%`);
@@ -166,6 +167,7 @@ export class ProjectileSystem {
         bullet.piercing = false;
         bullet.maxPiercing = 0;
         bullet.hitCount = 0;
+        bullet._hitEnemies = null;
     }
 
     return true;

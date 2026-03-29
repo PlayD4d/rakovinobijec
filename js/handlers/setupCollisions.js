@@ -208,12 +208,18 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
     if (!enemy.takeDamage || typeof enemy.takeDamage !== 'function') {
         return;
     }
-    
+
+    // Skip enemies already hit by this piercing bullet (overlap fires every frame)
+    if (bullet._hitEnemies) {
+        if (bullet._hitEnemies.has(enemy)) return;
+        bullet._hitEnemies.add(enemy);
+    }
+
     // Apply damage with piercing reduction (DRY helper)
     let damage = applyPiercingReduction(bullet, bullet.damage || scene.player?.baseStats?.projectileDamage || 10);
     getSession()?.log('combat', 'player_hit_enemy', { enemyId: enemy.blueprintId || enemy.type, damage, enemyHP: enemy.hp, killed: enemy.hp <= damage });
     enemy.takeDamage(damage);
-    
+
     // Handle explosive bullets from chemo_reservoir power-up
     if (scene.player?.chemoAuraActive && scene.player.chemoAuraConfig?.enableExplosions) {
         const explosionRadius = scene.player.getExplosionRadius ? scene.player.getExplosionRadius() : 35;
@@ -257,6 +263,12 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
 function handlePlayerBulletBossCollision(bullet, boss) {
     const scene = this;
     if (!bullet.active || !boss.active) return;
+
+    // Skip bosses already hit by this piercing bullet (overlap fires every frame)
+    if (bullet._hitEnemies) {
+        if (bullet._hitEnemies.has(boss)) return;
+        bullet._hitEnemies.add(boss);
+    }
 
     // Apply damage with piercing reduction (DRY helper)
     const damage = applyPiercingReduction(bullet, bullet.damage || scene?.player?.baseStats?.projectileDamage || 10);

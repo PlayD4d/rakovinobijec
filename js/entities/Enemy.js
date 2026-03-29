@@ -24,8 +24,7 @@ export class Enemy extends EnemyCore {
             });
         }
         
-        // Spawn effects
-        this.spawnVfx('spawn');
+        // Spawn effects (SFX only, no spark VFX)
         this.playSfx('spawn');
         
         DebugLogger.info('enemy', `[Enemy] Created ${blueprint.id} with ${this.behaviors.behaviorType} AI`);

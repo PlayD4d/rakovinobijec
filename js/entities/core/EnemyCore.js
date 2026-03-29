@@ -305,8 +305,10 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         this.hp -= amount;
         getSession()?.damage(source || 'player', this.blueprintId || this.blueprint?.id, amount, 'hit');
 
-        // VFX/SFX
-        this.spawnVfx('hit');
+        // VFX/SFX (skip hit VFX when dying — death VFX handles it)
+        if (this.hp > 0) {
+            this.spawnVfx('hit');
+        }
         this.playSfx('hit');
         this.flashEffect();
 
