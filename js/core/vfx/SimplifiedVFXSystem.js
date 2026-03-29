@@ -504,10 +504,14 @@ export class SimplifiedVFXSystem {
         // Layer 2: Expanding shockwave ring (Graphics + tween)
         const gf = this.scene.graphicsFactory;
         const ring = gf ? gf.create() : this.scene.add.graphics();
+        // Reset pooled Graphics state — alpha/scale may be 0 from previous tween
+        ring.clear();
+        ring.setAlpha(1);
+        ring.setScale(1);
         ring.setPosition(x, y);
         ring.setDepth(this.scene.DEPTH_LAYERS?.VFX || 3000);
 
-        // Draw initial ring
+        // Draw initial ring (small, will be scaled up by tween)
         ring.lineStyle(3, color, 0.8);
         ring.strokeCircle(0, 0, 5);
         ring.fillStyle(color, 0.15);
@@ -526,8 +530,11 @@ export class SimplifiedVFXSystem {
             }
         });
 
-        // Layer 3: Brief center flash (camera-independent white flash circle)
+        // Layer 3: Brief center flash
         const flash = gf ? gf.create() : this.scene.add.graphics();
+        flash.clear();
+        flash.setAlpha(1);
+        flash.setScale(1);
         flash.setPosition(x, y);
         flash.setDepth((this.scene.DEPTH_LAYERS?.VFX || 3000) + 1);
         flash.fillStyle(0xFFFFFF, 0.9);
