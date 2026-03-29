@@ -72,10 +72,19 @@ export class SimpleLootSystem {
         drop.setActive(true).setVisible(true);
         drop.enableBody(true, pos.x, pos.y, true, true);
 
-        const scale = blueprint.graphics?.scale || 1.0;
-        drop.setScale(scale);
         drop.setTexture(textureKey);
-        drop.setDepth(dropType === 'xp' ? DEPTH_XP : DEPTH_ITEMS);
+
+        // Visual depth separation: XP = background (dim, small), items = mid-layer
+        if (dropType === 'xp') {
+            const xpScale = (blueprint.graphics?.scale || 1.0) * 0.7;
+            drop.setScale(xpScale);
+            drop.setAlpha(0.5);
+            drop.setDepth(DEPTH_XP);
+        } else {
+            drop.setScale(blueprint.graphics?.scale || 1.0);
+            drop.setAlpha(0.85);
+            drop.setDepth(DEPTH_ITEMS);
+        }
 
         // Stamp loot data on sprite
         drop.dropId = dropId;
@@ -100,12 +109,13 @@ export class SimpleLootSystem {
             this.scene.vfxSystem.play(blueprint.vfx.spawn, pos.x, pos.y);
         }
 
-        // Gentle scale pulse tween
-        if (this.scene.tweens) {
+        // Gentle scale pulse tween — items only (XP orbs stay static for visual calm)
+        if (dropType !== 'xp' && this.scene.tweens) {
+            const itemScale = blueprint.graphics?.scale || 1.0;
             this.scene.tweens.add({
                 targets: drop,
-                scaleX: scale * 1.15,
-                scaleY: scale * 1.15,
+                scaleX: itemScale * 1.15,
+                scaleY: itemScale * 1.15,
                 duration: 600,
                 yoyo: true,
                 repeat: 2,

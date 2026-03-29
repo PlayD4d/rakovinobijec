@@ -21,19 +21,25 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
     const scene = cap.scene;
     if (!scene?.enemiesGroup) return;
 
-    // Periodic target search (not every frame)
-    if (!s.hasTarget || cap.now - s.lastSearch > 2000) {
+    // Find nearest ally to orbit — search from PLAYER position (where combat happens)
+    const player = cap.getPlayer();
+    if (!s.hasTarget || cap.now - s.lastSearch > 1500) {
         s.lastSearch = cap.now;
         const enemies = scene.enemiesGroup.getChildren();
         let bestDist = Infinity;
         s.hasTarget = false;
 
+        // Search for allies near the player (where they need protection most)
+        const searchX = player?.x || pos.x;
+        const searchY = player?.y || pos.y;
+
         for (let i = 0; i < enemies.length; i++) {
             const e = enemies[i];
             if (!e.active || e === scene.player) continue;
-            if (e.blueprintId === 'enemy.shielding_helper') continue;
-            const edx = e.x - pos.x;
-            const edy = e.y - pos.y;
+            // Don't target self or other shield allies
+            if (e.blueprintId === 'enemy.shielding_helper' || e.blueprintId === 'enemy.support_bacteria') continue;
+            const edx = e.x - searchX;
+            const edy = e.y - searchY;
             const edSq = edx * edx + edy * edy;
             if (edSq < bestDist) {
                 bestDist = edSq;
@@ -45,10 +51,13 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
     }
 
     if (!s.hasTarget) {
-        const sdx = cap.spawnX - pos.x;
-        const sdy = cap.spawnY - pos.y;
-        const sd = Math.sqrt(sdx * sdx + sdy * sdy) || 1;
-        cap.setVelocity((sdx / sd) * speed * 0.5, (sdy / sd) * speed * 0.5);
+        // No allies near player — move toward player area to find allies
+        if (player?.active) {
+            const pdx = player.x - pos.x;
+            const pdy = player.y - pos.y;
+            const pd = Math.sqrt(pdx * pdx + pdy * pdy) || 1;
+            cap.setVelocity((pdx / pd) * speed, (pdy / pd) * speed);
+        }
         return;
     }
 

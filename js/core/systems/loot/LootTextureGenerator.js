@@ -1,176 +1,180 @@
 /**
  * LootTextureGenerator - Programmatic texture generation for loot items
  *
- * Extracted from SimpleLootSystem to keep it under 500 LOC.
- * Uses GraphicsFactory (PR7 compliant) to generate all item textures.
+ * Design principles:
+ * - XP orbs: small diamonds, muted colors — background layer
+ * - Loot items: uniform hexagonal shape with letter symbol — mid layer
+ * - All items same size (20px) for visual consistency
+ * - Hexagon shape = unique, never confused with circular/square enemies
+ * - Letter inside identifies item type at a glance
  */
 
 import { DebugLogger } from '../../debug/DebugLogger.js';
 
-/**
- * Generate all loot item textures programmatically
- * @param {Phaser.Scene} scene - The scene to generate textures in
- */
+/** Draw a regular hexagon centered at (cx, cy) with given radius */
+function drawHexagon(graphics, cx, cy, radius, fillColor, fillAlpha = 1, strokeColor = null, strokeWidth = 0) {
+    const points = [];
+    for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i - Math.PI / 2; // Start from top
+        points.push({ x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) });
+    }
+    graphics.fillStyle(fillColor, fillAlpha);
+    graphics.fillPoints(points, true);
+    if (strokeColor != null && strokeWidth > 0) {
+        graphics.lineStyle(strokeWidth, strokeColor, 0.8);
+        graphics.strokePoints(points, true);
+    }
+}
+
+/** Draw a simple letter/symbol centered at (cx, cy) */
+function drawSymbol(graphics, cx, cy, symbol, color = 0xFFFFFF) {
+    graphics.fillStyle(color, 1);
+    switch (symbol) {
+        case '+': // Health cross
+            graphics.fillRect(cx - 1, cy - 4, 3, 8);
+            graphics.fillRect(cx - 4, cy - 1, 8, 3);
+            break;
+        case 'M': // Metotrexat
+            graphics.fillRect(cx - 4, cy - 3, 2, 7); // left
+            graphics.fillRect(cx + 2, cy - 3, 2, 7); // right
+            graphics.fillRect(cx - 2, cy - 1, 2, 3); // mid-left
+            graphics.fillRect(cx, cy - 1, 2, 3);      // mid-right
+            break;
+        case 'E': // Energy
+            graphics.fillRect(cx - 3, cy - 3, 2, 7);
+            graphics.fillRect(cx - 1, cy - 3, 5, 2);
+            graphics.fillRect(cx - 1, cy - 1, 4, 2);
+            graphics.fillRect(cx - 1, cy + 2, 5, 2);
+            break;
+        case 'R': // Research
+            graphics.fillRect(cx - 3, cy - 3, 2, 7);
+            graphics.fillRect(cx - 1, cy - 3, 4, 2);
+            graphics.fillRect(cx + 2, cy - 1, 2, 2);
+            graphics.fillRect(cx - 1, cy - 1, 4, 2);
+            graphics.fillRect(cx + 1, cy + 1, 2, 3);
+            break;
+        case 'P': // Protein
+            graphics.fillRect(cx - 3, cy - 3, 2, 7);
+            graphics.fillRect(cx - 1, cy - 3, 4, 2);
+            graphics.fillRect(cx + 2, cy - 1, 2, 2);
+            graphics.fillRect(cx - 1, cy - 1, 4, 2);
+            break;
+        default: // Dot
+            graphics.fillCircle(cx, cy, 2);
+    }
+}
+
 export function generateLootTextures(scene) {
     const textures = scene.textures;
-    const graphicsFactory = scene.graphicsFactory;
+    const gf = scene.graphicsFactory;
+    if (!gf) return;
 
-    if (!graphicsFactory) {
-        DebugLogger.warn('loot', 'GraphicsFactory not available, skipping texture generation');
-        return;
-    }
+    // ==================== XP Gems (diamonds — small, muted) ====================
 
-    // XP Gem - Small (bright cyan diamond, 8px)
+    // XP Small — tiny cyan diamond
     if (!textures.exists('item_xp_small')) {
-        const graphics = graphicsFactory.create();
+        const g = gf.create();
         const s = 8;
-        // Diamond shape — distinct from circular enemies
-        graphics.fillStyle(0x00F0FF, 1.0);
-        graphics.fillPoints([
-            { x: s/2, y: 0 }, { x: s, y: s/2 },
-            { x: s/2, y: s }, { x: 0, y: s/2 }
-        ], true);
-        // Bright center highlight
-        graphics.fillStyle(0xFFFFFF, 0.9);
-        graphics.fillCircle(s/2, s/2, 1.5);
-        graphics.generateTexture('item_xp_small', s, s);
-        graphicsFactory.release(graphics);
+        g.fillStyle(0x00C8DD, 0.8);
+        g.fillPoints([{ x: s/2, y: 0 }, { x: s, y: s/2 }, { x: s/2, y: s }, { x: 0, y: s/2 }], true);
+        g.fillStyle(0xFFFFFF, 0.6);
+        g.fillCircle(s/2, s/2, 1);
+        g.generateTexture('item_xp_small', s, s);
+        gf.release(g);
     }
 
-    // XP Gem - Medium (green diamond, 10px)
+    // XP Medium — green diamond
     if (!textures.exists('item_xp_medium')) {
-        const graphics = graphicsFactory.create();
+        const g = gf.create();
         const s = 10;
-        graphics.fillStyle(0x00FF88, 1.0);
-        graphics.fillPoints([
-            { x: s/2, y: 0 }, { x: s, y: s/2 },
-            { x: s/2, y: s }, { x: 0, y: s/2 }
-        ], true);
-        // Inner facet
-        graphics.fillStyle(0x88FFCC, 0.6);
-        graphics.fillPoints([
-            { x: s/2, y: 2 }, { x: s-2, y: s/2 },
-            { x: s/2, y: s-2 }, { x: 2, y: s/2 }
-        ], true);
-        graphics.fillStyle(0xFFFFFF, 0.9);
-        graphics.fillCircle(s/2, s/2, 2);
-        graphics.generateTexture('item_xp_medium', s, s);
-        graphicsFactory.release(graphics);
+        g.fillStyle(0x00DD77, 0.8);
+        g.fillPoints([{ x: s/2, y: 0 }, { x: s, y: s/2 }, { x: s/2, y: s }, { x: 0, y: s/2 }], true);
+        g.fillStyle(0xFFFFFF, 0.7);
+        g.fillCircle(s/2, s/2, 1.5);
+        g.generateTexture('item_xp_medium', s, s);
+        gf.release(g);
     }
 
-    // XP Gem - Large (golden diamond, 14px)
+    // XP Large — gold diamond
     if (!textures.exists('item_xp_large')) {
-        const graphics = graphicsFactory.create();
-        const s = 14;
-        graphics.fillStyle(0xFFDD00, 1.0);
-        graphics.fillPoints([
-            { x: s/2, y: 0 }, { x: s, y: s/2 },
-            { x: s/2, y: s }, { x: 0, y: s/2 }
-        ], true);
-        // Inner facet
-        graphics.fillStyle(0xFFEE66, 0.6);
-        graphics.fillPoints([
-            { x: s/2, y: 2 }, { x: s-2, y: s/2 },
-            { x: s/2, y: s-2 }, { x: 2, y: s/2 }
-        ], true);
-        graphics.fillStyle(0xFFFFFF, 0.9);
-        graphics.fillCircle(s/2, s/2, 3);
-        graphics.generateTexture('item_xp_large', s, s);
-        graphicsFactory.release(graphics);
+        const g = gf.create();
+        const s = 12;
+        g.fillStyle(0xDDBB00, 0.8);
+        g.fillPoints([{ x: s/2, y: 0 }, { x: s, y: s/2 }, { x: s/2, y: s }, { x: 0, y: s/2 }], true);
+        g.fillStyle(0xFFFFFF, 0.8);
+        g.fillCircle(s/2, s/2, 2);
+        g.generateTexture('item_xp_large', s, s);
+        gf.release(g);
     }
 
-    // Health Small (red circle with cross, 16px)
+    // ==================== Loot Items (hexagons — uniform 20px) ====================
+    const ITEM_SIZE = 20;
+    const HEX_R = 8; // hexagon radius
+    const CX = ITEM_SIZE / 2;
+    const CY = ITEM_SIZE / 2;
+
+    // Health Small — red hexagon with ✚
     if (!textures.exists('item_health_small')) {
-        const graphics = graphicsFactory.create();
-        const size = 16;
-        graphics.fillStyle(0xFF0000, 1);
-        graphics.fillCircle(size/2, size/2, size/2);
-        graphics.fillStyle(0xFFFFFF, 1);
-        graphics.fillRect(size/2 - 1, size/4, 2, size/2);
-        graphics.fillRect(size/4, size/2 - 1, size/2, 2);
-        graphics.generateTexture('item_health_small', size, size);
-        graphicsFactory.release(graphics);
+        const g = gf.create();
+        drawHexagon(g, CX, CY, HEX_R, 0xCC0000, 1, 0xFF4444, 1.5);
+        drawSymbol(g, CX, CY, '+');
+        g.generateTexture('item_health_small', ITEM_SIZE, ITEM_SIZE);
+        gf.release(g);
     }
 
-    // Heal Orb (larger red circle, 20px)
+    // Heal Orb — brighter red hexagon with ✚ (larger heal)
     if (!textures.exists('item_heal_orb')) {
-        const graphics = graphicsFactory.create();
-        const size = 20;
-        graphics.fillStyle(0xFF3333, 1);
-        graphics.fillCircle(size/2, size/2, size/2);
-        graphics.fillStyle(0xFF0000, 0.8);
-        graphics.fillCircle(size/2, size/2, size/2 - 2);
-        graphics.fillStyle(0xFFFFFF, 1);
-        graphics.fillRect(size/2 - 2, size/4, 4, size/2);
-        graphics.fillRect(size/4, size/2 - 2, size/2, 4);
-        graphics.generateTexture('item_heal_orb', size, size);
-        graphicsFactory.release(graphics);
+        const g = gf.create();
+        drawHexagon(g, CX, CY, HEX_R, 0xFF2222, 1, 0xFF6666, 1.5);
+        drawSymbol(g, CX, CY, '+');
+        g.generateTexture('item_heal_orb', ITEM_SIZE, ITEM_SIZE);
+        gf.release(g);
     }
 
-    // Protein Cache (green capsule, 18px)
+    // Protein Cache — green hexagon with P
     if (!textures.exists('item_protein_cache')) {
-        const graphics = graphicsFactory.create();
-        const size = 18;
-        graphics.fillStyle(0x00FF00, 1);
-        graphics.fillRoundedRect(size/4, 0, size/2, size, 4);
-        graphics.fillStyle(0xFFFFFF, 1);
-        graphics.fillCircle(size/2, size/2, 3);
-        graphics.generateTexture('item_protein_cache', size, size);
-        graphicsFactory.release(graphics);
+        const g = gf.create();
+        drawHexagon(g, CX, CY, HEX_R, 0x00AA00, 1, 0x44DD44, 1.5);
+        drawSymbol(g, CX, CY, 'P');
+        g.generateTexture('item_protein_cache', ITEM_SIZE, ITEM_SIZE);
+        gf.release(g);
     }
 
-    // Metotrexat (purple circle, 18px)
+    // Metotrexat — purple hexagon with M
     if (!textures.exists('item_metotrexat')) {
-        const graphics = graphicsFactory.create();
-        const size = 18;
-        graphics.fillStyle(0x9C27B0, 1);
-        graphics.fillCircle(size/2, size/2, size/2);
-        graphics.fillStyle(0xE91E63, 0.5);
-        graphics.fillCircle(size/2, size/2, size/2 - 2);
-        graphics.fillStyle(0xFFFFFF, 1);
-        graphics.fillCircle(size/2, size/2, 4);
-        graphics.generateTexture('item_metotrexat', size, size);
-        graphicsFactory.release(graphics);
+        const g = gf.create();
+        drawHexagon(g, CX, CY, HEX_R, 0x7B1FA2, 1, 0xCE93D8, 1.5);
+        drawSymbol(g, CX, CY, 'M');
+        g.generateTexture('item_metotrexat', ITEM_SIZE, ITEM_SIZE);
+        gf.release(g);
     }
 
-    // Metotrexat orb variant
+    // Metotrexat orb variant (same design)
     if (!textures.exists('metotrexat_orb')) {
-        const graphics = graphicsFactory.create();
-        graphics.fillStyle(0xff00ff, 1);
-        graphics.fillCircle(8, 8, 8);
-        graphics.fillStyle(0xffffff, 1);
-        graphics.fillCircle(8, 8, 3);
-        graphics.generateTexture('metotrexat_orb', 16, 16);
-        graphicsFactory.release(graphics);
+        const g = gf.create();
+        drawHexagon(g, CX, CY, HEX_R, 0x9C27B0, 1, 0xE040FB, 1.5);
+        drawSymbol(g, CX, CY, 'M');
+        g.generateTexture('metotrexat_orb', ITEM_SIZE, ITEM_SIZE);
+        gf.release(g);
     }
 
-    // Energy Cell (yellow lightning bolt, 18px)
+    // Energy Cell — yellow hexagon with E
     if (!textures.exists('item_energy_cell')) {
-        const graphics = graphicsFactory.create();
-        const size = 18;
-        graphics.fillStyle(0xFFDD00, 1);
-        graphics.fillCircle(size/2, size/2, size/2);
-        graphics.fillStyle(0xFFFF88, 0.8);
-        graphics.fillCircle(size/2, size/2, size/2 - 2);
-        graphics.fillStyle(0xFFFFFF, 1);
-        graphics.fillRect(size/2 - 1, size/4, 3, size/2);
-        graphics.generateTexture('item_energy_cell', size, size);
-        graphicsFactory.release(graphics);
+        const g = gf.create();
+        drawHexagon(g, CX, CY, HEX_R, 0xCC9900, 1, 0xFFDD44, 1.5);
+        drawSymbol(g, CX, CY, 'E');
+        g.generateTexture('item_energy_cell', ITEM_SIZE, ITEM_SIZE);
+        gf.release(g);
     }
 
-    // Research Point (blue diamond, 16px)
+    // Research Point — blue hexagon with R
     if (!textures.exists('item_research_point')) {
-        const graphics = graphicsFactory.create();
-        const size = 16;
-        graphics.fillStyle(0x4488FF, 1);
-        graphics.fillCircle(size/2, size/2, size/2);
-        graphics.fillStyle(0x88BBFF, 0.8);
-        graphics.fillCircle(size/2, size/2, size/2 - 2);
-        graphics.fillStyle(0xFFFFFF, 1);
-        graphics.fillCircle(size/2, size/2, 3);
-        graphics.generateTexture('item_research_point', size, size);
-        graphicsFactory.release(graphics);
+        const g = gf.create();
+        drawHexagon(g, CX, CY, HEX_R, 0x1565C0, 1, 0x42A5F5, 1.5);
+        drawSymbol(g, CX, CY, 'R');
+        g.generateTexture('item_research_point', ITEM_SIZE, ITEM_SIZE);
+        gf.release(g);
     }
 
-    DebugLogger.info('loot', 'Item textures generated');
+    DebugLogger.info('loot', 'Item textures generated (hexagonal design)');
 }
