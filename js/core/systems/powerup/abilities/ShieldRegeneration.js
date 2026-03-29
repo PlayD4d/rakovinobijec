@@ -21,14 +21,12 @@ export class ShieldRegeneration {
     update(player, time) {
         if (!player || !player.shieldActive) return;
 
-        // Update shield hitbox position (follows player)
+        // Update shield hitbox + push zone position (follows player)
         if (player._shieldHitbox?.active) {
             player._shieldHitbox.setPosition(player.x, player.y);
         }
-
-        // Push enemies at shield boundary (lightweight — only enemies already overlapping)
-        if (player.shieldHP > 0) {
-            this._pushEnemiesAtBoundary(player);
+        if (player._shieldPushZone?.active) {
+            player._shieldPushZone.setPosition(player.x, player.y);
         }
 
         // Shield auto-regeneration logic
@@ -149,14 +147,45 @@ export class ShieldRegeneration {
         // Register overlap: shield hitbox vs enemy bullets
         const enemyBullets = scene.projectileSystem?.enemyBullets;
         if (enemyBullets) {
-            const overlapRef = scene.physics.add.overlap(
+            player._shieldOverlap = scene.physics.add.overlap(
                 hitbox,
                 enemyBullets,
                 (shieldBody, bullet) => this._onBulletHitShield(player, bullet),
-                () => player.shieldActive && player.shieldHP > 0, // Only when shield is up
+                () => player.shieldActive && player.shieldHP > 0,
                 this
             );
-            player._shieldOverlap = overlapRef;
+        }
+
+        // Create push zone for enemy knockback (slightly larger than shield)
+        const pushZone = scene.physics.add.sprite(player.x, player.y, '__DEFAULT');
+        pushZone.setVisible(false);
+        pushZone.setAlpha(0);
+        pushZone.body.setCircle(shieldRadius + 10);
+        const pushOffset = (pushZone.width / 2) - (shieldRadius + 10);
+        pushZone.body.setOffset(pushOffset, pushOffset);
+        pushZone.body.setImmovable(true);
+        pushZone.body.moves = false;
+        pushZone.setDepth(-1);
+        player._shieldPushZone = pushZone;
+
+        // Register overlap: push zone vs enemies — Phaser calls this only for overlapping pairs
+        if (scene.enemiesGroup) {
+            player._shieldEnemyOverlap = scene.physics.add.overlap(
+                pushZone,
+                scene.enemiesGroup,
+                (zone, enemy) => this._pushEnemyOut(player, enemy, 250),
+                () => player.shieldActive && player.shieldHP > 0,
+                this
+            );
+        }
+        if (scene.bossGroup) {
+            player._shieldBossOverlap = scene.physics.add.overlap(
+                pushZone,
+                scene.bossGroup,
+                (zone, boss) => this._pushEnemyOut(player, boss, 125),
+                () => player.shieldActive && player.shieldHP > 0,
+                this
+            );
         }
     }
 
@@ -189,57 +218,35 @@ export class ShieldRegeneration {
      * Remove shield hitbox (when shield breaks or power-up lost)
      */
     destroyShieldHitbox(player) {
-        if (player._shieldOverlap) {
-            this.scene?.physics?.world?.removeCollider(player._shieldOverlap);
-            player._shieldOverlap = null;
+        const world = this.scene?.physics?.world;
+        // Remove all shield overlaps
+        for (const key of ['_shieldOverlap', '_shieldEnemyOverlap', '_shieldBossOverlap']) {
+            if (player[key]) {
+                world?.removeCollider(player[key]);
+                player[key] = null;
+            }
         }
-        if (player._shieldHitbox) {
-            player._shieldHitbox.destroy();
-            player._shieldHitbox = null;
+        // Destroy hitbox and push zone sprites
+        for (const key of ['_shieldHitbox', '_shieldPushZone']) {
+            if (player[key]) {
+                player[key].destroy();
+                player[key] = null;
+            }
         }
     }
 
     /**
-     * Push enemies away that are inside the shield radius
+     * Overlap callback: push a single enemy out of shield zone
+     * Called by Phaser physics only for actually overlapping pairs (not all enemies)
      */
-    _pushEnemiesAtBoundary(player) {
-        const scene = this.scene;
-        const shieldRadius = 40 + (player.shieldLevel || 1) * 5;
-        const pushZone = shieldRadius + 10; // Slightly larger than visual
-        const pushZoneSq = pushZone * pushZone;
-        const pushSpeed = 250;
-
-        // Push regular enemies
-        const enemies = scene.enemiesGroup?.getChildren();
-        if (enemies) {
-            for (let i = 0, len = enemies.length; i < len; i++) {
-                const enemy = enemies[i];
-                if (!enemy?.active || !enemy.body) continue;
-                const dx = enemy.x - player.x;
-                const dy = enemy.y - player.y;
-                const distSq = dx * dx + dy * dy;
-                if (distSq < pushZoneSq && distSq > 1) {
-                    const dist = Math.sqrt(distSq);
-                    enemy.body.setVelocity((dx / dist) * pushSpeed, (dy / dist) * pushSpeed);
-                }
-            }
-        }
-
-        // Push bosses (lighter force)
-        const bosses = scene.bossGroup?.getChildren();
-        if (bosses) {
-            for (let i = 0, len = bosses.length; i < len; i++) {
-                const boss = bosses[i];
-                if (!boss?.active || !boss.body) continue;
-                const dx = boss.x - player.x;
-                const dy = boss.y - player.y;
-                const distSq = dx * dx + dy * dy;
-                if (distSq < pushZoneSq && distSq > 1) {
-                    const dist = Math.sqrt(distSq);
-                    boss.body.setVelocity((dx / dist) * pushSpeed * 0.5, (dy / dist) * pushSpeed * 0.5);
-                }
-            }
-        }
+    _pushEnemyOut(player, entity, force) {
+        if (!entity?.active || !entity.body) return;
+        const dx = entity.x - player.x;
+        const dy = entity.y - player.y;
+        const distSq = dx * dx + dy * dy;
+        if (distSq < 1) return;
+        const dist = Math.sqrt(distSq);
+        entity.body.setVelocity((dx / dist) * force, (dy / dist) * force);
     }
 
     /**
