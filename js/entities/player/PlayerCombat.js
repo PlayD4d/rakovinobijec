@@ -96,7 +96,7 @@ export class PlayerCombat {
         if (player.hp > 0) return;
 
         // Don't die during pause
-        if (player.scene.isPaused || player.scene.scene.isPaused()) {
+        if (player.scene.isPaused || player.scene.scene?.isPaused?.()) {
             player.hp = 1;
             return;
         }

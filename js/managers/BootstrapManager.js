@@ -135,9 +135,9 @@ export class BootstrapManager {
         };
 
         // Scene-level events (auto-cleaned by Phaser on scene shutdown)
-        this.scene.events.on('player:die', this._onPlayerDie);
-        this.scene.events.on('boss:die', this._onBossDie);
-        this.scene.events.on('resume', this._onResume);
+        this.scene.events.on('player:die', this._onPlayerDie, this.scene);
+        this.scene.events.on('boss:die', this._onBossDie, this.scene);
+        this.scene.events.on('resume', this._onResume, this.scene);
 
         // Cross-scene events via CentralEventBus (auto-cleanup via context)
         centralEventBus.on('game:powerup-selected', this._onPowerUpSelected, this.scene);
@@ -166,10 +166,10 @@ export class BootstrapManager {
                     player.maxHp = (player.maxHp || 100) + ov.value;
                     player.hp = Math.min(player.hp + ov.value, player.maxHp);
                 } else {
-                    player.addModifier({ id: `overflow_${Date.now()}`, stat: ov.stat, type: 'add', value: ov.value });
+                    player.addModifier({ id: `overflow_${Date.now()}`, path: ov.stat, type: 'add', value: ov.value });
                 }
             } else if (ov.type === 'mul') {
-                player.addModifier({ id: `overflow_${Date.now()}`, stat: ov.stat, type: 'mul', value: ov.value });
+                player.addModifier({ id: `overflow_${Date.now()}`, path: ov.stat, type: 'mul', value: ov.value });
             }
             getSession()?.log('powerup', 'overflow_boost', { stat: ov.stat, value: ov.value });
         } else if (selection && this.scene.powerUpSystem) {

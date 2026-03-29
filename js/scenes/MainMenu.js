@@ -24,6 +24,10 @@ export class MainMenu extends Phaser.Scene {
         this.isFullscreenMode = false;
     }
 
+    init() {
+        this._shutdownDone = false;
+    }
+
     preload() {
         // LiteUI doesn't need external plugins
         // Načíst pouze základní UI zvuky pro menu

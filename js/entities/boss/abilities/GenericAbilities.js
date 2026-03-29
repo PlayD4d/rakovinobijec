@@ -296,7 +296,8 @@ export function executeToxicCloud(bossAbilities, abilityData, params) {
             }
         });
         // Track for cleanup if boss dies
-        bossAbilities._pendingTimers?.push(timer);
+        if (bossAbilities._pendingTimers) bossAbilities._pendingTimers.push(timer);
+        else timer.destroy();
     }
 
     bossAbilities.boss.playSfx('sfx.boss.toxic');

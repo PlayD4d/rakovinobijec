@@ -194,7 +194,9 @@ export class EnemyProjectile extends Phaser.Physics.Arcade.Sprite {
    */
   kill() {
     if (!this.active) return; // Already killed, prevent double processing
-    
+
+    if (this._hitEnemies) this._hitEnemies.clear();
+
     if (this.body) {
       this.body.stop();
     }

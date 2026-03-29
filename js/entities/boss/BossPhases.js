@@ -54,8 +54,8 @@ export class BossPhases {
      * Update method - kontroluje HP a spouští phase transitions
      */
     update(time, delta) {
-        if (this.isTransitioning) return;
-        
+        if (!this.boss || this.isTransitioning) return;
+
         const currentHpRatio = this.boss.getHpRatio();
         
         // Kontrola phase transitions při snížení HP
