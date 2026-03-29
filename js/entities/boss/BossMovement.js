@@ -63,29 +63,39 @@ export class BossMovement {
      */
     executeTeleportStrike(target, damage = 30) {
         if (this.isExecutingMovement) return false;
-        
+
         const { x: playerX, y: playerY } = target.getPos ? target.getPos() : target;
-        
-        // Vypočítej pozici za hráčem
+
+        // Position behind player
         const angle = Math.atan2(this.boss.y - playerY, this.boss.x - playerX);
         const strikeX = playerX + Math.cos(angle) * 80;
         const strikeY = playerY + Math.sin(angle) * 80;
-        
+
         this.isExecutingMovement = true;
-        
-        // Phase 1: Teleport za hráče
-        this.boss.teleportTo(strikeX, strikeY);
-        
-        // Phase 2: Útok s krátkým delay — use tracked timer via BossAbilities
         const schedule = this.boss.abilitiesSystem?._schedule?.bind(this.boss.abilitiesSystem);
-        const delayFn = schedule || ((ms, cb) => this.scene?.time?.delayedCall(ms, cb));
-        delayFn(200, () => {
-            if (!this.boss?.active || !this.scene) return;
-            this.boss.shoot('boss_strike', {
-                damage,
-                direction: { x: playerX - strikeX, y: playerY - strikeY }
+        const delay = schedule || ((ms, cb) => this.scene?.time?.delayedCall(ms, cb));
+
+        // Phase 0: Telegraph at destination (200ms warning)
+        if (this.scene?.vfxSystem?.playTelegraph) {
+            this.scene.vfxSystem.playTelegraph(strikeX, strikeY, {
+                radius: 40, color: 0x8844FF, duration: 400, pulses: 2
             });
-            this.isExecutingMovement = false;
+        }
+
+        // Phase 1: Teleport after brief telegraph (200ms)
+        delay(200, () => {
+            if (!this.boss?.active || !this.scene) return;
+            this.boss.teleportTo(strikeX, strikeY);
+
+            // Phase 2: Strike after arrival (200ms)
+            delay(200, () => {
+                if (!this.boss?.active || !this.scene) return;
+                this.boss.shoot('boss_strike', {
+                    damage,
+                    direction: { x: playerX - strikeX, y: playerY - strikeY }
+                });
+                this.isExecutingMovement = false;
+            });
         });
         
         return true;

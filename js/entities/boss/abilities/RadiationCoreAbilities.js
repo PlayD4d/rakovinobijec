@@ -14,28 +14,30 @@ export function executeRadiationPulse(bossAbilities, abilityData, params) {
     getSession()?.log('boss', 'ability_execute', { ability: 'radiation_pulse', range: abilityData.range || abilityData.radius || 140, damage: abilityData.damage || 5 });
     DebugLogger.info('boss', '[BossAbilities] Executing radiation pulse');
 
-    // Visual warning before damage
-    if (bossAbilities.scene.vfxSystem) {
-        // Warning circle that expands
-        bossAbilities.scene.vfxSystem.play('boss.radiation.warning', bossAbilities.boss.x, bossAbilities.boss.y);
+    const pulseRange = abilityData.range || abilityData.radius || 140;
+    const pulseDamage = abilityData.damage || 5;
+    const warningTime = abilityData.warningTime || 800;
+    const vfx = bossAbilities.scene.vfxSystem;
 
-        // Actual pulse after warning
-        bossAbilities._schedule(500, () => {
-            if (bossAbilities.scene?.vfxSystem) {
-                bossAbilities.scene.vfxSystem.play('boss.radiation.pulse', bossAbilities.boss.x, bossAbilities.boss.y);
-            }
+    // Telegraph: pulsing green circle showing exact damage radius
+    if (vfx?.playTelegraph) {
+        vfx.playTelegraph(bossAbilities.boss.x, bossAbilities.boss.y, {
+            radius: pulseRange, color: 0xCCFF00, duration: warningTime, fillAlpha: 0.1, pulses: 3
         });
     }
 
-    // Play audio
     if (bossAbilities.scene.audioSystem) {
         bossAbilities.scene.audioSystem.play('sound/boss_radiation.mp3');
     }
 
-    // Damage nearby player AFTER WARNING DELAY
-    const pulseRange = abilityData.range || abilityData.radius || 140;
-    const pulseDamage = abilityData.damage || 5;
-    bossAbilities._schedule(500, () => {
+    // Damage + explosion VFX fires AFTER telegraph warning
+    bossAbilities._schedule(warningTime, () => {
+        if (vfx) vfx.play('boss.radiation.pulse', bossAbilities.boss.x, bossAbilities.boss.y);
+        if (vfx?.playExplosionEffect) {
+            vfx.playExplosionEffect(bossAbilities.boss.x, bossAbilities.boss.y, {
+                color: 0xCCFF00, radius: pulseRange, duration: 300
+            });
+        }
         const player = bossAbilities.scene?.player;
         if (player && player.active && bossAbilities.boss) {
             const dx = bossAbilities.boss.x - player.x;
@@ -221,20 +223,41 @@ export function executeCoreOverload(bossAbilities, abilityData, params) {
     getSession()?.log('boss', 'ability_execute', { ability: 'core_overload', damage: abilityData.damage || 50 });
     DebugLogger.info('boss', '[BossAbilities] Executing core overload');
 
-    if (bossAbilities.scene.vfxSystem) {
-        bossAbilities.scene.vfxSystem.play('boss.overload.explosion', bossAbilities.boss.x, bossAbilities.boss.y);
+    const damage = abilityData.damage || 50;
+    const chargeTime = abilityData.chargeTime || 1500;
+    const radius = abilityData.radius || 200;
+    const vfx = bossAbilities.scene.vfxSystem;
+
+    // Telegraph: large pulsing danger circle + charge-up particles
+    if (vfx?.playTelegraph) {
+        vfx.playTelegraph(bossAbilities.boss.x, bossAbilities.boss.y, {
+            radius, color: 0xFFDD00, duration: chargeTime, fillAlpha: 0.2, pulses: 5
+        });
+    }
+    if (vfx) {
+        vfx.play('boss.overload.charge', bossAbilities.boss.x, bossAbilities.boss.y);
     }
 
-    if (bossAbilities.scene.audioSystem) {
-        bossAbilities.scene.audioSystem.play('sound/core_overload.mp3');
-    }
-
-    // Massive damage to player
-    const player = bossAbilities.scene.player;
-    if (player && player.takeDamage) {
-        const damage = abilityData.damage || 50;
-        player.takeDamage(damage, 'overload');
-    }
+    // Damage + explosion AFTER charge
+    bossAbilities._schedule(chargeTime, () => {
+        if (vfx) vfx.play('boss.overload.explosion', bossAbilities.boss.x, bossAbilities.boss.y);
+        if (vfx?.playExplosionEffect) {
+            vfx.playExplosionEffect(bossAbilities.boss.x, bossAbilities.boss.y, {
+                color: 0xFFDD00, radius, duration: 500
+            });
+        }
+        if (bossAbilities.scene.audioSystem) {
+            bossAbilities.scene.audioSystem.play('sound/core_overload.mp3');
+        }
+        const player = bossAbilities.scene.player;
+        if (player?.active) {
+            const dx = player.x - bossAbilities.boss.x;
+            const dy = player.y - bossAbilities.boss.y;
+            if (dx * dx + dy * dy <= radius * radius) {
+                player.takeDamage(damage, 'overload');
+            }
+        }
+    });
 
     return true;
 }

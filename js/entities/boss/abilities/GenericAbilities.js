@@ -39,20 +39,27 @@ export function executeProjectileBurst(bossAbilities, abilityData, params) {
     const count = abilityData.count || 8;
     const damage = abilityData.damage || 15;
     const spread = abilityData.spreadAngle || 360;
+    const chargeTime = abilityData.chargeTime || 600; // telegraph duration before firing
 
+    // Telegraph: pulsing circle at boss position warns player of incoming burst
+    const vfx = bossAbilities.scene.vfxSystem;
+    if (vfx?.playTelegraph) {
+        vfx.playTelegraph(bossAbilities.boss.x, bossAbilities.boss.y, {
+            radius: 50, color: 0xFF4400, duration: chargeTime, pulses: 2
+        });
+    }
+
+    // Fire projectiles AFTER telegraph completes
     for (let i = 0; i < count; i++) {
         const angle = (i / count) * spread * (Math.PI / 180);
-
-        bossAbilities._schedule(i * 100, () => {
+        bossAbilities._schedule(chargeTime + i * 100, () => {
             bossAbilities.boss.shoot('directional', {
-                damage,
-                angle,
+                damage, angle,
                 projectileId: abilityData.projectileId || 'projectile.boss_burst'
             });
         });
     }
 
-    bossAbilities.boss.spawnVfx('vfx.boss.burst.charge', bossAbilities.boss.x, bossAbilities.boss.y);
     bossAbilities.boss.playSfx('sfx.boss.burst');
 
     return true;
@@ -128,23 +135,31 @@ export function executeAreaDamage(bossAbilities, abilityData, params) {
     const radius = abilityData.radius || 150;
     const damage = abilityData.damage || 20;
     const center = params.center || { x: bossAbilities.boss.x, y: bossAbilities.boss.y };
-
-    // Deal damage to all enemies in radius using ExplosionHandler pattern
+    const chargeTime = abilityData.chargeTime || 800;
     const scene = bossAbilities.scene;
-    const player = scene.player;
-    if (player?.active) {
-        const dx = player.x - center.x;
-        const dy = player.y - center.y;
-        if (dx * dx + dy * dy <= radius * radius) {
-            player.takeDamage(damage, bossAbilities.boss);
-        }
+
+    // Telegraph: warning circle showing exact damage area
+    if (scene.vfxSystem?.playTelegraph) {
+        scene.vfxSystem.playTelegraph(center.x, center.y, {
+            radius, color: 0xFF2200, duration: chargeTime, fillAlpha: 0.15, pulses: 3
+        });
     }
 
-    // Explosion VFX at damage area
-    if (scene.vfxSystem?.playExplosionEffect) {
-        scene.vfxSystem.playExplosionEffect(center.x, center.y, { color: 0xFF4400, radius });
-    }
-    bossAbilities.boss.playSfx('sfx.boss.explosion');
+    // Damage + explosion VFX fires AFTER telegraph
+    bossAbilities._schedule(chargeTime, () => {
+        const player = scene.player;
+        if (player?.active) {
+            const dx = player.x - center.x;
+            const dy = player.y - center.y;
+            if (dx * dx + dy * dy <= radius * radius) {
+                player.takeDamage(damage, bossAbilities.boss);
+            }
+        }
+        if (scene.vfxSystem?.playExplosionEffect) {
+            scene.vfxSystem.playExplosionEffect(center.x, center.y, { color: 0xFF4400, radius });
+        }
+        bossAbilities.boss.playSfx('sfx.boss.explosion');
+    });
 
     return true;
 }
@@ -246,10 +261,10 @@ export function executeToxicCloud(bossAbilities, abilityData, params) {
         const cloudX = bossAbilities.boss.x + Math.cos(angle) * distance;
         const cloudY = bossAbilities.boss.y + Math.sin(angle) * distance;
 
-        // Visual: expanding toxic circle using playExplosionEffect (green)
-        if (scene.vfxSystem?.playExplosionEffect) {
-            scene.vfxSystem.playExplosionEffect(cloudX, cloudY, {
-                color: 0x00FF00, radius: cloudRadius, duration: 600
+        // Telegraph: green warning circle at each cloud position
+        if (scene.vfxSystem?.playTelegraph) {
+            scene.vfxSystem.playTelegraph(cloudX, cloudY, {
+                radius: cloudRadius, color: 0x00FF00, duration: 800, fillAlpha: 0.1, pulses: 2
             });
         }
 

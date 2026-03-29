@@ -552,5 +552,64 @@ export class SimplifiedVFXSystem {
             }
         });
     }
+
+    /**
+     * Play a telegraph warning — pulsing circle that shows danger area before ability fires.
+     * Uses Phaser Graphics + tweens. Returns the Graphics object for caller to track.
+     *
+     * @param {number} x - Center X
+     * @param {number} y - Center Y
+     * @param {object} opts - { radius, color, duration, fillAlpha, pulses }
+     * @returns {Phaser.GameObjects.Graphics|null}
+     */
+    playTelegraph(x, y, opts = {}) {
+        if (!this.scene?.sys?.isActive()) return null;
+
+        const color = opts.color || 0xFF0000;
+        const radius = opts.radius || 80;
+        const duration = opts.duration || 1000;
+        const fillAlpha = opts.fillAlpha || 0.12;
+        const pulses = opts.pulses || 3;
+
+        const gf = this.scene.graphicsFactory;
+        const g = gf ? gf.create() : this.scene.add.graphics();
+        g.clear();
+        g.setAlpha(1);
+        g.setScale(1);
+        g.setPosition(x, y);
+        g.setDepth(this.scene.DEPTH_LAYERS?.VFX || 3000);
+
+        // Draw warning circle — filled area + stroke border
+        g.fillStyle(color, fillAlpha);
+        g.fillCircle(0, 0, radius);
+        g.lineStyle(2, color, 0.6);
+        g.strokeCircle(0, 0, radius);
+
+        // Pulse animation: scale in/out + alpha fade, then cleanup
+        const pulseDuration = duration / pulses;
+        this.scene.tweens.add({
+            targets: g,
+            scaleX: { from: 0.85, to: 1.0 },
+            scaleY: { from: 0.85, to: 1.0 },
+            alpha: { from: 0.8, to: 0.3 },
+            duration: pulseDuration,
+            yoyo: true,
+            repeat: pulses - 1,
+            ease: 'Sine.easeInOut',
+            onComplete: () => {
+                // Final fade-out
+                this.scene.tweens.add({
+                    targets: g,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => {
+                        if (gf) gf.release(g); else g.destroy();
+                    }
+                });
+            }
+        });
+
+        return g;
+    }
 }
 

@@ -136,8 +136,16 @@ export class BossPhases {
             this.boss.setInvulnerable(true);
         }
         
-        // Phase transition VFX
-        this.boss.spawnVfx('vfx.boss.phase.transition', this.boss.x, this.boss.y);
+        // Phase transition VFX — dramatic telegraph + explosion
+        const vfx = this.scene?.vfxSystem;
+        if (vfx?.playTelegraph) {
+            vfx.playTelegraph(this.boss.x, this.boss.y, {
+                radius: 100, color: 0xFF0000, duration: 400, fillAlpha: 0.2, pulses: 2
+            });
+        }
+        if (vfx?.playExplosionEffect) {
+            vfx.playExplosionEffect(this.boss.x, this.boss.y, { color: 0xFF4400, radius: 80, duration: 300 });
+        }
         
         // Phase transition SFX
         this.boss.playSfx('sfx.boss.phase.change');
