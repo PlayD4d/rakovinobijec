@@ -182,26 +182,36 @@ export class PowerUpSystem {
         });
     }
     
+    // ==================== Ability Query API ====================
+
     /**
-     * Get XP magnet radius (for compatibility)
+     * Check if an ability type is currently active.
+     * Centralizes power-up state — callers don't need to read player flags.
+     * @param {string} abilityType - e.g. 'chemo_explosion', 'piercing', 'shield', 'radiotherapy'
+     * @returns {boolean}
      */
-    getXPMagnetRadius() {
-        const player = this.scene.player;
-        if (!player) return 100;
-        
-        const magnetLevel = player.xpMagnetLevel || 0;
-        if (magnetLevel <= 0) return 100;
-        
-        // Calculate radius: base * (1.25 ^ level)
-        return 100 * Math.pow(1.25, magnetLevel);
+    hasAbility(abilityType) {
+        return this.abilities?.hasAbility(abilityType) || false;
     }
-    
+
     /**
-     * Check if shield should block damage (for compatibility)
+     * Get config for an active ability.
+     * @param {string} abilityType
+     * @returns {object|null}
      */
-    shouldBlockDamage() {
-        const player = this.scene.player;
-        return player && player.shieldActive && player.shieldHits > 0 && !player.shieldBroken;
+    getAbilityConfig(abilityType) {
+        return this.abilities?.getAbilityConfig(abilityType) || null;
+    }
+
+    /**
+     * Called by collision handlers when a player bullet hits a target.
+     * PowerUpSystem decides what on-hit effects to apply (chemo explosion, future effects).
+     * @param {Phaser.Scene} scene
+     * @param {object} bullet - The projectile
+     * @param {number} damage - Base damage dealt
+     */
+    onBulletHit(scene, bullet, damage) {
+        this.abilities?.onBulletHit(scene, bullet, damage);
     }
     
     /**

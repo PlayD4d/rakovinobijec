@@ -22,6 +22,9 @@ export class PowerUpAbilities {
         // Active abilities that need per-frame updates
         this.activeAbilities = new Map(); // abilityType -> { config, updateFn }
 
+        // Centralized ability state — replaces scattered player flags
+        this._abilityConfigs = new Map(); // abilityType -> config
+
         // Extracted ability modules
         this._chainLightning = new ChainLightningAbility(scene, powerUpSystem);
         this._damageZones = new DamageZoneAbilities(scene, powerUpSystem);
@@ -124,6 +127,9 @@ export class PowerUpAbilities {
     _applyAbility(player, config) {
         getSession()?.log('powerup', 'ability_applied', { abilityType: config.type, level: config.level });
         const vfxManager = this.powerUpSystem.vfxManager;
+
+        // Track centrally — enables hasAbility() / getAbilityConfig() queries
+        this._abilityConfigs.set(config.type, config);
 
         switch (config.type) {
             case 'radiotherapy':
@@ -287,6 +293,37 @@ export class PowerUpAbilities {
         this._chainLightning.resetTimersAfterPause(now, lightningAbility);
     }
 
+    // ==================== Centralized Query API ====================
+
+    /** Check if an ability type is currently active */
+    hasAbility(type) {
+        return this._abilityConfigs.has(type);
+    }
+
+    /** Get config for an active ability */
+    getAbilityConfig(type) {
+        return this._abilityConfigs.get(type) || null;
+    }
+
+    /**
+     * Handle on-hit effects from active power-ups (called by collision handlers).
+     * Centralizes all bullet-hit-triggered power-up logic.
+     */
+    onBulletHit(scene, bullet, damage) {
+        // Chemo reservoir: explosion on bullet hit
+        const chemoConfig = this._abilityConfigs.get('chemo_aura');
+        if (chemoConfig?.enableExplosions) {
+            const player = scene.player;
+            const explosionRadius = player?.getExplosionRadius ? player.getExplosionRadius() : 35;
+            let explosionDamage = player?.getExplosionDamage ? player.getExplosionDamage() : damage * 0.5;
+            explosionDamage = Number(explosionDamage) || (damage * 0.5);
+            if (scene.projectileSystem?.createExplosion) {
+                scene.projectileSystem.createExplosion(bullet.x, bullet.y, explosionDamage, explosionRadius, 1);
+            }
+        }
+        // Future on-hit power-ups can be added here (poison, lifesteal, etc.)
+    }
+
     /**
      * Cleanup
      */
@@ -295,6 +332,7 @@ export class PowerUpAbilities {
         this._chainLightning.destroy();
         this._shieldRegen.destroy();
         this.activeAbilities.clear();
+        this._abilityConfigs.clear();
         this.scene = null;
         this.powerUpSystem = null;
     }
