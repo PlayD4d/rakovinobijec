@@ -489,6 +489,238 @@ function listAll() {
 }
 
 // ============================================================
+// DETAILS — Deep breakdown for game design tuning
+// ============================================================
+function printDetails(sid) {
+  sid = sid || getLatestId();
+  if (!sid) { console.log('No sessions.'); return; }
+  const s = db.prepare('SELECT * FROM sessions WHERE id = ?').get(sid);
+  const events = db.prepare('SELECT t, cat, act, data FROM events WHERE session_id = ?').all(sid);
+  const parsed = events.map(e => ({ t: e.t, cat: e.cat, act: e.act, ...(e.data ? JSON.parse(e.data) : {}) }));
+  const dur = s.duration_ms / 1000;
+  const durMin = dur / 60;
+
+  console.log('\n' + '='.repeat(80));
+  console.log(`DETAILED ANALYSIS: ${sid}  |  ${fmt(dur)}s  |  ${s.result}  |  Player Lvl ${s.max_player_level}`);
+  console.log('='.repeat(80));
+
+  // ---- PLAYER WEAPON DPS ----
+  console.log('\n--- PLAYER WEAPON & ABILITIES DPS ---');
+  const playerHits = parsed.filter(e => e.cat === 'combat' && e.act === 'player_hit_enemy');
+  const bossHits = parsed.filter(e => e.cat === 'combat' && e.act === 'player_hit_boss');
+  const radioHits = parsed.filter(e => e.act === 'radiotherapy_hit');
+  const chainHits = parsed.filter(e => e.act === 'chain_lightning_hit');
+  const flameHits = parsed.filter(e => e.act === 'flamethrower_hit');
+  const chemoHits = parsed.filter(e => e.act === 'chemo_cloud_hit');
+
+  const weaponDmg = [...playerHits, ...bossHits].reduce((s, e) => s + (e.damage || e.totalDmg || 0), 0);
+  const radioDmg = radioHits.reduce((s, e) => s + (e.damage || e.totalDmg || 0), 0);
+  const chainDmg = chainHits.reduce((s, e) => s + (e.damage || e.totalDmg || 0), 0);
+  const flameDmg = flameHits.reduce((s, e) => s + (e.damage || e.totalDmg || 0), 0);
+  const chemoDmg = chemoHits.reduce((s, e) => s + (e.damage || e.totalDmg || 0), 0);
+  const totalPlayerDmg = weaponDmg + radioDmg + chainDmg + flameDmg + chemoDmg;
+
+  const weaponHitCount = [...playerHits, ...bossHits].reduce((s, e) => s + (e.count || 1), 0);
+  const radioCount = radioHits.reduce((s, e) => s + (e.count || 1), 0);
+  const chainCount = chainHits.reduce((s, e) => s + (e.count || 1), 0);
+  const flameCount = flameHits.reduce((s, e) => s + (e.count || 1), 0);
+  const chemoCount = chemoHits.reduce((s, e) => s + (e.count || 1), 0);
+
+  const sources = [
+    { name: 'Projectiles (weapon)', hits: weaponHitCount, dmg: weaponDmg },
+    { name: 'Radiotherapy', hits: radioCount, dmg: radioDmg },
+    { name: 'Chain Lightning', hits: chainCount, dmg: chainDmg },
+    { name: 'Flamethrower', hits: flameCount, dmg: flameDmg },
+    { name: 'Chemo Cloud', hits: chemoCount, dmg: chemoDmg },
+  ];
+  console.log('  ' + 'Source'.padEnd(25) + 'Hits'.padStart(8) + 'Damage'.padStart(10) + 'DPS'.padStart(8) + 'Avg/Hit'.padStart(9) + 'Share'.padStart(8));
+  for (const src of sources) {
+    if (src.hits === 0) continue;
+    const share = totalPlayerDmg > 0 ? (src.dmg / totalPlayerDmg * 100) : 0;
+    console.log('  ' + src.name.padEnd(25) + fmt(src.hits).padStart(8) + fmt(src.dmg).padStart(10)
+      + fmt(dur > 0 ? src.dmg / dur : 0, 1).padStart(8) + fmt(src.hits > 0 ? src.dmg / src.hits : 0, 1).padStart(9)
+      + (fmt(share, 1) + '%').padStart(8));
+  }
+  console.log('  ' + '─'.repeat(68));
+  console.log('  ' + 'TOTAL'.padEnd(25) + fmt(weaponHitCount + radioCount + chainCount + flameCount + chemoCount).padStart(8)
+    + fmt(totalPlayerDmg).padStart(10) + fmt(dur > 0 ? totalPlayerDmg / dur : 0, 1).padStart(8));
+
+  // ---- ENEMY DAMAGE TO PLAYER ----
+  console.log('\n--- ENEMY DAMAGE TO PLAYER ---');
+  const contactDmg = parsed.filter(e => e.cat === 'collision' && e.act === 'contact_damage');
+  const bulletHitPlayer = parsed.filter(e => e.cat === 'combat' && e.act === 'enemy_bullet_hit_player');
+  const shieldAbs = parsed.filter(e => e.cat === 'shield' && e.act === 'absorbed');
+  const playerTakeDmg = parsed.filter(e => e.cat === 'player' && e.act === 'take_damage');
+
+  const contactTotal = contactDmg.reduce((s, e) => s + (e.damage || 0), 0);
+  const bulletTotal = bulletHitPlayer.reduce((s, e) => s + (e.damage || 0), 0);
+  const shieldTotal = shieldAbs.reduce((s, e) => s + (e.absorbed || 0), 0);
+  const hpDmgTotal = playerTakeDmg.reduce((s, e) => s + (e.finalAmount || 0), 0);
+
+  console.log(`  Contact damage: ${contactDmg.length} hits, ${fmt(contactTotal)} raw dmg`);
+  console.log(`  Bullet damage:  ${bulletHitPlayer.length} hits, ${fmt(bulletTotal)} raw dmg`);
+  console.log(`  Shield absorbed: ${fmt(shieldTotal)} (${shieldAbs.length} absorptions)`);
+  console.log(`  HP damage taken: ${fmt(hpDmgTotal)}`);
+  console.log(`  Shield efficiency: ${pct(shieldTotal / Math.max(shieldTotal + hpDmgTotal, 1))}`);
+
+  // Enemy damage by type (from contact_damage events)
+  const dmgByEnemy = {};
+  for (const e of contactDmg) {
+    const eid = e.enemyId || '?';
+    if (!dmgByEnemy[eid]) dmgByEnemy[eid] = { hits: 0, dmg: 0 };
+    dmgByEnemy[eid].hits++;
+    dmgByEnemy[eid].dmg += e.damage || 0;
+  }
+  if (Object.keys(dmgByEnemy).length > 0) {
+    console.log('\n  Contact damage by enemy type:');
+    for (const [eid, d] of Object.entries(dmgByEnemy).sort((a, b) => b[1].dmg - a[1].dmg)) {
+      console.log('    ' + eid.padEnd(30) + fmt(d.hits).padStart(5) + ' hits  ' + fmt(d.dmg).padStart(6) + ' dmg');
+    }
+  }
+
+  // ---- ENEMY SHOOTING ----
+  console.log('\n--- ENEMY SHOOTING ---');
+  const enemyShots = parsed.filter(e => e.cat === 'combat' && e.act === 'enemy_shoot');
+  const shooterTypes = {};
+  for (const e of enemyShots) {
+    const eid = e.enemyId || '?';
+    shooterTypes[eid] = (shooterTypes[eid] || 0) + 1;
+  }
+  console.log(`  Total shots: ${enemyShots.length} (${fmt(enemyShots.length / durMin, 1)}/min)`);
+  console.log(`  Hit player: ${bulletHitPlayer.length} (${pct(bulletHitPlayer.length / Math.max(enemyShots.length, 1))} accuracy)`);
+  console.log('\n  Shots by enemy type:');
+  for (const [eid, count] of Object.entries(shooterTypes).sort((a, b) => b[1] - a[1])) {
+    console.log('    ' + eid.padEnd(30) + fmt(count).padStart(6) + ' shots');
+  }
+
+  // ---- SPAWN RATES PER LEVEL ----
+  console.log('\n--- SPAWN RATES BY LEVEL ---');
+  const transitions = parsed.filter(e => e.cat === 'game' && e.act === 'level_transition');
+  const spawns = parsed.filter(e => e.cat === 'spawn' && e.act === 'enemy');
+  let boundaries = [{ t: parsed[0]?.t || 0, level: 1 }];
+  for (const tr of transitions) boundaries.push({ t: tr.t, level: tr.to || boundaries.length + 1 });
+  boundaries.push({ t: s.duration_ms, level: -1 });
+
+  console.log('  ' + 'Level'.padEnd(7) + 'Duration'.padStart(9) + 'Spawns'.padStart(8) + 'Spawn/m'.padStart(9)
+    + 'Kills'.padStart(7) + 'Kill/m'.padStart(8) + 'K/D%'.padStart(7));
+  const kills = parsed.filter(e => e.cat === 'kill');
+  for (let i = 0; i < boundaries.length - 1; i++) {
+    const from = boundaries[i].t, to = boundaries[i + 1].t;
+    const lvl = boundaries[i].level;
+    const lvlDur = (to - from) / 1000;
+    const lvlDurMin = lvlDur / 60;
+    const lvlSpawns = spawns.filter(e => e.t >= from && e.t < to).length;
+    const lvlKills = kills.filter(e => e.t >= from && e.t < to).length;
+    const killRate = lvlSpawns > 0 ? (lvlKills / lvlSpawns * 100) : 0;
+    console.log('  ' + String(lvl).padEnd(7) + (fmt(lvlDur) + 's').padStart(9) + fmt(lvlSpawns).padStart(8)
+      + fmt(lvlDurMin > 0 ? lvlSpawns / lvlDurMin : 0, 1).padStart(9)
+      + fmt(lvlKills).padStart(7) + fmt(lvlDurMin > 0 ? lvlKills / lvlDurMin : 0, 1).padStart(8)
+      + (fmt(killRate, 0) + '%').padStart(7));
+  }
+
+  // ---- POWERUP TIMELINE ----
+  console.log('\n--- POWERUP PICK TIMELINE ---');
+  const pups = parsed.filter(e => e.cat === 'powerup' && e.act === 'applied');
+  const pupSummary = {};
+  for (const p of pups) {
+    const id = p.id || '?';
+    if (!pupSummary[id]) pupSummary[id] = { picks: 0, maxLevel: 0, firstPick: p.t };
+    pupSummary[id].picks++;
+    pupSummary[id].maxLevel = Math.max(pupSummary[id].maxLevel, p.level || 0);
+  }
+  console.log('  ' + 'Powerup'.padEnd(30) + 'Picks'.padStart(6) + 'MaxLvl'.padStart(7) + 'First@'.padStart(8));
+  for (const [id, info] of Object.entries(pupSummary).sort((a, b) => b[1].picks - a[1].picks)) {
+    console.log('  ' + id.padEnd(30) + fmt(info.picks).padStart(6) + fmt(info.maxLevel).padStart(7)
+      + (fmt(info.firstPick / 1000) + 's').padStart(8));
+  }
+
+  // ---- XP PROGRESSION CURVE ----
+  console.log('\n--- XP PROGRESSION ---');
+  const levelUps = parsed.filter(e => e.cat === 'xp' && e.act === 'level_up');
+  if (levelUps.length > 0) {
+    // Show level-up cadence in 5-level chunks
+    console.log('  ' + 'Levels'.padEnd(12) + 'Time range'.padStart(16) + 'Avg/level'.padStart(11));
+    for (let i = 0; i < levelUps.length; i += 5) {
+      const chunk = levelUps.slice(i, i + 5);
+      const first = chunk[0], last = chunk[chunk.length - 1];
+      const startLvl = first.newLevel || (i + 2);
+      const endLvl = last.newLevel || (i + chunk.length + 1);
+      const chunkDur = (last.t - first.t) / 1000;
+      const avg = chunk.length > 1 ? chunkDur / (chunk.length - 1) : 0;
+      console.log('  ' + `${startLvl}-${endLvl}`.padEnd(12)
+        + `${fmt(first.t / 1000)}s - ${fmt(last.t / 1000)}s`.padStart(16)
+        + (fmt(avg, 1) + 's').padStart(11));
+    }
+  }
+
+  // ---- BOSS FIGHT DETAILS ----
+  console.log('\n--- BOSS FIGHTS ---');
+  const bossSpawns = parsed.filter(e => e.cat === 'boss' && e.act === 'spawn');
+  const bossDeaths = parsed.filter(e => e.cat === 'boss' && e.act === 'death');
+  const bossDmgEvents = parsed.filter(e => e.cat === 'boss' && e.act === 'damage_taken');
+  const bossAbilities = parsed.filter(e => e.cat === 'boss' && e.act === 'ability_used');
+  const bossPhases = parsed.filter(e => e.cat === 'boss' && e.act === 'phase_transition');
+
+  for (const sp of bossSpawns) {
+    const death = bossDeaths.find(d => d.bossId === sp.bossId && d.t > sp.t);
+    const fightEnd = death ? death.t : s.duration_ms;
+    const fightDur = (fightEnd - sp.t) / 1000;
+    const hits = bossDmgEvents.filter(e => e.bossId === sp.bossId && e.t >= sp.t && e.t <= fightEnd);
+    const dmg = hits.reduce((s, e) => s + (e.amount || 0), 0);
+    const abilities = bossAbilities.filter(e => e.bossId === sp.bossId && e.t >= sp.t && e.t <= fightEnd);
+    const phases = bossPhases.filter(e => e.bossId === sp.bossId && e.t >= sp.t && e.t <= fightEnd);
+
+    console.log(`\n  ${sp.bossId} (${fmt(sp.t / 1000)}s - ${fmt(fightEnd / 1000)}s) ${death ? 'KILLED' : 'SURVIVED'}`);
+    console.log(`    Duration: ${fmt(fightDur)}s | Hits: ${hits.length} | Damage: ${fmt(dmg)} | DPS: ${fmt(fightDur > 0 ? dmg / fightDur : 0, 1)}`);
+    console.log(`    Abilities used: ${abilities.length} | Phase transitions: ${phases.length}`);
+
+    // Ability breakdown
+    const abilTypes = {};
+    for (const a of abilities) { abilTypes[a.abilityId || '?'] = (abilTypes[a.abilityId || '?'] || 0) + 1; }
+    if (Object.keys(abilTypes).length > 0) {
+      console.log('    Ability usage: ' + Object.entries(abilTypes).map(([k, v]) => `${k}(${v})`).join(', '));
+    }
+  }
+
+  // ---- LOOT DROPS ----
+  console.log('\n--- LOOT DROPS ---');
+  const tableDrops = parsed.filter(e => e.cat === 'loot' && e.act === 'table_drop');
+  const lootItems = {};
+  for (const d of tableDrops) {
+    const ref = d.itemRef || '?';
+    lootItems[ref] = (lootItems[ref] || 0) + 1;
+  }
+  console.log(`  Total special drops: ${tableDrops.length} (${fmt(tableDrops.length / durMin, 1)}/min)`);
+  console.log('  ' + 'Item'.padEnd(30) + 'Count'.padStart(6) + '/min'.padStart(7));
+  for (const [item, count] of Object.entries(lootItems).sort((a, b) => b[1] - a[1])) {
+    console.log('  ' + item.padEnd(30) + fmt(count).padStart(6) + fmt(count / durMin, 2).padStart(7));
+  }
+
+  // ---- PERFORMANCE ----
+  console.log('\n--- PERFORMANCE ---');
+  const perfSnaps = parsed.filter(e => e.cat === 'perf' && e.act === 'snapshot');
+  if (perfSnaps.length > 0) {
+    const fpsArr = perfSnaps.map(e => e.fps).filter(v => v > 0).sort((a, b) => a - b);
+    const enemyArr = perfSnaps.map(e => e.enemies || 0);
+    const projArr = perfSnaps.map(e => e.projectiles || 0);
+    const lootArr = perfSnaps.map(e => e.loot || 0);
+    console.log(`  FPS:  avg=${fmt(fpsArr.reduce((a, b) => a + b, 0) / fpsArr.length, 0)}  min=${fpsArr[0]}  p5=${fpsArr[Math.max(0, Math.ceil(fpsArr.length * 0.05) - 1)]}`);
+    console.log(`  Enemies:  avg=${fmt(enemyArr.reduce((a, b) => a + b, 0) / enemyArr.length, 0)}  peak=${Math.max(...enemyArr)}`);
+    console.log(`  Projectiles:  avg=${fmt(projArr.reduce((a, b) => a + b, 0) / projArr.length, 0)}  peak=${Math.max(...projArr)}`);
+    console.log(`  Loot on field:  avg=${fmt(lootArr.reduce((a, b) => a + b, 0) / lootArr.length, 0)}  peak=${Math.max(...lootArr)}`);
+
+    // FPS dips
+    const dips = perfSnaps.filter(e => e.fps < 55);
+    if (dips.length > 0) {
+      console.log(`\n  FPS dips (<55): ${dips.length} snapshots`);
+      for (const d of dips.slice(0, 5)) {
+        console.log(`    [${fmt(d.t / 1000)}s] ${d.fps} FPS | enemies=${d.enemies} proj=${d.projectiles} loot=${d.loot}`);
+      }
+    }
+  }
+}
+
+// ============================================================
 // CLI
 // ============================================================
 const [,, cmd, ...args] = process.argv;
@@ -502,7 +734,8 @@ switch (cmd) {
   case 'compare': args.length >= 2 ? compareSessions(args[0], args[1]) : console.log('Usage: compare <id1> <id2>'); break;
   case 'trends': printTrends(args.includes('--last') ? parseInt(args[args.indexOf('--last') + 1]) || 10 : 10); break;
   case 'tuning': printBalance(); break;
+  case 'details': printDetails(args[0]); break;
   case 'list': listAll(); break;
-  default: console.log(`Telemetry DB — Usage: import|summary|balance|compare|trends|tuning|list\nDB: ${DB_PATH}`);
+  default: console.log(`Telemetry DB — Usage: import|summary|balance|compare|trends|details|list\nDB: ${DB_PATH}`);
 }
 db.close();
