@@ -397,12 +397,8 @@ export class ProjectileSystem {
    * @private
    */
   _createGraphics() {
-    if (!this.scene || !this.scene.graphicsFactory) {
-      DebugLogger.warn('projectile', '[ProjectileSystem] GraphicsFactory not available, using fallback');
-      if (!this.scene.add) {
-        throw new Error('[ProjectileSystem] Scene not available for graphics creation');
-      }
-      return this.scene.add.graphics();
+    if (!this.scene?.graphicsFactory) {
+      throw new Error('[ProjectileSystem] GraphicsFactory not available — ensure BootstrapManager initialized it');
     }
     return this.scene.graphicsFactory.create();
   }

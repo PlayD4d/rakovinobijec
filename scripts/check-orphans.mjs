@@ -99,20 +99,41 @@ function shouldIgnore(filePath) {
   return false;
 }
 
-function getAllJsFiles(dir, baseDir = dir) {
+function getAllJsFiles(dir, baseDir = dir, { respectEntryPoints = true } = {}) {
   const files = [];
-  
+
   try {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       const relativePath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
-      
-      if (shouldIgnore(relativePath)) continue;
-      
+
+      // Always skip IGNORE_PATTERNS (node_modules, dist, etc.)
+      const normalized = relativePath.replace(/\\/g, '/');
+      let ignored = false;
+      for (const pattern of IGNORE_PATTERNS) {
+        if (normalized.includes(`/${pattern}/`) || normalized.startsWith(`${pattern}/`)) {
+          ignored = true;
+          break;
+        }
+      }
+      if (ignored) continue;
+
+      // Optionally skip entry points (for orphan checking but not import scanning)
+      if (respectEntryPoints) {
+        let isEntry = false;
+        for (const ep of ENTRY_POINTS) {
+          if (normalized.startsWith(ep)) {
+            isEntry = true;
+            break;
+          }
+        }
+        if (isEntry) continue;
+      }
+
       if (entry.isDirectory()) {
-        files.push(...getAllJsFiles(fullPath, baseDir));
+        files.push(...getAllJsFiles(fullPath, baseDir, { respectEntryPoints }));
       } else if (entry.isFile() && entry.name.endsWith('.js')) {
         files.push(relativePath);
       }
@@ -120,7 +141,7 @@ function getAllJsFiles(dir, baseDir = dir) {
   } catch (err) {
     console.warn(`Could not read directory ${dir}:`, err.message);
   }
-  
+
   return files;
 }
 
@@ -157,12 +178,17 @@ function extractImports(content, filePath) {
 // Main execution
 console.log('🔍 Checking for orphan files...\n');
 
-const jsFiles = getAllJsFiles(path.join(rootDir, 'js'), rootDir);
-console.log(`Found ${jsFiles.length} JavaScript files to check\n`);
+// Get files to CHECK for orphan status (excludes entry points)
+const jsFiles = getAllJsFiles(path.join(rootDir, 'js'), rootDir, { respectEntryPoints: true });
+console.log(`Found ${jsFiles.length} JavaScript files to check for orphan status\n`);
 
-// Build import map
+// Get ALL files including entry points for import scanning
+const allJsFiles = getAllJsFiles(path.join(rootDir, 'js'), rootDir, { respectEntryPoints: false });
+console.log(`Scanning ${allJsFiles.length} JavaScript files for imports\n`);
+
+// Build import map from ALL files (including entry points and scenes)
 const importedFiles = new Set();
-for (const file of jsFiles) {
+for (const file of allJsFiles) {
   const fullPath = path.join(rootDir, file);
   try {
     const content = fs.readFileSync(fullPath, 'utf8');
@@ -175,11 +201,11 @@ for (const file of jsFiles) {
   }
 }
 
-// Find orphans
+// Find orphans (only among non-entry-point files)
 const orphans = [];
 for (const file of jsFiles) {
   if (!importedFiles.has(file)) {
-    // Check if it's an entry point
+    // Check if it's an entry point (belt-and-suspenders check)
     let isEntry = false;
     for (const entry of ENTRY_POINTS) {
       if (file.startsWith(entry)) {
@@ -187,7 +213,7 @@ for (const file of jsFiles) {
         break;
       }
     }
-    
+
     if (!isEntry && file !== 'js/main.js' && !WHITELIST.includes(file)) {
       orphans.push(file);
     }

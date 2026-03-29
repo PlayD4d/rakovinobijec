@@ -1,6 +1,6 @@
 /**
  * Shared graphics factory helper for VFX effects (DRY — replaces 3 identical copies)
- * PR7: Tries GraphicsFactory first, falls back to scene.add.graphics
+ * PR7: REQUIRES GraphicsFactory — no silent fallbacks
  *
  * @param {Phaser.Scene} scene
  * @param {string} label - Effect name for debug logging
@@ -13,15 +13,7 @@ export function createGraphicsForEffect(scene, label = 'Effect') {
         return scene.graphicsFactory.create();
     }
 
-    if (scene.vfxSystem?._createGraphics) {
-        return scene.vfxSystem._createGraphics();
-    }
-
-    if (scene?.add?.graphics) {
-        DebugLogger.warn('vfx', `[${label}] Using scene.add.graphics fallback — needs GraphicsFactory`);
-        return scene.add.graphics();
-    }
-
-    DebugLogger.error('vfx', `[${label}] Cannot create graphics — no factory available`);
+    DebugLogger.error('vfx', `[${label}] GraphicsFactory not available — cannot create graphics`);
+    console.error(`[${label}] MISSING: scene.graphicsFactory — ensure BootstrapManager initialized GraphicsFactory`);
     return null;
 }

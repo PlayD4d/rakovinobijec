@@ -407,7 +407,7 @@ export class SimplifiedVFXSystem {
 
         // PR7: Use GraphicsFactory when available, fallback to direct create
         const gf = this.scene.graphicsFactory;
-        const graphics = gf ? gf.create() : this.scene.add.graphics();
+        const graphics = gf.create();
         graphics.fillStyle(0xFFFFFF);
         graphics.fillCircle(4, 4, 4);
         graphics.generateTexture('particle', 8, 8);
@@ -529,7 +529,7 @@ export class SimplifiedVFXSystem {
 
         // Layer 2: Expanding shockwave ring (Graphics + tween)
         const gf = this.scene.graphicsFactory;
-        const ring = gf ? gf.create() : this.scene.add.graphics();
+        const ring = gf.create();
         // Reset pooled Graphics state — alpha/scale may be 0 from previous tween
         ring.clear();
         ring.setAlpha(1);
@@ -557,7 +557,7 @@ export class SimplifiedVFXSystem {
         });
 
         // Layer 3: Brief center flash
-        const flash = gf ? gf.create() : this.scene.add.graphics();
+        const flash = gf.create();
         flash.clear();
         flash.setAlpha(1);
         flash.setScale(1);
@@ -604,7 +604,7 @@ export class SimplifiedVFXSystem {
         if (!this.scene.textures.exists(texKey)) {
             const size = 128; // Base texture size — scaled to match radius via sprite scale
             const gf = this.scene.graphicsFactory;
-            const g = gf ? gf.create() : this.scene.add.graphics();
+            const g = gf.create();
             g.clear();
             // Filled circle
             g.fillStyle(color, 0.25);
@@ -664,7 +664,7 @@ export class SimplifiedVFXSystem {
         const segments = opts.segments || 6;
 
         const gf = this.scene.graphicsFactory;
-        const g = gf ? gf.create() : this.scene.add.graphics();
+        const g = gf.create();
         g.clear();
         g.setAlpha(1);
         g.setScale(1);

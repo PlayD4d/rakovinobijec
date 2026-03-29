@@ -106,10 +106,10 @@ echo "================================================"
 LOC=$(wc -l < "$GAME_SCENE" | tr -d ' ')
 echo "📏 GameScene.js LOC: $LOC"
 
-if [ "$LOC" -le 1200 ]; then
-    echo "✅ LOC cíl splněn (≤ 1200)"
+if [ "$LOC" -le 500 ]; then
+    echo "✅ LOC cíl splněn (≤ 500)"
 else
-    echo "❌ LOC cíl nesplněn (cíl: ≤ 1200)"
+    echo "❌ LOC cíl nesplněn (cíl: ≤ 500)"
     ERRORS=$((ERRORS + 1))
 fi
 

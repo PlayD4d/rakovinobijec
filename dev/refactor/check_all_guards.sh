@@ -53,6 +53,33 @@ done
 echo "================================================"
 echo "📊 Zkontrolováno souborů: $TOTAL_FILES"
 
+# LOC check: flag any JS file in js/ over 500 lines
+# Exempt: js/core/testing/ and js/utils/ (test/debug files)
+echo ""
+echo "📏 Kontrola LOC limitu (max 500 řádků)..."
+echo "------------------------------------------------"
+LOC_VIOLATIONS=0
+while IFS= read -r FILE; do
+    # Skip exempt directories
+    if echo "$FILE" | grep -qE "^js/core/testing/|^js/utils/"; then
+        continue
+    fi
+    LOC=$(wc -l < "$FILE" | tr -d ' ')
+    if [ "$LOC" -gt 500 ]; then
+        echo "❌ $FILE — $LOC LOC (limit: 500)"
+        LOC_VIOLATIONS=$((LOC_VIOLATIONS + 1))
+        ERRORS=$((ERRORS + 1))
+    fi
+done < <(find js -name "*.js" -type f)
+
+if [ "$LOC_VIOLATIONS" -eq 0 ]; then
+    echo "✅ Všechny soubory splňují LOC limit"
+else
+    echo "❌ $LOC_VIOLATIONS souborů překračuje 500 LOC"
+fi
+
+echo "================================================"
+
 if [ "$ERRORS" -eq 0 ]; then
     echo "✅ Všechny guardy prošly!"
     exit 0
