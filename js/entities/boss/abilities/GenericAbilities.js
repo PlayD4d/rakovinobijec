@@ -129,12 +129,21 @@ export function executeAreaDamage(bossAbilities, abilityData, params) {
     const damage = abilityData.damage || 20;
     const center = params.center || { x: bossAbilities.boss.x, y: bossAbilities.boss.y };
 
-    // Create damage area - deleguje na ProjectileSystem nebo VFXSystem
-    if (bossAbilities.scene.vfxSystem) {
-        bossAbilities.scene.vfxSystem.createDamageArea(center.x, center.y, radius, damage);
+    // Deal damage to all enemies in radius using ExplosionHandler pattern
+    const scene = bossAbilities.scene;
+    const player = scene.player;
+    if (player?.active) {
+        const dx = player.x - center.x;
+        const dy = player.y - center.y;
+        if (dx * dx + dy * dy <= radius * radius) {
+            player.takeDamage(damage, bossAbilities.boss);
+        }
     }
 
-    bossAbilities.boss.spawnVfx('vfx.boss.area.explosion', center.x, center.y);
+    // Explosion VFX at damage area
+    if (scene.vfxSystem?.playExplosionEffect) {
+        scene.vfxSystem.playExplosionEffect(center.x, center.y, { color: 0xFF4400, radius });
+    }
     bossAbilities.boss.playSfx('sfx.boss.explosion');
 
     return true;
@@ -228,16 +237,45 @@ export function executeToxicCloud(bossAbilities, abilityData, params) {
     const damage = abilityData.damage || 5;
     const duration = abilityData.duration || 8000;
 
+    const scene = bossAbilities.scene;
+    const player = scene.player;
+
     for (let i = 0; i < cloudCount; i++) {
         const angle = (i / cloudCount) * Math.PI * 2;
         const distance = 120;
         const cloudX = bossAbilities.boss.x + Math.cos(angle) * distance;
         const cloudY = bossAbilities.boss.y + Math.sin(angle) * distance;
 
-        // Create toxic cloud - deleguje na VFXSystem
-        if (bossAbilities.scene.vfxSystem) {
-            bossAbilities.scene.vfxSystem.createToxicCloud(cloudX, cloudY, cloudRadius, damage, duration);
+        // Visual: expanding toxic circle using playExplosionEffect (green)
+        if (scene.vfxSystem?.playExplosionEffect) {
+            scene.vfxSystem.playExplosionEffect(cloudX, cloudY, {
+                color: 0x00FF00, radius: cloudRadius, duration: 600
+            });
         }
+
+        // Damage: periodic tick on player if in cloud radius (using scene.time)
+        const tickInterval = 500;
+        let ticks = 0;
+        const maxTicks = Math.floor(duration / tickInterval);
+        const timer = scene.time.addEvent({
+            delay: tickInterval,
+            repeat: maxTicks - 1,
+            callback: () => {
+                if (!player?.active) return;
+                const dx = player.x - cloudX;
+                const dy = player.y - cloudY;
+                if (dx * dx + dy * dy <= cloudRadius * cloudRadius) {
+                    player.takeDamage(damage, 'toxic_cloud');
+                }
+                ticks++;
+                // Re-pulse VFX every 2 ticks for lingering visual
+                if (ticks % 4 === 0 && scene.vfxSystem) {
+                    scene.vfxSystem.play('vfx.explosion.toxic', cloudX, cloudY);
+                }
+            }
+        });
+        // Track for cleanup if boss dies
+        bossAbilities._pendingTimers?.push(timer);
     }
 
     bossAbilities.boss.playSfx('sfx.boss.toxic');

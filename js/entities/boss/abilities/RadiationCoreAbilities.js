@@ -177,9 +177,12 @@ export function executeRapidBeams(bossAbilities, abilityData, params) {
     const damage = abilityData.damage || 8;
     const range = abilityData.range || 350;
 
+    // fireRate: blueprint may use seconds (0.3) or ms (300) — normalize to ms
+    let fireRateMs = abilityData.fireRate || 300;
+    if (fireRateMs < 10) fireRateMs *= 1000; // Convert seconds to ms
+
     for (let i = 0; i < beamCount; i++) {
-        // fireRate is in ms (blueprint convention) — no *1000 conversion
-        bossAbilities._schedule(i * (abilityData.fireRate || 300), () => {
+        bossAbilities._schedule(i * fireRateMs, () => {
             if (!player?.active) return;
             if (bossAbilities.scene?.vfxSystem) {
                 bossAbilities.scene.vfxSystem.play('boss.beam.warning', bossAbilities.boss.x, bossAbilities.boss.y);
