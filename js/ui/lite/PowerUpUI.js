@@ -205,8 +205,11 @@ export class PowerUpUI {
    */
   hide(onComplete) {
     if (this.hintTween) this.hintTween.pause();
-    this._selecting = false; // Reset double-click guard
-    this.modal.hide(false, 0, onComplete);
+    if (this.cards) this.cards.forEach(c => { if (c.disableInteractive) c.disableInteractive(); });
+    this.modal.hide(false, 0, () => {
+        this._selecting = false;
+        if (onComplete) onComplete();
+    });
   }
   
   /**

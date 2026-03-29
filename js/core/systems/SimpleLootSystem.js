@@ -40,6 +40,8 @@ export class SimpleLootSystem {
 
         // Generate item textures on initialization
         generateLootTextures(this.scene);
+
+        scene.events.once('shutdown', () => this.clearAll(), this);
     }
 
     // ==================== Drop Creation ====================
@@ -58,11 +60,13 @@ export class SimpleLootSystem {
         const dropType = blueprint.effect?.type || blueprint.category || blueprint.mechanics?.effectType || 'xp';
         const textureKey = blueprint.sprite || 'placeholder';
 
-        // Find non-overlapping position
+        // Find non-overlapping position (copy immediately — _posBuffer is shared/mutable)
         const pos = this._findPosition(x, y, dropType);
+        const spawnX = pos.x;
+        const spawnY = pos.y;
 
         // Phaser-native pool: get() returns first inactive member or creates new if pool allows
-        const drop = this.lootGroup.get(pos.x, pos.y, textureKey);
+        const drop = this.lootGroup.get(spawnX, spawnY, textureKey);
         if (!drop) {
             // Pool exhausted (maxSize reached) — skip silently
             return null;
@@ -70,7 +74,7 @@ export class SimpleLootSystem {
 
         // Configure the sprite (works for both new and recycled)
         drop.setActive(true).setVisible(true);
-        drop.enableBody(true, pos.x, pos.y, true, true);
+        drop.enableBody(true, spawnX, spawnY, true, true);
 
         drop.setTexture(textureKey);
 
@@ -101,12 +105,12 @@ export class SimpleLootSystem {
         }
 
         // Track position for item overlap prevention
-        this.recentDrops.push({ x: pos.x, y: pos.y, time: this.scene.time?.now || 0 });
+        this.recentDrops.push({ x: spawnX, y: spawnY, time: this.scene.time?.now || 0 });
         this._cleanupOldPositions();
 
         // Spawn VFX
         if (blueprint.vfx?.spawn && this.scene.vfxSystem) {
-            this.scene.vfxSystem.play(blueprint.vfx.spawn, pos.x, pos.y);
+            this.scene.vfxSystem.play(blueprint.vfx.spawn, spawnX, spawnY);
         }
 
         // Gentle scale pulse tween — items only (XP orbs stay static for visual calm)

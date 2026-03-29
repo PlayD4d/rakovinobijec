@@ -202,6 +202,13 @@ export class BossCore extends EnemyCore {
     }
     
     /**
+     * Set invulnerability state (used during phase transitions)
+     */
+    setInvulnerable(value) {
+        this._invulnerable = !!value;
+    }
+
+    /**
      * Override pro boss-specific cleanup
      */
     cleanup() {

@@ -6,7 +6,7 @@
 export function chase(cap, cfg, dt, mem, setState) {
     const speed = cfg?.speed || cap.speed || 100;
 
-    const player = cap.scene?.player;
+    const player = cap.getPlayer();
     if (!player?.active) return;
 
     const pos = cap.getPos();

@@ -279,6 +279,8 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * @param {{amount: number, source: any, type: string}} hit - Damage info
      */
     takeDamage(hit) {
+        if (this._invulnerable) return 0;
+
         const isObj = hit != null && typeof hit === 'object';
         let amount = isObj ? (hit.amount ?? 0) : (hit ?? 0);
         const source = isObj ? hit.source : null;

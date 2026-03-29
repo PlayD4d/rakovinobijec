@@ -298,42 +298,50 @@ export class Boss extends BossCore {
      */
     die(killer) {
         if (!this.active || this._deathProcessed) return;
-        getSession()?.log('boss', 'death', { bossId: this.blueprint?.id, killer });
+        try {
+            getSession()?.log('boss', 'death', { bossId: this.blueprint?.id, killer });
 
-        // Death VFX/SFX (while still visible — Boss handles its own, onEnemyDeath skips VFX for bosses)
-        this.spawnVfx('death');
-        this.playSfx('death');
+            // Death VFX/SFX (while still visible — Boss handles its own, onEnemyDeath skips VFX for bosses)
+            this.spawnVfx('death');
+            this.playSfx('death');
 
-        // Clear active telegraph warnings (boss ability circles still on screen)
-        if (this.scene?.vfxSystem?.clearTelegraphs) {
-            this.scene.vfxSystem.clearTelegraphs();
-        }
+            // Clear active telegraph warnings (boss ability circles still on screen)
+            if (this.scene?.vfxSystem?.clearTelegraphs) {
+                this.scene.vfxSystem.clearTelegraphs();
+            }
 
-        // Notify UI to hide boss HP bar (event-based, no direct scene reference)
-        if (this.scene?.events) {
-            this.scene.events.emit('boss:hide-hp');
-        }
+            // Notify UI to hide boss HP bar (event-based, no direct scene reference)
+            if (this.scene?.events) {
+                this.scene.events.emit('boss:hide-hp');
+            }
 
-        // Process loot/XP/stats BEFORE deactivating (needs position)
-        // _deathProcessed is NOT set yet — onEnemyDeath needs to process XP/loot/stats
-        if (this.scene.handleEnemyDeath) {
-            this.scene.handleEnemyDeath(this);
-        }
+            // Process loot/XP/stats BEFORE deactivating (needs position)
+            // _deathProcessed is NOT set yet — onEnemyDeath needs to process XP/loot/stats
+            if (this.scene.handleEnemyDeath) {
+                this.scene.handleEnemyDeath(this);
+            }
 
-        // NOW deactivate — prevents further damage/updates
-        this.setActive(false);
-        this.setVisible(false);
-        if (this.body) this.body.setEnable(false);
+            // NOW deactivate — prevents further damage/updates
+            this.setActive(false);
+            this.setVisible(false);
+            if (this.body) this.body.setEnable(false);
 
-        // Cleanup subsystems via single cleanup() method (DRY)
-        this.cleanup();
+            // Cleanup subsystems via single cleanup() method (DRY)
+            this.cleanup();
 
-        // Emit boss-specific event for level transition (after cleanup)
-        if (this.scene?.events) {
-            this.scene.events.emit('boss:die', {
-                bossId: this.blueprint?.id,
-                killer: killer
-            });
+            // Emit boss-specific event for level transition (after cleanup)
+            if (this.scene?.events) {
+                this.scene.events.emit('boss:die', {
+                    bossId: this.blueprint?.id,
+                    killer: killer
+                });
+            }
+        } finally {
+            if (this.active) {
+                this.setActive(false);
+                this.setVisible(false);
+            }
+            if (this.body) this.body.enable = false;
         }
     }
     

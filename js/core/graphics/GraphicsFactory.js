@@ -67,17 +67,13 @@ export class GraphicsFactory {
      * Clean up all graphics
      */
     cleanup() {
-        // Clear active graphics
-        this.activeGraphics.forEach(graphics => {
-            graphics.destroy();
-        });
+        const active = [...this.activeGraphics];
         this.activeGraphics.clear();
-        
-        // Clear pool
-        this.graphicsPool.forEach(graphics => {
-            graphics.destroy();
-        });
+        active.forEach(g => g.destroy());
+
+        const pooled = [...this.graphicsPool];
         this.graphicsPool = [];
+        pooled.forEach(g => g.destroy());
     }
     
     /** Alias for GameScene shutdown loop compatibility */

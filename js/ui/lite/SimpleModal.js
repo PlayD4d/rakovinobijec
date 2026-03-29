@@ -72,6 +72,7 @@ export class SimpleModal extends Phaser.GameObjects.Container {
   show(animated = true, duration = 250) {
     const paused = this.scene?.time?.paused === true;
 
+    this._hiding = false;
     this.setVisible(true);
 
     if (paused || !animated || !this.scene?.tweens) {
@@ -96,17 +97,20 @@ export class SimpleModal extends Phaser.GameObjects.Container {
    * Pause-safe: skips animation if time.paused
    */
   hide(animated = true, duration = 200, onComplete) {
-    // Guard against double-hide
+    // Guard against double-hide and concurrent hide animations
+    if (this._hiding) return Promise.resolve();
     if (!this.visible) {
       if (onComplete) onComplete();
       return Promise.resolve();
     }
+    this._hiding = true;
 
     const paused = this.scene?.time?.paused === true;
 
     if (paused || !animated || !this.scene?.tweens) {
       this.setVisible(false);
       this.alpha = 0;
+      this._hiding = false;
       if (onComplete) onComplete();
       return Promise.resolve();
     }
@@ -119,6 +123,7 @@ export class SimpleModal extends Phaser.GameObjects.Container {
         ease: 'Power2',
         onComplete: () => {
           this.setVisible(false);
+          this._hiding = false;
           if (onComplete) onComplete();
           resolve();
         }

@@ -6,7 +6,7 @@
  */
 
 export function shoot(cap, cfg, dt, mem, setState) {
-    const player = cap.scene?.player;
+    const player = cap.getPlayer();
     if (!player?.active) return;
 
     const pos = cap.getPos();

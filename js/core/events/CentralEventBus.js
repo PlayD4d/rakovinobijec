@@ -30,9 +30,6 @@ class CentralEventBus {
     /**
      * Emit namespaced event
      */
-    // Pre-allocated event object reused across emits (avoids per-emit allocation)
-    _eventObj = { name: '', data: null, timestamp: 0 };
-
     emit(eventName, data = null) {
         // Single split for both validation and namespace extraction
         const colonIdx = eventName ? eventName.indexOf(':') : -1;
@@ -56,11 +53,7 @@ class CentralEventBus {
         // Log event
         this.logEvent(eventName, data, timestamp);
 
-        // Reuse event object to avoid per-emit allocation
-        const evt = this._eventObj;
-        evt.name = eventName;
-        evt.data = data;
-        evt.timestamp = timestamp;
+        const evt = { name: eventName, data, timestamp };
 
         // Emit event + wildcard
         this.eventEmitter.emit(eventName, evt);

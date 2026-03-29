@@ -76,6 +76,12 @@ export class RadiotherapyEffect {
         // Create invisible circular physics zone for broadphase
         this._createDamageZone();
 
+        // Start looping sound if configured
+        if (this.scene?.audioSystem?.playLoop && this.config.loopSound) {
+            this.loopId = this.config.loopSound;
+            this.scene.audioSystem.playLoop(this.loopId);
+        }
+
         DebugLogger.info('vfx', `[Radiotherapy] Attached — ${this.beamCount} beams, range ${this.beamRange}, damage ${this.damage}`);
     }
 
@@ -97,8 +103,8 @@ export class RadiotherapyEffect {
             this.graphics = null;
         }
 
-        // Stop looping sound
-        if (this.loopId && this.scene.audioSystem) {
+        // Stop looping sound (if started)
+        if (this.loopId && this.scene?.audioSystem) {
             this.scene.audioSystem.stopLoop(this.loopId);
             this.loopId = null;
         }

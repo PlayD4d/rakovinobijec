@@ -73,10 +73,11 @@ export class EnemyProjectile extends Phaser.Physics.Arcade.Sprite {
     // Enable body and set position
     this.enableBody(true, spawnX, spawnY, true, true);
     
+    this.setCircle(2);
+
     // Configure physics body only on first use — values persist across pool recycles
     if (!this._bodyConfigured) {
       this.body.setAllowGravity(false);
-      this.setCircle(2);
       this.setCollideWorldBounds(true);
       this.body.onWorldBounds = true;
       this._bodyConfigured = true;

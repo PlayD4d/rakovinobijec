@@ -75,7 +75,7 @@ export class SFXPlayer {
         const key = this._extractSoundKey(soundPath);
         const sound = this.audioSystem.loopingSounds.get(key);
         if (sound) {
-            sound.stop();
+            if (sound.isPlaying) sound.stop();
             this.audioSystem.loopingSounds.delete(key);
         }
     }

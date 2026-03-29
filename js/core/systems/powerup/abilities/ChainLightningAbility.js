@@ -76,10 +76,9 @@ export class ChainLightningAbility {
 
         if (!closest) return;
 
-        // Start chain (use Set for O(1) lookups instead of Array.includes)
-        if (!this._chainHitSet) this._chainHitSet = new Set();
-        this._chainHitSet.clear();
-        this._chainToEnemy(closest, config.damage, config.jumps, config.jumpRange, this._chainHitSet);
+        // Start chain — fresh Set per chain to avoid stale entries from pending delayed callbacks
+        const chainSet = new Set();
+        this._chainToEnemy(closest, config.damage, config.jumps, config.jumpRange, chainSet);
     }
 
     /**

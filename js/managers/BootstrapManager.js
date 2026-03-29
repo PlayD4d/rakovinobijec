@@ -140,7 +140,7 @@ export class BootstrapManager {
         this.scene.events.on('resume', this._onResume);
 
         // Cross-scene event via CentralEventBus (auto-cleanup via context)
-        centralEventBus.on('game:powerup-selected', this._onPowerUpSelected, this);
+        centralEventBus.on('game:powerup-selected', this._onPowerUpSelected, this.scene);
 
         // Resize event (game-level — tracked for cleanup in GameScene.shutdown)
         const scale = this.scene.getScaleManager();
@@ -363,17 +363,6 @@ export class BootstrapManager {
             this.scene.disposables.add(this.scene.player);
         }
 
-        // Emit player spawned event
-        if (this.scene.eventBus) {
-            this.scene.eventBus.emit('player:spawned', { 
-                id: playerBlueprint.id,
-                position: { 
-                    x: scale.width / 2, 
-                    y: scale.height / 2 
-                }
-            });
-        }
-        
         // Phase 5: Managers
         this.initializeManagers();
         

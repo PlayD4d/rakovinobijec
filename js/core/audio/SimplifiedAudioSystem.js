@@ -190,7 +190,8 @@ export class SimplifiedAudioSystem {
         const firstKey = this.activeSounds.keys().next().value;
         if (firstKey) {
             const sound = this.activeSounds.get(firstKey);
-            if (sound) sound.stop();
+            this.activeSounds.delete(firstKey);
+            if (sound) { try { sound.stop(); } catch(e) {} }
         }
     }
 

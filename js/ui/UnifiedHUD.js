@@ -244,6 +244,7 @@ export class UnifiedHUD {
     // ─── Runtime API ─────────────────────────────────────────
 
     updateHP(current, max) {
+        if (this._destroyed) return;
         const percentage = Math.max(0, current / max);
         this.hpBar.width = (this.BAR_WIDTH - 4) * percentage;
         this.hpText.setText(`${Math.floor(current)}/${Math.floor(max)}`);
@@ -262,6 +263,7 @@ export class UnifiedHUD {
     }
 
     updateXP(current, max) {
+        if (this._destroyed) return;
         if (!max || max <= 0) return;
         const percentage = Math.min(1, current / max);
         this.xpBar.width = (this.BAR_WIDTH - 4) * percentage;
@@ -273,6 +275,7 @@ export class UnifiedHUD {
     }
 
     updateStats(stats) {
+        if (this._destroyed) return;
         if (stats.level !== undefined) {
             const stageStr = stats.stage ? ` | Stage: ${stats.stage}` : '';
             this.levelText.setText(`Level: ${stats.level}${stageStr}`);

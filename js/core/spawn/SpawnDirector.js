@@ -393,6 +393,16 @@ export class SpawnDirector {
         };
     }
 
+    destroy() {
+        this.stop();
+        this._xpRetuner = null;
+        this._ngPlusScaler = null;
+        this.eliteCooldowns?.clear();
+        this.uniqueCooldowns?.clear();
+        this.currentTable = null;
+        this.scene = null;
+    }
+
     /**
      * Get XP reward for a boss (with clamping) - delegates to XpRetuner
      */

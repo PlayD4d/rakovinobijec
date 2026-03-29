@@ -175,7 +175,7 @@ export class MainMenu extends Phaser.Scene {
     setupMenuKeyboardEvents() {
         centralEventBus.on('ui:menu-escape', () => {
             this.handleEscKey();
-        });
+        }, this);
 
         DebugLogger.info('menu', '[MainMenu] Menu keyboard event listeners registered');
     }

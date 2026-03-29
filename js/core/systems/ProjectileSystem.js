@@ -126,6 +126,8 @@ export class ProjectileSystem {
       return false;
     }
 
+    bullet.setVisible(false);
+
     // Get texture for this projectile
     bullet.setTexture(this._textureGen.getTexture(projectileId));
 
@@ -206,6 +208,8 @@ export class ProjectileSystem {
       }
       return false;
     }
+
+    bullet.setVisible(false);
 
     // Get texture for enemy projectile
     bullet.setTexture(this._textureGen.getTexture(projectileId));

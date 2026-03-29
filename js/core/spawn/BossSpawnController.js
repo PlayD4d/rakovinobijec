@@ -118,7 +118,7 @@ export function spawnBoss(director) {
     if (director._pendingBossTimer) director._pendingBossTimer.destroy();
     director._pendingBossTimer = director.scene.time.delayedCall(spawnDelay, () => {
         director._pendingBossTimer = null;
-        if (!director.running || !director.scene) return;
+        if (!director.running || !director.scene || !director.scene.scene?.isActive()) return;
         director.spawnEnemy(bossId, { boss: true });
         director.lastBossSpawn = director.gameTime;
         director.stats.bossSpawnCount++;

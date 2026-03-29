@@ -8,7 +8,7 @@
 export function idle(cap, cfg, dt, mem, setState) {
     // Vampire Survivors style: always chase the player
     // No detect range — if player exists, go chase
-    const player = cap.scene?.player;
+    const player = cap.getPlayer();
     if (player?.active) {
         setState('chase');
         return;

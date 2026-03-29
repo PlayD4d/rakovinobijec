@@ -165,8 +165,15 @@ export class TransitionManager {
             await executeLevelTransition(this, nextLevel);
         } catch (error) {
             DebugLogger.error('transition', '[TransitionManager] Level transition failed:', error);
-            this.resetTransitionState();
-            this.resetLevel();
+            try {
+                this.resetLevel();
+            } catch (resetError) {
+                DebugLogger.error('transition', '[TransitionManager] Reset also failed:', resetError);
+            }
+        } finally {
+            this.isTransitioning = false;
+            this.currentTransition = null;
+            this.flushAnalytics();
         }
     }
 

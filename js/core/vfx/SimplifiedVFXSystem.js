@@ -297,23 +297,31 @@ export class SimplifiedVFXSystem {
             follow: entity
         });
         
-        return {
+        const effect = {
             emitter,
+            _cleanupTimer: null,
             stop: () => {
                 emitter.stop();
-                if (this.scene && this.scene.time) {  // Check if scene and time exist
-                    this.scene.time.delayedCall(1000, () => {
+                if (this.scene && this.scene.time && this.scene.scene?.isActive()) {
+                    effect._cleanupTimer = this.scene.time.delayedCall(1000, () => {
+                        effect._cleanupTimer = null;
                         if (emitter && emitter.active) {
                             emitter.destroy();
                         }
                     });
                 } else if (emitter && emitter.active) {
-                    // If no time system, destroy immediately
                     emitter.destroy();
                 }
             },
-            destroy: () => { if (emitter?.active) emitter.destroy(); }
+            destroy: () => {
+                if (effect._cleanupTimer) {
+                    effect._cleanupTimer.destroy();
+                    effect._cleanupTimer = null;
+                }
+                if (emitter?.active) emitter.destroy();
+            }
         };
+        return effect;
     }
     
     /**
@@ -469,6 +477,7 @@ export class SimplifiedVFXSystem {
         
         // Clear power-up effects
         for (const effect of this.powerUpEffects.values()) {
+            if (effect.stop) effect.stop();
             if (effect.destroy) effect.destroy();
         }
         this.powerUpEffects.clear();

@@ -38,7 +38,7 @@ export function orbit(cap, cfg, dt, mem, setState) {
     }
     
     // Get player reference
-    const player = cap.scene?.player;
+    const player = cap.getPlayer();
     if (!player || !player.active) {
         // Lost player, return to idle
         setState('idle', { stickyMs: 300 });

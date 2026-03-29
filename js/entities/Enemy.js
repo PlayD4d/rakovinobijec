@@ -77,13 +77,12 @@ export class Enemy extends EnemyCore {
      * Override cleanup to include behaviors
      */
     cleanup() {
+        super.cleanup();
+
         if (this.behaviors) {
             this.behaviors.destroy();
             this.behaviors = null;
         }
-        
-        // Call parent cleanup
-        super.cleanup();
     }
 }
 

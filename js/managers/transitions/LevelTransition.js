@@ -47,10 +47,8 @@ export async function executeLevelTransition(tm, nextLevel) {
 
     // 8. Resume remaining game systems (spawns, enemies update, projectiles)
     tm.resumeGameSystems();
-    tm.isTransitioning = false;
-    tm.currentTransition = null;
 
-    // 8. Analytics
+    // 9. Analytics
     tm.logAnalytics('level_start', {
         level: nextLevel,
         playerStats: tm.getPlayerStats()

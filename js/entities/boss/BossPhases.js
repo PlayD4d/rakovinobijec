@@ -169,7 +169,7 @@ export class BossPhases {
         this.applyPhaseModifiers(phaseData);
         
         // Clear ability cooldowns for fresh start
-        this.boss.abilityCooldowns.clear();
+        if (this.boss?.abilityCooldowns) this.boss.abilityCooldowns.clear();
         
         // Spawn minions if specified
         if (phaseData.spawnMinions) {

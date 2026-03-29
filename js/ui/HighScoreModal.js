@@ -113,6 +113,9 @@ export class HighScoreModal {
         // Keyboard input
         this._setupKeyboard();
 
+        // Ensure cleanup on scene shutdown
+        this.scene.events.once('shutdown', () => this._cleanupInput(), this);
+
         // Blinking cursor
         this._cursorTimer = this.scene.time.addEvent({
             delay: 500, loop: true,

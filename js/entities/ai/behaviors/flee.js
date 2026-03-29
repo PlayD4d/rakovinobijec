@@ -36,7 +36,7 @@ export function flee(cap, cfg, dt, mem, setState) {
     }
     
     // Get player reference
-    const player = cap.scene?.player;
+    const player = cap.getPlayer();
     if (!player || !player.active) {
         // No threat, return to idle
         setState('idle', { stickyMs: 200 });

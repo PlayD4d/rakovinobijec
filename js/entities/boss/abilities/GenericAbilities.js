@@ -212,10 +212,14 @@ export function executeShield(bossAbilities, abilityData, params) {
  * Rage mode
  */
 export function executeRageMode(bossAbilities, abilityData, params) {
+    if (bossAbilities.boss._rageActive) return false;
+
     getSession()?.log('boss', 'ability_execute', { ability: 'rage_mode', speedMult: abilityData.speedMultiplier || 1.5, damageMult: abilityData.damageMultiplier || 1.3, duration: abilityData.duration || 8000 });
     const speedMultiplier = abilityData.speedMultiplier || 1.5;
     const damageMultiplier = abilityData.damageMultiplier || 1.3;
     const duration = abilityData.duration || 8000;
+
+    bossAbilities.boss._rageActive = true;
 
     // Store original values
     const originalSpeed = bossAbilities.boss.moveSpeed;
@@ -230,6 +234,7 @@ export function executeRageMode(bossAbilities, abilityData, params) {
     // Restore after duration (tracked for cleanup)
     bossAbilities._schedule(duration, () => {
         if (bossAbilities.boss) {
+            bossAbilities.boss._rageActive = false;
             bossAbilities.boss.moveSpeed = originalSpeed;
             bossAbilities.boss.damageMultiplier = originalDamage;
             if (bossAbilities.boss.clearTint) bossAbilities.boss.clearTint();
@@ -272,6 +277,7 @@ export function executeToxicCloud(bossAbilities, abilityData, params) {
         const tickInterval = 500;
         let ticks = 0;
         const maxTicks = Math.floor(duration / tickInterval);
+        if (maxTicks <= 0) continue;
         const timer = scene.time.addEvent({
             delay: tickInterval,
             repeat: maxTicks - 1,

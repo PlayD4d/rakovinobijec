@@ -253,6 +253,8 @@ export class ShieldRegeneration {
      * Cleanup
      */
     destroy() {
+        const player = this.scene?.player;
+        if (player) this.destroyShieldHitbox(player);
         this.scene = null;
         this.powerUpSystem = null;
     }

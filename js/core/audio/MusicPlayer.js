@@ -64,10 +64,12 @@ export class MusicPlayer {
                     duration: options.fadeOut,
                     onComplete: () => {
                         if (oldMusic.isPlaying) oldMusic.stop();
+                        oldMusic.destroy();
                     }
                 });
             } else {
                 if (oldMusic.isPlaying) oldMusic.stop();
+                oldMusic.destroy();
             }
         }
 
@@ -186,6 +188,7 @@ export class MusicPlayer {
         const as = this.audioSystem;
         if (as.currentMusic) {
             as.currentMusic.stop();
+            as.currentMusic.destroy();
             as.currentMusic = null;
         }
     }

@@ -49,7 +49,17 @@ export class GameScene extends Phaser.Scene {
         this.vfxSystem = null;
         this.audioSystem = null;
 
-        // Game stats (XP base from ConfigResolver)
+        // Mutable game state is reset in init() (runs on every start/restart)
+        this._lastTimeUi = 0;
+        this.levelStartTime = 0;
+        this.highScoreModal = null;
+
+        this.configResolver = window.ConfigResolver;
+        this.eventBus = centralEventBus;
+        this.keyboardManager = null;
+    }
+    
+    init() {
         const CR = window.ConfigResolver;
         const xpBase = CR ? CR.get('progression.xp.baseRequirement', { defaultValue: 8 }) : 8;
         this.gameStats = {
@@ -57,21 +67,15 @@ export class GameScene extends Phaser.Scene {
             enemiesKilled: 0, kills: 0, time: 0,
             bossesDefeated: 0, powerUpsCollected: 0
         };
-
-        // Timing & state
         this.sceneTimeSec = 0;
-        this._lastTimeUi = 0;
         this.isPaused = false;
         this.isGameOver = false;
         this.powerUps = [];
-        this.levelStartTime = 0;
-        this.highScoreModal = null;
-
-        this.configResolver = window.ConfigResolver;
-        this.eventBus = centralEventBus; // Shared singleton — Phaser recommended pattern
-        this.keyboardManager = null;
+        this.currentLevel = 1;
+        this.bossActive = false;
+        this._shutdownDone = false;
     }
-    
+
     preload() {
         DebugLogger.info('bootstrap', '[GameScene] Preload phase starting...');
         this._initializeBlueprintLoaderSync();
@@ -128,9 +132,6 @@ export class GameScene extends Phaser.Scene {
         
         // Complete BlueprintLoader initialization (async)
         await this._initializeBlueprintLoader();
-        
-        // Reset shutdown guard for potential scene restart
-        this._shutdownDone = false;
 
         // Store start time for XP scaling
         this.startTime = this.time.now;

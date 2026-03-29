@@ -11,6 +11,7 @@ export class ExplosionHandler {
    */
   constructor(scene) {
     this.scene = scene;
+    this._explosionCounter = 0;
   }
 
   /**
@@ -24,14 +25,13 @@ export class ExplosionHandler {
    * @param {number} _level - Power-up level (reserved for future scaling)
    * @returns {number} Number of enemies hit
    */
-  create(x, y, damage, radius, _level) {
+  create(x, y, damage, radius, _level, opts) {
     const enemiesGroup = this.scene.enemiesGroup;
     if (!enemiesGroup) return 0;
 
     const enemies = enemiesGroup.getChildren?.() || [];
     const radiusSquared = radius * radius;
-    // Timestamp as cheap unique ID to prevent double-hit in the same explosion
-    const explosionId = this.scene.time?.now || 0;
+    const explosionId = ++this._explosionCounter;
     let hitCount = 0;
 
     for (let i = 0, len = enemies.length; i < len; i++) {
@@ -62,7 +62,8 @@ export class ExplosionHandler {
       this.scene.vfxSystem.playExplosionEffect(x, y, { color: 0x44CCFF, radius: radius * 1.5 });
     }
     if (this.scene.audioSystem) {
-      this.scene.audioSystem.play('sound/explosion_small.mp3');
+      const sfxPath = opts?.sfx || 'sound/explosion_small.mp3';
+      this.scene.audioSystem.play(sfxPath);
     }
 
     return hitCount;

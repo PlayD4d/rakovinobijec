@@ -223,11 +223,12 @@ export class EnemyManager {
             }
         }
 
-        enemies.forEach(enemy => {
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const enemy = enemies[i];
             if (enemy?.active && enemy?.takeDamage) {
                 enemy.takeDamage(99999);
             }
-        });
+        }
     }
     
     /**

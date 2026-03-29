@@ -43,10 +43,11 @@ export class PlayerProjectile extends Phaser.Physics.Arcade.Sprite {
     // Enable body and set position/velocity
     this.enableBody(true, sx, sy, true, true);
 
+    this.setCircle(3);
+
     // Configure physics body only on first use — values persist across pool recycles
     if (!this._bodyConfigured) {
       this.body.setAllowGravity(false);
-      this.setCircle(3);
       this.setCollideWorldBounds(true);
       this.body.onWorldBounds = true;
       this._bodyConfigured = true;
@@ -86,7 +87,9 @@ export class PlayerProjectile extends Phaser.Physics.Arcade.Sprite {
    */
   kill() {
     if (!this.active) return; // Already killed, prevent double processing
-    
+
+    if (this._hitEnemies) this._hitEnemies.clear();
+
     // VFX: Detach particle trail with defensive check
     if (this.scene && this.scene.vfxSystem && typeof this.scene.vfxSystem.detachTrail === 'function') {
       this.scene.vfxSystem.detachTrail(this);

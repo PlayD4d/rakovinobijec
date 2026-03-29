@@ -67,16 +67,27 @@ export class GameUIScene extends Phaser.Scene {
         centralEventBus.on('ui:level-transition-show', this._onLevelTransitionShow, this);
 
         // Boss HP events from GameScene (scene.events, not CentralEventBus)
+        this._onBossHpUpdate = ({ hp, maxHp }) => this.hud?.setBossHealth(hp, maxHp);
+        this._onBossHideHp = () => this.hud?.hideBoss();
+        this._onBossShowHp = ({ name, hp, maxHp }) => this.hud?.showBoss(name, hp, maxHp);
+
         const gameScene = this.scene.get('GameScene');
         if (gameScene) {
-            gameScene.events.on('boss:hp-update', ({ hp, maxHp }) => this.hud?.setBossHealth(hp, maxHp), this);
-            gameScene.events.on('boss:hide-hp', () => this.hud?.hideBoss(), this);
-            gameScene.events.on('boss:show-hp', ({ name, hp, maxHp }) => this.hud?.showBoss(name, hp, maxHp), this);
+            gameScene.events.on('boss:hp-update', this._onBossHpUpdate, this);
+            gameScene.events.on('boss:hide-hp', this._onBossHideHp, this);
+            gameScene.events.on('boss:show-hp', this._onBossShowHp, this);
         }
     }
 
     _removeEventListeners() {
         centralEventBus.removeAllListeners(this);
+
+        const gameScene = this.scene.get('GameScene');
+        if (gameScene) {
+            gameScene.events.off('boss:hp-update', this._onBossHpUpdate, this);
+            gameScene.events.off('boss:hide-hp', this._onBossHideHp, this);
+            gameScene.events.off('boss:show-hp', this._onBossShowHp, this);
+        }
     }
 
     togglePause() {
@@ -137,16 +148,13 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         if (!gameScene) return;
 
-        // Emit selection and resume immediately for responsiveness
-        centralEventBus.emit('game:powerup-selected', selection);
-        gameScene.scene.resume();
-
-        // Defer input restoration until hide animation completes
-        // to prevent click-through during the 200ms fade
         this.powerUpUI.hide(() => {
             this.input.setTopOnly(false);
+            centralEventBus.emit('game:powerup-selected', selection);
+            gameScene.scene.resume();
         });
     }
+
 
     showGameOver(stats) {
         this.scene.bringToTop();
