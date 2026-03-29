@@ -1,0 +1,29 @@
+{
+  id: 'powerup.chain_lightning',
+  type: 'powerup',
+  stats: {
+    maxLevel: 5,
+  },
+  display: {
+    key: 'powerup.chain_lightning.name',
+    rarity: 'epic',
+    icon: '⚡',
+    color: '#4488FF',
+    devNameFallback: 'Řetězový blesk',
+    devDescFallback: 'Periodicky zasáhne nejbližšího nepřítele bleskem, který přeskakuje na další.',
+  },
+  ability: {
+    type: 'chain_lightning',
+    baseDamage: 15,
+    damagePerLevel: 10,
+    baseRange: 200,
+    jumpRange: 80,
+    interval: 2000,
+  },
+  vfx: {
+    pickup: 'vfx.effect',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+  },
+}

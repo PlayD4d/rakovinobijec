@@ -73,11 +73,13 @@ export class PowerUpOptionGenerator {
     // === PRIVATE METHODS ===
 
     _selectWeighted(options) {
+        // Flattened weights — all powerups have roughly equal chance to appear
+        // Rarity affects power, not visibility. Player should see the full arsenal.
         const rarityWeights = {
-            'common': 4,
+            'common': 2,
             'rare': 2,
-            'epic': 1,
-            'legendary': 0.5
+            'epic': 1.5,
+            'legendary': 1
         };
 
         const pool = options.map(option => ({
@@ -214,6 +216,12 @@ export class PowerUpOptionGenerator {
             parts.push(`dosah ${range}px • ${dmg} DMG`);
         } else if (ability?.type === 'chemo_aura') {
             parts.push(`${ability.chemoCloudDamage || 4} DMG/s oblak`);
+        } else if (ability?.type === 'chain_lightning') {
+            const dmg = (ability.baseDamage || 15) + (ability.damagePerLevel || 10) * (level - 1);
+            parts.push(`${dmg} DMG • ${level} přeskok${level > 1 ? 'y' : ''}`);
+        } else if (ability?.type === 'piercing') {
+            const pierces = ability.maxPierces?.[level - 1] || level;
+            parts.push(`průstřel ${pierces} nepřátel`);
         }
 
         return parts.length > 0 ? parts.join(' • ') : `Level ${level}`;
