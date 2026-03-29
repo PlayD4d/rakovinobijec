@@ -25,6 +25,17 @@ function applyPiercingReduction(bullet, baseDamage) {
     return baseDamage;
 }
 
+/** Trigger chemo_reservoir explosion if active (shared by enemy + boss handlers) */
+function handleChemoExplosion(scene, bullet, damage) {
+    if (!scene.player?.chemoAuraActive || !scene.player.chemoAuraConfig?.enableExplosions) return;
+    const explosionRadius = scene.player.getExplosionRadius ? scene.player.getExplosionRadius() : 35;
+    let explosionDamage = scene.player.getExplosionDamage ? scene.player.getExplosionDamage() : damage * 0.5;
+    explosionDamage = Number(explosionDamage) || (damage * 0.5);
+    if (scene.projectileSystem?.createExplosion) {
+        scene.projectileSystem.createExplosion(bullet.x, bullet.y, explosionDamage, explosionRadius, 1);
+    }
+}
+
 /** Handle bullet after hit: return to pool (kill) or increment hitCount for piercing */
 function handleBulletAfterHit(bullet) {
     if (!bullet.piercing || bullet.hitCount >= bullet.maxPiercing) {
@@ -222,23 +233,7 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
     if (s) s.log('combat', 'player_hit_enemy', { enemyId: enemy.blueprintId || enemy.type, damage, enemyHP: enemy.hp, killed: enemy.hp <= damage });
     enemy.takeDamage(damage);
 
-    // Handle explosive bullets from chemo_reservoir power-up
-    if (scene.player?.chemoAuraActive && scene.player.chemoAuraConfig?.enableExplosions) {
-        const explosionRadius = scene.player.getExplosionRadius ? scene.player.getExplosionRadius() : 35;
-        let explosionDamage = scene.player.getExplosionDamage ? scene.player.getExplosionDamage() : damage * 0.5;
-        explosionDamage = Number(explosionDamage) || (damage * 0.5);
-
-        // createExplosion handles VFX+SFX internally — no duplicate calls here
-        if (scene.projectileSystem?.createExplosion) {
-            scene.projectileSystem.createExplosion(
-                bullet.x, bullet.y,
-                explosionDamage,
-                explosionRadius,
-                1
-            );
-        }
-    }
-    
+    handleChemoExplosion(scene, bullet, damage);
     handleBulletAfterHit(bullet);
 
     // VFX/SFX - Silent fail mode
@@ -278,15 +273,7 @@ function handlePlayerBulletBossCollision(bullet, boss) {
     if (s) s.log('combat', 'player_hit_boss', { bossId: boss.blueprintId || boss.type, damage, bossHP: boss.hp, killed: boss.hp <= damage });
     if (boss.takeDamage) boss.takeDamage(damage);
 
-    // Handle explosive bullets from chemo_reservoir power-up (same as enemy handler)
-    if (scene.player?.chemoAuraActive && scene.player.chemoAuraConfig?.enableExplosions) {
-        const explosionRadius = scene.player.getExplosionRadius ? scene.player.getExplosionRadius() : 35;
-        let explosionDamage = scene.player.getExplosionDamage ? scene.player.getExplosionDamage() : damage * 0.5;
-        explosionDamage = Number(explosionDamage) || (damage * 0.5);
-        if (scene.projectileSystem?.createExplosion) {
-            scene.projectileSystem.createExplosion(bullet.x, bullet.y, explosionDamage, explosionRadius, 1);
-        }
-    }
+    handleChemoExplosion(scene, bullet, damage);
 
     // VFX/SFX hit feedback
     try {
