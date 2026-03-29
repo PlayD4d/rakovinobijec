@@ -334,21 +334,33 @@ function simulateRun(data, options = {}) {
       sim.shieldRechargeAt = time + sim.shieldRechargeTime;
     }
 
-    // --- LOOT DROPS ---
-    // Based on spawn table loot rates: ~0.8% health_small per kill
-    // Heal drops: 10 HP each, ~0.8% chance per kill
-    // Protein cache: full heal, ~0.4% chance
-    // Metotrexat: kills all normal enemies, ~0.05% chance
-    const recentKills = activeEnemies.length === 0 ? 0 : sim.kills; // proxy
-    if (sim.hp < sim.maxHp) {
-      // Simplified: every ~3 seconds, chance of picking up a heal drop on the field
-      if (Math.random() < 0.15 * (DT / 1000)) {
-        sim.heal(10); // health_small
+    // --- LOOT DROPS (v0.7.1 rates) ---
+    // Loot comes from kills (max 1 special drop per normal kill)
+    // Rates: leukocyte 0.4%, protein 0.1%, adrenal 0.35%, metotrexat 0.03%
+    // Magnet from elites: ~3%, from bosses: ~25%
+    // Simplified: model as per-second pickup chance based on kill rate
+    const killsThisTick = dmgThisTick > 0 ? Math.min(5, Math.floor(dmgThisTick / 20)) : 0;
+    for (let k = 0; k < killsThisTick; k++) {
+      // Heal drops (leukocyte_pack: 0.4% per kill, heals 10 HP)
+      if (Math.random() < 0.004 && sim.hp < sim.maxHp) {
+        sim.heal(10);
       }
-      if (Math.random() < 0.03 * (DT / 1000)) {
-        sim.heal(sim.maxHp); // protein_cache (full heal)
+      // Protein cache (0.1% per kill, full heal)
+      if (Math.random() < 0.001 && sim.hp < sim.maxHp) {
+        sim.heal(sim.maxHp);
+      }
+      // Metotrexat (0.03% per kill, kills all normal enemies)
+      if (Math.random() < 0.0003) {
+        activeEnemies = activeEnemies.filter(e => e.isBoss); // Kill all non-bosses
+        sim.kills += aliveCount;
       }
     }
+
+    // Magnet from elite kills (~3% from elites, instant XP collection)
+    // In sim, XP is already instant, so magnet is a no-op for balance
+    // But we track it for stats
+    if (!sim._magnetCount) sim._magnetCount = 0;
+    if (killsThisTick > 0 && Math.random() < 0.001) sim._magnetCount++;
 
     // --- TIMELINE SNAPSHOTS (every 30s) ---
     if (time % 30000 < DT) {

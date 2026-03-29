@@ -185,7 +185,8 @@ export class SimpleLootSystem {
 
         switch (effectType) {
             case 'xp': {
-                const xpValue = blueprint.effect?.value || loot.value || 1;
+                // loot.value holds exact enemy XP (overridden by createXPOrbs), blueprint.effect.value is tier default
+                const xpValue = loot.value || blueprint.effect?.value || 1;
                 this.scene.addXP?.(xpValue);
                 break;
             }

@@ -29,7 +29,9 @@ export function createXPOrbs(scene, x, y, totalXP) {
     else if (totalXP >= 2)  itemId = 'item.xp_tiny';
     else                    itemId = 'item.xp_small';
 
-    scene.lootSystem.createDrop(x, y, itemId);
+    const drop = scene.lootSystem.createDrop(x, y, itemId);
+    // Override gem value with exact enemy XP (tier is visual only, value is precise)
+    if (drop) drop.value = totalXP;
 }
 
 /**
