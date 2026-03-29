@@ -24,6 +24,7 @@ export class PowerUpSystem {
         
         // Track applied power-ups and their levels
         this.appliedPowerUps = new Map(); // powerUpId -> { blueprint, level, modifiers, abilities }
+        this.maxSlots = scene.configResolver.get('powerups.maxSlots', { defaultValue: 6 }) || 6;
         
         // Initialize sub-modules
         this.modifiers = new PowerUpModifiers(scene, this);

@@ -403,11 +403,20 @@ function simulateRun(data, options = {}) {
 function pickPowerup(sim, powerups, pool, forceBuild) {
   // Offer 3 random choices, pick the "best" one
   const choices = [];
+  // Slot limit: max 6 unique powerups (VS-style build system)
+  const MAX_SLOTS = 6;
+  const equippedIds = new Set([...sim.abilities.keys()].filter(id => (sim.abilities.get(id)?.level || 0) > 0));
+  const slotsFull = equippedIds.size >= MAX_SLOTS;
+
   const available = pool.filter(id => {
     const bp = powerups[id];
     const maxLvl = bp.stats?.maxLevel || 5;
     const current = sim.abilities.get(id);
-    return !current || current.level < maxLvl;
+    const currentLevel = current?.level || 0;
+    if (currentLevel >= maxLvl) return false;
+    // Slots full → only allow upgrades of already-equipped
+    if (slotsFull && currentLevel === 0) return false;
+    return true;
   });
 
   if (available.length === 0) {

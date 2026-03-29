@@ -20,34 +20,28 @@ export class PowerUpOptionGenerator {
     generatePowerUpOptions() {
         const allPowerUps = this.scene.blueprintLoader.getAll('powerup') || [];
         const options = [];
+        const applied = this.powerUpSystem.appliedPowerUps;
+        const maxSlots = this.powerUpSystem.maxSlots || 6;
+        const slotsUsed = applied.size;
+        const slotsFull = slotsUsed >= maxSlots;
 
-        DebugLogger.info('powerup', `[PowerUpOptionGenerator] Found ${allPowerUps.length} total powerup blueprints`);
+        DebugLogger.info('powerup', `[PowerUpOptionGenerator] ${allPowerUps.length} powerups, ${slotsUsed}/${maxSlots} slots used`);
 
         for (const blueprint of allPowerUps) {
-            if (!blueprint?.id) {
-                DebugLogger.warn('powerup', '[PowerUpOptionGenerator] Skipping blueprint without ID:', blueprint);
-                continue;
-            }
+            if (!blueprint?.id) continue;
+            if (blueprint.id.includes('template') || blueprint.id.includes('.bak')) continue;
 
-            // Skip templates and backup files
-            if (blueprint.id.includes('template') || blueprint.id.includes('.bak')) {
-                DebugLogger.debug('powerup', `[PowerUpOptionGenerator] Skipping template/backup: ${blueprint.id}`);
-                continue;
-            }
-
-            const current = this.powerUpSystem.appliedPowerUps.get(blueprint.id);
+            const current = applied.get(blueprint.id);
             const currentLevel = current?.level || 0;
             const maxLevel = blueprint.stats?.maxLevel || 10;
 
-            if (currentLevel >= maxLevel) {
-                DebugLogger.debug('powerup', `[PowerUpOptionGenerator] Skipping maxed powerup: ${blueprint.id} (${currentLevel}/${maxLevel})`);
-                continue;
-            }
+            // Skip maxed powerups
+            if (currentLevel >= maxLevel) continue;
+
+            // Slots full? Only allow UPGRADES of already-equipped powerups
+            if (slotsFull && currentLevel === 0) continue;
 
             const nextLevel = currentLevel + 1;
-            const nextValue = this._calculateValueForLevel(blueprint, nextLevel);
-
-            DebugLogger.debug('powerup', `[PowerUpOptionGenerator] Adding option: ${blueprint.id} (level ${currentLevel} -> ${nextLevel})`);
 
             options.push({
                 id: blueprint.id,
@@ -57,15 +51,16 @@ export class PowerUpOptionGenerator {
                 level: currentLevel,
                 nextLevel: nextLevel,
                 maxLevel: maxLevel,
-                value: nextValue,
+                value: this._calculateValueForLevel(blueprint, nextLevel),
                 icon: blueprint.display?.icon,
                 color: blueprint.display?.color,
                 stats: this._formatPowerUpStats(blueprint, nextLevel),
-                rarity: blueprint.display?.rarity || 'common'
+                rarity: blueprint.display?.rarity || 'common',
+                isNew: currentLevel === 0, // Visual indicator for new vs upgrade
             });
         }
 
-        DebugLogger.info('powerup', `[PowerUpOptionGenerator] Generated ${options.length} valid powerup options`);
+        DebugLogger.info('powerup', `[PowerUpOptionGenerator] ${options.length} options (slots ${slotsUsed}/${maxSlots}${slotsFull ? ' FULL — upgrades only' : ''})`);
 
         return this._selectWeighted(options);
     }

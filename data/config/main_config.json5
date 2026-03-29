@@ -88,6 +88,11 @@
     file: true
   },
   
+  // Powerup systém
+  powerups: {
+    maxSlots: 6,     // VS-style slot limit — player must choose build
+  },
+
   // Výkonnostní nastavení
   performance: {
     maxEnemies: 100,
