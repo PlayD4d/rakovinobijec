@@ -9,6 +9,17 @@ const MAX_SESSIONS = 3;
 const STORAGE_KEY = 'rakovinobijec_sessions';
 
 class SessionLog {
+    // Events that fire 10-50×/sec — aggregated into 1-second buckets
+    static AGGREGATE_EVENTS = new Set([
+        'xp:add',
+        'dmg:hit',
+        'combat:player_hit_enemy',
+        'combat:radiotherapy_hit',
+        'combat:chain_lightning_hit',
+        'combat:flamethrower_hit',
+        'combat:chemo_cloud_hit',
+    ]);
+
     constructor() {
         this.events = [];
         this.startTime = Date.now();
@@ -30,18 +41,66 @@ class SessionLog {
      */
     log(category, action, data = {}) {
         if (!this._enabled) return;
+
+        // High-frequency events are aggregated per second to reduce memory
+        // (xp:add, dmg:hit alone can produce 20+ events/sec)
+        const aggKey = `${category}:${action}`;
+        if (SessionLog.AGGREGATE_EVENTS.has(aggKey)) {
+            return this._logAggregated(category, action, data);
+        }
+
         this.events.push({
-            t: Date.now() - this.startTime, // relative ms
+            t: Date.now() - this.startTime,
             cat: category,
             act: action,
             ...data
         });
+    }
 
-        // Cap at 50000 events per session to prevent memory issues
-        // (5min session with 12 events/s ≈ 3600 events; 50k gives ~10× headroom)
-        if (this.events.length > 50000) {
-            this.events = this.events.slice(-40000);
+    /**
+     * Aggregate high-frequency events into 1-second buckets.
+     * Instead of 20 individual "xp:add" events per second, stores one summary.
+     */
+    _logAggregated(category, action, data) {
+        const now = Date.now() - this.startTime;
+        const bucket = Math.floor(now / 1000); // 1-second bucket
+        const key = `${category}:${action}`;
+
+        if (!this._aggBuckets) this._aggBuckets = new Map();
+        const prev = this._aggBuckets.get(key);
+
+        if (prev && prev.bucket === bucket) {
+            // Same second — aggregate
+            prev.count++;
+            if (data.damage || data.amt) prev.totalDmg = (prev.totalDmg || 0) + (data.damage || data.amt || 0);
+            if (data.scaled || data.raw) prev.totalXP = (prev.totalXP || 0) + (data.scaled || data.raw || 0);
+            if (data.absorbed) prev.totalAbsorbed = (prev.totalAbsorbed || 0) + data.absorbed;
+        } else {
+            // New second — flush previous bucket and start new
+            if (prev) this._flushAggBucket(key, prev);
+            this._aggBuckets.set(key, { bucket, t: now, cat: category, act: action, count: 1,
+                totalDmg: data.damage || data.amt || 0,
+                totalXP: data.scaled || data.raw || 0,
+                totalAbsorbed: data.absorbed || 0,
+                lastData: data });
         }
+    }
+
+    _flushAggBucket(key, agg) {
+        const entry = { t: agg.t, cat: agg.cat, act: agg.act, count: agg.count };
+        if (agg.totalDmg) entry.totalDmg = agg.totalDmg;
+        if (agg.totalXP) entry.totalXP = agg.totalXP;
+        if (agg.totalAbsorbed) entry.totalAbsorbed = agg.totalAbsorbed;
+        this.events.push(entry);
+    }
+
+    /** Flush any remaining aggregation buckets (called before export) */
+    flushAll() {
+        if (!this._aggBuckets) return;
+        for (const [key, agg] of this._aggBuckets) {
+            this._flushAggBucket(key, agg);
+        }
+        this._aggBuckets.clear();
     }
 
     // Shorthand methods
@@ -56,6 +115,7 @@ class SessionLog {
      * End session and save to localStorage
      */
     end(result = 'unknown') {
+        this.flushAll(); // Flush aggregated buckets before saving
         this.meta.endedAt = new Date().toISOString();
         this.meta.result = result;
         this.meta.duration = Date.now() - this.startTime;
@@ -169,6 +229,10 @@ if (typeof window !== 'undefined') {
     };
     window.DEV.exportSession = () => {
         // Export CURRENT running session if available, otherwise last saved
+        if (currentSession) {
+            // Flush aggregated buckets before export
+            currentSession.flushAll();
+        }
         if (currentSession && currentSession.events.length > 0) {
             const data = {
                 id: currentSession.sessionId,

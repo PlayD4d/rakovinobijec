@@ -149,6 +149,10 @@ function computeMetrics(sid, events) {
   const durationMin = duration / 60000;
   const insertMetric = db.prepare('INSERT OR REPLACE INTO metrics (session_id, metric, value, detail) VALUES (?, ?, ?, ?)');
 
+  // Helper: sum values from events that may be aggregated (count + totalDmg/totalXP)
+  const sumField = (evts, field) => evts.reduce((s, e) => s + (e[field] || e.totalDmg || 0), 0);
+  const countEvents = (evts) => evts.reduce((s, e) => s + (e.count || 1), 0);
+
   // --- Combat ---
   const kills = events.filter(e => e.cat === 'kill');
   const playerHits = events.filter(e => e.cat === 'combat' && (e.act === 'player_hit_enemy' || e.act === 'player_hit_boss'));
@@ -158,7 +162,8 @@ function computeMetrics(sid, events) {
   const contactDmg = events.filter(e => e.cat === 'collision' && e.act === 'contact_damage');
   const bulletHits = events.filter(e => e.cat === 'combat' && e.act === 'enemy_bullet_hit_player');
 
-  const totalDealt = playerHits.reduce((s, e) => s + (e.damage || 0), 0);
+  // Support both old format (individual events) and new (aggregated with count/totalDmg)
+  const totalDealt = playerHits.reduce((s, e) => s + (e.damage || e.totalDmg || 0), 0);
   const totalTaken = playerDmg.reduce((s, e) => s + (e.finalAmount || 0), 0);
   const totalHealed = heals.reduce((s, e) => s + (e.amount || 0), 0);
   const totalShield = shieldAbs.reduce((s, e) => s + (e.absorbed || 0), 0);
@@ -183,7 +188,7 @@ function computeMetrics(sid, events) {
   // --- Progression ---
   const levelUps = events.filter(e => e.cat === 'xp' && e.act === 'level_up');
   const xpAdds = events.filter(e => e.cat === 'xp' && e.act === 'add');
-  const totalXP = xpAdds.reduce((s, e) => s + (e.scaled || e.raw || 0), 0);
+  const totalXP = xpAdds.reduce((s, e) => s + (e.scaled || e.raw || e.totalXP || 0), 0);
   m['progression.total_xp'] = totalXP;
   m['progression.xp_per_min'] = durationMin > 0 ? totalXP / durationMin : 0;
   m['progression.level_ups'] = levelUps.length;
@@ -208,10 +213,11 @@ function computeMetrics(sid, events) {
   for (const p of powerups) insertPup.run(sid, p.t, p.id || '?', p.level || 0);
 
   // --- Abilities (radiotherapy, chain lightning, flamethrower, chemo hits) ---
-  const radioHits = events.filter(e => e.act === 'radiotherapy_hit').length;
-  const chainHits = events.filter(e => e.act === 'chain_lightning_hit').length;
-  const flameHits = events.filter(e => e.act === 'flamethrower_hit').length;
-  const chemoHits = events.filter(e => e.act === 'chemo_cloud_hit').length;
+  // Support aggregated events (count field) from SessionLog v0.6.0+
+  const radioHits = countEvents(events.filter(e => e.act === 'radiotherapy_hit'));
+  const chainHits = countEvents(events.filter(e => e.act === 'chain_lightning_hit'));
+  const flameHits = countEvents(events.filter(e => e.act === 'flamethrower_hit'));
+  const chemoHits = countEvents(events.filter(e => e.act === 'chemo_cloud_hit'));
   m['abilities.radiotherapy_hits'] = radioHits;
   m['abilities.chain_lightning_hits'] = chainHits;
   m['abilities.flamethrower_hits'] = flameHits;
