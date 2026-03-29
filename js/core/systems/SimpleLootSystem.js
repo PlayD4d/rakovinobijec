@@ -11,12 +11,13 @@ import { DebugLogger } from '../debug/DebugLogger.js';
 import { getSession } from '../debug/SessionLog.js';
 import { generateLootTextures } from './loot/LootTextureGenerator.js';
 
-const POOL_MAX_SIZE = 200;
+const POOL_MAX_SIZE = 120;
 const DEPTH_XP = 500;
 const DEPTH_ITEMS = 600;
 const PICKUP_RADIUS_SQ = 625; // 25²
-const MERGE_RADIUS_SQ = 900; // 30²
-const MERGE_INTERVAL = 2000; // ms
+const MERGE_RADIUS_SQ = 3600; // 60² — wider merge radius to catch scattered orbs
+const MERGE_INTERVAL = 1500; // ms — merge more frequently
+const FIELD_CAP = 80; // Max active loot on field — prevents visual clutter
 const MIN_SPACING_SQ = 225; // 15²
 
 export class SimpleLootSystem {
@@ -277,9 +278,10 @@ export class SimpleLootSystem {
 
     // ==================== Merge & Cap ====================
 
-    /** Merge nearby XP orbs: 5 small → 1 medium, 2 medium → 1 large */
+    /** Merge nearby XP orbs: 3 small → 1 medium, 2 medium → 1 large */
     _mergeNearbyXPOrbs(children) {
-        if (children.length < 10) return;
+        const activeCount = this.lootGroup.countActive();
+        if (activeCount < 8) return;
 
         const smalls = [];
         const mediums = [];
@@ -291,20 +293,22 @@ export class SimpleLootSystem {
         }
 
         let merged = 0;
+        // Scale merge limit with clutter — more aggressive when field is full
+        const maxMerges = activeCount > FIELD_CAP * 0.7 ? 20 : 10;
 
-        // 5 smalls → 1 medium
-        for (let i = 0; i < smalls.length && merged < 10; i++) {
+        // 3 smalls → 1 medium (was 5 — faster consolidation)
+        for (let i = 0; i < smalls.length && merged < maxMerges; i++) {
             const anchor = smalls[i];
             if (!anchor.active) continue;
             const cluster = [anchor];
-            for (let j = i + 1; j < smalls.length && cluster.length < 5; j++) {
+            for (let j = i + 1; j < smalls.length && cluster.length < 3; j++) {
                 const other = smalls[j];
                 if (!other.active) continue;
                 const dx = anchor.x - other.x;
                 const dy = anchor.y - other.y;
                 if (dx * dx + dy * dy < MERGE_RADIUS_SQ) cluster.push(other);
             }
-            if (cluster.length >= 5) {
+            if (cluster.length >= 3) {
                 const cx = anchor.x, cy = anchor.y;
                 for (let k = 0; k < cluster.length; k++) this._returnToPool(cluster[k]);
                 this.createDrop(cx, cy, 'item.xp_medium');
@@ -313,7 +317,7 @@ export class SimpleLootSystem {
         }
 
         // 2 mediums → 1 large
-        for (let i = 0; i < mediums.length && merged < 15; i++) {
+        for (let i = 0; i < mediums.length && merged < maxMerges + 5; i++) {
             const anchor = mediums[i];
             if (!anchor.active) continue;
             for (let j = i + 1; j < mediums.length; j++) {
@@ -337,19 +341,32 @@ export class SimpleLootSystem {
         }
     }
 
-    /** Remove oldest small XP orbs if over field cap */
+    /** Remove oldest XP orbs if over field cap — smalls first, then mediums */
     _enforceFieldCap(children) {
-        const maxDrops = this.scene.configResolver?.get('performance.maxDrops', { defaultValue: 150 }) || 150;
         const activeCount = this.lootGroup.countActive();
-        if (activeCount <= maxDrops) return;
+        if (activeCount <= FIELD_CAP) return;
 
-        let excess = activeCount - maxDrops;
+        let excess = activeCount - FIELD_CAP;
+
+        // Pass 1: remove smalls (lowest value)
         for (let i = 0; i < children.length && excess > 0; i++) {
             const loot = children[i];
             if (loot.active && loot.dropId === 'item.xp_small') {
                 this._returnToPool(loot);
                 excess--;
             }
+        }
+        // Pass 2: remove mediums if still over cap
+        for (let i = 0; i < children.length && excess > 0; i++) {
+            const loot = children[i];
+            if (loot.active && loot.dropId === 'item.xp_medium') {
+                this._returnToPool(loot);
+                excess--;
+            }
+        }
+
+        if (activeCount - this.lootGroup.countActive() > 0) {
+            getSession()?.log('loot', 'field_cap_trim', { removed: activeCount - this.lootGroup.countActive(), remaining: this.lootGroup.countActive() });
         }
     }
 
