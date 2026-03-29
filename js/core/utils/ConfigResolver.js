@@ -1,17 +1,16 @@
 /**
  * ConfigResolver - Bezpečný systém pro čtení konfiguračních hodnot
- * 
- * Zajišťuje jednotný přístup k hodnotám z blueprintů a GameConfig
- * bez hard-coded fallbacků rozptýlených po kódu.
- * 
+ *
+ * Zajišťuje jednotný přístup k hodnotám z blueprintů a externích konfigurací.
+ * Žádný tichý fallback na legacy GameConfig — chybějící data = hard fail.
+ *
  * Hierarchie zdrojů:
  * 1. Blueprint (pokud poskytnut)
- * 2. GameConfig
- * 3. Centrální fallback registry
+ * 2. Externí konfigurace (main_config.json5, managers_config.json5, atd.)
+ * 3. Centrální fallback registry (jen kritické boot hodnoty)
  * 4. Explicitní defaultValue
  */
 
-import { GameConfig } from '../../config.js';
 import { DebugLogger } from '../debug/DebugLogger.js';
 
 export class ConfigResolver {
@@ -74,15 +73,7 @@ export class ConfigResolver {
       }
     }
     
-    // 3. Pokus o GameConfig (pokud není zakázán)
-    if (source !== 'blueprint') {
-      const value = this._resolvePath(GameConfig, path);
-      if (value !== undefined) {
-        return value;
-      }
-    }
-
-    // 4. Centrální fallback registry
+    // 3. Centrální fallback registry
     const fallback = this._fallbacks[path];
     if (fallback !== undefined) {
       if (warnIfMissing && this._telemetry.enabled) {
@@ -92,7 +83,7 @@ export class ConfigResolver {
       return fallback;
     }
 
-    // 5. Explicitní defaultValue
+    // 4. Explicitní defaultValue
     if (defaultValue !== null) {
       if (warnIfMissing && this._telemetry.enabled) {
         DebugLogger.warn('bootstrap', `Missing value for '${path}', using provided default: ${defaultValue}`);
@@ -101,11 +92,11 @@ export class ConfigResolver {
       return defaultValue;
     }
 
-    // 6. Hodnota nenalezena nikde
-    if (warnIfMissing) {
-      DebugLogger.error('bootstrap', `No value found for '${path}' and no default provided`);
-      this._recordMissing(path);
-    }
+    // 5. Hodnota nenalezena nikde — hard fail
+    const msg = `[ConfigResolver] MISSING: '${path}' — not in blueprint, external configs, or fallbacks. No default provided.`;
+    DebugLogger.error('bootstrap', msg);
+    this._recordMissing(path);
+    console.error(msg);
     return undefined;
   }
 
@@ -135,13 +126,9 @@ export class ConfigResolver {
     }
 
     if (source === 'config' || source === 'any') {
-      // Check external configs (main, managers, features) first
       for (const config of Object.values(this._externalConfigs || {})) {
         if (config && this._resolvePath(config, path) !== undefined) return true;
       }
-      // Then check GameConfig
-      const value = this._resolvePath(GameConfig, path);
-      if (value !== undefined) return true;
     }
 
     return false;
