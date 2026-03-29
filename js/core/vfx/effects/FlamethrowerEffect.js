@@ -85,6 +85,9 @@ export class FlamethrowerEffect {
         this.graphics = this._createGraphics();
         if (this.graphics) {
             this.graphics.setDepth(entity.depth + 1);
+            this.graphics.setPosition(entity.x, entity.y);
+            this.graphics.rotation = entity.rotation || 0;
+            this._drawFlame(); // Initial draw — visible immediately on first frame
         }
         
         // Create Phaser physics overlap zone for broadphase damage detection

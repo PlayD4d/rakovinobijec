@@ -14,8 +14,8 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         if (!scene) throw new Error('[EnemyCore] Missing scene');
         if (!scene.configResolver) throw new Error('[EnemyCore] Missing ConfigResolver - PR7 requires DI');
         
-        // Use texture from blueprint or fallback
-        const textureKey = blueprint.texture || blueprint.type || 'enemy';
+        // Use texture from blueprint, spawnOpts, or fallback
+        const textureKey = blueprint.texture || spawnOpts?.texture || blueprint.type || 'enemy';
         const x = spawnOpts?.x || 0;
         const y = spawnOpts?.y || 0;
         

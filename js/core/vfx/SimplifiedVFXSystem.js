@@ -368,7 +368,8 @@ export class SimplifiedVFXSystem {
     _returnEmitterToPool(emitterId) {
         const emitter = this.activeEmitters.get(emitterId);
         if (emitter) {
-            emitter.stop();
+            emitter.stop(true); // kill all particles immediately
+            emitter.removeAllListeners('complete'); // prevent stale handlers on reuse
             this.activeEmitters.delete(emitterId);
 
             // Guard: don't pool a destroyed emitter (Phaser sets scene=null on destroy)
