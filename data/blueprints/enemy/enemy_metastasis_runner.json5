@@ -46,13 +46,14 @@
     },
   },
   ai: {
-    behavior: 'chase',
+    behavior: 'charge',
     params: {
-      aggroRange: 400,
-      wanderRadius: 100,
-      movePattern: 'hit_and_run',
-      targetPriority: 'player',
-      dashEnabled: true,
+      speed: 80,
+      dashSpeed: 300,
+      dashDuration: 500,
+      recoverDuration: 1000,
+      windupDuration: 800,
+      triggerRange: 180,
     },
   },
   display: {

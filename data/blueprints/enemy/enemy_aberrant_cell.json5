@@ -73,12 +73,12 @@
     },
   },
   ai: {
-    behavior: 'chase',
+    behavior: 'evasion',
     params: {
-      aggroRange: 320,
-      wanderRadius: 70,
-      movePattern: 'aberrant_wobble',
-      targetPriority: 'nearest',
+      speed: 80,
+      dodgeInterval: 700,
+      dodgeDuration: 300,
+      dodgeSpeedMul: 2.8,
     },
   },
   display: {

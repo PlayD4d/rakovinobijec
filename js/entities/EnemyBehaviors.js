@@ -18,9 +18,14 @@ import { shoot } from './ai/behaviors/shoot.js';
 import { flee } from './ai/behaviors/flee.js';
 import { patrol } from './ai/behaviors/patrol.js';
 import { orbit } from './ai/behaviors/orbit.js';
+import { charge } from './ai/behaviors/charge.js';
+import { explode } from './ai/behaviors/explode.js';
+import { shield_ally } from './ai/behaviors/shield_ally.js';
+import { swarm } from './ai/behaviors/swarm.js';
+import { evasion } from './ai/behaviors/evasion.js';
 
 // Behavior registry — all available behaviors
-const BEHAVIORS = { idle, chase, shoot, flee, patrol, orbit };
+const BEHAVIORS = { idle, chase, shoot, flee, patrol, orbit, charge, explode, shield_ally, swarm, evasion };
 
 // Default configs per behavior
 const DEFAULTS = {
@@ -29,7 +34,12 @@ const DEFAULTS = {
     patrol: { speed: 60, radius: 100, changeInterval: 2000 },
     orbit: { speed: 100, orbitRadius: 150, orbitSpeed: 1.5 },
     flee: { speed: 120, safeDistance: 300, panicDistance: 100 },
-    idle: {}
+    idle: {},
+    charge: { speed: 80, dashSpeed: 350, dashDuration: 400, recoverDuration: 1200, windupDuration: 500, triggerRange: 200 },
+    explode: { speed: 100, detonateRange: 30, fuseTime: 6000, warningTime: 1500 },
+    shield_ally: { speed: 70, orbitRadius: 50, orbitSpeed: 2.0, buffInterval: 3000, buffRange: 80 },
+    swarm: { speed: 90, separationDist: 25, cohesionWeight: 0.15, flankAngle: 0.4 },
+    evasion: { speed: 85, dodgeInterval: 800, dodgeDuration: 250, dodgeSpeedMul: 2.5 }
 };
 
 export class EnemyBehaviors {

@@ -35,12 +35,12 @@
     },
   },
   ai: {
-    behavior: 'chase',
+    behavior: 'explode',
     params: {
-      aggroRange: 380,
-      wanderRadius: 50,
-      movePattern: 'seek_player',
-      targetPriority: 'nearest',
+      speed: 70,
+      detonateRange: 35,
+      fuseTime: 8000,
+      warningTime: 2000,
     },
   },
   drops: [

@@ -45,13 +45,12 @@
     },
   },
   ai: {
-    behavior: 'chase',
+    behavior: 'swarm',
     params: {
-      aggroRange: 300,
-      wanderRadius: 80,
-      movePattern: 'swarm',
-      targetPriority: 'nearest',
-      swarmBehavior: true,
+      speed: 100,
+      separationDist: 20,
+      cohesionWeight: 0.2,
+      flankAngle: 0.5,
     },
   },
   display: {

@@ -33,13 +33,13 @@
     },
   },
   ai: {
-    behavior: 'patrol',
+    behavior: 'shield_ally',
     params: {
-      aggroRange: 380,
-      movePattern: 'orbit_enemies',
-      targetPriority: 'allies',
-      supportType: 'shield',
-      buffRadius: 120,
+      speed: 65,
+      orbitRadius: 45,
+      orbitSpeed: 1.8,
+      buffInterval: 2500,
+      buffRange: 100,
     },
   },
   drops: [

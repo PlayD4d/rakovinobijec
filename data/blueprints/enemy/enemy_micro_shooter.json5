@@ -5,7 +5,7 @@
     hp: 20,
     damage: 10,
     speed: 95,
-    size: 14,
+    size: 20,
     armor: 0,
     xp: 5,
   },
@@ -33,14 +33,10 @@
     },
   },
   ai: {
-    behavior: 'shoot',
-    params: {
-      aggroRange: 450,
-      attackRange: 280,
-      movePattern: 'kite_player',
-      targetPriority: 'nearest',
-      projectileType: 'projectile.cytotoxin_small',
-      shootInterval: 3500,
+    layers: { movement: 'orbit', combat: 'shoot' },
+    layerConfig: {
+      movement: { speed: 95, orbitRadius: 180, orbitSpeed: 1.2, fleeDistance: 60 },
+      combat: { cooldown: 2500, burstCount: 2, burstDelay: 150, speed: 220 },
     },
   },
   drops: [
