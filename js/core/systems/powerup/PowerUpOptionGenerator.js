@@ -68,18 +68,12 @@ export class PowerUpOptionGenerator {
     // === PRIVATE METHODS ===
 
     _selectWeighted(options) {
-        // Flattened weights — all powerups have roughly equal chance to appear
-        // Rarity affects power, not visibility. Player should see the full arsenal.
-        const rarityWeights = {
-            'common': 2,
-            'rare': 2,
-            'epic': 1.5,
-            'legendary': 1
-        };
-
+        // VS-style: all powerups have EQUAL chance to appear.
+        // Rarity affects power/scaling, NOT visibility in level-up selection.
+        // With 6-slot limit, player MUST see all options equally to make informed build choices.
         const pool = options.map(option => ({
             option,
-            weight: rarityWeights[option.rarity] || 1
+            weight: 1 // Equal weight for all
         }));
 
         const selected = [];
