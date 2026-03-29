@@ -554,13 +554,13 @@ export class SimplifiedVFXSystem {
     }
 
     /**
-     * Play a telegraph warning — pulsing circle that shows danger area before ability fires.
-     * Uses Phaser Graphics + tweens. Returns the Graphics object for caller to track.
+     * Play a telegraph warning — circle that shows danger area before ability fires.
+     * Phaser best practice: generateTexture once, then use lightweight Sprite + tween.
+     * No per-call Graphics rendering — texture is cached and shared.
      *
      * @param {number} x - Center X
      * @param {number} y - Center Y
-     * @param {object} opts - { radius, color, duration, fillAlpha, pulses }
-     * @returns {Phaser.GameObjects.Graphics|null}
+     * @param {object} opts - { radius, color, duration, fillAlpha }
      */
     playTelegraph(x, y, opts = {}) {
         if (!this.scene?.sys?.isActive()) return null;
@@ -569,36 +569,44 @@ export class SimplifiedVFXSystem {
         const radius = opts.radius || 80;
         const duration = opts.duration || 1000;
         const fillAlpha = opts.fillAlpha || 0.12;
-        const pulses = opts.pulses || 3;
 
-        const gf = this.scene.graphicsFactory;
-        const g = gf ? gf.create() : this.scene.add.graphics();
-        g.clear();
-        g.setAlpha(1);
-        g.setScale(1);
-        g.setPosition(x, y);
-        g.setDepth(this.scene.DEPTH_LAYERS?.VFX || 3000);
+        // Generate telegraph circle texture once per color (cached by Phaser texture manager)
+        const texKey = `_telegraph_${color.toString(16)}`;
+        if (!this.scene.textures.exists(texKey)) {
+            const size = 128; // Base texture size — scaled to match radius via sprite scale
+            const gf = this.scene.graphicsFactory;
+            const g = gf ? gf.create() : this.scene.add.graphics();
+            g.clear();
+            // Filled circle
+            g.fillStyle(color, 0.25);
+            g.fillCircle(size / 2, size / 2, size / 2 - 2);
+            // Stroke border
+            g.lineStyle(2, color, 0.8);
+            g.strokeCircle(size / 2, size / 2, size / 2 - 2);
+            g.generateTexture(texKey, size, size);
+            if (gf) gf.release(g); else g.destroy();
+        }
 
-        // Draw warning circle — filled area + stroke border
-        g.fillStyle(color, fillAlpha);
-        g.fillCircle(0, 0, radius);
-        g.lineStyle(2, color, 0.6);
-        g.strokeCircle(0, 0, radius);
+        // Lightweight sprite with pre-generated texture — much cheaper than Graphics per call
+        const scale = (radius * 2) / 128;
+        const sprite = this.scene.add.sprite(x, y, texKey);
+        sprite.setOrigin(0.5, 0.5);
+        sprite.setScale(scale);
+        sprite.setAlpha(fillAlpha > 0.2 ? 0.8 : 0.6);
+        sprite.setDepth(this.scene.DEPTH_LAYERS?.VFX || 3000);
 
-        // Single tween: pulse then fade — no nested tweens (prevents leak if inner fails)
+        // Single tween: scale pulse + fade out, then destroy sprite
         this.scene.tweens.add({
-            targets: g,
-            scaleX: { from: 0.85, to: 1.0 },
-            scaleY: { from: 0.85, to: 1.0 },
-            alpha: { from: 0.6, to: 0 },
+            targets: sprite,
+            scaleX: scale * 1.05,
+            scaleY: scale * 1.05,
+            alpha: 0,
             duration: duration,
             ease: 'Sine.easeOut',
-            onComplete: () => {
-                if (gf) gf.release(g); else g.destroy();
-            }
+            onComplete: () => sprite.destroy()
         });
 
-        return g;
+        return sprite;
     }
 
     /**
