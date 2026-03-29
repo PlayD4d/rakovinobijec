@@ -72,29 +72,23 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
             this.setTint(blueprint.visuals.tint);
         }
         
-        // Physics setup
+        // Add to scene — physics body is configured by EnemyManager after group.add()
         scene.add.existing(this);
         scene.physics.add.existing(this);
-        this.body.setAllowGravity(false);
-        this.body.setCollideWorldBounds(false);
-        
-        // Circular collision
-        const radius = Math.max(6, Math.floor(Math.min(this.displayWidth, this.displayHeight) * 0.45));
-        this.setCircle(radius);
-        
+
         // Per-enemy timer tracking for cleanup on death
         this._trackedTimers = [];
-        
+
         // Store spawn position for patrol behavior
         this.spawnX = x;
         this.spawnY = y;
 
         // Reusable position buffer — avoids allocating {x,y} every getPos() call
         this._posBuffer = { x: 0, y: 0 };
-        
+
         // Cooldowns
         this.lastShootTime = 0;
-        this.flashTween = null;
+        this._flashTimer = null;
     }
     
     // ========= CAPABILITY METHODS =========
@@ -338,15 +332,15 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * Flash effect when hit
      */
     flashEffect() {
-        if (this.flashTween) return;
+        if (this._flashTimer) return;
 
         const originalTint = this.tintTopLeft;
         this.setTint(0xffffff);
 
         // Use scene.time for pause-aware flash reset (no tween needed for simple tint toggle)
         if (this.scene?.time) {
-            this.flashTween = this.scene.time.delayedCall(100, () => {
-                this.flashTween = null;
+            this._flashTimer = this.scene.time.delayedCall(100, () => {
+                this._flashTimer = null;
                 if (this.active) this.setTint(originalTint || 0xffffff);
             });
         } else {
@@ -360,10 +354,15 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * Clean up
      */
     cleanup() {
+        // Kill any external tweens targeting this sprite (VFX, loot animations, etc.)
+        if (this.scene?.tweens) {
+            this.scene.tweens.killTweensOf(this);
+        }
+
         // Cancel flash timer
-        if (this.flashTween) {
-            try { this.flashTween.destroy?.(); } catch (_) {}
-            this.flashTween = null;
+        if (this._flashTimer) {
+            try { this._flashTimer.destroy?.(); } catch (_) {}
+            this._flashTimer = null;
         }
 
         // Cancel all tracked timers

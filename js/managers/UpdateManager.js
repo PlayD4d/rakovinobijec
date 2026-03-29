@@ -411,18 +411,8 @@ export class UpdateManager {
             }
         }
 
-        // Cleanup old loot (inactive items left on field)
-        const lootGroup = this.scene.lootSystem?.lootGroup;
-        if (lootGroup) {
-            const children = lootGroup.getChildren();
-            for (let i = children.length - 1; i >= 0; i--) {
-                const child = children[i];
-                if (child && !child.active) {
-                    child.destroy();
-                    cleaned++;
-                }
-            }
-        }
+        // Loot group uses Phaser-native pooling — inactive items are pool members, not garbage.
+        // Do NOT destroy them here; they are reused by lootGroup.get().
 
         if (cleaned > 0) {
             getSession()?.log('perf', 'cleanup', { cleaned, enemies: enemiesGroup?.children?.size || 0, loot: lootGroup?.children?.size || 0 });

@@ -131,7 +131,7 @@ export class EnemyBehaviors {
         if (!this.enemy.active || this.enemy.hp <= 0) return;
 
         const dt = delta / 1000;
-        const cap = this.createCapability();
+        const cap = this._getCapability();
         cap.now = time;
 
         // Run each active layer — index loop avoids iterator allocation
@@ -189,7 +189,9 @@ export class EnemyBehaviors {
             spawnVfx: (id, at, opts) => enemy.spawnVfx(id, at, opts),
             schedule: (fn, ms) => enemy.schedule(fn, ms),
             getState: () => this.state,
-            scene: enemy.scene,
+            // Focused accessors instead of raw scene reference (architecture rule enforcement)
+            scene: enemy.scene, // TODO: remove once all behaviors migrated to getPlayer()
+            getPlayer: () => enemy.scene?.player,
             damage: enemy.damage,
             speed: enemy.speed,
             spawnX: enemy.spawnX,
@@ -198,11 +200,11 @@ export class EnemyBehaviors {
         };
     }
 
-    createCapability() {
+    /** Refresh and return the pre-built capability — zero allocation per frame */
+    _getCapability() {
         const cap = this._capability;
         cap.damage = this.enemy.damage;
         cap.speed = this.enemy.speed;
-        // cap.scene set once in _buildCapability — no per-frame write needed
         return cap;
     }
 

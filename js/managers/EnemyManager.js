@@ -101,11 +101,10 @@ export class EnemyManager {
         boss.setTexture(textureKey);
         boss.setDisplaySize(size, size);
         
-        // Show boss health bar
-        const hud = this.scene.scene.get('GameUIScene')?.hud;
-        if (hud?.showBoss) {
+        // Notify UI to show boss health bar (event-based scene communication)
+        if (this.scene.events) {
             const bossName = blueprint.display?.devNameFallback || boss.bossName || blueprint.id;
-            hud.showBoss(bossName, boss.hp, boss.maxHp);
+            this.scene.events.emit('boss:show-hp', { name: bossName, hp: boss.hp, maxHp: boss.maxHp });
         }
         
         DebugLogger.info('spawn', `[EnemyManager] Boss spawned: ${blueprint.id} at (${Math.round(x)},${Math.round(y)}) HP=${boss.hp}`);

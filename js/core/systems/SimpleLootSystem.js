@@ -1,410 +1,298 @@
 /**
- * SimpleLootSystem - Jednoduchý, efektivní loot systém
+ * SimpleLootSystem - Phaser-native loot pooling system
  * PR7 compliant - vše řízeno blueprinty
- * 
- * Nahrazuje: LootSystem, LootBootstrap, LootDropManager, LootSystemIntegration
+ *
+ * Uses Phaser Group pooling: get() reuses inactive sprites, disableBody() returns to pool.
+ * Pickup detection via physics.add.overlap (registered in setupCollisions.js).
+ * XP magnet attraction in update() (no Phaser native equivalent).
  */
 
 import { DebugLogger } from '../debug/DebugLogger.js';
 import { getSession } from '../debug/SessionLog.js';
 import { generateLootTextures } from './loot/LootTextureGenerator.js';
 
+const POOL_MAX_SIZE = 200;
+const DEPTH_XP = 500;
+const DEPTH_ITEMS = 600;
+const PICKUP_RADIUS_SQ = 625; // 25²
+const MERGE_RADIUS_SQ = 900; // 30²
+const MERGE_INTERVAL = 2000; // ms
+const MIN_SPACING_SQ = 225; // 15²
+
 export class SimpleLootSystem {
     constructor(scene) {
-        // PR7: PowerUpSystem integration for magnet effects
-        // Note: PowerUpSystem is optional as loot can work without power-ups
-        
         this.scene = scene;
-        // Arcade Physics: overlap is registered in setupCollisions, no broadphase categories needed
-        this.lootGroup = scene.physics.add.group();
         this.blueprintLoader = scene.blueprintLoader;
-        
-        // Depth layers for different drop types
-        this.DEPTH_LAYERS = {
-            XP_ORBS: 500,      // XP orbs at bottom
-            ITEM_DROPS: 600    // Items above XP orbs
-        };
-        
-        // Track recent drop positions to prevent overlap
+
+        // Phaser physics group with maxSize — native pool: get() reuses inactive, disableBody() returns
+        this.lootGroup = scene.physics.add.group({ maxSize: POOL_MAX_SIZE });
+
+        // Position overlap prevention for item drops
         this.recentDrops = [];
-        this.dropCleanupTime = 5000; // Clear old positions after 5 seconds
-        this.minSpacing = 15; // Minimum pixels between drops
-        
-        // PR7: No hardcoded values - everything from PowerUpManager
-        
+        this._dropCleanupTime = 5000;
+
+        // Merge/cap timing
+        this._lastMergeCheck = 0;
+
+        // Pre-allocated position buffer for findNonOverlappingPosition
+        this._posBuffer = { x: 0, y: 0 };
+
         // Generate item textures on initialization
         generateLootTextures(this.scene);
-
-        // PR7: SimpleLootSystem initialized
     }
-    
+
+    // ==================== Drop Creation ====================
+
     /**
-     * Create a drop at position
+     * Create or recycle a loot drop at position.
+     * Uses Phaser Group.get() for native pool reuse — no new sprite allocation when pool has inactive members.
      */
     createDrop(x, y, dropId, options = {}) {
-        // Use dropId as-is - blueprints already use correct format (item.health_small, item.xp_small)
-        
-        // Get blueprint - use get() method instead of getBlueprint()
         const blueprint = this.blueprintLoader?.get(dropId);
         if (!blueprint) {
             DebugLogger.warn('loot', `Blueprint not found: ${dropId}`);
             return null;
         }
-        
-        // Determine drop type from blueprint
+
         const dropType = blueprint.effect?.type || blueprint.category || blueprint.mechanics?.effectType || 'xp';
-        
-        // Adjust position to prevent overlap with existing drops
-        const adjustedPos = this.findNonOverlappingPosition(x, y, dropType);
-        
-        // Create drop sprite
-        const drop = this.scene.physics.add.sprite(adjustedPos.x, adjustedPos.y, blueprint.sprite || 'placeholder');
-        // PR7: Use scale from blueprint graphics configuration, no hardcoded values
+        const textureKey = blueprint.sprite || 'placeholder';
+
+        // Find non-overlapping position
+        const pos = this._findPosition(x, y, dropType);
+
+        // Phaser-native pool: get() returns first inactive member or creates new if pool allows
+        const drop = this.lootGroup.get(pos.x, pos.y, textureKey);
+        if (!drop) {
+            // Pool exhausted (maxSize reached) — skip silently
+            return null;
+        }
+
+        // Configure the sprite (works for both new and recycled)
+        drop.setActive(true).setVisible(true);
+        drop.enableBody(true, pos.x, pos.y, true, true);
+
         const scale = blueprint.graphics?.scale || 1.0;
         drop.setScale(scale);
+        drop.setTexture(textureKey);
+        drop.setDepth(dropType === 'xp' ? DEPTH_XP : DEPTH_ITEMS);
+
+        // Stamp loot data on sprite
         drop.dropId = dropId;
         drop.blueprint = blueprint;
         drop.dropType = dropType;
         drop.value = blueprint.effect?.value || blueprint.stats?.value || 1;
-        
-        // Set depth based on drop type - items always above XP orbs
-        if (dropType === 'xp') {
-            drop.setDepth(this.DEPTH_LAYERS.XP_ORBS);
-        } else {
-            drop.setDepth(this.DEPTH_LAYERS.ITEM_DROPS);
-        }
-        
-        // Track this drop position
-        this.recentDrops.push({
-            x: adjustedPos.x,
-            y: adjustedPos.y,
-            time: this.scene?.time?.now || 0
-        });
-        
-        // Clean up old positions
-        this.cleanupOldPositions();
-        
-        getSession()?.log('loot', 'drop_created', { dropId, dropType, value: drop.value, x: Math.round(adjustedPos.x), y: Math.round(adjustedPos.y) });
 
-        // Add to group
-        this.lootGroup.add(drop);
-        
-        // Ensure physics body is properly configured
+        // Physics body config — persists across recycles but texture/size may change
         if (drop.body) {
-            drop.body.setCollideWorldBounds(false); // Allow XP orbs to be pulled through walls
-            drop.body.setDrag(50); // Small drag to make movement smoother
-            drop.body.setBounce(0.1); // Small bounce on collision
-            
-            // DEBUG: Verify physics body exists
-            if (Math.random() < 0.01) {
-                DebugLogger.verbose('loot', ` ✅ Created ${dropType} drop with physics body:`, {
-                    hasBody: !!drop.body,
-                    bodyEnabled: drop.body?.enabled,
-                    position: `(${Math.round(drop.x)}, ${Math.round(drop.y)})`,
-                    dropId: dropId
-                });
-            }
-        } else {
-            DebugLogger.error('loot', `❌ Drop created without physics body!`, dropId);
+            drop.body.setCollideWorldBounds(false);
+            drop.body.setDrag(50);
+            drop.body.setBounce(0.1);
+            drop.body.setVelocity(0, 0);
         }
-        
-        // Visual effects
+
+        // Track position for item overlap prevention
+        this.recentDrops.push({ x: pos.x, y: pos.y, time: this.scene.time?.now || 0 });
+        this._cleanupOldPositions();
+
+        // Spawn VFX
         if (blueprint.vfx?.spawn && this.scene.vfxSystem) {
-            this.scene.vfxSystem.play(blueprint.vfx.spawn, x, y);
+            this.scene.vfxSystem.play(blueprint.vfx.spawn, pos.x, pos.y);
         }
-        
-        // Gentle scale pulse (no position tweens — those conflict with physics body)
-        if (this.scene?.tweens) {
+
+        // Gentle scale pulse tween
+        if (this.scene.tweens) {
             this.scene.tweens.add({
                 targets: drop,
-                scaleX: 1.15,
-                scaleY: 1.15,
+                scaleX: scale * 1.15,
+                scaleY: scale * 1.15,
                 duration: 600,
                 yoyo: true,
                 repeat: 2,
                 ease: 'Sine.easeInOut'
             });
         }
-        
+
         return drop;
     }
-    
+
+    // ==================== Enemy Death Drops ====================
+
     /**
-     * Handle enemy death - create drops from spawn table lootTables + per-enemy blueprint drops
-     *
-     * Flow:
-     * 1. Determine enemy category (boss/elite/unique/normal)
-     * 2. Roll spawn table lootTable for that category → create drops
-     * 3. Roll per-enemy blueprint.drops (bonus/unique drops) → create bonus drops
-     * 4. XP orbs are handled separately by EnemyManager.onEnemyDeath
+     * Handle enemy death — roll spawn table lootTables + per-enemy blueprint drops.
+     * XP orbs are handled separately by EnemyManager.onEnemyDeath → createXPOrbs.
      */
     handleEnemyDeath(enemy) {
         const enemyId = enemy.blueprintId || enemy.blueprint?.id || enemy.type;
-        DebugLogger.debug('loot', '🎯 handleEnemyDeath called for:', enemyId);
 
-        // --- Step 1: Determine enemy category ---
+        // Determine enemy category
         let category = 'normal';
         const bpType = enemy.blueprint?.type;
-        if (bpType === 'boss') {
-            category = 'boss';
-        } else if (enemy.isElite || bpType === 'elite') {
-            category = 'elite';
-        } else if (enemy.isUnique || bpType === 'unique') {
-            category = 'elite'; // unique uses elite loot table
-        }
+        if (bpType === 'boss') category = 'boss';
+        else if (enemy.isElite || bpType === 'elite') category = 'elite';
+        else if (enemy.isUnique || bpType === 'unique') category = 'elite';
 
-        // --- Step 2: Roll spawn table lootTable drops ---
-        const spawnDirector = this.scene.spawnDirector;
-        const lootTables = spawnDirector?.currentTable?.lootTables;
-
-        if (lootTables && lootTables[category]) {
-            const table = lootTables[category];
-            DebugLogger.debug('loot', `📋 Rolling lootTable [${category}] with ${Object.keys(table).length} entries`);
-
-            for (const [itemRef, chance] of Object.entries(table)) {
-                // Skip XP — handled separately by EnemyManager.onEnemyDeath → createXPOrbs
-                if (itemRef.startsWith('drop.xp')) continue;
-
-                // Chances in lootTables are percentages (0-100)
+        // Roll spawn table lootTable drops
+        const lootTables = this.scene.spawnDirector?.currentTable?.lootTables;
+        if (lootTables?.[category]) {
+            for (const [itemRef, chance] of Object.entries(lootTables[category])) {
+                if (itemRef.startsWith('drop.xp')) continue; // XP handled separately
                 if (Math.random() * 100 >= chance) continue;
 
                 const itemId = this._resolveItemId(itemRef);
-                if (!itemId) {
-                    DebugLogger.verbose('loot', `⚠️ Unresolved lootTable ref: ${itemRef}`);
-                    continue;
-                }
+                if (!itemId) continue;
 
-                DebugLogger.debug('loot', `💎 LootTable drop: ${itemRef} → ${itemId}`);
                 this.createDrop(enemy.x, enemy.y, itemId);
                 getSession()?.log('loot', 'table_drop', { category, itemRef, itemId, enemy: enemyId });
             }
-        } else {
-            DebugLogger.verbose('loot', `No lootTable found for category [${category}]`);
         }
 
-        // --- Step 3: Roll per-enemy blueprint drops (bonus drops) ---
+        // Roll per-enemy blueprint drops
         if (enemy.blueprint?.drops?.length > 0) {
-            DebugLogger.debug('loot', `🎁 Rolling ${enemy.blueprint.drops.length} per-enemy blueprint drops`);
             for (const drop of enemy.blueprint.drops) {
-                // Blueprint drop chances are fractions (0-1)
-                const roll = Math.random();
-                DebugLogger.verbose('loot', `🎲 Drop roll for ${drop.itemId}: chance=${drop.chance}, roll=${roll.toFixed(3)}, will drop=${roll < drop.chance}`);
-
-                if (roll < drop.chance) {
-                    DebugLogger.debug('loot', '💎 Blueprint drop:', drop.itemId);
+                if (Math.random() < drop.chance) {
                     this.createDrop(enemy.x, enemy.y, drop.itemId);
-                    getSession()?.log('loot', 'blueprint_drop', { itemId: drop.itemId, enemy: enemyId });
                 }
             }
         }
     }
 
+    // ==================== Pickup ====================
+
     /**
-     * Resolve a lootTable item reference to an actual blueprint ID.
-     * Handles legacy 'drop.*' format → 'item.*' mapping.
-     * @param {string} ref - Item reference from lootTable (e.g. 'drop.xp.small', 'item.health_small', 'powerup.damage_boost')
-     * @returns {string|null} Resolved blueprint ID or null if not found
-     */
-    _resolveItemId(ref) {
-        // Direct match — already a valid blueprint ID
-        if (this.blueprintLoader?.get(ref)) return ref;
-
-        // Map legacy spawn table drop.* IDs to actual item blueprint IDs
-        const LEGACY_MAP = {
-            'drop.xp.small': 'item.xp_small',
-            'drop.xp.medium': 'item.xp_medium',
-            'drop.xp.large': 'item.xp_large',
-            'drop.leukocyte_pack': 'item.health_small',
-            'drop.protein_cache': 'item.protein_cache',
-            'drop.metotrexat': 'item.metotrexat',
-            'drop.adrenal_surge': 'item.energy_cell',
-        };
-
-        const mapped = LEGACY_MAP[ref];
-        if (mapped && this.blueprintLoader?.get(mapped)) return mapped;
-
-        // Try converting drop.X to item.X as a generic fallback
-        if (ref.startsWith('drop.')) {
-            const itemId = 'item.' + ref.replace('drop.', '').replace(/\./g, '_');
-            if (this.blueprintLoader?.get(itemId)) return itemId;
-        }
-
-        return null; // Unknown item — powerup refs or missing blueprints
-    }
-    
-    /**
-     * Handle player collecting loot
+     * Handle player collecting loot.
+     * Called by physics.add.overlap (setupCollisions.js) when player overlaps loot sprite.
      */
     handlePickup(player, loot) {
         if (!loot.active) return;
-        DebugLogger.info('loot', `[LootPickup] Picking up ${loot.dropId} type=${loot.dropType} value=${loot.value}`);
-        getSession()?.log('loot', 'pickup', { dropId: loot.dropId, dropType: loot.dropType, value: loot.value });
 
         const blueprint = loot.blueprint;
-        const dropType = loot.dropType;
-        
-        // Apply effect based on blueprint effect.type (primary) or dropType (fallback)
-        const effectType = blueprint.effect?.type || dropType;
+        const effectType = blueprint.effect?.type || loot.dropType;
 
-        switch(effectType) {
+        switch (effectType) {
             case 'xp': {
                 const xpValue = blueprint.effect?.value || loot.value || 1;
-                if (this.scene.addXP) {
-                    this.scene.addXP(xpValue);
-                }
+                this.scene.addXP?.(xpValue);
                 break;
             }
-
             case 'health':
             case 'heal': {
                 let healAmount = blueprint.effect?.value || blueprint.stats?.healAmount || 20;
-                // 'full' = heal to max HP
                 if (healAmount === 'full') healAmount = (player.maxHp || 100) - (player.hp || 0);
                 player.heal?.(healAmount);
                 break;
             }
-
-            case 'instant_kill_all': {
-                // Metotrexat — kill all enemies on screen
-                if (this.scene.enemyManager) {
-                    this.scene.enemyManager.killAll();
-                }
+            case 'instant_kill_all':
+                this.scene.enemyManager?.killAll();
                 this.scene.flashCamera?.();
-                getSession()?.log('loot', 'metotrexat_used', {});
                 break;
-            }
-
             case 'buff': {
-                // Temporary stat buff (e.g. energy_cell = 1.5× attack speed for 10s)
                 const stat = blueprint.effect?.stat;
                 const value = blueprint.effect?.value || 1.5;
                 const duration = blueprint.effect?.duration || 10000;
                 if (stat && player.addModifier) {
                     const modId = `buff_${stat}_${Date.now()}`;
-                    player.addModifier({ id: modId, path: stat === 'attackSpeed' ? 'attackIntervalMs' : stat, type: 'mul', value: stat === 'attackSpeed' ? -(1 - 1/value) : value - 1 });
-                    // Auto-remove after duration
-                    if (this.scene.time) {
-                        this.scene.time.delayedCall(duration, () => {
-                            player.removeModifierById?.(modId);
-                        });
-                    }
-                    getSession()?.log('loot', 'buff_applied', { stat, value, duration });
+                    player.addModifier({
+                        id: modId,
+                        path: stat === 'attackSpeed' ? 'attackIntervalMs' : stat,
+                        type: 'mul',
+                        value: stat === 'attackSpeed' ? -(1 - 1 / value) : value - 1
+                    });
+                    this.scene.time?.delayedCall(duration, () => player.removeModifierById?.(modId));
                 }
                 break;
             }
-
             case 'research': {
-                // Research points — add to score
                 const points = blueprint.effect?.value || 1;
-                if (this.scene.gameStats) {
-                    this.scene.gameStats.score += points * 100;
-                }
-                getSession()?.log('loot', 'research_collected', { points });
+                if (this.scene.gameStats) this.scene.gameStats.score += points * 100;
                 break;
             }
-
             default:
                 DebugLogger.warn('loot', `[Pickup] Unhandled effect type: ${effectType} for ${loot.dropId}`);
         }
-        
-        // Play pickup VFX/SFX
+
+        // VFX/SFX
         if (blueprint.vfx?.pickup && this.scene.vfxSystem) {
             this.scene.vfxSystem.play(blueprint.vfx.pickup, loot.x, loot.y);
         }
-        
         if (blueprint.sfx?.pickup && this.scene.audioSystem) {
             this.scene.audioSystem.play(blueprint.sfx.pickup);
         }
-        
-        // Kill any active tweens before destroying to prevent orphaned tween updates
-        if (this.scene?.tweens) {
-            this.scene.tweens.killTweensOf(loot);
-        }
-        loot.destroy();
+
+        // Return to pool — Phaser native pattern
+        this._returnToPool(loot);
     }
-    
+
     /**
      * Auto-collect a loot item (used during level transition)
      */
     collectItem(loot) {
         if (!loot?.active) return;
         const player = this.scene?.player;
-        if (player) {
-            this.handlePickup(player, loot);
-        }
+        if (player) this.handlePickup(player, loot);
     }
 
+    // ==================== Update (magnet only) ====================
+
     /**
-     * Update loop - handle XP magnet effect
+     * Per-frame update — XP magnet attraction only.
+     * Pickup detection is handled natively by physics.add.overlap (setupCollisions.js).
      */
     update(time, delta) {
         if (!this.scene.player?.active) return;
 
-        const player = this.scene.player;
-        const children = this.lootGroup?.getChildren();
-        if (!children || children.length === 0) return;
+        const children = this.lootGroup.getChildren();
+        if (children.length === 0) return;
 
-        // Periodic XP orb merging + field cap enforcement (every 2s)
-        if (!this._lastMergeCheck || time - this._lastMergeCheck >= 2000) {
+        // Periodic merge + cap enforcement (every 2s)
+        if (time - this._lastMergeCheck >= MERGE_INTERVAL) {
             this._lastMergeCheck = time;
-            this._mergeNearbyXPOrbs();
-            this._enforceFieldCap();
+            this._mergeNearbyXPOrbs(children);
+            this._enforceFieldCap(children);
         }
 
-        // Single-pass: pickup check + magnet attraction
-        const pickupRadiusSq = 625; // 25²
+        // Magnet attraction — no Phaser native equivalent
+        const player = this.scene.player;
         const magnetRadius = player._stats?.()?.xpMagnetRadius || player.baseStats?.xpMagnetRadius || 0;
-        const hasMagnet = magnetRadius > 0;
-        const magnetRadiusSq = magnetRadius * magnetRadius;
+        if (magnetRadius <= 0) return;
 
+        const magnetRadiusSq = magnetRadius * magnetRadius;
         for (let i = children.length - 1; i >= 0; i--) {
             const loot = children[i];
-            if (!loot?.active) continue;
+            if (!loot.active || loot.dropType !== 'xp' || !loot.body) continue;
 
             const dx = player.x - loot.x;
             const dy = player.y - loot.y;
             const distSq = dx * dx + dy * dy;
 
-            // Pickup check (all loot types)
-            if (distSq < pickupRadiusSq) {
-                this.handlePickup(player, loot);
-                continue;
-            }
-
-            // Magnet attraction (XP orbs only)
-            if (hasMagnet && loot.dropType === 'xp' && loot.body) {
-                if (distSq < magnetRadiusSq && distSq > 1) {
-                    const distance = Math.sqrt(distSq);
-                    const force = 0.3 + (0.7 * (1 - distance / magnetRadius));
-                    const speed = 300 * force;
-                    loot.body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
-                } else if (distSq >= magnetRadiusSq && loot.body.velocity.x !== 0) {
-                    loot.body.setVelocity(0, 0);
-                }
+            if (distSq < magnetRadiusSq && distSq > 1) {
+                const distance = Math.sqrt(distSq);
+                const force = 0.3 + 0.7 * (1 - distance / magnetRadius);
+                const speed = 300 * force;
+                loot.body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
+            } else if (distSq >= magnetRadiusSq && loot.body.velocity.x !== 0) {
+                loot.body.setVelocity(0, 0);
             }
         }
     }
 
-    /**
-     * Merge nearby XP orbs into higher tiers (Vampire Survivors style)
-     * small (1 XP) × 5 → medium (5 XP), medium × 2 → large (10 XP)
-     */
-    _mergeNearbyXPOrbs() {
-        const children = this.lootGroup?.getChildren();
-        if (!children || children.length < 10) return; // Only merge when many orbs exist
+    // ==================== Merge & Cap ====================
 
-        const mergeRadiusSq = 30 * 30; // 30px radius for merge detection
+    /** Merge nearby XP orbs: 5 small → 1 medium, 2 medium → 1 large */
+    _mergeNearbyXPOrbs(children) {
+        if (children.length < 10) return;
+
         const smalls = [];
         const mediums = [];
-
-        for (const loot of children) {
-            if (!loot?.active || loot.dropType !== 'xp') continue;
+        for (let i = 0; i < children.length; i++) {
+            const loot = children[i];
+            if (!loot.active || loot.dropType !== 'xp') continue;
             if (loot.dropId === 'item.xp_small') smalls.push(loot);
             else if (loot.dropId === 'item.xp_medium') mediums.push(loot);
         }
 
-        // Merge 5 nearby smalls → 1 medium
         let merged = 0;
+
+        // 5 smalls → 1 medium
         for (let i = 0; i < smalls.length && merged < 10; i++) {
             const anchor = smalls[i];
             if (!anchor.active) continue;
@@ -414,19 +302,17 @@ export class SimpleLootSystem {
                 if (!other.active) continue;
                 const dx = anchor.x - other.x;
                 const dy = anchor.y - other.y;
-                if (dx * dx + dy * dy < mergeRadiusSq) {
-                    cluster.push(other);
-                }
+                if (dx * dx + dy * dy < MERGE_RADIUS_SQ) cluster.push(other);
             }
             if (cluster.length >= 5) {
-                // Destroy 5 smalls, create 1 medium at anchor position
-                for (const orb of cluster) orb.destroy();
-                this.createDrop(anchor.x, anchor.y, 'item.xp_medium');
+                const cx = anchor.x, cy = anchor.y;
+                for (let k = 0; k < cluster.length; k++) this._returnToPool(cluster[k]);
+                this.createDrop(cx, cy, 'item.xp_medium');
                 merged++;
             }
         }
 
-        // Merge 2 nearby mediums → 1 large
+        // 2 mediums → 1 large
         for (let i = 0; i < mediums.length && merged < 15; i++) {
             const anchor = mediums[i];
             if (!anchor.active) continue;
@@ -435,10 +321,11 @@ export class SimpleLootSystem {
                 if (!other.active) continue;
                 const dx = anchor.x - other.x;
                 const dy = anchor.y - other.y;
-                if (dx * dx + dy * dy < mergeRadiusSq) {
-                    anchor.destroy();
-                    other.destroy();
-                    this.createDrop(anchor.x, anchor.y, 'item.xp_large');
+                if (dx * dx + dy * dy < MERGE_RADIUS_SQ) {
+                    const cx = anchor.x, cy = anchor.y;
+                    this._returnToPool(anchor);
+                    this._returnToPool(other);
+                    this.createDrop(cx, cy, 'item.xp_large');
                     merged++;
                     break;
                 }
@@ -446,176 +333,116 @@ export class SimpleLootSystem {
         }
 
         if (merged > 0) {
-            getSession()?.log('loot', 'xp_merged', { merged, remaining: this.lootGroup.children.size });
+            getSession()?.log('loot', 'xp_merged', { merged, remaining: this.lootGroup.countActive() });
         }
     }
 
-    /**
-     * Enforce max loot items on field — destroy oldest XP orbs if over cap
-     */
-    _enforceFieldCap() {
+    /** Remove oldest small XP orbs if over field cap */
+    _enforceFieldCap(children) {
         const maxDrops = this.scene.configResolver?.get('performance.maxDrops', { defaultValue: 150 }) || 150;
-        const children = this.lootGroup?.getChildren();
-        if (!children || children.length <= maxDrops) return;
+        const activeCount = this.lootGroup.countActive();
+        if (activeCount <= maxDrops) return;
 
-        // Remove oldest XP orbs first (lowest value items)
-        const excess = children.length - maxDrops;
-        let removed = 0;
-        for (let i = 0; i < children.length && removed < excess; i++) {
+        let excess = activeCount - maxDrops;
+        for (let i = 0; i < children.length && excess > 0; i++) {
             const loot = children[i];
-            if (loot?.active && loot.dropType === 'xp' && loot.dropId === 'item.xp_small') {
-                loot.destroy();
-                removed++;
+            if (loot.active && loot.dropId === 'item.xp_small') {
+                this._returnToPool(loot);
+                excess--;
             }
         }
-        if (removed > 0) {
-            getSession()?.log('loot', 'field_cap_trim', { removed, remaining: this.lootGroup.children.size, maxDrops });
-        }
     }
-    
-    // killAllEnemies removed — use EnemyManager.killAll() (single responsibility)
-    
-    /**
-     * Find a non-overlapping position for a new drop
-     */
-    findNonOverlappingPosition(x, y, dropType) {
-        // For XP orbs, use larger random spread
-        // For items, use smaller spread and check for overlap
-        const isItem = dropType !== 'xp';
-        const maxOffset = isItem ? 20 : 30; // Items have smaller spread
-        
-        // Start with original position
-        let finalX = x;
-        let finalY = y;
-        
-        // Only check overlap for items (not XP orbs)
-        if (isItem) {
-            // Try up to 10 times to find non-overlapping position
+
+    // ==================== Pool Helpers ====================
+
+    /** Return a loot sprite to the Phaser pool — kill tweens, disable body, hide */
+    _returnToPool(loot) {
+        if (!loot.active) return;
+        if (this.scene?.tweens) this.scene.tweens.killTweensOf(loot);
+        loot.disableBody(true, true); // Phaser native: deactivate + hide, stays in group for reuse
+    }
+
+    // ==================== Position Helpers ====================
+
+    /** Find a non-overlapping position. Items use spacing check, XP uses random scatter. */
+    _findPosition(x, y, dropType) {
+        const buf = this._posBuffer;
+
+        if (dropType !== 'xp') {
+            // Items: try to avoid overlap with recent drops
             for (let attempt = 0; attempt < 10; attempt++) {
-                const offsetX = (Math.random() - 0.5) * maxOffset;
-                const offsetY = (Math.random() - 0.5) * maxOffset;
-                const testX = x + offsetX;
-                const testY = y + offsetY;
-                
-                // Check if this position overlaps with recent drops
+                buf.x = x + (Math.random() - 0.5) * 20;
+                buf.y = y + (Math.random() - 0.5) * 20;
                 let overlaps = false;
-                const minSpacingSq = this.minSpacing * this.minSpacing;
-                for (const drop of this.recentDrops) {
-                    const dx = testX - drop.x;
-                    const dy = testY - drop.y;
-                    if (dx * dx + dy * dy < minSpacingSq) {
-                        overlaps = true;
-                        break;
-                    }
+                for (let i = 0; i < this.recentDrops.length; i++) {
+                    const d = this.recentDrops[i];
+                    const dx = buf.x - d.x, dy = buf.y - d.y;
+                    if (dx * dx + dy * dy < MIN_SPACING_SQ) { overlaps = true; break; }
                 }
-                
-                if (!overlaps) {
-                    finalX = testX;
-                    finalY = testY;
-                    break;
-                }
-                
-                // Spiral fallback: each attempt tries a different angle around the origin
+                if (!overlaps) return buf;
+                // Spiral fallback
                 const angle = (attempt / 10) * Math.PI * 2;
-                finalX = x + Math.cos(angle) * (this.minSpacing + 5);
-                finalY = y + Math.sin(angle) * (this.minSpacing + 5);
+                buf.x = x + Math.cos(angle) * 20;
+                buf.y = y + Math.sin(angle) * 20;
             }
         } else {
-            // XP orbs can have random positions
-            finalX = x + (Math.random() - 0.5) * maxOffset;
-            finalY = y + (Math.random() - 0.5) * maxOffset;
+            buf.x = x + (Math.random() - 0.5) * 30;
+            buf.y = y + (Math.random() - 0.5) * 30;
         }
-        
-        return { x: finalX, y: finalY };
+        return buf;
     }
-    
-    /**
-     * Clean up old position records
-     */
-    cleanupOldPositions() {
-        const now = this.scene?.time?.now || 0;
+
+    /** In-place cleanup of old position records */
+    _cleanupOldPositions() {
+        const now = this.scene.time?.now || 0;
         if (!now) return;
-        // In-place removal — no array allocation
         let write = 0;
         for (let read = 0; read < this.recentDrops.length; read++) {
-            if (now - this.recentDrops[read].time < this.dropCleanupTime) {
+            if (now - this.recentDrops[read].time < this._dropCleanupTime) {
                 this.recentDrops[write++] = this.recentDrops[read];
             }
         }
         this.recentDrops.length = write;
     }
-    
-    /**
-     * Clear all drops
-     */
+
+    // ==================== Item ID Resolution ====================
+
+    /** Resolve legacy 'drop.*' refs to 'item.*' blueprint IDs */
+    _resolveItemId(ref) {
+        if (this.blueprintLoader?.get(ref)) return ref;
+
+        const LEGACY_MAP = {
+            'drop.leukocyte_pack': 'item.health_small',
+            'drop.protein_cache': 'item.protein_cache',
+            'drop.metotrexat': 'item.metotrexat',
+            'drop.adrenal_surge': 'item.energy_cell',
+        };
+        const mapped = LEGACY_MAP[ref];
+        if (mapped && this.blueprintLoader?.get(mapped)) return mapped;
+
+        if (ref.startsWith('drop.')) {
+            const itemId = 'item.' + ref.replace('drop.', '').replace(/\./g, '_');
+            if (this.blueprintLoader?.get(itemId)) return itemId;
+        }
+        return null;
+    }
+
+    // ==================== Lifecycle ====================
+
+    /** Clear all drops and return pool to empty state */
     clearAll() {
-        // Kill tweens on all loot items before destroying to prevent orphaned tween updates
         if (this.scene?.tweens) {
             const children = this.lootGroup.getChildren();
-            for (const loot of children) {
-                this.scene.tweens.killTweensOf(loot);
+            for (let i = 0; i < children.length; i++) {
+                this.scene.tweens.killTweensOf(children[i]);
             }
         }
         this.lootGroup.clear(true, true);
-        this.recentDrops = [];
+        this.recentDrops.length = 0;
     }
-    
-    /**
-     * Animate pickup item with pulsing effect
-     * Used for special items like metotrexat
-     */
-    animatePickup(item) {
-        if (!this.scene.tweens || !item || !item.active) return null;
-        
-        return this.scene.tweens.add({
-            targets: item,
-            scale: 1.2,
-            duration: 500,
-            yoyo: true,
-            repeat: -1
-        });
-    }
-    
-    /**
-     * Animate item attraction to target (XP magnet effect)
-     * Handles pause fallback - immediately moves item if time is paused
-     */
-    animateAttraction(item, target, onComplete) {
-        if (!item?.active || !target || !item.body) {
-            if (onComplete) onComplete();
-            return null;
-        }
 
-        // Use physics velocity instead of tweening x/y (tweens conflict with Arcade Physics)
-        const speed = 400;
-        this.scene.physics.moveTo(item, target.x, target.y, speed);
-
-        // Store callback — will be resolved when item overlaps player (via handlePickup)
-        item._attractionCallback = onComplete;
-        return null;
-    }
-    
+    /** Shutdown — alias for clearAll (single cleanup path) */
     shutdown() {
-        // Stop all tweens on loot objects
-        if (this.scene && this.scene.tweens && this.lootGroup) {
-            const children = this.lootGroup.getChildren();
-            if (children && Array.isArray(children)) {
-                children.forEach(loot => {
-                    if (loot && this.scene && this.scene.tweens) {
-                        this.scene.tweens.killTweensOf(loot);
-                    }
-                });
-            }
-        }
-        
-        // Clear the group
-        if (this.lootGroup && this.lootGroup.clear) {
-            this.lootGroup.clear(true, true);
-        }
-        
-        // Clear recent drops
-        if (this.recentDrops) {
-            this.recentDrops = [];
-        }
+        this.clearAll();
     }
 }

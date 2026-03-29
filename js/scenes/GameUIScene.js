@@ -65,6 +65,14 @@ export class GameUIScene extends Phaser.Scene {
         centralEventBus.on('game:over', this._onGameOver, this);
         centralEventBus.on('ui:victory-show', this._onVictoryShow, this);
         centralEventBus.on('ui:level-transition-show', this._onLevelTransitionShow, this);
+
+        // Boss HP events from GameScene (scene.events, not CentralEventBus)
+        const gameScene = this.scene.get('GameScene');
+        if (gameScene) {
+            gameScene.events.on('boss:hp-update', ({ hp, maxHp }) => this.hud?.setBossHealth(hp, maxHp), this);
+            gameScene.events.on('boss:hide-hp', () => this.hud?.hideBoss(), this);
+            gameScene.events.on('boss:show-hp', ({ name, hp, maxHp }) => this.hud?.showBoss(name, hp, maxHp), this);
+        }
     }
 
     _removeEventListeners() {
@@ -195,5 +203,8 @@ export class GameUIScene extends Phaser.Scene {
         this.gameOverUI?.destroy();
 
         this._removeEventListeners();
+
+        // Phaser base scene cleanup — input handlers, event emitter clear
+        super.shutdown();
     }
 }

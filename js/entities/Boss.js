@@ -275,10 +275,9 @@ export class Boss extends BossCore {
             getSession()?.log('boss', 'damage_taken', { bossId: this.blueprint?.id, amount: damageDealt, hp: this.hp, maxHp: this.maxHp, phase: this.phases?.currentPhase });
         }
 
-        // Update boss HP bar if damage was dealt
-        if (damageDealt > 0) {
-            const hud = this.scene?.scene?.get('GameUIScene')?.hud;
-            if (hud) hud.setBossHealth(this.hp, this.maxHp);
+        // Notify UI via event (Phaser recommended scene communication pattern)
+        if (damageDealt > 0 && this.scene?.events) {
+            this.scene.events.emit('boss:hp-update', { hp: this.hp, maxHp: this.maxHp });
         }
 
         // Trigger boss decision after taking damage (tracked timer)
@@ -305,9 +304,10 @@ export class Boss extends BossCore {
         this.spawnVfx('death');
         this.playSfx('death');
 
-        // Hide boss HP bar
-        const hud = this.scene.scene?.get('GameUIScene')?.hud;
-        if (hud) hud.hideBoss();
+        // Notify UI to hide boss HP bar (event-based, no direct scene reference)
+        if (this.scene?.events) {
+            this.scene.events.emit('boss:hide-hp');
+        }
 
         // Process loot/XP/stats BEFORE deactivating (needs position)
         // _deathProcessed is NOT set yet — onEnemyDeath needs to process XP/loot/stats

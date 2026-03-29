@@ -79,7 +79,7 @@ export function spawnDrop(scene, itemId, x, y) {
     }
 
     // PR7: Use LootSystem to create the drop (single source of truth)
-    scene.lootSystem.createItemDrop(x, y, itemBlueprint);
+    scene.lootSystem.createDrop(x, y, itemId);
 }
 
 /**
@@ -89,18 +89,13 @@ export function spawnLootDrop(scene, drop, x, y) {
     const dropId = drop?.itemId || drop?.ref;
     if (!dropId) return;
     if (scene.lootSystem) {
-        scene.lootSystem.createDrop(x, y, dropId, { amount: drop.quantity || drop.qty || 1 });
+        scene.lootSystem.createDrop(x, y, dropId);
     }
 }
 
 /**
- * Attract an XP orb toward the player
+ * Attract an XP orb toward the player (magnet is now handled natively by SimpleLootSystem.update)
  */
 export function attractXPOrb(scene, orb) {
-    if (!orb?.active || !scene.player?.active) return;
-    if (scene.lootSystem) {
-        scene.lootSystem.animateAttraction(orb, scene.player, () => {
-            if (orb?.active) { scene.addXP(orb.xpAmount); orb.destroy(); }
-        });
-    }
+    // No-op — magnet attraction is handled per-frame in SimpleLootSystem.update()
 }

@@ -460,9 +460,7 @@ export class GameScene extends Phaser.Scene {
                 }
                 this._colliders = null;
             }
-            try { this.tweens?.killAll(); } catch (_) {}
-            try { this.time?.removeAllEvents(); } catch (_) {}
-
+            // Shutdown systems FIRST — they may need tweens/timers for clean teardown
             try { this.disposables?.disposeAll(); } catch (e) {
                 DebugLogger.warn('game', '[GameScene] Error disposing resources:', e);
             }
@@ -502,6 +500,10 @@ export class GameScene extends Phaser.Scene {
             } catch (_) {}
             if (this.mobileControls?.enabled) try { this.mobileControls.disable(); } catch (_) {}
 
+            // Kill remaining tweens/timers AFTER systems had chance to clean up
+            try { this.tweens?.killAll(); } catch (_) {}
+            try { this.time?.removeAllEvents(); } catch (_) {}
+
             // Nullify references
             const refs = ['player','spawnDirector','projectileSystem','lootSystem','powerUpSystem',
                 'vfxSystem','audioSystem','keyboardManager','analyticsManager','updateManager',
@@ -511,10 +513,13 @@ export class GameScene extends Phaser.Scene {
             for (const k of refs) this[k] = null;
 
             DebugLogger.info('game', '[GameScene] Shutdown sequence completed successfully');
-            
+
         } catch (e) {
             console.error('[GameScene] Critical error during shutdown:', e);
         }
+
+        // Phaser base scene cleanup — input handlers, event emitter clear
+        super.shutdown();
     }
 }
 
