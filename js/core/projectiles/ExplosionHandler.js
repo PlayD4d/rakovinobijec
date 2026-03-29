@@ -59,7 +59,7 @@ export class ExplosionHandler {
 
     // VFX — use multi-layer explosion effect with radius matching damage area
     if (this.scene.vfxSystem?.playExplosionEffect) {
-      this.scene.vfxSystem.playExplosionEffect(x, y, { color: 0x44CCFF, radius: explosionRadius * 1.5 });
+      this.scene.vfxSystem.playExplosionEffect(x, y, { color: 0x44CCFF, radius: radius * 1.5 });
     }
     if (this.scene.audioSystem) {
       this.scene.audioSystem.play('sound/explosion_small.mp3');
