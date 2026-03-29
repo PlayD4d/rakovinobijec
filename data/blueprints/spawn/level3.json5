@@ -286,7 +286,7 @@
     {
       condition: 'time',
       value: 150000,
-      bossId: 'boss.onkogen',
+      bossId: 'boss.karcinogenni_kral',
       spawnDelay: 3000,
       clearEnemies: true,
     },
@@ -295,13 +295,6 @@
       value: 150,
       bossId: 'boss.karcinogenni_kral',
       spawnDelay: 3000,
-      clearEnemies: true,
-    },
-    {
-      condition: 'time',
-      value: 300000,
-      bossId: 'boss.genova_mutace',
-      spawnDelay: 5000,
       clearEnemies: true,
     },
   ],

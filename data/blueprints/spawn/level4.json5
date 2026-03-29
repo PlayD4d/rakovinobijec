@@ -1,0 +1,76 @@
+{
+  id: 'spawn_table.level4',
+  type: 'enemy',
+  level: 4,
+  music: {
+    ambient: 'music/synthwave_track1.mp3',
+    combat: 'music/synthwave_track1.mp3',
+    boss: 'music/synthwave_boss1.mp3',
+  },
+  enemyWaves: [
+    { enemyId: 'enemy.acidic_blob', weight: 35, countRange: [3, 5], interval: 1800, startAt: 0, endAt: 50000 },
+    { enemyId: 'enemy.micro_shooter', weight: 30, countRange: [2, 3], interval: 2000, startAt: 0, endAt: 50000 },
+    { enemyId: 'enemy.support_bacteria', weight: 20, countRange: [1, 2], interval: 3500, startAt: 5000, endAt: 50000 },
+    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [1, 2], interval: 4000, startAt: 10000, endAt: 50000 },
+    // Mid phase — more aggressive
+    { enemyId: 'enemy.acidic_blob', weight: 30, countRange: [4, 6], interval: 1500, startAt: 50000, endAt: 100000 },
+    { enemyId: 'enemy.micro_shooter', weight: 30, countRange: [3, 4], interval: 1600, startAt: 50000, endAt: 100000 },
+    { enemyId: 'enemy.viral_swarm', weight: 20, countRange: [4, 7], interval: 2000, startAt: 50000, endAt: 100000 },
+    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [2, 3], interval: 3000, startAt: 55000, endAt: 100000 },
+    { enemyId: 'enemy.metastasis_runner', weight: 10, countRange: [1, 2], interval: 4000, startAt: 60000, endAt: 100000 },
+    // Late phase — swarm
+    { enemyId: 'enemy.acidic_blob', weight: 25, countRange: [5, 7], interval: 1200, startAt: 100000, endAt: 999999 },
+    { enemyId: 'enemy.micro_shooter', weight: 25, countRange: [3, 5], interval: 1300, startAt: 100000, endAt: 999999 },
+    { enemyId: 'enemy.viral_swarm', weight: 20, countRange: [5, 8], interval: 1500, startAt: 100000, endAt: 999999 },
+    { enemyId: 'enemy.support_bacteria', weight: 15, countRange: [2, 4], interval: 2500, startAt: 100000, endAt: 999999 },
+    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [2, 3], interval: 2500, startAt: 100000, endAt: 999999 },
+    { enemyId: 'enemy.shielding_helper', weight: 5, countRange: [1, 2], interval: 6000, startAt: 110000, endAt: 999999 },
+  ],
+  eliteWindows: [
+    { enemyId: 'elite.tank_cell', weight: 6, countRange: [1, 1], cooldown: 15000, startAt: 30000, endAt: 999999 },
+    { enemyId: 'elite.speed_virus', weight: 5, countRange: [1, 2], cooldown: 18000, startAt: 45000, endAt: 999999 },
+    { enemyId: 'elite.artillery_fungus', weight: 4, countRange: [1, 1], cooldown: 20000, startAt: 60000, endAt: 999999 },
+    { enemyId: 'elite.micro_shooter', weight: 4, countRange: [1, 1], cooldown: 22000, startAt: 80000, endAt: 999999 },
+  ],
+  uniqueSpawns: [
+    { enemyId: 'unique.golden_cell', weight: 2, countRange: [1, 1], cooldown: 50000, startAt: 30000, endAt: 999999, conditions: { playerLevel: { min: 10 }, enemiesKilled: { min: 100 } } },
+    { enemyId: 'unique.chromoblast', weight: 1.5, countRange: [1, 1], cooldown: 70000, startAt: 60000, endAt: 999999, conditions: { playerLevel: { min: 12 }, enemiesKilled: { min: 150 } } },
+    { enemyId: 'unique.radiomorph_titan', weight: 1, countRange: [1, 1], cooldown: 90000, startAt: 90000, endAt: 999999, conditions: { playerLevel: { min: 15 }, enemiesKilled: { min: 200 } } },
+  ],
+  bossTriggers: [
+    { condition: 'time', value: 150000, bossId: 'boss.genova_mutace', spawnDelay: 3000, clearEnemies: true },
+    { condition: 'kills', value: 180, bossId: 'boss.genova_mutace', spawnDelay: 3000, clearEnemies: true },
+  ],
+  lootTables: {
+    normal: {
+      'drop.xp.small': 35, 'drop.xp.medium': 40, 'drop.xp.large': 18,
+      'drop.leukocyte_pack': 4, 'drop.metotrexat': 0.3, 'drop.adrenal_surge': 1, 'drop.protein_cache': 2,
+    },
+    elite: {
+      'drop.xp.large': 75, 'drop.leukocyte_pack': 20, 'drop.protein_cache': 35,
+      'drop.adrenal_surge': 8, 'drop.metotrexat': 1.5,
+    },
+    boss: {
+      'drop.xp.large': 100, 'drop.leukocyte_pack': 100, 'drop.protein_cache': 90,
+      'drop.adrenal_surge': 70, 'drop.metotrexat': 10,
+    },
+  },
+  difficulty: {
+    enemyHpMultiplier: 1.6,
+    enemyDamageMultiplier: 1.4,
+    enemySpeedMultiplier: 1.2,
+    spawnRateMultiplier: 1.7,
+    eliteFrequency: 1.4,
+    targetTTK: 1500,
+    progressiveScaling: { hpGrowth: 0.003, damageGrowth: 0.002, spawnGrowth: 0.003 },
+  },
+  meta: {
+    name: 'level4',
+    displayName: 'Uroven 4 - Genova mutace',
+    description: 'Pokrocila obtiznost s masivnimi vlnami a podpornymi jednotkami',
+    estimatedDuration: 300000,
+    recommendedLevel: 12,
+    tags: ['advanced', 'swarms', 'support-heavy'],
+  },
+  display: { name: 'Level 4', icon: 'ui.icon.level' },
+}

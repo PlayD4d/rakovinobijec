@@ -393,14 +393,14 @@
     {
       condition: 'time',
       value: 220000,
-      bossId: 'boss.radiation_core',
+      bossId: 'boss.onkogen',
       spawnDelay: 3000,
       clearEnemies: true,
     },
     {
       condition: 'kills',
       value: 120,
-      bossId: 'boss.radiation_core',
+      bossId: 'boss.onkogen',
       spawnDelay: 3000,
       clearEnemies: true,
     },
@@ -479,7 +479,7 @@
           245,
         ],
         boss: {
-          id: 'boss.radiation_core',
+          id: 'boss.onkogen',
           xp: 300,
           capLevelsGranted: 1.5,
         },

@@ -1,0 +1,80 @@
+{
+  id: 'spawn_table.level6',
+  type: 'enemy',
+  level: 6,
+  music: {
+    ambient: 'music/synthwave_track1.mp3',
+    combat: 'music/synthwave_track1.mp3',
+    boss: 'music/synthwave_boss1.mp3',
+  },
+  enemyWaves: [
+    { enemyId: 'enemy.micro_shooter', weight: 25, countRange: [4, 6], interval: 1200, startAt: 0, endAt: 60000 },
+    { enemyId: 'enemy.acidic_blob', weight: 25, countRange: [4, 6], interval: 1300, startAt: 0, endAt: 60000 },
+    { enemyId: 'enemy.viral_swarm', weight: 20, countRange: [5, 8], interval: 1500, startAt: 0, endAt: 60000 },
+    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [2, 4], interval: 2000, startAt: 5000, endAt: 60000 },
+    { enemyId: 'enemy.support_bacteria', weight: 10, countRange: [2, 3], interval: 2500, startAt: 10000, endAt: 60000 },
+    { enemyId: 'enemy.shielding_helper', weight: 5, countRange: [1, 2], interval: 4000, startAt: 15000, endAt: 60000 },
+    // Mid phase — massive waves
+    { enemyId: 'enemy.micro_shooter', weight: 25, countRange: [5, 7], interval: 1000, startAt: 60000, endAt: 130000 },
+    { enemyId: 'enemy.viral_swarm', weight: 25, countRange: [6, 10], interval: 1100, startAt: 60000, endAt: 130000 },
+    { enemyId: 'enemy.acidic_blob', weight: 20, countRange: [5, 7], interval: 1000, startAt: 60000, endAt: 130000 },
+    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [3, 5], interval: 1800, startAt: 65000, endAt: 130000 },
+    { enemyId: 'enemy.metastasis_runner', weight: 10, countRange: [2, 4], interval: 2000, startAt: 70000, endAt: 130000 },
+    { enemyId: 'enemy.shielding_helper', weight: 5, countRange: [2, 3], interval: 3500, startAt: 75000, endAt: 130000 },
+    // Late phase — all-out assault
+    { enemyId: 'enemy.micro_shooter', weight: 20, countRange: [5, 8], interval: 900, startAt: 130000, endAt: 999999 },
+    { enemyId: 'enemy.viral_swarm', weight: 20, countRange: [8, 12], interval: 1000, startAt: 130000, endAt: 999999 },
+    { enemyId: 'enemy.acidic_blob', weight: 20, countRange: [5, 8], interval: 900, startAt: 130000, endAt: 999999 },
+    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [3, 5], interval: 1500, startAt: 130000, endAt: 999999 },
+    { enemyId: 'enemy.support_bacteria', weight: 10, countRange: [3, 5], interval: 1800, startAt: 130000, endAt: 999999 },
+    { enemyId: 'enemy.metastasis_runner', weight: 10, countRange: [3, 5], interval: 1500, startAt: 130000, endAt: 999999 },
+    { enemyId: 'enemy.shielding_helper', weight: 5, countRange: [2, 3], interval: 3000, startAt: 135000, endAt: 999999 },
+  ],
+  eliteWindows: [
+    { enemyId: 'elite.tank_cell', weight: 8, countRange: [1, 2], cooldown: 10000, startAt: 20000, endAt: 999999 },
+    { enemyId: 'elite.speed_virus', weight: 7, countRange: [2, 3], cooldown: 12000, startAt: 35000, endAt: 999999 },
+    { enemyId: 'elite.artillery_fungus', weight: 6, countRange: [1, 2], cooldown: 15000, startAt: 50000, endAt: 999999 },
+    { enemyId: 'elite.micro_shooter', weight: 6, countRange: [1, 2], cooldown: 15000, startAt: 60000, endAt: 999999 },
+  ],
+  uniqueSpawns: [
+    { enemyId: 'unique.golden_cell', weight: 3, countRange: [1, 1], cooldown: 40000, startAt: 15000, endAt: 999999, conditions: { playerLevel: { min: 15 }, enemiesKilled: { min: 100 } } },
+    { enemyId: 'unique.radiomorph_titan', weight: 2, countRange: [1, 1], cooldown: 50000, startAt: 40000, endAt: 999999, conditions: { playerLevel: { min: 20 }, enemiesKilled: { min: 200 } } },
+    { enemyId: 'unique.phage_overlord', weight: 1.5, countRange: [1, 1], cooldown: 60000, startAt: 70000, endAt: 999999, conditions: { playerLevel: { min: 22 }, enemiesKilled: { min: 300 } } },
+  ],
+  bossTriggers: [
+    { condition: 'time', value: 180000, bossId: 'boss.radiation', spawnDelay: 3000, clearEnemies: true },
+    { condition: 'kills', value: 250, bossId: 'boss.radiation', spawnDelay: 3000, clearEnemies: true },
+  ],
+  lootTables: {
+    normal: {
+      'drop.xp.small': 25, 'drop.xp.medium': 45, 'drop.xp.large': 22,
+      'drop.leukocyte_pack': 3, 'drop.metotrexat': 0.15, 'drop.adrenal_surge': 0.6, 'drop.protein_cache': 1.2,
+    },
+    elite: {
+      'drop.xp.large': 85, 'drop.leukocyte_pack': 25, 'drop.protein_cache': 45,
+      'drop.adrenal_surge': 12, 'drop.metotrexat': 2.5,
+    },
+    boss: {
+      'drop.xp.large': 100, 'drop.leukocyte_pack': 100, 'drop.protein_cache': 100,
+      'drop.adrenal_surge': 90, 'drop.metotrexat': 15,
+    },
+  },
+  difficulty: {
+    enemyHpMultiplier: 2.0,
+    enemyDamageMultiplier: 1.7,
+    enemySpeedMultiplier: 1.3,
+    spawnRateMultiplier: 2.1,
+    eliteFrequency: 1.7,
+    targetTTK: 1000,
+    progressiveScaling: { hpGrowth: 0.004, damageGrowth: 0.003, spawnGrowth: 0.0035 },
+  },
+  meta: {
+    name: 'level6',
+    displayName: 'Uroven 6 - Radiace',
+    description: 'Extremni obtiznost se zonovou mechanikou bosse a masivnimi vlnami',
+    estimatedDuration: 360000,
+    recommendedLevel: 24,
+    tags: ['extreme', 'zone-mechanics', 'massive-waves'],
+  },
+  display: { name: 'Level 6', icon: 'ui.icon.level' },
+}

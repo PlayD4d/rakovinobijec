@@ -293,7 +293,7 @@ export class BootstrapManager {
 
         // Additional scene-specific setup
         this.scene.currentLevel = 1;
-        this.scene.maxLevel = 3;
+        this.scene.maxLevel = 7;
 
         // Initialize debug and telemetry if in dev mode
         if (window.DEV_MODE || window.location.search.includes('debug=true')) {
