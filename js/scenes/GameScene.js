@@ -318,8 +318,8 @@ export class GameScene extends Phaser.Scene {
             const options = this.powerUpSystem.generatePowerUpOptions();
             if (options && options.length > 0) return options;
         }
-        // Fallback when PowerUpSystem is unavailable
-        return GameScene.FALLBACK_POWERUPS;
+        // All powerups maxed — offer generic stat boosts instead of broken duplicates
+        return GameScene.OVERFLOW_BOOSTS;
     }
 
 
@@ -527,9 +527,13 @@ export class GameScene extends Phaser.Scene {
     }
 }
 
-/** Fallback power-up options when PowerUpSystem is unavailable */
-GameScene.FALLBACK_POWERUPS = [
-    { id: 'powerup.damage_boost', name: 'Cytotoxická terapie', description: 'Zvyšuje účinnost léčby proti rakovinným buňkám.', stats: '+5 DMG', rarity: 'common', icon: 'damage', level: 0 },
-    { id: 'powerup.metabolic_haste', name: 'Metabolický boost', description: 'Urychluje metabolismus pro rychlejší pohyb a reakce.', stats: '+8% SPD', rarity: 'common', icon: 'speed', level: 0 },
-    { id: 'powerup.shield', name: 'Ochranný štít', description: 'Vytváří ochranný štít, který blokuje poškození.', stats: '3 hity', rarity: 'uncommon', icon: 'shield', level: 0 }
+/**
+ * Overflow boosts — shown when ALL powerups are at max level.
+ * These are stackable infinite stat bonuses that keep progression meaningful.
+ * Applied as direct stat modifiers (no max level cap).
+ */
+GameScene.OVERFLOW_BOOSTS = [
+    { id: 'overflow.damage', name: 'Posílená cytotoxicita', description: 'Permanentně zvyšuje poškození všech útoků.', stats: '+5 DMG', rarity: 'common', icon: 'damage', level: 99, _overflow: { stat: 'projectileDamage', type: 'add', value: 5 } },
+    { id: 'overflow.hp', name: 'Buněčná regenerace', description: 'Permanentně zvyšuje maximální zdraví.', stats: '+15 HP', rarity: 'common', icon: 'health', level: 99, _overflow: { stat: 'maxHp', type: 'add', value: 15 } },
+    { id: 'overflow.speed', name: 'Metabolický impuls', description: 'Permanentně zrychluje pohyb a útok.', stats: '+5% rychlost', rarity: 'common', icon: 'speed', level: 99, _overflow: { stat: 'moveSpeed', type: 'mul', value: 0.05 } },
 ];

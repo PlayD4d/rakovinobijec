@@ -8,6 +8,7 @@ import { Player } from '../entities/Player.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { SystemsInitializer } from './SystemsInitializer.js';
 import { centralEventBus } from '../core/events/CentralEventBus.js';
+import { getSession } from '../core/debug/SessionLog.js';
 
 export class BootstrapManager {
     constructor(scene) {
@@ -153,8 +154,23 @@ export class BootstrapManager {
     handlePowerUpSelection(selection) {
         DebugLogger.info('bootstrap', '[GameScene] Received powerup-selected event:', selection);
         
-        // Apply the selected power-up
-        if (selection && this.scene.powerUpSystem) {
+        // Apply the selected power-up (or overflow boost if all maxed)
+        if (selection?._overflow && this.scene.player) {
+            // Overflow boost — direct stat modification (no powerup system involved)
+            const ov = selection._overflow;
+            const player = this.scene.player;
+            if (ov.type === 'add') {
+                if (ov.stat === 'maxHp') {
+                    player.maxHp = (player.maxHp || 100) + ov.value;
+                    player.hp = Math.min(player.hp + ov.value, player.maxHp);
+                } else {
+                    player.addModifier({ id: `overflow_${Date.now()}`, stat: ov.stat, type: 'add', value: ov.value });
+                }
+            } else if (ov.type === 'mul') {
+                player.addModifier({ id: `overflow_${Date.now()}`, stat: ov.stat, type: 'mul', value: ov.value });
+            }
+            getSession()?.log('powerup', 'overflow_boost', { stat: ov.stat, value: ov.value });
+        } else if (selection && this.scene.powerUpSystem) {
             this.scene.powerUpSystem.applyPowerUp(selection.id, (selection.level || 0) + 1);
         }
         
