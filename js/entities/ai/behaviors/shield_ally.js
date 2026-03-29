@@ -75,6 +75,6 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
         cap.playTelegraph(pos.x, pos.y, {
             radius: buffRange * 0.6, color: 0x00FFFF, duration: 400, fillAlpha: 0.15, pulses: 1
         });
-        cap.spawnVfx('hit'); // Spark to mark buff application
+        // Telegraph circle is sufficient — no spawnVfx/playSfx spam
     }
 }

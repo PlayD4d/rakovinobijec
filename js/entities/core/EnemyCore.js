@@ -296,7 +296,12 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         if (this.hp > 0) {
             this.spawnVfx('hit');
         }
-        this.playSfx('hit');
+        // Throttle hit SFX — max 1 per 150ms per enemy to prevent sound spam
+        const now = this.scene?.time?.now || 0;
+        if (now - (this._lastHitSfx || 0) >= 150) {
+            this._lastHitSfx = now;
+            this.playSfx('hit');
+        }
         this.flashEffect();
 
         // Check death

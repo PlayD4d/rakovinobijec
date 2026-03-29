@@ -59,7 +59,7 @@ export function charge(cap, cfg, dt, mem, setState) {
                 s.dashDy = (dy / dist) * dashSpeed;
                 s.phase = 'dash';
                 s.phaseStart = cap.now;
-                cap.playSfx('hit');
+                // No SFX here — telegraph circle is sufficient warning
             }
             break;
 
