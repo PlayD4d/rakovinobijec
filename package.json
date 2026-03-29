@@ -63,6 +63,7 @@
   "homepage": "https://playd4d.github.io/rakovinobijec/",
   "dependencies": {
     "ajv": "^8.17.1",
+    "better-sqlite3": "^12.8.0",
     "glob": "^13.0.6",
     "json5": "^2.2.3"
   },

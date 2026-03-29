@@ -63,6 +63,7 @@
     death: 'sound/elite_death.mp3',
     pulse: 'sound/powerup.mp3',
   },
+  ai: { behavior: 'evasion', params: { speed: 50, dodgeInterval: 1000, dodgeDuration: 400, dodgeSpeedMul: 3.0 } },
   display: {
     key: 'unique.golden_cell.name',
     descKey: 'unique.golden_cell.desc',

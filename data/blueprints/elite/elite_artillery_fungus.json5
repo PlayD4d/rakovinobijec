@@ -88,16 +88,12 @@
     },
   },
   ai: {
-    behavior: 'elite_artillery',
+    layers: { movement: 'orbit', combat: 'shoot' },
+    layerConfig: {
+      movement: { speed: 30, orbitRadius: 220, orbitSpeed: 0.8, fleeDistance: 80 },
+      combat: { cooldown: 1500, burstCount: 3, burstDelay: 200, speed: 180, chargeTime: 400 },
+    },
     params: {
-      aggroRange: 350,
-      movePattern: 'find_vantage',
-      targetPriority: 'farthest',
-      predictiveTargeting: true,
-      leadShots: true,
-      suppressiveFire: true,
-      volleyCoordination: true,
-      focusFire: true,
       repositioning: {
         enabled: true,
         threshold: 3,

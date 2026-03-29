@@ -71,15 +71,14 @@
     },
   },
   ai: {
-    behavior: 'elite_speedster',
+    behavior: 'charge',
     params: {
-      aggroRange: 250,
-      movePattern: 'hit_and_run',
-      targetPriority: 'weakest',
-      flanking: true,
-      groupCoordination: true,
-      retreatThreshold: 0.3,
-      retreatSpeed: 150,
+      speed: 120,
+      dashSpeed: 400,
+      dashDuration: 350,
+      recoverDuration: 800,
+      windupDuration: 400,
+      triggerRange: 200,
       dashTactics: {
         predictive: true,
         throughAttack: true,

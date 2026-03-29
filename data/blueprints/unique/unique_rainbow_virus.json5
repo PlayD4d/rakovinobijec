@@ -107,6 +107,7 @@
     phase: 'sound/powerup.mp3',
     beam: 'sound/powerup.mp3',
   },
+  ai: { behavior: 'evasion', params: { speed: 75, dodgeInterval: 500, dodgeDuration: 350, dodgeSpeedMul: 3.5 } },
   display: {
     key: 'unique.rainbow_virus.name',
     descKey: 'unique.rainbow_virus.desc',

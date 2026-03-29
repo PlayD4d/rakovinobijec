@@ -120,6 +120,7 @@
     zones: 'sound/powerup.mp3',
     enrage: 'sound/powerup.mp3',
   },
+  ai: { behavior: 'chase', params: { speed: 35 } },
   display: {
     key: 'unique.radiomorph_titan.name',
     descKey: 'unique.radiomorph_titan.desc',

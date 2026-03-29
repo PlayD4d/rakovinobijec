@@ -123,6 +123,7 @@
     chrono: 'sound/powerup.mp3',
     echo: 'sound/powerup.mp3',
   },
+  ai: { behavior: 'charge', params: { speed: 110, dashSpeed: 380, dashDuration: 400, recoverDuration: 1000, windupDuration: 500, triggerRange: 180 } },
   display: {
     key: 'unique.chromoblast.name',
     descKey: 'unique.chromoblast.desc',

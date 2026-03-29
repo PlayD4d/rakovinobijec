@@ -102,6 +102,7 @@
     shield: 'sound/powerup.mp3',
     summon: 'sound/powerup.mp3',
   },
+  ai: { behavior: 'shield_ally', params: { speed: 45, orbitRadius: 60, orbitSpeed: 1.2, buffInterval: 2500, buffRange: 100 } },
   display: {
     key: 'unique.necrocyte_sentinel.name',
     descKey: 'unique.necrocyte_sentinel.desc',

@@ -2,23 +2,22 @@
  * Shield Ally behavior — support cell that orbits near other enemies and grants them damage reduction.
  * Inspired by tumor microenvironment: stromal cells that protect cancer cells from immune attack.
  *
- * Seeks nearest non-shielded enemy, orbits it, and periodically applies a shield buff.
+ * Seeks nearest non-shielded enemy, orbits it, and shows a persistent shield aura.
  * Pure function, no Phaser API.
  */
 export function shield_ally(cap, cfg, dt, mem, setState) {
     const pos = cap.getPos();
     const speed = cfg.speed || 70;
     const orbitRadius = cfg.orbitRadius || 50;
-    const orbitSpeed = cfg.orbitSpeed || 2.0; // rad/s
-    const buffInterval = cfg.buffInterval || 3000; // ms
+    const orbitSpeed = cfg.orbitSpeed || 2.0;
+    const buffInterval = cfg.buffInterval || 2000;
     const buffRange = cfg.buffRange || 80;
 
     if (!mem.shieldAlly) {
-        mem.shieldAlly = { angle: Math.random() * Math.PI * 2, lastBuff: 0, targetX: 0, targetY: 0, hasTarget: false };
+        mem.shieldAlly = { angle: Math.random() * Math.PI * 2, lastBuff: 0, lastAura: 0, targetX: 0, targetY: 0, hasTarget: false };
     }
     const s = mem.shieldAlly;
 
-    // Find nearest ally to protect (using scene.enemiesGroup)
     const scene = cap.scene;
     if (!scene?.enemiesGroup) return;
 
@@ -31,10 +30,8 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
 
         for (let i = 0; i < enemies.length; i++) {
             const e = enemies[i];
-            if (!e.active || e === cap.scene?.player) continue;
-            // Don't target self or other shield allies
+            if (!e.active || e === scene.player) continue;
             if (e.blueprintId === 'enemy.shielding_helper') continue;
-
             const edx = e.x - pos.x;
             const edy = e.y - pos.y;
             const edSq = edx * edx + edy * edy;
@@ -48,7 +45,6 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
     }
 
     if (!s.hasTarget) {
-        // No allies — flee toward spawn point
         const sdx = cap.spawnX - pos.x;
         const sdy = cap.spawnY - pos.y;
         const sd = Math.sqrt(sdx * sdx + sdy * sdy) || 1;
@@ -65,11 +61,20 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
     const gd = Math.sqrt(gdx * gdx + gdy * gdy) || 1;
     cap.setVelocity((gdx / gd) * speed, (gdy / gd) * speed);
 
-    // Periodic shield pulse — visual aura circle showing buff range
+    // Persistent shield aura — redraw every 1.5s so it's always visible
+    if (cap.now - s.lastAura >= 1500) {
+        s.lastAura = cap.now;
+        cap.playTelegraph(pos.x, pos.y, {
+            radius: buffRange, color: 0x00FFCC, duration: 1600, fillAlpha: 0.06, pulses: 1
+        });
+    }
+
+    // Shield buff pulse — stronger flash + VFX on buff tick
     if (cap.now - s.lastBuff >= buffInterval) {
         s.lastBuff = cap.now;
         cap.playTelegraph(pos.x, pos.y, {
-            radius: buffRange, color: 0x00FFCC, duration: 600, fillAlpha: 0.08, pulses: 1
+            radius: buffRange * 0.6, color: 0x00FFFF, duration: 400, fillAlpha: 0.15, pulses: 1
         });
+        cap.spawnVfx('hit'); // Spark to mark buff application
     }
 }

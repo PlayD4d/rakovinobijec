@@ -5,7 +5,7 @@
     hp: 35,
     damage: 6,
     speed: 70,
-    size: 13,
+    size: 18,
     armor: 3,
     xp: 4,
   },

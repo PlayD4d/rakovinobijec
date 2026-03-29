@@ -62,16 +62,12 @@
     },
   },
   ai: {
-    behavior: 'elite_shooter',
+    layers: { movement: 'evasion', combat: 'shoot' },
+    layerConfig: {
+      movement: { speed: 110, dodgeInterval: 600, dodgeDuration: 300, dodgeSpeedMul: 2.5 },
+      combat: { cooldown: 1800, burstCount: 3, burstDelay: 120, speed: 250, chargeTime: 300 },
+    },
     params: {
-      aggroRange: 500,
-      attackRange: 320,
-      movePattern: 'smart_kite',
-      targetPriority: 'player',
-      projectileType: 'projectile.cytotoxin_enhanced',
-      shootInterval: 1800,
-      burstFire: true,
-      burstCount: 2,
       burstDelay: 200,
       dodgeChance: 0.2,
       retreatThreshold: 0.3,

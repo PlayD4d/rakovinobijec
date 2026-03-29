@@ -139,6 +139,7 @@
     instability: 'sound/powerup.mp3',
     evolution: 'sound/powerup.mp3',
   },
+  ai: { behavior: 'swarm', params: { speed: 160, separationDist: 30, cohesionWeight: 0.2, flankAngle: 0.6 } },
   display: {
     key: 'unique.mutagen_splicer.name',
     descKey: 'unique.mutagen_splicer.desc',

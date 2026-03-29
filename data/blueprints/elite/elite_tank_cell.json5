@@ -64,10 +64,9 @@
     },
   },
   ai: {
-    behavior: 'elite_tank',
+    behavior: 'chase',
     params: {
-      aggroRange: 150,
-      movePattern: 'advance_slowly',
+      speed: 25,
       targetPriority: 'nearest',
       bodyBlock: true,
       rallyCry: true,
