@@ -228,7 +228,7 @@ export class RadiotherapyEffect {
      * This is the narrowphase — only a cheap arc angle check.
      */
     _onEnemyOverlap(enemy) {
-        // Only process during damage tick window
+        if (!this.entity) return; // Guard: entity may be nulled mid-frame by detach()
         if (!this._canDamage) return;
         if (!enemy?.active || enemy.hp <= 0) return;
         if (this._hitThisTick.has(enemy)) return;

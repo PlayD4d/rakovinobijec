@@ -344,18 +344,6 @@ export class SimpleLootSystem {
         const children = this.lootGroup?.getChildren();
         if (!children || children.length === 0) return;
 
-        // Distance-based pickup for ALL loot (overlap fallback)
-        const pickupRadiusSq = 25 * 25;
-        for (let i = children.length - 1; i >= 0; i--) {
-            const loot = children[i];
-            if (!loot?.active) continue;
-            const dx = player.x - loot.x;
-            const dy = player.y - loot.y;
-            if (dx * dx + dy * dy < pickupRadiusSq) {
-                this.handlePickup(player, loot);
-            }
-        }
-
         // Periodic XP orb merging + field cap enforcement (every 2s)
         if (!this._lastMergeCheck || time - this._lastMergeCheck >= 2000) {
             this._lastMergeCheck = time;
@@ -363,29 +351,36 @@ export class SimpleLootSystem {
             this._enforceFieldCap();
         }
 
-        // XP magnet attraction
+        // Single-pass: pickup check + magnet attraction
+        const pickupRadiusSq = 625; // 25²
         const magnetRadius = player._stats?.()?.xpMagnetRadius || player.baseStats?.xpMagnetRadius || 0;
-        if (magnetRadius <= 0) return;
+        const hasMagnet = magnetRadius > 0;
+        const magnetRadiusSq = magnetRadius * magnetRadius;
 
-        // Apply magnet attraction to XP orbs (pickup handled above)
-        const radiusSq = magnetRadius * magnetRadius;
-        for (let i = 0, len = children.length; i < len; i++) {
+        for (let i = children.length - 1; i >= 0; i--) {
             const loot = children[i];
-            if (!loot?.active || loot.dropType !== 'xp') continue;
-            if (!loot.body) continue;
+            if (!loot?.active) continue;
 
             const dx = player.x - loot.x;
             const dy = player.y - loot.y;
             const distSq = dx * dx + dy * dy;
 
-            if (distSq < radiusSq && distSq > 1) {
-                const distance = Math.sqrt(distSq);
-                const normalizedDistance = distance / magnetRadius;
-                const force = 0.3 + (0.7 * (1 - normalizedDistance));
-                const speed = 300 * force;
-                loot.body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
-            } else if (distSq >= radiusSq) {
-                loot.body.setVelocity(0, 0);
+            // Pickup check (all loot types)
+            if (distSq < pickupRadiusSq) {
+                this.handlePickup(player, loot);
+                continue;
+            }
+
+            // Magnet attraction (XP orbs only)
+            if (hasMagnet && loot.dropType === 'xp' && loot.body) {
+                if (distSq < magnetRadiusSq && distSq > 1) {
+                    const distance = Math.sqrt(distSq);
+                    const force = 0.3 + (0.7 * (1 - distance / magnetRadius));
+                    const speed = 300 * force;
+                    loot.body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
+                } else if (distSq >= magnetRadiusSq && loot.body.velocity.x !== 0) {
+                    loot.body.setVelocity(0, 0);
+                }
             }
         }
     }
@@ -539,10 +534,15 @@ export class SimpleLootSystem {
      */
     cleanupOldPositions() {
         const now = this.scene?.time?.now || 0;
-        if (!now) return; // Scene time unavailable — skip cleanup
-        this.recentDrops = this.recentDrops.filter(drop =>
-            now - drop.time < this.dropCleanupTime
-        );
+        if (!now) return;
+        // In-place removal — no array allocation
+        let write = 0;
+        for (let read = 0; read < this.recentDrops.length; read++) {
+            if (now - this.recentDrops[read].time < this.dropCleanupTime) {
+                this.recentDrops[write++] = this.recentDrops[read];
+            }
+        }
+        this.recentDrops.length = write;
     }
     
     /**

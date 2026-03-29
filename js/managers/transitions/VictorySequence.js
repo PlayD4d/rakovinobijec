@@ -24,7 +24,7 @@ export async function executeVictory(tm) {
     await clearAllEnemiesWithEffect(tm);
 
     // 4. Show UI victory modal via event
-    await tm.showUIModal('ui:victory:show', {
+    await tm.showUIModal('ui:victory-show', {
         stats,
         level: scene.currentLevel,
         time: Math.floor(scene.sceneTimeSec)

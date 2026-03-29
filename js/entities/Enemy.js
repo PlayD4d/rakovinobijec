@@ -15,15 +15,6 @@ export class Enemy extends EnemyCore {
         // Initialize AI behaviors
         this.behaviors = new EnemyBehaviors(this);
         
-        // Emit spawn event
-        if (this.scene.events) {
-            this.scene.events.emit('enemy:spawn', { 
-                enemy: this, 
-                type: blueprint.type,
-                id: blueprint.id 
-            });
-        }
-        
         // Spawn effects (SFX only, no spark VFX)
         this.playSfx('spawn');
         

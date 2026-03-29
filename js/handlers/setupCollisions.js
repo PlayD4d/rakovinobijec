@@ -6,6 +6,15 @@
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { getSession } from '../core/debug/SessionLog.js';
 
+// Cached session reference — refreshed per-frame, avoids getSession() call per collision
+let _session = null;
+let _sessionFrame = -1;
+function session(scene) {
+    const frame = scene?.game?.loop?.frame || 0;
+    if (frame !== _sessionFrame) { _session = getSession(); _sessionFrame = frame; }
+    return _session;
+}
+
 // ===== DRY helpers (shared between enemy and boss collision handlers) =====
 
 /** Apply piercing damage reduction to bullet damage */
@@ -162,9 +171,8 @@ function handlePlayerEnemyCollision(player, enemy) {
 
     if (player.canTakeDamage?.()) {
         const damage = enemy.contactDamage || enemy.damage || 10;
-        getSession()?.log('collision', 'contact_damage', {
-            enemyId: enemy.blueprintId || enemy.type, damage, playerHP: player.hp
-        });
+        const s = session(player.scene);
+        if (s) s.log('collision', 'contact_damage', { enemyId: enemy.blueprintId || enemy.type, damage, playerHP: player.hp });
         player.takeDamage(damage);
     }
 }
@@ -179,7 +187,8 @@ function handlePlayerBossCollision(player, boss) {
 
     if (player.canTakeDamage && player.canTakeDamage()) {
         const damage = boss.contactDamage || boss.damage || 20;
-        getSession()?.log('collision', 'player_boss', { bossId: boss.blueprintId || boss.type, damage, playerHP: player.hp });
+        const s = session(player.scene);
+        if (s) s.log('collision', 'player_boss', { bossId: boss.blueprintId || boss.type, damage, playerHP: player.hp });
         player.takeDamage(damage);
     }
 }
@@ -209,7 +218,8 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
 
     // Apply damage with piercing reduction (DRY helper)
     let damage = applyPiercingReduction(bullet, bullet.damage || scene.player?.baseStats?.projectileDamage || 10);
-    getSession()?.log('combat', 'player_hit_enemy', { enemyId: enemy.blueprintId || enemy.type, damage, enemyHP: enemy.hp, killed: enemy.hp <= damage });
+    const s = session(scene);
+    if (s) s.log('combat', 'player_hit_enemy', { enemyId: enemy.blueprintId || enemy.type, damage, enemyHP: enemy.hp, killed: enemy.hp <= damage });
     enemy.takeDamage(damage);
 
     // Handle explosive bullets from chemo_reservoir power-up
@@ -264,7 +274,8 @@ function handlePlayerBulletBossCollision(bullet, boss) {
 
     // Apply damage with piercing reduction (DRY helper)
     const damage = applyPiercingReduction(bullet, bullet.damage || scene?.player?.baseStats?.projectileDamage || 10);
-    getSession()?.log('combat', 'player_hit_boss', { bossId: boss.blueprintId || boss.type, damage, bossHP: boss.hp, killed: boss.hp <= damage });
+    const s = session(scene);
+    if (s) s.log('combat', 'player_hit_boss', { bossId: boss.blueprintId || boss.type, damage, bossHP: boss.hp, killed: boss.hp <= damage });
     if (boss.takeDamage) boss.takeDamage(damage);
 
     // VFX/SFX hit feedback
@@ -287,7 +298,8 @@ function handleEnemyBulletPlayerCollision(bullet, player) {
 
     if (player.canTakeDamage?.()) {
         const damage = bullet.damage || 5;
-        getSession()?.log('combat', 'enemy_bullet_hit_player', { damage, playerHP: player.hp, source: bullet.sourceType || 'unknown' });
+        const s = session(player.scene);
+        if (s) s.log('combat', 'enemy_bullet_hit_player', { damage, playerHP: player.hp, source: bullet.sourceType || 'unknown' });
         player.takeDamage(damage);
     }
     killBullet(bullet);

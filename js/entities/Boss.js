@@ -299,10 +299,9 @@ export class Boss extends BossCore {
      */
     die(killer) {
         if (!this.active || this._deathProcessed) return;
-        this._deathProcessed = true;
         getSession()?.log('boss', 'death', { bossId: this.blueprint?.id, killer });
 
-        // Death VFX/SFX (while still visible)
+        // Death VFX/SFX (while still visible — Boss handles its own, onEnemyDeath skips VFX for bosses)
         this.spawnVfx('death');
         this.playSfx('death');
 
@@ -310,8 +309,8 @@ export class Boss extends BossCore {
         const hud = this.scene.scene?.get('GameUIScene')?.hud;
         if (hud) hud.hideBoss();
 
-        // Process loot/XP BEFORE deactivating (handleEnemyDeath needs position)
-        // Boss flags (currentBoss, bossActive) are managed by EnemyManager.onEnemyDeath
+        // Process loot/XP/stats BEFORE deactivating (needs position)
+        // _deathProcessed is NOT set yet — onEnemyDeath needs to process XP/loot/stats
         if (this.scene.handleEnemyDeath) {
             this.scene.handleEnemyDeath(this);
         }

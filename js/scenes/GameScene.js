@@ -4,7 +4,7 @@ import { Boss } from '../entities/Boss.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { MobileControlsSystem} from '../core/systems/MobileControlsSystem.js';
 import { SimpleLootSystem } from '../core/systems/SimpleLootSystem.js';
-import { EventBus } from '../core/events/EventBus.js';
+import { centralEventBus } from '../core/events/CentralEventBus.js';
 import { TelemetryLogger } from '../core/TelemetryLogger.js';
 import { DebugOverlay } from '../utils/DebugOverlay.js';
 import { BlueprintLoader } from '../core/data/BlueprintLoader.js';
@@ -68,7 +68,7 @@ export class GameScene extends Phaser.Scene {
         this.highScoreModal = null;
 
         this.configResolver = window.ConfigResolver;
-        this.eventBus = new EventBus();
+        this.eventBus = centralEventBus; // Shared singleton — Phaser recommended pattern
         this.keyboardManager = null;
     }
     
@@ -329,8 +329,8 @@ export class GameScene extends Phaser.Scene {
         const healAmount = window.ConfigResolver?.get('progression.levelUpHeal', { defaultValue: 20 }) ?? 20;
         this.player.heal(healAmount);
         const options = this.getPowerUpOptions();
-        DebugLogger.info('game', '[GameScene] Emitting game-levelup event');
-        this.game.events.emit('game-levelup', options);
+        DebugLogger.info('game', '[GameScene] Emitting game:levelup event');
+        centralEventBus.emit('game:levelup', options);
         this.flashCamera();
         if (this.analyticsManager?.trackEvent) {
             const elapsed = this.time?.now ? Math.floor((this.time.now - this.levelStartTime) / 1000) : 0;
@@ -449,7 +449,7 @@ export class GameScene extends Phaser.Scene {
 
         try {
             this.spawnDirector?.stop?.();
-            this.projectileSystem?.clearAllProjectiles?.();
+            this.projectileSystem?.clearAll?.();
             try { this.enemiesGroup?.clear(true, true); } catch (_) {}
             try { this.bossGroup?.clear(true, true); } catch (_) {}
             try { this.physics?.pause(); } catch (_) {}
@@ -495,9 +495,8 @@ export class GameScene extends Phaser.Scene {
                 }
             }
 
-            // Clean up game-level event listeners
-            this._bootstrapGameListeners?.forEach(({ event, fn }) => this.game.events.off(event, fn));
-            this._bootstrapGameListeners = null;
+            // Clean up CentralEventBus listeners (cross-scene events)
+            centralEventBus.removeAllListeners(this);
             try {
                 if (this._resizeHandler) this.scale.off('resize', this._resizeHandler);
             } catch (_) {}

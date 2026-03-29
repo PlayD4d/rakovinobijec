@@ -39,8 +39,9 @@ export async function executeGameOver(tm) {
         await showHighScoreModal(tm, finalScore);
     }
 
-    // 5. Show defeat modal via UI scene (existing game-over event)
-    scene.game.events.emit('game-over', {
+    // 5. Show defeat modal via CentralEventBus
+    const { centralEventBus } = await import('../../core/events/CentralEventBus.js');
+    centralEventBus.emit('game:over', {
         survivalTime: Math.floor(scene.sceneTimeSec),
         level: stats.level,
         kills: stats.enemiesKilled,

@@ -201,22 +201,20 @@ export class VFXPresets {
             return null;
         }
 
-        // Call the method with fixed args, using color override where appropriate
-        const [method, ...fixedArgs] = entry;
+        // Call the method with fixed args — zero-alloc: index access instead of spread
+        const method = entry[0];
         const fn = this[method];
         if (!fn) return null;
 
-        // Apply: first arg is color (or fixed override), rest are fixed args
-        if (fixedArgs.length === 0) {
+        const len = entry.length;
+        if (len === 1) {
             return fn.call(this, color);
-        } else if (fixedArgs.length === 1) {
-            // Could be size string or fixed color
-            const arg1 = fixedArgs[0];
-            if (typeof arg1 === 'string') return fn.call(this, arg1, color); // e.g. explosion('small', color)
-            return fn.call(this, arg1 ?? color); // fixed color or fallback
+        } else if (len === 2) {
+            const arg1 = entry[1];
+            if (typeof arg1 === 'string') return fn.call(this, arg1, color);
+            return fn.call(this, arg1 ?? color);
         } else {
-            // Multiple fixed args — use them directly (color overrides handled by fixed values)
-            return fn.call(this, fixedArgs[0] ?? color, fixedArgs[1]);
+            return fn.call(this, entry[1] ?? color, entry[2]);
         }
 
     }

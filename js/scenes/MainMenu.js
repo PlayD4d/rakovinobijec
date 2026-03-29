@@ -3,7 +3,7 @@ import { HighScoreManager } from '../managers/HighScoreManager.js';
 import { GlobalHighScoreManager } from '../managers/GlobalHighScoreManager.js';
 import { SimplifiedVFXSystem } from '../core/vfx/SimplifiedVFXSystem.js';
 import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
-import { EventBus } from '../core/events/EventBus.js';
+import { centralEventBus } from '../core/events/CentralEventBus.js';
 import { KeyboardManager } from '../core/input/KeyboardManager.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 // LiteUI components
@@ -82,13 +82,8 @@ export class MainMenu extends Phaser.Scene {
         this.globalHighScoreManager = new GlobalHighScoreManager();
         this.globalHighScoreManager.setLocalFallback(this.highScoreManager);
 
-        // PR7: Init EventBus first (needed by KeyboardManager)
-        try {
-            this.eventBus = new EventBus();
-        } catch (error) {
-            DebugLogger.warn('menu', 'EventBus init failed:', error);
-            this.eventBus = null;
-        }
+        // Use shared CentralEventBus (Phaser recommended: standalone EventEmitter singleton)
+        this.eventBus = centralEventBus;
 
         // Vytvoření main menu UI (LiteUI)
         this.mainMenuUI = new MainMenuUI(this, this.gameVersion);
@@ -97,7 +92,7 @@ export class MainMenu extends Phaser.Scene {
         try {
             this.keyboardManager = new KeyboardManager(this, this.eventBus);
             this.setupMenuKeyboardEvents();
-            this.keyboardManager.register('ESC', 'menu.escape', 'menu');
+            this.keyboardManager.register('ESC', 'ui:menu-escape', 'menu');
             DebugLogger.info('menu', '✅ MainMenu KeyboardManager initialized');
         } catch (error) {
             DebugLogger.error('menu', 'MainMenu KeyboardManager init failed:', error);
@@ -196,7 +191,7 @@ export class MainMenu extends Phaser.Scene {
      * Setup keyboard event listeners for MainMenu
      */
     setupMenuKeyboardEvents() {
-        this.eventBus.on('menu.escape', () => {
+        centralEventBus.on('ui:menu-escape', () => {
             this.handleEscKey();
         });
 
@@ -265,7 +260,8 @@ export class MainMenu extends Phaser.Scene {
         this.sfxRouter = null;
         this.sfxSystem = null;
         this.vfxSystem = null;
-        this.eventBus = null;
+        // CentralEventBus is a singleton — don't null it, just remove our listeners
+        centralEventBus.removeAllListeners(this);
     }
 }
 

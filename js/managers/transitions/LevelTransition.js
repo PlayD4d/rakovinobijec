@@ -23,7 +23,7 @@ export async function executeLevelTransition(tm, nextLevel) {
     }
 
     // 2. Show transition UI
-    await tm.showUIModal('ui:level-transition:show', {
+    await tm.showUIModal('ui:level-transition-show', {
         fromLevel: scene.currentLevel,
         toLevel: nextLevel,
         message: `Úroveň ${nextLevel}`

@@ -289,15 +289,17 @@ export class EnemyManager {
             enemy.cleanupAllVFX();
         }
 
-        try {
-            // Play death VFX
-            if (scene.vfxSystem && enemy._vfx?.death) {
-                scene.vfxSystem.play(enemy._vfx.death, enemy.x, enemy.y);
-            }
+        const isBoss = enemy instanceof Boss;
 
-            // Play death SFX
-            if (scene.audioSystem && enemy._sfx?.death) {
-                scene.audioSystem.play(enemy._sfx.death);
+        try {
+            // Play death VFX/SFX (Boss handles its own in Boss.die() — skip here)
+            if (!isBoss) {
+                if (scene.vfxSystem && enemy._vfx?.death) {
+                    scene.vfxSystem.play(enemy._vfx.death, enemy.x, enemy.y);
+                }
+                if (scene.audioSystem && enemy._sfx?.death) {
+                    scene.audioSystem.play(enemy._sfx.death);
+                }
             }
 
             // Create XP orbs based on enemy XP value

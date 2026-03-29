@@ -7,6 +7,7 @@ import { PowerUpUI } from '../ui/lite/PowerUpUI.js';
 import { GameOverUI } from '../ui/lite/GameOverUI.js';
 import { UnifiedHUD } from '../ui/UnifiedHUD.js';
 import { UI_THEME } from '../ui/UITheme.js';
+import { centralEventBus } from '../core/events/CentralEventBus.js';
 
 export class GameUIScene extends Phaser.Scene {
     constructor() {
@@ -58,19 +59,16 @@ export class GameUIScene extends Phaser.Scene {
         this._onVictoryShow = (data) => this.showVictory(data);
         this._onLevelTransitionShow = (data) => this.showLevelTransition(data);
 
-        this.game.events.on('game-pause-request', this._onPauseRequest);
-        this.game.events.on('game-levelup', this._onLevelUp);
-        this.game.events.on('game-over', this._onGameOver);
-        this.game.events.on('ui:victory:show', this._onVictoryShow);
-        this.game.events.on('ui:level-transition:show', this._onLevelTransitionShow);
+        // Cross-scene events via CentralEventBus (Phaser best practice: standalone EventEmitter)
+        centralEventBus.on('ui:pause-request', this._onPauseRequest, this);
+        centralEventBus.on('game:levelup', this._onLevelUp, this);
+        centralEventBus.on('game:over', this._onGameOver, this);
+        centralEventBus.on('ui:victory-show', this._onVictoryShow, this);
+        centralEventBus.on('ui:level-transition-show', this._onLevelTransitionShow, this);
     }
 
     _removeEventListeners() {
-        if (this._onPauseRequest) this.game.events.off('game-pause-request', this._onPauseRequest);
-        if (this._onLevelUp) this.game.events.off('game-levelup', this._onLevelUp);
-        if (this._onGameOver) this.game.events.off('game-over', this._onGameOver);
-        if (this._onVictoryShow) this.game.events.off('ui:victory:show', this._onVictoryShow);
-        if (this._onLevelTransitionShow) this.game.events.off('ui:level-transition:show', this._onLevelTransitionShow);
+        centralEventBus.removeAllListeners(this);
     }
 
     togglePause() {
@@ -132,7 +130,7 @@ export class GameUIScene extends Phaser.Scene {
         if (!gameScene) return;
 
         // Emit selection and resume immediately for responsiveness
-        this.game.events.emit('powerup-selected', selection);
+        centralEventBus.emit('game:powerup-selected', selection);
         gameScene.scene.resume();
 
         // Defer input restoration until hide animation completes

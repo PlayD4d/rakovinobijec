@@ -19,7 +19,8 @@ export function getSpawnPosition(scene, config) {
     const camera = scene.cameras.main;
     const margin = 100;  // Increased from 50 to ensure spawns are off-screen
     const player = scene.player;
-    const MIN_PLAYER_DISTANCE = 150; // Increased minimum distance from player
+    const MIN_PLAYER_DISTANCE = 150;
+    const MIN_PLAYER_DISTANCE_SQ = MIN_PLAYER_DISTANCE * MIN_PLAYER_DISTANCE;
 
     // Get world bounds for clamping
     const worldBounds = scene.physics?.world?.bounds;
@@ -72,8 +73,7 @@ export function getSpawnPosition(scene, config) {
         if (player && player.active) {
             const dx = x - player.x;
             const dy = y - player.y;
-            const distToPlayer = Math.sqrt(dx * dx + dy * dy);
-            if (distToPlayer >= MIN_PLAYER_DISTANCE) {
+            if (dx * dx + dy * dy >= MIN_PLAYER_DISTANCE_SQ) {
                 break; // Found valid position
             }
         } else {

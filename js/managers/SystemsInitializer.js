@@ -237,10 +237,10 @@ export class SystemsInitializer {
 
             DebugLogger.debug('bootstrap', '[SystemsInitializer] KeyboardManager created and UI keys setup');
 
-            // Register ESC key handler for pause menu
+            // Register ESC key handler for pause menu — routes through CentralEventBus
             const escHandler = () => {
-                DebugLogger.info('bootstrap', '[KeyboardManager] ESC pressed, emitting game-pause-request');
-                this.scene.game.events.emit('game-pause-request');
+                DebugLogger.info('bootstrap', '[KeyboardManager] ESC pressed, emitting ui:pause-request');
+                centralEventBus.emit('ui:pause-request');
             };
 
             centralEventBus.on('ui:escape', escHandler);

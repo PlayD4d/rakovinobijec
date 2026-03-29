@@ -75,9 +75,9 @@ export class SimplifiedVFXSystem {
         if (typeof config === 'string') {
             // Check if it's a preset
             if (config.includes('.')) {
-                // Extract preset name and optional color
-                const parts = config.split('.');
-                const presetName = parts.slice(1).join('.');
+                // Extract preset name without first segment (zero-alloc: indexOf+slice instead of split/join)
+                const dotIdx = config.indexOf('.');
+                const presetName = config.slice(dotIdx + 1);
                 const presetConfig = VFXPresets.getPreset(presetName, options.color);
                 if (presetConfig) {
                     config = presetConfig;
@@ -112,32 +112,40 @@ export class SimplifiedVFXSystem {
     _playParticles(config, x, y, options = {}) {
         // Check if scene is still active
         if (!this.scene || !this.scene.sys?.isActive()) return null;
-        
+
+        // Enforce maxEmitters — recycle oldest if at limit
+        if (this.activeEmitters.size >= this.maxEmitters) {
+            const oldestId = this.activeEmitters.keys().next().value;
+            this._returnEmitterToPool(oldestId);
+        }
+
         // Get or create emitter
         let emitter = this._getEmitterFromPool();
-        
+        const quantity = config.quantity || 10;
+
         if (!emitter) {
-            // Create new emitter if pool is empty
             emitter = this.scene.add.particles(x, y, 'particle', config);
         } else {
-            // Reuse from pool
+            // Reuse from pool — clear stale follow target before applying new config
+            if (emitter.follow) emitter.follow = null;
             emitter.setPosition(x, y);
             emitter.setConfig(config);
-            emitter.start();
         }
-        
+
+        // explode() is Phaser's native one-shot burst — sets frequency=-1 internally
+        // No config spread needed — zero allocation
+        emitter.explode(quantity, x, y);
+
         // Track active emitter
         const emitterId = `em_${this._emitterCounter++}`;
         this.activeEmitters.set(emitterId, emitter);
-        
-        // Auto-cleanup after lifespan
-        const lifespan = config.lifespan || 1000;
-        if (this.scene.time) {  // Check if time system exists
-            this.scene.time.delayedCall(lifespan + 100, () => {
-                this._returnEmitterToPool(emitterId);
-            });
-        }
-        
+
+        // Use Phaser's native 'complete' event for cleanup (fires when last particle dies)
+        // No untracked timers — event is owned by the emitter and cleaned up with it
+        emitter.once('complete', () => {
+            this._returnEmitterToPool(emitterId);
+        });
+
         return emitter;
     }
     
@@ -408,10 +416,17 @@ export class SimplifiedVFXSystem {
     stopAllEffects() {
         // Stop AND destroy transient particle emitters (explosions, hits, etc.)
         for (const [id, emitter] of this.activeEmitters) {
-            emitter.stop();
-            if (emitter.destroy) emitter.destroy();
+            if (!emitter.active || !emitter.scene) continue;
+            emitter.stop(true); // true = kill all particles immediately
+            emitter.destroy();
         }
         this.activeEmitters.clear();
+
+        // Clear pool — emitters from previous session may be stale
+        for (const emitter of this.emitterPool) {
+            if (emitter.active && emitter.scene) emitter.destroy();
+        }
+        this.emitterPool.length = 0;
 
         // Preserve persistent power-up effects (radiotherapy, flamethrower, shield)
         // They survive level transitions — player keeps their power-ups
@@ -421,9 +436,10 @@ export class SimplifiedVFXSystem {
      * Shutdown the system
      */
     shutdown() {
-        // Stop all effects
+        // Stop all effects — guard against already-destroyed emitters
         for (const [id, emitter] of this.activeEmitters) {
-            emitter.stop();
+            if (!emitter.active || !emitter.scene) continue;
+            emitter.stop(true);
             emitter.destroy();
         }
         this.activeEmitters.clear();

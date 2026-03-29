@@ -101,6 +101,7 @@ export class ShieldEffect {
         this.active = false;
         this.entity = null;
         this._shieldDrawn = false;
+        this._hitFlashUntil = 0;
         
         // PR7: Clean up graphics properly
         if (this.graphics) {

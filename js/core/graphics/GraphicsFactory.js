@@ -77,6 +77,9 @@ export class GraphicsFactory {
         this.graphicsPool = [];
     }
     
+    /** Alias for GameScene shutdown loop compatibility */
+    shutdown() { this.cleanup(); }
+
     /**
      * Get statistics
      */

@@ -14,6 +14,8 @@ export class PlayerAttackController {
      */
     constructor(player) {
         this.player = player;
+        // Pre-allocated opts object for firePlayer — avoids per-shot allocation
+        this._fireOpts = { speedMul: 1, rangeMul: 1, damageMul: 1, tint: 0xffffff, projectileId: 'projectile.player_basic' };
     }
 
     /**
@@ -59,8 +61,7 @@ export class PlayerAttackController {
                 // Use Math.max to ensure we don't go backwards in time
                 player._nextAttackAt = Math.max(player._nextAttackAt + attackInterval, time + attackInterval);
 
-                // Debug log attack interval
-                DebugLogger.info('player', `[Player] Attack fired. Interval: ${attackInterval}ms, Next at: ${player._nextAttackAt}`);
+                DebugLogger.debug('player', '[Player] Attack fired');
             } else {
                 // No target — defer next check by half attack interval (not 100ms)
                 player._nextAttackAt = time + Math.max(attackInterval * 0.5, 250);
@@ -104,47 +105,31 @@ export class PlayerAttackController {
     _shootAtTarget(target) {
         const player = this.player;
         const scene = player.scene;
+        const ps = scene.projectileSystem;
 
-        if (!scene.projectileSystem) return;
+        if (!ps) return;
 
         // Calculate direction to target
         const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
         const stats = player._stats();
         const projectileCount = Math.max(1, Math.round(stats.projectileCount));
 
-        // Only apply spread if multiple projectiles
+        // Reuse pre-allocated opts — zero allocation per shot
+        const opts = this._fireOpts;
+        opts.damageMul = this._rollCrit(stats.projectileDamage, stats) / ps.config.damage;
+        opts.projectileId = stats.projectileRef || 'projectile.player_basic';
+
         if (projectileCount > 1) {
             const spreadRad = (stats.spreadDeg * Math.PI) / 180;
-
             for (let i = 0; i < projectileCount; i++) {
-                // Distribute projectiles evenly around the base angle
                 const t = (i - (projectileCount - 1) / 2);
                 const angleOffset = (spreadRad / (projectileCount - 1)) * t;
                 const finalAngle = baseAngle + angleOffset;
-
-                scene.projectileSystem.createPlayerProjectile({
-                    x: player.x,
-                    y: player.y,
-                    projectileBlueprintId: stats.projectileRef,
-                    damage: this._rollCrit(stats.projectileDamage, stats),
-                    speed: stats.projectileSpeed,
-                    range: stats.projectileRange,
-                    angleRad: finalAngle,
-                    owner: player
-                });
+                opts.damageMul = this._rollCrit(stats.projectileDamage, stats) / ps.config.damage;
+                ps.firePlayer(player.x, player.y, Math.cos(finalAngle), Math.sin(finalAngle), opts);
             }
         } else {
-            // Single projectile - shoot directly at target
-            scene.projectileSystem.createPlayerProjectile({
-                x: player.x,
-                y: player.y,
-                projectileBlueprintId: stats.projectileRef,
-                damage: this._rollCrit(stats.projectileDamage, stats),
-                speed: stats.projectileSpeed,
-                range: stats.projectileRange,
-                angleRad: baseAngle,
-                owner: player
-            });
+            ps.firePlayer(player.x, player.y, Math.cos(baseAngle), Math.sin(baseAngle), opts);
         }
 
         player._playSfx(player.sfx.shoot);

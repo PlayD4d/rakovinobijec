@@ -73,11 +73,14 @@ export class EnemyProjectile extends Phaser.Physics.Arcade.Sprite {
     // Enable body and set position
     this.enableBody(true, spawnX, spawnY, true, true);
     
-    // Configure physics body
-    this.body.setAllowGravity(false);
-    this.setCircle(2); // Smaller than player bullets
-    this.setCollideWorldBounds(true);
-    this.body.onWorldBounds = true; // Enable world bounds events
+    // Configure physics body only on first use — values persist across pool recycles
+    if (!this._bodyConfigured) {
+      this.body.setAllowGravity(false);
+      this.setCircle(2);
+      this.setCollideWorldBounds(true);
+      this.body.onWorldBounds = true;
+      this._bodyConfigured = true;
+    }
     
     // Basic properties
     this.damage = damage;
@@ -117,9 +120,8 @@ export class EnemyProjectile extends Phaser.Physics.Arcade.Sprite {
    * preUpdate lifecycle - called automatically by Phaser when runChildUpdate: true
    */
   preUpdate(time, delta) {
+    if (!this.active) return; // Skip before super — avoids Phaser base preUpdate on dead pooled sprites
     super.preUpdate(time, delta);
-    
-    if (!this.active) return;
     
     // Update time tracking
     if (this._blueprint) {

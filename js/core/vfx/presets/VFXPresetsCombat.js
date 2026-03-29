@@ -1,9 +1,22 @@
 /**
  * VFXPresetsCombat - Combat-related visual effects
  * PR7 Compliant - Pure functions for combat effects
- * 
+ *
  * Contains hit effects, explosions, death bursts and combat-related particles
  */
+
+// Module-level config tables — allocated once, not per-call
+const EXPLOSION_CONFIGS = {
+    small:  { quantity: 15, speed: { min: 80, max: 180 },  scale: { start: 0.4, end: 0 }, lifespan: 300 },
+    medium: { quantity: 25, speed: { min: 100, max: 250 }, scale: { start: 0.6, end: 0 }, lifespan: 400 },
+    large:  { quantity: 40, speed: { min: 150, max: 350 }, scale: { start: 0.8, end: 0 }, lifespan: 500 }
+};
+
+const DEATH_BURST_CONFIGS = {
+    small:  { quantity: 10, speed: { min: 60, max: 150 },  scale: { start: 0.3, end: 0 }, lifespan: 250 },
+    medium: { quantity: 20, speed: { min: 100, max: 200 }, scale: { start: 0.5, end: 0 }, lifespan: 350 },
+    large:  { quantity: 30, speed: { min: 150, max: 300 }, scale: { start: 0.7, end: 0 }, lifespan: 450 }
+};
 
 /**
  * Small hit effect - used for projectile impacts
@@ -66,28 +79,7 @@ export function largeHit(color = 0xFFFFFF) {
  * @param {number} color - Tint color
  */
 export function explosion(size = 'medium', color = 0xFF6600) {
-    const configs = {
-        small: {
-            quantity: 15,
-            speed: { min: 80, max: 180 },
-            scale: { start: 0.4, end: 0 },
-            lifespan: 300
-        },
-        medium: {
-            quantity: 25,
-            speed: { min: 100, max: 250 },
-            scale: { start: 0.6, end: 0 },
-            lifespan: 400
-        },
-        large: {
-            quantity: 40,
-            speed: { min: 150, max: 350 },
-            scale: { start: 0.8, end: 0 },
-            lifespan: 500
-        }
-    };
-    
-    const config = configs[size] || configs.medium;
+    const config = EXPLOSION_CONFIGS[size] || EXPLOSION_CONFIGS.medium;
     
     return {
         type: 'particles',
@@ -106,28 +98,7 @@ export function explosion(size = 'medium', color = 0xFF6600) {
  * @param {number} color - Tint color
  */
 export function deathBurst(size = 'medium', color = 0xFF2222) {
-    const configs = {
-        small: {
-            quantity: 10,
-            speed: { min: 60, max: 150 },
-            scale: { start: 0.3, end: 0 },
-            lifespan: 250
-        },
-        medium: {
-            quantity: 20,
-            speed: { min: 100, max: 200 },
-            scale: { start: 0.5, end: 0 },
-            lifespan: 350
-        },
-        large: {
-            quantity: 30,
-            speed: { min: 150, max: 300 },
-            scale: { start: 0.7, end: 0 },
-            lifespan: 450
-        }
-    };
-    
-    const config = configs[size] || configs.medium;
+    const config = DEATH_BURST_CONFIGS[size] || DEATH_BURST_CONFIGS.medium;
     
     return {
         type: 'particles',

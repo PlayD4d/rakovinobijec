@@ -134,8 +134,10 @@ export class EnemyBehaviors {
         const cap = this.createCapability();
         cap.now = time;
 
-        // Run each active layer (cached entries + pre-built setLayer — zero per-frame allocations)
-        for (const [layer, behaviorName] of this._layerEntries) {
+        // Run each active layer — index loop avoids iterator allocation
+        for (let i = 0; i < this._layerEntries.length; i++) {
+            const entry = this._layerEntries[i];
+            const layer = entry[0], behaviorName = entry[1];
             if (!behaviorName) continue;
             const fn = BEHAVIORS[behaviorName];
             if (!fn) continue;

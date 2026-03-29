@@ -223,6 +223,8 @@ export class SimplifiedAudioSystem {
     }
 
     _returnSoundToPool(key, sound) {
+        // Guard: async stop/complete events may fire after shutdown cleared the pool
+        if (!this.enabled || !this.soundPool) return;
         if (!this.soundPool.has(key)) {
             this.soundPool.set(key, []);
         }

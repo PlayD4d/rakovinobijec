@@ -236,7 +236,9 @@ export class TransitionManager {
     }
 
     async showUIModal(eventName, data) {
-        this.scene.game.events.emit(eventName, data);
+        // Migrate game.events → centralEventBus: normalize event name for namespacing
+        const { centralEventBus } = await import('../core/events/CentralEventBus.js');
+        centralEventBus.emit(eventName, data);
         DebugLogger.info('transition', `[TransitionManager] Emitted ${eventName}`);
 
         return new Promise((resolve) => {

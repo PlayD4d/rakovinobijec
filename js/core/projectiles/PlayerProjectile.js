@@ -39,15 +39,18 @@ export class PlayerProjectile extends Phaser.Physics.Arcade.Sprite {
     if (!this.body) {
       this.scene.physics.world.enable(this);
     }
-    
+
     // Enable body and set position/velocity
     this.enableBody(true, sx, sy, true, true);
-    
-    // NOW configure physics body (after enableBody)
-    this.body.setAllowGravity(false);
-    this.setCircle(3); // Smaller hitbox for fair collision
-    this.setCollideWorldBounds(true);
-    this.body.onWorldBounds = true; // Enable world bounds events
+
+    // Configure physics body only on first use — values persist across pool recycles
+    if (!this._bodyConfigured) {
+      this.body.setAllowGravity(false);
+      this.setCircle(3);
+      this.setCollideWorldBounds(true);
+      this.body.onWorldBounds = true;
+      this._bodyConfigured = true;
+    }
     
     this.setVelocity(nx * speed, ny * speed);
     this.setTint(tint);
@@ -67,9 +70,8 @@ export class PlayerProjectile extends Phaser.Physics.Arcade.Sprite {
    * preUpdate lifecycle - called automatically by Phaser when runChildUpdate: true
    */
   preUpdate(time, delta) {
+    if (!this.active) return; // Skip before super — avoids Phaser base preUpdate on dead pooled sprites
     super.preUpdate(time, delta);
-    
-    if (!this.active) return;
     
     // Lifespan countdown using delta (accurate during lag spikes)
     this._life -= delta;

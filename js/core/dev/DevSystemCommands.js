@@ -1,6 +1,7 @@
 /**
  * DevSystemCommands - Game flow and system management DEV commands
  */
+import { centralEventBus } from '../events/CentralEventBus.js';
 
 export function registerSystemCommands(DEV, getScene) {
 
@@ -8,7 +9,7 @@ export function registerSystemCommands(DEV, getScene) {
         try {
             const scene = getScene();
             if (!scene) { console.warn('[DEV] No active scene'); return; }
-            scene.game.events.emit('game-pause-request');
+            centralEventBus.emit('ui:pause-request');
             console.log('Game paused');
         } catch (e) { console.error('[DEV] pause failed:', e); }
     };

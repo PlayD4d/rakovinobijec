@@ -7,6 +7,7 @@
 import { Player } from '../entities/Player.js';
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { SystemsInitializer } from './SystemsInitializer.js';
+import { centralEventBus } from '../core/events/CentralEventBus.js';
 
 export class BootstrapManager {
     constructor(scene) {
@@ -137,12 +138,8 @@ export class BootstrapManager {
         this.scene.events.on('boss:die', this._onBossDie);
         this.scene.events.on('resume', this._onResume);
 
-        // Game-level event — must be manually cleaned up!
-        this.scene.game.events.on('powerup-selected', this._onPowerUpSelected);
-        // Store reference on scene so shutdown() can clean it up
-        this.scene._bootstrapGameListeners = [
-            { event: 'powerup-selected', fn: this._onPowerUpSelected }
-        ];
+        // Cross-scene event via CentralEventBus (auto-cleanup via context)
+        centralEventBus.on('game:powerup-selected', this._onPowerUpSelected, this);
 
         // Resize event (game-level — tracked for cleanup in GameScene.shutdown)
         const scale = this.scene.getScaleManager();
@@ -379,9 +376,9 @@ export class BootstrapManager {
         }
         
         const colliders = this.scene.setupCollisions();
-        // Register colliders for cleanup
-        if (colliders && colliders.length > 0 && this.scene.disposableRegistry) {
-            colliders.forEach(collider => this.scene.disposableRegistry.add(collider));
+        // Register colliders for cleanup via scene._colliders (used by GameScene.shutdown)
+        if (colliders && colliders.length > 0 && this.scene.disposables) {
+            colliders.forEach(collider => this.scene.disposables.add(collider));
             DebugLogger.info('bootstrap', `[BootstrapManager] Registered ${colliders.length} colliders for cleanup`);
         }
         

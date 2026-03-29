@@ -82,10 +82,8 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         const radius = Math.max(6, Math.floor(Math.min(this.displayWidth, this.displayHeight) * 0.45));
         this.setCircle(radius);
         
-        // Initialize disposables for timers
-        if (scene.disposableRegistry) {
-            this.disposables = scene.disposableRegistry.create(this);
-        }
+        // Per-enemy timer tracking for cleanup on death
+        this._trackedTimers = [];
         
         // Store spawn position for patrol behavior
         this.spawnX = x;
@@ -252,12 +250,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      */
     schedule(fn, ms) {
         const timer = this.scene.time.delayedCall(ms, fn);
-        
-        // Track for cleanup if disposables available
-        if (this.disposables?.trackTimer) {
-            this.disposables.trackTimer(timer);
-        }
-        
+        this._trackedTimers.push(timer);
         return timer;
     }
     
@@ -336,6 +329,9 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         if (this.scene?.handleEnemyDeath) {
             this.scene.handleEnemyDeath(this);
         }
+
+        // Immediately clean up timers and behaviors (no 10s zombie window)
+        this.cleanup();
     }
     
     /**
@@ -364,18 +360,30 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * Clean up
      */
     cleanup() {
-        // Cancel flash timer (try/catch for scene teardown race)
+        // Cancel flash timer
         if (this.flashTween) {
             try { this.flashTween.destroy?.(); } catch (_) {}
             this.flashTween = null;
         }
-        
-        // Dispose timers
-        if (this.disposables) {
-            this.disposables.disposeAll();
+
+        // Cancel all tracked timers
+        if (this._trackedTimers) {
+            for (let i = 0; i < this._trackedTimers.length; i++) {
+                try { this._trackedTimers[i].destroy?.(); } catch (_) {}
+            }
+            this._trackedTimers.length = 0;
         }
-        
+
         // NOTE: Do NOT call destroy() here - causes infinite recursion!
+    }
+
+    /**
+     * Clean up all attached VFX effects (called by EnemyManager on death)
+     */
+    cleanupAllVFX() {
+        if (this.scene?.vfxSystem?.detachAllEffectsForEntity) {
+            this.scene.vfxSystem.detachAllEffectsForEntity(this);
+        }
     }
     
     destroy() {

@@ -127,8 +127,8 @@ export class FlamethrowerEffect {
             if (this._damageZone.active) this._damageZone.destroy();
             this._damageZone = null;
         }
-        this._hitThisTick = new Set();
-        
+        this._hitThisTick.clear();
+
         // Stop looping flame sound - PR7: používáme audioSystem
         if (this.loopId && this.scene.audioSystem) {
             this.scene.audioSystem.stopLoop(this.loopId);
@@ -148,19 +148,23 @@ export class FlamethrowerEffect {
         this.animationTime = time;
         this.particleTimer += delta;
         
-        // Follow entity position
+        // Follow entity position + rotation (transform only — no redraw)
         this.graphics.x = this.entity.x;
         this.graphics.y = this.entity.y;
-        
-        // Draw flame cone
-        this._drawFlame();
-        
+        this.graphics.rotation = this.entity.rotation || 0;
+
+        // Animate flicker via scale (GPU transform, not CPU redraw)
+        // Scale uniformly — since rotation is handled by graphics.rotation,
+        // both axes scale along the flame's local coordinate system
+        const flicker = 1.0 + 0.08 * Math.sin(this.animationTime * this.flickerSpeed);
+        this.graphics.setScale(flicker);
+
         // Move physics zone to follow entity
         if (this._damageZone?.body) {
             this._damageZone.setPosition(this.entity.x, this.entity.y);
         }
 
-        // Emit flame particles + recompute tongue geometry per tick (not per frame)
+        // Redraw flame geometry only at tick interval (~20fps) not every frame (60fps)
         if (this.particleTimer >= this.particleInterval) {
             this._emitFlameParticle();
             // Mutate pre-allocated tongue objects instead of allocating new array
@@ -174,6 +178,7 @@ export class FlamethrowerEffect {
                 this._tongues[i].lenFactor = 0.6 + Math.random() * 0.4;
                 this._tongues[i].radius = 8 + Math.random() * 4;
             }
+            this._drawFlame(); // Redraw only when tongue geometry changes
             this.particleTimer = 0;
         }
 
@@ -194,29 +199,23 @@ export class FlamethrowerEffect {
      */
     _drawFlame() {
         if (!this.graphics) return;
-        
+
         this.graphics.clear();
-        
-        // Calculate flame length with flicker animation
-        const flameLength = this.baseLength + 20 * Math.sin(this.animationTime * this.flickerSpeed);
-        
-        // Get entity rotation (direction facing)
-        const rotation = this.entity.rotation || 0;
-        
-        // Draw main flame cone
+
+        // Draw at rotation=0 — actual rotation is applied via graphics.rotation transform
+        const flameLength = this.baseLength;
+        const startAngle = -this.coneAngle;
+        const endAngle = this.coneAngle;
+
+        // Main flame cone
         this.graphics.fillStyle(this.color, 0.4);
         this.graphics.beginPath();
         this.graphics.moveTo(0, 0);
-        
-        // Create cone arc
-        const startAngle = rotation - this.coneAngle;
-        const endAngle = rotation + this.coneAngle;
-        
         this.graphics.arc(0, 0, flameLength, startAngle, endAngle);
         this.graphics.closePath();
         this.graphics.fillPath();
-        
-        // Draw inner flame (hotter part)
+
+        // Inner flame (hotter part)
         const innerLength = flameLength * 0.7;
         this.graphics.fillStyle(0xffff00, 0.3);
         this.graphics.beginPath();
@@ -224,14 +223,14 @@ export class FlamethrowerEffect {
         this.graphics.arc(0, 0, innerLength, startAngle, endAngle);
         this.graphics.closePath();
         this.graphics.fillPath();
-        
-        // Draw flame tongues (stable per-tick, not per-frame random)
+
+        // Flame tongues (stable per-tick geometry)
         if (this._tongues) {
             this.graphics.fillStyle(this.color, 0.2);
-            for (const t of this._tongues) {
-                const tAngle = rotation + t.offset;
+            for (let i = 0; i < this._tongues.length; i++) {
+                const t = this._tongues[i];
                 const tLen = flameLength * t.lenFactor;
-                this.graphics.fillCircle(Math.cos(tAngle) * tLen * 0.7, Math.sin(tAngle) * tLen * 0.7, t.radius);
+                this.graphics.fillCircle(Math.cos(t.offset) * tLen * 0.7, Math.sin(t.offset) * tLen * 0.7, t.radius);
             }
         }
     }
@@ -271,6 +270,7 @@ export class FlamethrowerEffect {
      * @private
      */
     _onEnemyOverlap(enemy) {
+        if (!this.entity) return; // Guard: entity may be nulled mid-frame by detach()
         if (!this._canDamage) return;
         if (!enemy?.active || enemy.hp <= 0) return;
         if (this._hitThisTick.has(enemy)) return;
