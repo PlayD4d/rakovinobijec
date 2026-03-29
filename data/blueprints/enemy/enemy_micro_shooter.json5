@@ -24,7 +24,7 @@
   projectileRef: 'projectile.cytotoxin_small',
   graphics: {
     sprite: 'enemy_micro_shooter',
-    tint: 0x3366CC,
+    tint: 0x2244AA,
     scale: 1,
     animation: {
       idle: 'shooter_idle',

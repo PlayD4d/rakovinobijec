@@ -66,7 +66,7 @@
   },
   graphics: {
     sprite: 'elite_artillery_fungus',
-    tint: 0x3366CC,
+    tint: 0x2244AA,
     scale: 1.4,
     glowEffect: true,
     animation: {

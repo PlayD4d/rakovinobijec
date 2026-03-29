@@ -11,7 +11,7 @@
   },
   graphics: {
     shape: 'triangle',
-    tint: 65535,
+    tint: 0xFF3355,
     size: 8,
     scale: 1,
   },

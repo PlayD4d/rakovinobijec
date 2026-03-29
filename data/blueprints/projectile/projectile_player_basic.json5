@@ -11,7 +11,7 @@
   },
   graphics: {
     shape: 'circle',
-    tint: 16777215,
+    tint: 0x66DDFF,
     size: 6,
     scale: 1,
   },

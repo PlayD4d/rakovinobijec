@@ -56,8 +56,12 @@ export class ProjectileTextureGenerator {
     if (this.scene.textures.exists('bullet8')) return;
 
     const graphics = this._createGraphics();
-    graphics.fillStyle(0xffffff, 1);
-    graphics.fillCircle(4, 4, 4);
+    // Player default bullet: bright cyan — distinct from red enemy projectiles
+    graphics.fillStyle(0x66DDFF, 1);
+    graphics.fillCircle(4, 4, 3);
+    // White center highlight for visibility
+    graphics.fillStyle(0xFFFFFF, 0.8);
+    graphics.fillCircle(4, 4, 1.5);
     graphics.generateTexture('bullet8', 8, 8);
 
     this._releaseGraphics(graphics);

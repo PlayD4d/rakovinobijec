@@ -13,7 +13,7 @@
   },
   graphics: {
     shape: 'star',
-    tint: 16750592,
+    tint: 0xFF2244,
     size: 10,
     scale: 1.2,
   },

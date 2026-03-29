@@ -13,7 +13,7 @@
   },
   graphics: {
     shape: 'diamond',
-    tint: 5025616,
+    tint: 0xDD4466,
     size: 6,
     scale: 1,
   },

@@ -115,8 +115,8 @@ export class ProjectileSystem {
     const speedMultiplier = opts.speedMul ?? 1.0;
     const rangeMultiplier = opts.rangeMul ?? 1.0;
     const damageMultiplier = opts.damageMul ?? 1.0;
-    const tint = opts.tint ?? 0xffffff;
-    const projectileId = opts.projectileId ?? 'projectile.cytotoxin';
+    const tint = opts.tint ?? 0x66DDFF; // Player: bright cyan
+    const projectileId = opts.projectileId ?? 'projectile.player_basic';
 
     const bullet = this.playerBullets.get();
     if (!bullet) {
