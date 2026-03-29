@@ -105,28 +105,10 @@ export class MainMenu extends Phaser.Scene {
             this.vfxSystem.initialize();
         } catch (_) { }
 
-        // Přehrát intro zvuk přímo přes audio system
-        try {
-            if (this.sound && this.sound.add) {
-                const introKey = 'sound_ready_fight_mp3'; // Key generated from 'sound/ready_fight.mp3'
-                if (this.cache.audio.exists(introKey)) {
-                    this.sound.play(introKey, { volume: 0.5 });
-                    DebugLogger.info('menu', '[MainMenu] Playing intro sound');
-                }
-            }
-        } catch (e) {
-            DebugLogger.warn('menu', '[MainMenu] Failed to play intro sound:', e);
-        }
-
-        // Initialize and start menu music - create own instance (PR7: no singleton issues)
-        try {
-            const { SimplifiedAudioSystem } = await import('../core/audio/SimplifiedAudioSystem.js');
-            this.musicManager = new SimplifiedAudioSystem(this);
-            await this.musicManager.initialize();
-            this.musicManager.playMusic('music/8bit_main_menu.mp3');
-        } catch (e) {
-            DebugLogger.warn('menu', '[MainMenu] Failed to start music:', e);
-        }
+        // Defer audio until first user gesture (Chrome autoplay policy)
+        // Phaser's sound manager handles AudioContext resume on user interaction
+        this._musicStarted = false;
+        this.input.once('pointerdown', () => this._startMenuAudio());
 
         // LiteUI doesn't need resize handlers - it's simple and fixed
         // Ujistit se, že při ukončení scény proběhne úklid (odregistrování posluchačů)
@@ -226,6 +208,33 @@ export class MainMenu extends Phaser.Scene {
     }
 
     // LiteUI doesn't need resize handlers
+
+    /** Start menu audio after first user gesture (Chrome autoplay policy compliance) */
+    async _startMenuAudio() {
+        if (this._musicStarted) return;
+        this._musicStarted = true;
+
+        // Resume AudioContext if suspended (Phaser handles this, but be explicit)
+        if (this.sound?.context?.state === 'suspended') {
+            try { await this.sound.context.resume(); } catch (_) {}
+        }
+
+        // Intro sound
+        try {
+            const introKey = 'sound_ready_fight_mp3';
+            if (this.cache?.audio?.exists(introKey)) {
+                this.sound.play(introKey, { volume: 0.5 });
+            }
+        } catch (_) {}
+
+        // Menu music
+        try {
+            const { SimplifiedAudioSystem } = await import('../core/audio/SimplifiedAudioSystem.js');
+            this.musicManager = new SimplifiedAudioSystem(this);
+            await this.musicManager.initialize();
+            this.musicManager.playMusic('music/8bit_main_menu.mp3');
+        } catch (_) {}
+    }
 
     /**
      * Cleanup when leaving scene
