@@ -126,14 +126,15 @@ export class SimplifiedVFXSystem {
         if (!emitter) {
             emitter = this.scene.add.particles(x, y, 'particle', config);
         } else {
-            // Reuse from pool — clear stale follow target before applying new config
+            // Reuse from pool — reset state for clean reuse
             if (emitter.follow) emitter.follow = null;
             emitter.setPosition(x, y);
             emitter.setConfig(config);
+            emitter.setVisible(true);
+            emitter.setActive(true);
         }
 
         // explode() is Phaser's native one-shot burst — sets frequency=-1 internally
-        // No config spread needed — zero allocation
         emitter.explode(quantity, x, y);
 
         // Track active emitter
@@ -368,8 +369,10 @@ export class SimplifiedVFXSystem {
     _returnEmitterToPool(emitterId) {
         const emitter = this.activeEmitters.get(emitterId);
         if (emitter) {
-            emitter.stop(true); // kill all particles immediately
-            emitter.removeAllListeners('complete'); // prevent stale handlers on reuse
+            // Kill particles but keep emitter reusable — stop(true) can leave emitter in broken state
+            emitter.killAll();
+            emitter.emitting = false;
+            emitter.removeAllListeners('complete');
             this.activeEmitters.delete(emitterId);
 
             // Guard: don't pool a destroyed emitter (Phaser sets scene=null on destroy)
