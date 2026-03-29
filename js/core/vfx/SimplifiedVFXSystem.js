@@ -611,5 +611,79 @@ export class SimplifiedVFXSystem {
 
         return g;
     }
+
+    /**
+     * Draw a lightning bolt between two points — jagged line with glow + fade.
+     * Uses Phaser Graphics for the bolt geometry + tween for fade-out.
+     *
+     * @param {number} x1 - Start X
+     * @param {number} y1 - Start Y
+     * @param {number} x2 - End X
+     * @param {number} y2 - End Y
+     * @param {object} opts - { color, width, duration, segments }
+     */
+    playLightningBolt(x1, y1, x2, y2, opts = {}) {
+        if (!this.scene?.sys?.isActive()) return;
+
+        const color = opts.color || 0x4488FF;
+        const width = opts.width || 3;
+        const duration = opts.duration || 200;
+        const segments = opts.segments || 6;
+
+        const gf = this.scene.graphicsFactory;
+        const g = gf ? gf.create() : this.scene.add.graphics();
+        g.clear();
+        g.setAlpha(1);
+        g.setScale(1);
+        g.setPosition(0, 0);
+        g.setDepth((this.scene.DEPTH_LAYERS?.VFX || 3000) + 1);
+
+        // Build jagged bolt path with random offsets
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const perpX = -dy;
+        const perpY = dx;
+        const len = Math.sqrt(perpX * perpX + perpY * perpY) || 1;
+        const normPX = perpX / len;
+        const normPY = perpY / len;
+
+        // Glow layer (wider, lower alpha)
+        g.lineStyle(width + 4, color, 0.3);
+        g.beginPath();
+        g.moveTo(x1, y1);
+        for (let i = 1; i < segments; i++) {
+            const t = i / segments;
+            const jitter = (Math.random() - 0.5) * 20;
+            g.lineTo(x1 + dx * t + normPX * jitter, y1 + dy * t + normPY * jitter);
+        }
+        g.lineTo(x2, y2);
+        g.strokePath();
+
+        // Core bolt (thinner, full alpha, white-ish)
+        g.lineStyle(width, 0xFFFFFF, 0.9);
+        g.beginPath();
+        g.moveTo(x1, y1);
+        for (let i = 1; i < segments; i++) {
+            const t = i / segments;
+            const jitter = (Math.random() - 0.5) * 12;
+            g.lineTo(x1 + dx * t + normPX * jitter, y1 + dy * t + normPY * jitter);
+        }
+        g.lineTo(x2, y2);
+        g.strokePath();
+
+        // Impact spark at target
+        this.play(VFXPresets.smallHit(color, 6), x2, y2);
+
+        // Fade out and cleanup
+        this.scene.tweens.add({
+            targets: g,
+            alpha: 0,
+            duration: duration,
+            ease: 'Power2',
+            onComplete: () => {
+                if (gf) gf.release(g); else g.destroy();
+            }
+        });
+    }
 }
 

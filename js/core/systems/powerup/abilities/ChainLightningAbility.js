@@ -1,5 +1,6 @@
 import { DebugLogger } from '../../../debug/DebugLogger.js';
 import { getSession } from '../../../debug/SessionLog.js';
+import { VFXPresets } from '../../../vfx/VFXPresets.js';
 
 /**
  * ChainLightningAbility - Handles chain lightning power-up ability
@@ -95,18 +96,28 @@ export class ChainLightningAbility {
             enemy.takeDamage(damage, 'chain_lightning');
         }
 
-        // Visual effect
-        if (this.scene.vfxSystem) {
-            this.scene.vfxSystem.play('vfx.lightning.strike', enemy.x, enemy.y);
+        // Impact spark at strike point
+        const vfx = this.scene.vfxSystem;
+        if (vfx) {
+            vfx.play(VFXPresets.smallHit(0x4488FF, 8), enemy.x, enemy.y);
         }
 
-        // Find next target
+        // Draw bolt from player (first hit) or previous enemy to this enemy
+        const source = hitList.size <= 1 ? this.scene.player : null;
+        if (vfx?.playLightningBolt && source) {
+            vfx.playLightningBolt(source.x, source.y, enemy.x, enemy.y, {
+                color: 0x4488FF, width: 3, duration: 180
+            });
+        }
+
+        // Find next target and chain
         if (jumpsLeft > 1) {
             const enemies = this.scene.enemiesGroup?.getChildren() || [];
             let next = null;
             let minDistSq = jumpRange * jumpRange;
 
-            for (const e of enemies) {
+            for (let i = 0; i < enemies.length; i++) {
+                const e = enemies[i];
                 if (!e?.active || hitList.has(e)) continue;
                 const dx = enemy.x - e.x;
                 const dy = enemy.y - e.y;
@@ -118,18 +129,14 @@ export class ChainLightningAbility {
             }
 
             if (next) {
-                // PR7: Delegate lightning visual to VFXSystem instead of direct tweens
-                if (this.scene.vfxSystem) {
-                    this.scene.vfxSystem.play('vfx.lightning.chain.bolt', enemy.x, enemy.y, {
-                        targetX: next.x,
-                        targetY: next.y,
-                        color: 0x4444ff,
-                        width: 3,
-                        duration: 200
+                // Draw bolt between chain targets
+                if (vfx?.playLightningBolt) {
+                    vfx.playLightningBolt(enemy.x, enemy.y, next.x, next.y, {
+                        color: 0x4488FF, width: 2, duration: 180
                     });
                 }
 
-                // Continue chain after delay — tracked for cleanup, self-removing on completion
+                // Continue chain after delay
                 const timer = this.scene.time?.delayedCall(150, () => {
                     // Remove from tracking on completion
                     if (this._chainTimers) {
