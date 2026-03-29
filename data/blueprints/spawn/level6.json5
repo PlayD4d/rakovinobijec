@@ -48,7 +48,7 @@
   lootTables: {
     normal: {
       'drop.xp.small': 25, 'drop.xp.medium': 45, 'drop.xp.large': 22,
-      'drop.leukocyte_pack': 3, 'drop.metotrexat': 0.15, 'drop.adrenal_surge': 0.6, 'drop.protein_cache': 1.2,
+      'drop.leukocyte_pack': 0.6, 'drop.metotrexat': 0.05, 'drop.adrenal_surge': 0.2, 'drop.protein_cache': 0.4,
     },
     elite: {
       'drop.xp.large': 85, 'drop.leukocyte_pack': 10, 'drop.protein_cache': 16,

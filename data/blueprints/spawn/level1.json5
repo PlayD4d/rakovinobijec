@@ -69,9 +69,9 @@
     normal: {
       'drop.xp.small': 60,
       'drop.xp.medium': 30,
-      'drop.leukocyte_pack': 1.5,
-      'drop.metotrexat': 0.05,
-      'drop.adrenal_surge': 0.3,
+      'drop.leukocyte_pack': 0.8,
+      'drop.metotrexat': 0.02,
+      'drop.adrenal_surge': 0.15,
     },
     elite: {
       'drop.xp.medium': 50,

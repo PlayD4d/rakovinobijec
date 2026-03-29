@@ -132,11 +132,14 @@ export class SimpleLootSystem {
         else if (enemy.isElite || bpType === 'elite') category = 'elite';
         else if (enemy.isUnique || bpType === 'unique') category = 'elite';
 
-        // Roll spawn table lootTable drops
+        // Roll spawn table lootTable drops (max 1 special drop per normal kill)
         const lootTables = this.scene.spawnDirector?.currentTable?.lootTables;
         if (lootTables?.[category]) {
+            const maxDrops = category === 'boss' ? 5 : category === 'elite' ? 2 : 1;
+            let dropped = 0;
             for (const [itemRef, chance] of Object.entries(lootTables[category])) {
                 if (itemRef.startsWith('drop.xp')) continue; // XP handled separately
+                if (dropped >= maxDrops) break;
                 if (Math.random() * 100 >= chance) continue;
 
                 const itemId = this._resolveItemId(itemRef);
@@ -144,6 +147,7 @@ export class SimpleLootSystem {
 
                 this.createDrop(enemy.x, enemy.y, itemId);
                 getSession()?.log('loot', 'table_drop', { category, itemRef, itemId, enemy: enemyId });
+                dropped++;
             }
         }
 
