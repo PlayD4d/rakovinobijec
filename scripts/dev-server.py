@@ -8,6 +8,8 @@ import http.server
 import socketserver
 import os
 import sys
+import json
+import subprocess
 from urllib.parse import urlparse
 
 # Force unbuffered output
@@ -24,7 +26,79 @@ DEV_SCRIPT = """
 </script>
 """
 
+SESSIONS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'sessions')
+TELEMETRY_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'telemetry-db.mjs')
+
 class DevHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def do_POST(self):
+        path = urlparse(self.path).path
+        if path == '/api/telemetry':
+            return self._handle_telemetry_post()
+
+        self.send_response(404)
+        self.end_headers()
+
+    def do_OPTIONS(self):
+        """Handle CORS preflight"""
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
+    def _handle_telemetry_post(self):
+        """Receive session JSON, save to file, import into SQLite DB"""
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            if content_length == 0 or content_length > 50_000_000:  # 50MB limit
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b'{"error":"Invalid content length"}')
+                return
+
+            body = self.rfile.read(content_length)
+            data = json.loads(body)
+            session_id = data.get('id', 'unknown')
+            event_count = len(data.get('events', []))
+
+            # Save JSON file
+            os.makedirs(SESSIONS_DIR, exist_ok=True)
+            file_path = os.path.join(SESSIONS_DIR, f'session_{session_id}.json')
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(body.decode('utf-8'))
+
+            print(f"📊 Session {session_id} received ({event_count} events), saved to {file_path}")
+
+            # Import into telemetry DB in background
+            if os.path.exists(TELEMETRY_SCRIPT):
+                try:
+                    subprocess.Popen(
+                        ['node', TELEMETRY_SCRIPT, 'import', file_path],
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                    )
+                    print(f"📊 Telemetry DB import started for {session_id}")
+                except Exception as e:
+                    print(f"⚠️  Telemetry DB import failed: {e}", file=sys.stderr)
+
+            # Respond success
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'ok': True, 'sessionId': session_id, 'events': event_count
+            }).encode('utf-8'))
+
+        except json.JSONDecodeError:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b'{"error":"Invalid JSON"}')
+        except Exception as e:
+            print(f"❌ Telemetry error: {e}", file=sys.stderr)
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+
     def end_headers(self):
         # Check if this is an HTML file request
         path = urlparse(self.path).path
@@ -85,6 +159,7 @@ def run_server():
     print(f"🚀 Starting DEV server on http://localhost:{PORT}")
     print(f"📁 Serving from: {os.getcwd()}")
     print(f"🔧 DEV_MODE injection enabled for HTML files")
+    print(f"📊 Telemetry endpoint: POST /api/telemetry")
     print(f"")
     print(f"Debug controls:")
     print(f"  [F3] - Toggle Debug Overlay")

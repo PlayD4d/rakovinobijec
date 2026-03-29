@@ -121,6 +121,7 @@ class SessionLog {
         this.meta.duration = Date.now() - this.startTime;
         this.meta.eventCount = this.events.length;
         this._save();
+        this._sendToTelemetry();
     }
 
     _save() {
@@ -147,6 +148,31 @@ class SessionLog {
             counts[key] = (counts[key] || 0) + 1;
         }
         return { eventCount: this.events.length, counts };
+    }
+
+    /**
+     * Send session data to dev server telemetry endpoint.
+     * Fires and forgets — no error shown to player if server unavailable.
+     */
+    _sendToTelemetry() {
+        try {
+            const payload = JSON.stringify({
+                id: this.sessionId,
+                meta: this.meta,
+                events: this.events
+            });
+            fetch('/api/telemetry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: payload
+            }).then(r => {
+                if (r.ok) console.log(`[SessionLog] Telemetry sent (${this.events.length} events)`);
+            }).catch(() => {
+                // Dev server not running — silently ignore
+            });
+        } catch (_) {
+            // Ignore errors — telemetry is best-effort
+        }
     }
 
     /**
@@ -247,6 +273,8 @@ if (typeof window !== 'undefined') {
             a.click();
             URL.revokeObjectURL(url);
             console.log(`Session exported (${currentSession.events.length} events)`, a.download);
+            // Also send to telemetry DB
+            currentSession._sendToTelemetry();
             return;
         }
         SessionLog.exportLatest();

@@ -38,3 +38,4 @@ test-runner-inline.js
 test-working.js
 *.bak
 *.pre-vfx-sfx-migration.bakdata/telemetry.db
+data/sessions/*.json
