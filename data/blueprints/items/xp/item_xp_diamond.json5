@@ -1,0 +1,9 @@
+{
+  id: 'item.xp_diamond',
+  type: 'item',
+  category: 'xp',
+  sprite: 'item_xp_diamond',
+  effect: { type: 'xp', value: 50 },
+  pickup: { magnetRange: 80, pickupRadius: 30, autoPickup: true },
+  sfx: { pickup: 'sound/pickup.mp3' },
+}

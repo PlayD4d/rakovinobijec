@@ -319,6 +319,7 @@
       'powerup.aegis_macrophage': 6,
       'powerup.apoptosis_pierce': 4,
       'powerup.chemo_reservoir': 3,
+      'drop.magnet': 4,
     },
     boss: {
       'drop.xp.large': 100,
@@ -333,6 +334,7 @@
       'powerup.hematopoiesis': 15,
       'powerup.radioterapie': 10,
       'drop.metotrexat': 8,
+      'drop.magnet': 30,
     },
   },
   difficulty: {

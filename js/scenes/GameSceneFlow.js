@@ -11,25 +11,25 @@ import { DebugLogger } from '../core/debug/DebugLogger.js';
 /**
  * Create XP orbs based on XP amount (tiered: small=1, medium=5, large=10)
  */
+/**
+ * Drop exactly 1 XP gem per kill — tier based on total XP value.
+ * VS-style: no multi-orb scatter, clean 1:1 kill-to-gem mapping.
+ *
+ * Tiers: small(1), tiny(2), medium(5), large(10), big(25), diamond(50)
+ */
 export function createXPOrbs(scene, x, y, totalXP) {
     if (!totalXP || totalXP <= 0 || !scene.lootSystem) return;
 
-    const largeOrbs = Math.floor(totalXP / 10);
-    const remaining = totalXP % 10;
-    const mediumOrbs = Math.floor(remaining / 5);
-    const smallOrbs = remaining % 5;
+    // Select the best single gem tier for this XP amount
+    let itemId;
+    if (totalXP >= 50)      itemId = 'item.xp_diamond';
+    else if (totalXP >= 25) itemId = 'item.xp_big';
+    else if (totalXP >= 10) itemId = 'item.xp_large';
+    else if (totalXP >= 5)  itemId = 'item.xp_medium';
+    else if (totalXP >= 2)  itemId = 'item.xp_tiny';
+    else                    itemId = 'item.xp_small';
 
-    const spawn = (count, itemId) => {
-        for (let i = 0; i < count; i++) {
-            const ox = (Math.random() - 0.5) * 30;
-            const oy = (Math.random() - 0.5) * 30;
-            scene.lootSystem.createDrop(x + ox, y + oy, itemId);
-        }
-    };
-
-    spawn(largeOrbs, 'item.xp_large');
-    spawn(mediumOrbs, 'item.xp_medium');
-    spawn(smallOrbs, 'item.xp_small');
+    scene.lootSystem.createDrop(x, y, itemId);
 }
 
 /**

@@ -200,6 +200,23 @@ export class SimpleLootSystem {
                 this.scene.enemyManager?.killAll();
                 this.scene.flashCamera?.();
                 break;
+            case 'vacuum_xp': {
+                // Magnet pickup — vacuum ALL XP gems on field toward player
+                const children = this.lootGroup?.getChildren();
+                if (children) {
+                    for (const item of children) {
+                        if (!item?.active || item.dropType !== 'xp' || !item.body) continue;
+                        // Set very high velocity toward player — they'll be picked up by distance check
+                        const dx = player.x - item.x;
+                        const dy = player.y - item.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        item.body.setVelocity((dx / dist) * 600, (dy / dist) * 600);
+                    }
+                }
+                this.scene.flashCamera?.();
+                getSession()?.log('loot', 'magnet_used', { xpOnField: children?.filter(c => c?.active && c.dropType === 'xp').length || 0 });
+                break;
+            }
             case 'buff': {
                 const stat = blueprint.effect?.stat;
                 const value = blueprint.effect?.value || 1.5;
@@ -447,6 +464,7 @@ export class SimpleLootSystem {
             'drop.protein_cache': 'item.protein_cache',
             'drop.metotrexat': 'item.metotrexat',
             'drop.adrenal_surge': 'item.energy_cell',
+            'drop.magnet': 'item.magnet',
         };
         const mapped = LEGACY_MAP[ref];
         if (mapped && this.blueprintLoader?.get(mapped)) return mapped;

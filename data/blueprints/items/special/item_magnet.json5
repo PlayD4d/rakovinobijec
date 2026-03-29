@@ -1,0 +1,13 @@
+{
+  id: 'item.magnet',
+  type: 'item',
+  category: 'special',
+  sprite: 'item_magnet',
+  effect: { type: 'vacuum_xp' },
+  pickup: { pickupRadius: 25, autoPickup: true },
+  sfx: { pickup: 'sound/pickup.mp3' },
+  display: {
+    devNameFallback: 'XP Magnet',
+    devDescFallback: 'Pritahne vsechny XP orby na obrazovce',
+  },
+}

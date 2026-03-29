@@ -425,6 +425,7 @@
       'powerup.metabolic_haste': 6,
       'powerup.aegis_macrophage': 4,
       'powerup.apoptosis_pierce': 2,
+      'drop.magnet': 3,
     },
     boss: {
       'drop.xp.large': 100,
@@ -438,6 +439,7 @@
       'powerup.chemo_reservoir': 15,
       'powerup.hematopoiesis': 10,
       'drop.metotrexat': 5,
+      'drop.magnet': 30,
     },
   },
   difficulty: {

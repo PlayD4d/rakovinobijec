@@ -53,10 +53,12 @@
     elite: {
       'drop.xp.large': 85, 'drop.leukocyte_pack': 10, 'drop.protein_cache': 16,
       'drop.adrenal_surge': 12, 'drop.metotrexat': 2.5,
+      'drop.magnet': 4,
     },
     boss: {
       'drop.xp.large': 100, 'drop.leukocyte_pack': 35, 'drop.protein_cache': 30,
       'drop.adrenal_surge': 90, 'drop.metotrexat': 15,
+      'drop.magnet': 25,
     },
   },
   difficulty: {
