@@ -64,19 +64,29 @@ class SessionLog {
     }
 
     _save() {
+        // Save only compact summary to localStorage (no raw events — those are MB+)
+        // Full event data is available via DEV.exportSession() → JSON file → telemetry DB
         try {
             const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
             stored.push({
                 id: this.sessionId,
                 meta: this.meta,
-                events: this.events
+                summary: this._computeSummary()
             });
-            // Keep only last N sessions
             while (stored.length > MAX_SESSIONS) stored.shift();
             localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
         } catch (e) {
             console.warn('[SessionLog] Failed to save:', e.message);
         }
+    }
+
+    _computeSummary() {
+        const counts = {};
+        for (const e of this.events) {
+            const key = `${e.cat}:${e.act}`;
+            counts[key] = (counts[key] || 0) + 1;
+        }
+        return { eventCount: this.events.length, counts };
     }
 
     /**
@@ -107,26 +117,13 @@ class SessionLog {
         console.log(`=== Session ${session.id} ===`);
         console.log(`Duration: ${(m.duration / 1000).toFixed(1)}s | Result: ${m.result} | Events: ${m.eventCount}`);
 
-        // Count by category
-        const counts = {};
-        session.events.forEach(e => { counts[e.cat] = (counts[e.cat] || 0) + 1; });
-        console.log('Event counts:', counts);
-
-        // Damage summary
-        const dmgEvents = session.events.filter(e => e.cat === 'dmg');
-        const totalPlayerDmg = dmgEvents.filter(e => e.tgt === 'player').reduce((s, e) => s + (e.amt || 0), 0);
-        const totalEnemyDmg = dmgEvents.filter(e => e.tgt !== 'player').reduce((s, e) => s + (e.amt || 0), 0);
-        console.log(`Damage dealt: ${totalEnemyDmg} | Damage taken: ${totalPlayerDmg}`);
-
-        // Powerups
-        const pups = session.events.filter(e => e.cat === 'powerup');
-        if (pups.length > 0) console.log('Powerups:', pups.map(p => `${p.id}@L${p.level}`).join(', '));
-
-        // Errors
-        const errors = session.events.filter(e => e.cat === 'error');
-        if (errors.length > 0) {
-            console.log(`⚠️ Errors (${errors.length}):`);
-            errors.forEach(e => console.log(`  [${(e.t/1000).toFixed(1)}s] ${e.act}`, e));
+        // Use compact summary (localStorage) or full events (in-memory)
+        if (session.summary?.counts) {
+            console.log('Event counts:', session.summary.counts);
+        } else if (session.events) {
+            const counts = {};
+            session.events.forEach(e => { counts[e.cat] = (counts[e.cat] || 0) + 1; });
+            console.log('Event counts:', counts);
         }
 
         return session;
