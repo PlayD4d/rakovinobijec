@@ -232,4 +232,3 @@ export class GraphicsFactory {
     }
 }
 
-export default GraphicsFactory;

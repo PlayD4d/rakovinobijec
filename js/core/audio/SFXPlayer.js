@@ -176,4 +176,3 @@ export class SFXPlayer {
     }
 }
 
-export default SFXPlayer;

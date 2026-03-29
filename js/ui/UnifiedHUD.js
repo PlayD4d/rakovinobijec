@@ -404,4 +404,3 @@ export class UnifiedHUD {
     }
 }
 
-export default UnifiedHUD;

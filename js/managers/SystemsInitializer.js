@@ -16,7 +16,7 @@ import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
 import { SpawnDirector } from '../core/spawn/SpawnDirector.js';
 
 // Phaser 3.90 collision categories — broadphase filtering at engine level
-export const COLLISION_CATEGORIES = {
+const COLLISION_CATEGORIES = {
     PLAYER:             0x0001,
     ENEMY:              0x0002,
     PLAYER_PROJECTILE:  0x0004,
@@ -323,4 +323,3 @@ export class SystemsInitializer {
     }
 }
 
-export default SystemsInitializer;

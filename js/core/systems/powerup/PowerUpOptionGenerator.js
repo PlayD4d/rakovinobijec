@@ -220,4 +220,3 @@ export class PowerUpOptionGenerator {
     }
 }
 
-export default PowerUpOptionGenerator;

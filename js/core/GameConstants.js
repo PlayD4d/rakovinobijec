@@ -108,7 +108,7 @@ export const GameConstants = {
     }
 };
 
-// Convenience getters pro často používané hodnoty
-export const COLLISION_RADIUS = GameConstants.COLLISION;
-export const DISTANCES = GameConstants.DISTANCE;
-export const TIMINGS = GameConstants.TIME;
+// Convenience aliases (internal use only)
+const COLLISION_RADIUS = GameConstants.COLLISION;
+const DISTANCES = GameConstants.DISTANCE;
+const TIMINGS = GameConstants.TIME;

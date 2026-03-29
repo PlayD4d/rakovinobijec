@@ -145,4 +145,3 @@ export class PlayerAttackController {
     }
 }
 
-export default PlayerAttackController;

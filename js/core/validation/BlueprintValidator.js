@@ -122,7 +122,7 @@ export class BlueprintValidator {
 /**
  * Custom validation error
  */
-export class ValidationError extends Error {
+class ValidationError extends Error {
     constructor(message, blueprintType = 'unknown', blueprintName = 'unnamed') {
         super(message);
         this.name = 'ValidationError';

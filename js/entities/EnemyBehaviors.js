@@ -231,4 +231,3 @@ export class EnemyBehaviors {
     }
 }
 
-export default EnemyBehaviors;

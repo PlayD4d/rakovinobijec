@@ -391,4 +391,3 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
     }
 }
 
-export default EnemyCore;

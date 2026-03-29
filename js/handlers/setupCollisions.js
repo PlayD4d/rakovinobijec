@@ -307,11 +307,3 @@ function handleEnemyBulletPlayerCollision(bullet, player) {
 
 // Shield knockback is handled per-frame in ShieldRegeneration._pushEnemiesAtBoundary()
 
-// Export callbacks for testing
-export const collisionHandlers = {
-    handlePlayerEnemyCollision,
-    handlePlayerBossCollision,
-    handlePlayerBulletEnemyCollision,
-    handlePlayerBulletBossCollision,
-    handleEnemyBulletPlayerCollision
-};

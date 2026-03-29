@@ -210,4 +210,3 @@ export class ShapeRenderer {
     }
 }
 
-export default ShapeRenderer;

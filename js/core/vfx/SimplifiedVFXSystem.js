@@ -480,4 +480,3 @@ export class SimplifiedVFXSystem {
     }
 }
 
-export default SimplifiedVFXSystem;

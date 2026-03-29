@@ -127,4 +127,3 @@ export class PlayerCombat {
     }
 }
 
-export default PlayerCombat;

@@ -334,4 +334,3 @@ export class RadiotherapyEffect {
     }
 }
 
-export default RadiotherapyEffect;

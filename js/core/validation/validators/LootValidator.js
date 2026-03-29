@@ -37,7 +37,7 @@ export function validateLootTable(blueprint, errors) {
  * @param {number} poolIndex
  * @param {Array} errors
  */
-export function validateLootPool(pool, poolIndex, errors) {
+function validateLootPool(pool, poolIndex, errors) {
     const prefix = `Pool ${poolIndex}:`;
 
     if (pool.rolls !== undefined) {
@@ -74,7 +74,7 @@ export function validateLootPool(pool, poolIndex, errors) {
  * @param {number} poolIndex
  * @param {Array} errors
  */
-export function validatePitySystem(pity, poolIndex, errors) {
+function validatePitySystem(pity, poolIndex, errors) {
     const prefix = `Pool ${poolIndex} pity:`;
 
     if (typeof pity.enabled !== 'boolean') {

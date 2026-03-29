@@ -443,4 +443,3 @@ export class UpdateManager {
     }
 }
 
-export default UpdateManager;

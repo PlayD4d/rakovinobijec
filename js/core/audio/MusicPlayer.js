@@ -191,4 +191,3 @@ export class MusicPlayer {
     }
 }
 
-export default MusicPlayer;

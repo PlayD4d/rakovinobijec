@@ -220,4 +220,3 @@ export class VFXPresets {
     }
 }
 
-export default VFXPresets;

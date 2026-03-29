@@ -106,4 +106,3 @@ export class TargetingSystem {
     }
 }
 
-export default TargetingSystem;

@@ -39,7 +39,7 @@ export async function executeVictory(tm) {
  *
  * @param {import('../TransitionManager.js').TransitionManager} tm
  */
-export async function clearAllEnemiesWithEffect(tm) {
+async function clearAllEnemiesWithEffect(tm) {
     const scene = tm.scene;
     const enemies = [];
 

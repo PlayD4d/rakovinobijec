@@ -87,4 +87,3 @@ export class Enemy extends EnemyCore {
     }
 }
 
-export default Enemy;

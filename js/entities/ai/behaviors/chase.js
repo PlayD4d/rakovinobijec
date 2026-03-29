@@ -20,4 +20,3 @@ export function chase(cap, cfg, dt, mem, setState) {
     }
 }
 
-export default chase;

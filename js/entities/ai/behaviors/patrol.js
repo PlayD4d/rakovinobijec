@@ -121,4 +121,3 @@ export function patrol(cap, cfg, dt, mem, setState) {
     }
 }
 
-export default patrol;

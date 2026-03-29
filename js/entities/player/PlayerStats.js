@@ -98,4 +98,3 @@ export class PlayerStats {
     }
 }
 
-export default PlayerStats;

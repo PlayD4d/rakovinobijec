@@ -399,4 +399,3 @@ export class BootstrapManager {
     }
 }
 
-export default BootstrapManager;

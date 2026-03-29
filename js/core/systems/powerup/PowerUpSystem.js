@@ -301,4 +301,3 @@ export class PowerUpSystem {
     
 }
 
-export default PowerUpSystem;

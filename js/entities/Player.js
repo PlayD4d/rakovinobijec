@@ -233,4 +233,3 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 }
 
-export default Player;

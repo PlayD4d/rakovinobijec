@@ -5,7 +5,7 @@
 
 import { DebugLogger } from '../debug/DebugLogger.js';
 
-export class CentralEventBus {
+class CentralEventBus {
     constructor() {
         this.eventEmitter = new Phaser.Events.EventEmitter();
         this.listeners = new Map();
@@ -292,4 +292,3 @@ export class CentralEventBus {
 // Global instance
 export const centralEventBus = new CentralEventBus();
 
-export default centralEventBus;

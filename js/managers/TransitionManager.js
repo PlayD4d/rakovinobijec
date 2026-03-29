@@ -313,4 +313,3 @@ export class TransitionManager {
     }
 }
 
-export default TransitionManager;

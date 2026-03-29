@@ -14,7 +14,7 @@ import { getSession } from '../debug/SessionLog.js';
  * @param {Object} trigger - Boss trigger definition from spawn table
  * @returns {boolean} True if trigger condition is met
  */
-export function checkBossTrigger(director, trigger) {
+function checkBossTrigger(director, trigger) {
     const now = director.gameTime;
 
     // Check if already triggered

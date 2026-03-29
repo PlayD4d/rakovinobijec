@@ -257,4 +257,3 @@ export class SimplifiedAudioSystem {
     }
 }
 
-export default SimplifiedAudioSystem;

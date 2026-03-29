@@ -185,4 +185,3 @@ export class UIThemeUtils {
 // Přidat colorToHex funkci na UI_THEME objekt pro lepší kompatibilitu
 UI_THEME.colorToHex = UIThemeUtils.colorToHex;
 
-export default UI_THEME;

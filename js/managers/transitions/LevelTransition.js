@@ -76,7 +76,7 @@ export async function cleanupLevel(tm) {
  * @param {import('../TransitionManager.js').TransitionManager} tm
  * @param {string} step
  */
-export async function executeCleanupStep(tm, step) {
+async function executeCleanupStep(tm, step) {
     const scene = tm.scene;
 
     switch (step) {

@@ -43,4 +43,3 @@ export function shoot(cap, cfg, dt, mem, setState) {
     }
 }
 
-export default shoot;

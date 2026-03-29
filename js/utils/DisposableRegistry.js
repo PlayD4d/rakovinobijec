@@ -129,4 +129,3 @@ export class DisposableRegistry {
     }
 }
 
-export default DisposableRegistry;

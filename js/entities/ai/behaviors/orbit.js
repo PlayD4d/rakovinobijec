@@ -104,4 +104,3 @@ export function orbit(cap, cfg, dt, mem, setState) {
     }
 }
 
-export default orbit;

@@ -18,4 +18,3 @@ export function idle(cap, cfg, dt, mem, setState) {
     cap.setVelocity(0, 0);
 }
 
-export default idle;

@@ -357,4 +357,3 @@ export class EnemyManager {
     }
 }
 
-export default EnemyManager;

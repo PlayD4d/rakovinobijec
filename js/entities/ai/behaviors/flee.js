@@ -76,4 +76,3 @@ export function flee(cap, cfg, dt, mem, setState) {
     cap.faceTo(player.x, player.y); // Still face player while fleeing
 }
 
-export default flee;

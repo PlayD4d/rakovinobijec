@@ -245,4 +245,3 @@ export class HighScoreModal {
     }
 }
 
-export default HighScoreModal;

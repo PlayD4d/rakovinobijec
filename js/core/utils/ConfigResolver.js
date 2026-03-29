@@ -281,6 +281,3 @@ export class ConfigResolver {
   }
 }
 
-// Export singleton instance for convenience
-export const configResolver = ConfigResolver;
-export default ConfigResolver;

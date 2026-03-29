@@ -1,11 +1,4 @@
-export const DEFAULT_GAME_VERSION = 'unknown';
-
-export function getGameVersion() {
-  if (typeof window !== 'undefined' && window.__GAME_VERSION__) {
-    return window.__GAME_VERSION__;
-  }
-  return DEFAULT_GAME_VERSION;
-}
+const DEFAULT_GAME_VERSION = 'unknown';
 
 export async function loadGameVersion() {
   try {
