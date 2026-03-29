@@ -410,7 +410,19 @@ function pickPowerup(sim, powerups, pool, forceBuild) {
     return !current || current.level < maxLvl;
   });
 
-  if (available.length === 0) return null;
+  if (available.length === 0) {
+    // All powerups maxed — apply overflow boost (matches GameScene.OVERFLOW_BOOSTS)
+    const overflows = [
+      { stat: 'damage', value: 5 },   // +5 DMG
+      { stat: 'maxHp', value: 15 },   // +15 HP
+      { stat: 'speed', value: 0.05 }, // +5% speed
+    ];
+    const pick = overflows[Math.floor(Math.random() * overflows.length)];
+    if (pick.stat === 'damage') sim.damageBonus += pick.value;
+    else if (pick.stat === 'maxHp') { sim.maxHp += pick.value; sim.hp = Math.min(sim.hp + pick.value, sim.maxHp); }
+    else if (pick.stat === 'speed') { /* speed doesn't directly affect sim DPS */ }
+    return { id: `overflow.${pick.stat}`, level: 99 };
+  }
 
   // If forced build, prefer those
   if (forceBuild) {
