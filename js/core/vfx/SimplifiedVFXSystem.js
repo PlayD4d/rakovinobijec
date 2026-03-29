@@ -91,9 +91,9 @@ export class SimplifiedVFXSystem {
             }
         }
         
-        // If still no config, use default hit effect
+        // If no config resolved, skip silently — no fallback sparks for unknown IDs
         if (!config) {
-            config = VFXPresets.smallHit(options.color || 0xFFFFFF);
+            return null;
         }
         
         // Handle different effect types

@@ -23,10 +23,7 @@
     lifetime: 20000,
     bobbing: true,
   },
-  vfx: {
-    spawn: 'vfx.effect',
-    pickup: 'vfx.effect',
-  },
+  vfx: {},
   sfx: {
     pickup: 'sound/pickup.mp3',
   },
