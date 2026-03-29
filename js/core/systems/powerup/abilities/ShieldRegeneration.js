@@ -72,6 +72,13 @@ export class ShieldRegeneration {
         DebugLogger.info('powerup', `[ShieldRegeneration] SHIELD ABSORBED ${absorbed} damage - Shield HP: ${player.shieldHP}/${player.maxShieldHP}`);
         getSession()?.log('shield', 'absorbed', { absorbed, remainingDamage, shieldHP: player.shieldHP, maxShieldHP: player.maxShieldHP });
 
+        // Trigger visual hit flash on shield effect
+        const vfxManager = this.powerUpSystem?.vfxManager;
+        if (vfxManager && player._vfxUid) {
+            const shieldEffect = vfxManager.powerUpEffects?.get(`${player._vfxUid}_shield`);
+            if (shieldEffect?.flash) shieldEffect.flash();
+        }
+
         // If shield depleted, start recharge timer
         if (player.shieldHP <= 0) {
             player.shieldHP = 0;
