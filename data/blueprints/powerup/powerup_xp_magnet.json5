@@ -39,10 +39,12 @@
     ],
   },
   vfx: {
+    pickup: 'vfx.pickup',
     apply: 'vfx.powerup',
     levelUp: 'vfx.powerup',
   },
   sfx: {
+    pickup: 'sound/pickup.mp3',
     apply: 'sound/powerup.mp3',
     levelUp: 'sound/powerup.mp3',
   },

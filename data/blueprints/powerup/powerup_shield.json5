@@ -5,14 +5,7 @@
     maxLevel: 5,
   },
   mechanics: {
-    modifiersPerLevel: [
-      { 
-        path: 'shieldHP', 
-        type: 'base',  // PR7: Base value that gets set to (baseValue * level)
-        value: 30,     // 30 HP per level (30, 60, 90, 120, 150)
-        description: 'Shield HP increases by 30 per level'
-      }
-    ],
+    modifiersPerLevel: [],  // Shield HP managed by ability.baseShieldHP (15 × level), not modifiers
     stackable: false,  // Shield doesn't stack, only upgrades
     persistent: true,
     applyOnPickup: true,

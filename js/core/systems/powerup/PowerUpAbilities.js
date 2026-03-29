@@ -74,8 +74,8 @@ export class PowerUpAbilities {
                 break;
 
             case 'chain_lightning':
-                config.damage = ability.baseDamage || 15;
-                config.damagePerLevel = ability.damagePerLevel || 10;
+                // Damage scales: baseDamage + damagePerLevel * level
+                config.damage = (ability.baseDamage || 15) + (ability.damagePerLevel || 10) * level;
                 config.range = ability.baseRange || 200;
                 config.jumpRange = ability.jumpRange || 80;
                 config.jumps = level;
@@ -90,9 +90,10 @@ export class PowerUpAbilities {
                 break;
 
             case 'chemo_aura':
-                config.cloudDuration = ability.chemoCloudDuration || 6000;
-                config.cloudDamage = ability.chemoCloudDamage || 4;
-                config.cloudRadius = ability.chemoCloudRadius || 35;
+                // Keys must match what DamageZoneAbilities.startChemoCloud reads
+                config.chemoCloudDuration = ability.chemoCloudDuration || 6000;
+                config.chemoCloudDamage = ability.chemoCloudDamage || 4;
+                config.chemoCloudRadius = ability.chemoCloudRadius || 35;
                 config.enableExplosions = ability.enableExplosions || false;
                 break;
 
@@ -163,9 +164,9 @@ export class PowerUpAbilities {
                 DebugLogger.info('powerup', `[PowerUpAbilities] SHIELD ACTIVATED - Level: ${config.level}, HP: ${config.shieldHP}, Recharge: ${config.rechargeTime}ms`);
 
                 // Create/update shield physics hitbox for bullet interception
-                if (this.shieldRegen) {
-                    this.shieldRegen.destroyShieldHitbox(player); // Recreate with new radius
-                    this.shieldRegen.createShieldHitbox(player);
+                if (this._shieldRegen) {
+                    this._shieldRegen.destroyShieldHitbox(player);
+                    this._shieldRegen.createShieldHitbox(player);
                 }
 
                 if (vfxManager) {

@@ -7,16 +7,10 @@
   mechanics: {
     modifiersPerLevel: [
       {
-        path: 'projectilePiercing',
-        type: 'set',
-        value: 1,
-        description: 'Number of enemies projectile can pierce through',
-      },
-      {
         path: 'projectileDamage',
         type: 'mul',
-        value: -0.1,
-        description: 'Reduces damage by 10% per pierce (balance)',
+        value: -0.05,
+        description: 'Reduces damage by 5% per level (balance trade-off for piercing)',
       },
     ],
     stackable: true,

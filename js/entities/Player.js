@@ -183,8 +183,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     removeModifierById(id) { return this.statsSystem.removeById(id); }
     clearModifiers() { this.statsSystem.clearAll(); }
     getXPMagnetRadius() {
-        if (this.scene.powerUpSystem) return this.scene.powerUpSystem.getXPMagnetRadius();
-        return this.baseStats.xpMagnetRadius || 100;
+        return this.statsSystem.get('xpMagnetRadius') || this.baseStats.xpMagnetRadius || 100;
     }
     getExplosionRadius() { return this.statsSystem.get('explosionRadius'); }
     getExplosionDamage() { return this.statsSystem.get('explosionDamage'); }

@@ -12,6 +12,13 @@
     devNameFallback: 'Řetězový blesk',
     devDescFallback: 'Periodicky zasáhne nejbližšího nepřítele bleskem, který přeskakuje na další.',
   },
+  mechanics: {
+    modifiersPerLevel: [],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'chain_lightning',
+  },
   ability: {
     type: 'chain_lightning',
     baseDamage: 20,

@@ -28,7 +28,6 @@
     stackable: true,
     persistent: true,
     applyOnPickup: true,
-    attackSpeedCap: 5,
     effectType: 'metabolic_haste',
   },
   vfx: {
