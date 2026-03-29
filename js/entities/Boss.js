@@ -304,6 +304,11 @@ export class Boss extends BossCore {
         this.spawnVfx('death');
         this.playSfx('death');
 
+        // Clear active telegraph warnings (boss ability circles still on screen)
+        if (this.scene?.vfxSystem?.clearTelegraphs) {
+            this.scene.vfxSystem.clearTelegraphs();
+        }
+
         // Notify UI to hide boss HP bar (event-based, no direct scene reference)
         if (this.scene?.events) {
             this.scene.events.emit('boss:hide-hp');

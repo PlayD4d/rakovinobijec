@@ -30,6 +30,9 @@ export class SimplifiedVFXSystem {
         this.maxParticles = 1000;
         this._emitterCounter = 0;
 
+        // Active telegraph sprites — tracked for cleanup on boss death / level transition
+        this._activeTelegraphs = [];
+
         this.initialized = false;
     }
     
@@ -433,8 +436,23 @@ export class SimplifiedVFXSystem {
         }
         this.emitterPool.length = 0;
 
+        // Clear active telegraph sprites (boss ability warnings, etc.)
+        this.clearTelegraphs();
+
         // Preserve persistent power-up effects (radiotherapy, flamethrower, shield)
         // They survive level transitions — player keeps their power-ups
+    }
+
+    /** Destroy all active telegraph sprites — called on boss death, level transition, shutdown */
+    clearTelegraphs() {
+        for (let i = this._activeTelegraphs.length - 1; i >= 0; i--) {
+            const s = this._activeTelegraphs[i];
+            if (s?.scene) {
+                this.scene.tweens.killTweensOf(s);
+                s.destroy();
+            }
+        }
+        this._activeTelegraphs.length = 0;
     }
 
     /**
@@ -595,7 +613,10 @@ export class SimplifiedVFXSystem {
         sprite.setAlpha(fillAlpha > 0.2 ? 0.8 : 0.6);
         sprite.setDepth(this.scene.DEPTH_LAYERS?.VFX || 3000);
 
-        // Single tween: scale pulse + fade out, then destroy sprite
+        // Track for cleanup (boss death, level transition)
+        this._activeTelegraphs.push(sprite);
+
+        // Single tween: scale pulse + fade out, then destroy + untrack
         this.scene.tweens.add({
             targets: sprite,
             scaleX: scale * 1.05,
@@ -603,7 +624,11 @@ export class SimplifiedVFXSystem {
             alpha: 0,
             duration: duration,
             ease: 'Sine.easeOut',
-            onComplete: () => sprite.destroy()
+            onComplete: () => {
+                const idx = this._activeTelegraphs.indexOf(sprite);
+                if (idx !== -1) this._activeTelegraphs.splice(idx, 1);
+                sprite.destroy();
+            }
         });
 
         return sprite;
