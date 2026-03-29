@@ -137,9 +137,6 @@ export class PowerUpAbilities {
                 if (vfxManager) {
                     vfxManager.attachEffect(player, 'radiotherapy', config);
                 }
-                player.radiotherapyActive = true;
-                player.radiotherapyLevel = config.level;
-                player.radiotherapyConfig = config;
                 break;
 
             case 'flamethrower':
@@ -152,9 +149,6 @@ export class PowerUpAbilities {
                         color: 0xff6600
                     });
                 }
-                player.flamethrowerActive = true;
-                player.flamethrowerLevel = config.level;
-                player.flamethrowerConfig = config;
                 break;
 
             case 'shield':
@@ -202,27 +196,23 @@ export class PowerUpAbilities {
                         this._chainLightning.update(time, delta, config, ability);
                     }
                 });
-                player.hasLightningChain = true;
-                player.lightningChainLevel = config.level;
                 break;
 
             case 'aura':
-                if (this.scene.vfxSystem && !player.aura) {
+                if (this.scene.vfxSystem && !this._abilityConfigs.has('aura')) {
                     this.scene.vfxSystem.play('vfx.aura.damage', player.x, player.y, {
                         radius: config.radius + (config.radiusPerLevel * (config.level - 1)),
                         color: 0x00ff00,
                         alpha: 0.1,
                         persistent: true
                     });
-                    player.aura = true;
                 }
-                player.auraDamage = config.damage * config.level;
-                player.auraRadius = config.radius + (config.radiusPerLevel * (config.level - 1));
+                // Store computed values in config for DamageZoneAbilities to read
+                config.computedDamage = config.damage * config.level;
+                config.computedRadius = config.radius + (config.radiusPerLevel * (config.level - 1));
                 break;
 
             case 'chemo_aura':
-                player.chemoAuraActive = true;
-                player.chemoAuraConfig = config;
                 this._damageZones.startChemoCloud(player, config);
                 DebugLogger.info('powerup', `[PowerUpAbilities] Activated chemo aura — cloud damage ${config.chemoCloudDamage}, radius ${config.chemoCloudRadius}`);
                 break;
@@ -253,12 +243,15 @@ export class PowerUpAbilities {
         const player = this.scene.player;
 
         // Delegate aura update
-        if (player?.aura && player.auraDamage > 0) {
-            this._damageZones.updateAura(player, delta);
+        const auraConfig = this._abilityConfigs.get('aura');
+        if (auraConfig && auraConfig.computedDamage > 0) {
+            this._damageZones.updateAura(player, delta, auraConfig);
         }
 
         // Delegate chemo cloud position update
-        this._damageZones.updateChemoCloud(player);
+        if (this._abilityConfigs.has('chemo_aura')) {
+            this._damageZones.updateChemoCloud(player);
+        }
 
         // Delegate shield regeneration
         this._shieldRegen.update(player, time);

@@ -87,16 +87,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.shieldRechargeTime = 10000;
         this._shieldBrokenAt = -Infinity;
 
-        // Power-up states (set by PowerUpSystem)
-        this.xpMagnetLevel = 0;
-        this.radiotherapyActive = false;
-        this.radiotherapyLevel = 0;
-        this.radiotherapyConfig = null;
-        this.flamethrowerActive = false;
-        this.flamethrowerLevel = 0;
-        this.flamethrowerConfig = null;
-        this.chemoAuraActive = false;
-        this.chemoAuraConfig = null;
+        // Power-up runtime state (mutable per-frame — stays on Player)
+        // Boolean flags removed — use scene.powerUpSystem.hasAbility() instead
         this.piercingLevel = 0;
         this.piercingMaxPierces = 0;
         this.piercingDamageReduction = 0;

@@ -101,29 +101,26 @@ export class DamageZoneAbilities {
     /**
      * Update aura damage using Phaser overlap zone (broadphase)
      */
-    updateAura(player, delta) {
-        if (!player.aura) {
-            this.destroyAuraZone();
-            return;
-        }
+    updateAura(player, delta, auraConfig) {
+        const radius = auraConfig.computedRadius;
+        const damage = auraConfig.computedDamage;
 
         // Recreate zone if radius changed (level-up)
-        if (this._auraZone && this._auraRadius !== player.auraRadius) {
+        if (this._auraZone && this._auraRadius !== radius) {
             this.destroyAuraZone();
         }
 
         // Lazy-create physics zone on first call
         if (!this._auraZone && this.scene.physics) {
-            this._auraRadius = player.auraRadius;
+            this._auraRadius = radius;
             const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
             if (enemiesGroup) {
-                const ad = player.auraRadius * 2;
+                const ad = radius * 2;
                 this._auraZone = this.scene.add.zone(player.x, player.y, ad, ad);
                 this.scene.physics.add.existing(this._auraZone, false);
-                this._auraZone.body.setCircle(player.auraRadius);
-                this._auraZone.body.setOffset(-player.auraRadius + ad / 2, -player.auraRadius + ad / 2);
+                this._auraZone.body.setCircle(radius);
+                this._auraZone.body.setOffset(-radius + ad / 2, -radius + ad / 2);
 
-                // Throttle aura damage per-enemy (same pattern as chemo cloud)
                 this._auraHitTimes = new WeakMap();
                 this._auraOverlap = this.scene.physics.add.overlap(
                     this._auraZone,
@@ -132,16 +129,14 @@ export class DamageZoneAbilities {
                         if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
                         const now = this.scene.time?.now || 0;
                         const lastHit = this._auraHitTimes.get(enemy) || 0;
-                        if (now - lastHit < 100) return; // ~10 ticks/sec per enemy
-                        const currentDmg = (player.auraDamage || 0) * 0.1;
-                        enemy.takeDamage(currentDmg, 'aura');
+                        if (now - lastHit < 100) return;
+                        enemy.takeDamage(damage * 0.1, 'aura');
                         this._auraHitTimes.set(enemy, now);
                     }
                 );
             }
         }
 
-        // Follow player
         if (this._auraZone?.body) {
             this._auraZone.setPosition(player.x, player.y);
         }
