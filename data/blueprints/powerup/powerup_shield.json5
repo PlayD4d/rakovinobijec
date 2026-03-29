@@ -9,8 +9,8 @@
       { 
         path: 'shieldHP', 
         type: 'base',  // PR7: Base value that gets set to (baseValue * level)
-        value: 50,     // 50 HP per level (50, 100, 150, 200, 250)
-        description: 'Shield HP increases by 50 per level'
+        value: 30,     // 30 HP per level (30, 60, 90, 120, 150)
+        description: 'Shield HP increases by 30 per level'
       }
     ],
     stackable: false,  // Shield doesn't stack, only upgrades
@@ -20,8 +20,8 @@
   },
   ability: {
     type: 'shield',
-    baseShieldHP: 25,  // Base HP value for calculations
-    rechargeTimePerLevel: [15000, 13000, 11000, 9000, 7000],  // 15s, 13s, 11s, 9s, 7s
+    baseShieldHP: 15,  // Base HP value — 15 × level (75 at max vs old 125)
+    rechargeTimePerLevel: [18000, 16000, 14000, 12000, 10000],  // 18s → 10s (was 15s → 7s)
   },
   vfx: {
     pickup: 'vfx.pickup',

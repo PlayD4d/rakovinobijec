@@ -21,11 +21,11 @@
       160,
     ],
     damagePerLevel: [
-      3,
-      4,
-      5,
-      7,
       10,
+      14,
+      18,
+      24,
+      30,
     ],
     coneAnglePerLevel: [
       0.4,

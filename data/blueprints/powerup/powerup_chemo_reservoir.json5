@@ -15,8 +15,8 @@
       {
         path: 'explosionDamage',
         type: 'add',
-        value: 3,
-        description: 'Adds 3 explosion damage per level',
+        value: 8,
+        description: 'Adds 8 explosion damage per level',
       },
     ],
     stackable: true,
@@ -27,8 +27,8 @@
   ability: {
     type: 'chemo_aura',
     chemoCloudDuration: 6000,
-    chemoCloudDamage: 4,
-    chemoCloudRadius: 35,
+    chemoCloudDamage: 12,
+    chemoCloudRadius: 50,
     enableExplosions: true,
   },
   vfx: {

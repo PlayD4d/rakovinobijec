@@ -14,11 +14,11 @@
   },
   ability: {
     type: 'chain_lightning',
-    baseDamage: 15,
-    damagePerLevel: 10,
-    baseRange: 200,
-    jumpRange: 80,
-    interval: 2000,
+    baseDamage: 25,
+    damagePerLevel: 20,
+    baseRange: 220,
+    jumpRange: 100,
+    interval: 1500,
   },
   vfx: {
     pickup: 'vfx.effect',
