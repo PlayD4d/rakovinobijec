@@ -2,7 +2,7 @@
   id: 'boss.onkogen_prime',
   type: 'boss',
   stats: {
-    hp: 2100,
+    hp: 1800,
     damage: 25,
     speed: 45,
     size: 35,

@@ -27,7 +27,7 @@
   ability: {
     type: 'chemo_aura',
     chemoCloudDuration: 6000,
-    chemoCloudDamage: 12,
+    chemoCloudDamage: 8,
     chemoCloudRadius: 50,
     enableExplosions: true,
   },

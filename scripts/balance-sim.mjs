@@ -334,8 +334,21 @@ function simulateRun(data, options = {}) {
       sim.shieldRechargeAt = time + sim.shieldRechargeTime;
     }
 
-    // --- HEAL DROPS (simplified: 0.8% per kill → ~1 heal per 125 kills) ---
-    // Already handled via level-up heal above
+    // --- LOOT DROPS ---
+    // Based on spawn table loot rates: ~0.8% health_small per kill
+    // Heal drops: 10 HP each, ~0.8% chance per kill
+    // Protein cache: full heal, ~0.4% chance
+    // Metotrexat: kills all normal enemies, ~0.05% chance
+    const recentKills = activeEnemies.length === 0 ? 0 : sim.kills; // proxy
+    if (sim.hp < sim.maxHp) {
+      // Simplified: every ~3 seconds, chance of picking up a heal drop on the field
+      if (Math.random() < 0.15 * (DT / 1000)) {
+        sim.heal(10); // health_small
+      }
+      if (Math.random() < 0.03 * (DT / 1000)) {
+        sim.heal(sim.maxHp); // protein_cache (full heal)
+      }
+    }
 
     // --- TIMELINE SNAPSHOTS (every 30s) ---
     if (time % 30000 < DT) {
@@ -403,18 +416,43 @@ function pickPowerup(sim, powerups, pool, forceBuild) {
     available.splice(idx, 1);
   }
 
-  // Priority: damage abilities > utility > defense
+  // Adaptive priority — simulates a real player who reads the situation:
+  // - Low HP? Pick shield/defense
+  // - Early game? Invest in DPS foundation (multi_shot, damage_boost)
+  // - Mid game? Add AoE abilities
+  // - Upgrade existing abilities before picking new ones
   const priority = (id) => {
-    if (id.includes('damage_boost')) return 10;
-    if (id.includes('multi_shot')) return 9;
-    if (id.includes('chain_lightning')) return 8;
-    if (id.includes('radiotherapy')) return 7;
-    if (id.includes('flamethrower')) return 6;
-    if (id.includes('piercing')) return 5;
-    if (id.includes('chemo')) return 4;
-    if (id.includes('metabolic')) return 3;
-    if (id.includes('shield')) return 2;
-    if (id.includes('xp_magnet')) return 1;
+    const existing = sim.abilities.get(id);
+    const level = existing ? existing.level : 0;
+    const hpPct = sim.hp / sim.maxHp;
+    const isEarlyGame = sim.level < 10;
+    const isMidGame = sim.level >= 10 && sim.level < 25;
+
+    // Upgrade bonus: leveling an existing ability is usually better than a new one
+    const upgradeBonus = level > 0 ? 3 : 0;
+
+    // Survival panic: low HP → prioritize shield/heal
+    if (hpPct < 0.5 && id.includes('shield') && level < 3) return 15;
+    if (hpPct < 0.3 && id.includes('metabolic')) return 12; // Speed to dodge
+
+    // Shield: always valuable early, pick first 2-3 levels
+    if (id.includes('shield') && level < 3) return 9 + upgradeBonus;
+
+    // Core DPS: foundation picks
+    if (id.includes('multi_shot')) return (isEarlyGame ? 10 : 7) + upgradeBonus;
+    if (id.includes('damage_boost')) return (isEarlyGame ? 9 : 7) + upgradeBonus;
+
+    // AoE abilities: strong in mid-late game
+    if (id.includes('chain_lightning')) return (isMidGame ? 8 : 5) + upgradeBonus;
+    if (id.includes('radiotherapy')) return (isMidGame ? 7 : 4) + upgradeBonus;
+    if (id.includes('flamethrower')) return (isMidGame ? 6 : 3) + upgradeBonus;
+
+    // Utility
+    if (id.includes('piercing')) return 4 + upgradeBonus;
+    if (id.includes('metabolic')) return 3 + upgradeBonus;
+    if (id.includes('shield')) return 2 + upgradeBonus; // Shield at higher levels
+    if (id.includes('chemo')) return 2 + upgradeBonus;
+    if (id.includes('xp_magnet')) return (isEarlyGame ? 6 : 1); // Great early, useless late
     return 0;
   };
 

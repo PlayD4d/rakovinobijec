@@ -2,8 +2,8 @@
   id: 'boss.chemorezistence',
   type: 'boss',
   stats: {
-    hp: 2700,
-    maxHp: 2700,
+    hp: 1800,
+    maxHp: 1800,
     speed: 20,
     damage: 75,
     xp: 500,

@@ -56,8 +56,8 @@
     },
   },
   difficulty: {
-    enemyHpMultiplier: 1.6,
-    enemyDamageMultiplier: 1.4,
+    enemyHpMultiplier: 1.5,
+    enemyDamageMultiplier: 1.3,
     enemySpeedMultiplier: 1.2,
     spawnRateMultiplier: 1.7,
     eliteFrequency: 1.4,

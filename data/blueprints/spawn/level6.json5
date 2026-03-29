@@ -60,13 +60,13 @@
     },
   },
   difficulty: {
-    enemyHpMultiplier: 2.0,
-    enemyDamageMultiplier: 1.7,
+    enemyHpMultiplier: 1.7,
+    enemyDamageMultiplier: 1.4,
     enemySpeedMultiplier: 1.3,
     spawnRateMultiplier: 2.1,
     eliteFrequency: 1.7,
     targetTTK: 1000,
-    progressiveScaling: { hpGrowth: 0.004, damageGrowth: 0.003, spawnGrowth: 0.0035 },
+    progressiveScaling: { hpGrowth: 0.0025, damageGrowth: 0.002, spawnGrowth: 0.0025 },
   },
   meta: {
     name: 'level6',
