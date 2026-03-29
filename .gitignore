@@ -39,3 +39,9 @@ test-working.js
 *.bak
 *.pre-vfx-sfx-migration.bakdata/telemetry.db
 data/sessions/*.json
+
+# Large media files
+*.mov
+*.mp4
+screenshot_*.png
+Screen video*
