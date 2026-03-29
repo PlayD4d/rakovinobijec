@@ -65,9 +65,11 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
     const gd = Math.sqrt(gdx * gdx + gdy * gdy) || 1;
     cap.setVelocity((gdx / gd) * speed, (gdy / gd) * speed);
 
-    // Periodic shield VFX pulse (visual indicator of aura)
+    // Periodic shield pulse — visual aura circle showing buff range
     if (cap.now - s.lastBuff >= buffInterval) {
         s.lastBuff = cap.now;
-        cap.spawnVfx('spawn'); // Pulse effect to show shielding
+        cap.playTelegraph(pos.x, pos.y, {
+            radius: buffRange, color: 0x00FFCC, duration: 600, fillAlpha: 0.08, pulses: 1
+        });
     }
 }

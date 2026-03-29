@@ -42,12 +42,15 @@ export function charge(cap, cfg, dt, mem, setState) {
                 s.phase = 'windup';
                 s.phaseStart = cap.now;
                 cap.setVelocity(0, 0);
-                cap.spawnVfx('hit'); // Flash to telegraph charge
+                // Telegraph: red pulsing circle warns player of incoming charge
+                cap.playTelegraph(pos.x, pos.y, {
+                    radius: 30, color: 0xFF4444, duration: windupDuration, pulses: 2
+                });
             }
             break;
 
         case 'windup':
-            // Stand still, "gathering energy" — visual telegraph for player
+            // Stand still, "gathering energy"
             cap.setVelocity(0, 0);
             if (elapsed >= windupDuration) {
                 // Lock dash direction toward player's current position

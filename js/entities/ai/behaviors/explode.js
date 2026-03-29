@@ -26,24 +26,25 @@ export function explode(cap, cfg, dt, mem, setState) {
     const s = mem.explode;
     const alive = cap.now - s.spawnTime;
 
-    // Warning flash near end of fuse
+    // Warning telegraph near end of fuse — pulsing red circle shows blast radius
     if (!s.warned && alive >= fuseTime - warningTime) {
         s.warned = true;
-        cap.spawnVfx('hit'); // Telegraph detonation
+        cap.playTelegraph(pos.x, pos.y, {
+            radius: detonateRange * 2, color: 0xFF2200, duration: warningTime, fillAlpha: 0.15, pulses: 4
+        });
     }
 
     // Auto-detonate on fuse timer
     if (alive >= fuseTime) {
-        cap.spawnVfx('death');
+        cap.playExplosion(pos.x, pos.y, { color: 0xFF6600, radius: detonateRange * 2.5 });
         cap.playSfx('death');
         cap.setVelocity(0, 0);
-        // Damage dealt via contactDamage on overlap — just kill self
         return;
     }
 
     // Detonate on proximity
     if (distSq < detonateRangeSq) {
-        cap.spawnVfx('death');
+        cap.playExplosion(pos.x, pos.y, { color: 0xFF6600, radius: detonateRange * 2.5 });
         cap.playSfx('death');
         cap.setVelocity(0, 0);
         return;

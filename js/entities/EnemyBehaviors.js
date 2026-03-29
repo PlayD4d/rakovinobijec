@@ -197,6 +197,8 @@ export class EnemyBehaviors {
             inRangeOfPlayer: (range) => enemy.inRangeOfPlayer(range),
             playSfx: (id, opts) => enemy.playSfx(id, opts),
             spawnVfx: (id, at, opts) => enemy.spawnVfx(id, at, opts),
+            playTelegraph: (x, y, opts) => enemy.scene?.vfxSystem?.playTelegraph?.(x, y, opts),
+            playExplosion: (x, y, opts) => enemy.scene?.vfxSystem?.playExplosionEffect?.(x, y, opts),
             schedule: (fn, ms) => enemy.schedule(fn, ms),
             getState: () => this.state,
             // Focused accessors instead of raw scene reference (architecture rule enforcement)
