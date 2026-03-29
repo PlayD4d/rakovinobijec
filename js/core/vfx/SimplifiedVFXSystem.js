@@ -478,5 +478,67 @@ export class SimplifiedVFXSystem {
     playDeathBurst(x, y, color = 0xFF2222) {
         return this.play(VFXPresets.deathBurst('medium', color), x, y);
     }
+
+    /**
+     * Multi-layer explosion effect — particle burst + expanding shockwave ring + impact flash.
+     * Uses Phaser Graphics for the ring (generateTexture would be wasteful for one-shot).
+     * @param {number} x - Center X
+     * @param {number} y - Center Y
+     * @param {object} opts - { color, radius, duration }
+     */
+    playExplosionEffect(x, y, opts = {}) {
+        if (!this.scene?.sys?.isActive()) return;
+
+        const color = opts.color || 0xFF6600;
+        const radius = opts.radius || 60;
+        const duration = opts.duration || 400;
+
+        // Layer 1: Particle burst (Phaser native)
+        this.play(VFXPresets.explosion('medium', color), x, y);
+
+        // Layer 2: Expanding shockwave ring (Graphics + tween)
+        const gf = this.scene.graphicsFactory;
+        const ring = gf ? gf.create() : this.scene.add.graphics();
+        ring.setPosition(x, y);
+        ring.setDepth(this.scene.DEPTH_LAYERS?.VFX || 3000);
+
+        // Draw initial ring
+        ring.lineStyle(3, color, 0.8);
+        ring.strokeCircle(0, 0, 5);
+        ring.fillStyle(color, 0.15);
+        ring.fillCircle(0, 0, 5);
+
+        // Expand ring outward with fading alpha
+        this.scene.tweens.add({
+            targets: ring,
+            scaleX: radius / 5,
+            scaleY: radius / 5,
+            alpha: 0,
+            duration: duration,
+            ease: 'Power2',
+            onComplete: () => {
+                if (gf) gf.release(ring); else ring.destroy();
+            }
+        });
+
+        // Layer 3: Brief center flash (camera-independent white flash circle)
+        const flash = gf ? gf.create() : this.scene.add.graphics();
+        flash.setPosition(x, y);
+        flash.setDepth((this.scene.DEPTH_LAYERS?.VFX || 3000) + 1);
+        flash.fillStyle(0xFFFFFF, 0.9);
+        flash.fillCircle(0, 0, radius * 0.3);
+
+        this.scene.tweens.add({
+            targets: flash,
+            alpha: 0,
+            scaleX: 0.5,
+            scaleY: 0.5,
+            duration: duration * 0.4,
+            ease: 'Power3',
+            onComplete: () => {
+                if (gf) gf.release(flash); else flash.destroy();
+            }
+        });
+    }
 }
 

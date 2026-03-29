@@ -57,9 +57,9 @@ export class ExplosionHandler {
       }
     }
 
-    // VFX / SFX (single call, no duplicates)
-    if (this.scene.vfxSystem) {
-      this.scene.vfxSystem.play('vfx.explosion.small', x, y);
+    // VFX — use multi-layer explosion effect with radius matching damage area
+    if (this.scene.vfxSystem?.playExplosionEffect) {
+      this.scene.vfxSystem.playExplosionEffect(x, y, { color: 0x44CCFF, radius: explosionRadius * 1.5 });
     }
     if (this.scene.audioSystem) {
       this.scene.audioSystem.play('sound/explosion_small.mp3');

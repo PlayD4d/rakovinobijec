@@ -293,7 +293,13 @@ export class EnemyManager {
         try {
             // Play death VFX/SFX (Boss handles its own in Boss.die() — skip here)
             if (!isBoss) {
-                if (scene.vfxSystem && enemy._vfx?.death) {
+                // Exploding enemies get a multi-layer explosion effect matching their damage radius
+                const isExploder = enemy.blueprint?.ai?.behavior === 'explode';
+                if (isExploder && scene.vfxSystem?.playExplosionEffect) {
+                    const radius = enemy.blueprint?.ai?.params?.detonateRange || 35;
+                    const color = enemy.blueprint?.graphics?.tint || 0xFF6600;
+                    scene.vfxSystem.playExplosionEffect(enemy.x, enemy.y, { color, radius: radius * 2.5 });
+                } else if (scene.vfxSystem && enemy._vfx?.death) {
                     scene.vfxSystem.play(enemy._vfx.death, enemy.x, enemy.y);
                 }
                 if (scene.audioSystem && enemy._sfx?.death) {
