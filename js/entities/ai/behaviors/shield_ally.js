@@ -61,20 +61,11 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
     const gd = Math.sqrt(gdx * gdx + gdy * gdy) || 1;
     cap.setVelocity((gdx / gd) * speed, (gdy / gd) * speed);
 
-    // Persistent shield aura — redraw every 1.5s so it's always visible
-    if (cap.now - s.lastAura >= 1500) {
-        s.lastAura = cap.now;
-        cap.playTelegraph(pos.x, pos.y, {
-            radius: buffRange, color: 0x00FFCC, duration: 1600, fillAlpha: 0.06, pulses: 1
-        });
-    }
-
-    // Shield buff pulse — stronger flash + VFX on buff tick
+    // Shield buff pulse — brief flash on buff tick only (not persistent aura)
     if (cap.now - s.lastBuff >= buffInterval) {
         s.lastBuff = cap.now;
         cap.playTelegraph(pos.x, pos.y, {
-            radius: buffRange * 0.6, color: 0x00FFFF, duration: 400, fillAlpha: 0.15, pulses: 1
+            radius: buffRange * 0.5, color: 0x00FFCC, duration: 300, fillAlpha: 0.1
         });
-        // Telegraph circle is sufficient — no spawnVfx/playSfx spam
     }
 }

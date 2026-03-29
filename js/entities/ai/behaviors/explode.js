@@ -34,7 +34,7 @@ export function explode(cap, cfg, dt, mem, setState) {
     if (!s.warned && alive >= fuseTime - warningTime) {
         s.warned = true;
         cap.playTelegraph(pos.x, pos.y, {
-            radius: detonateRange * 2, color: 0xFF2200, duration: warningTime, fillAlpha: 0.15
+            radius: detonateRange, color: 0xFF2200, duration: Math.min(warningTime, 800)
         });
     }
 

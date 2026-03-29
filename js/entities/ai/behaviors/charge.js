@@ -42,9 +42,9 @@ export function charge(cap, cfg, dt, mem, setState) {
                 s.phase = 'windup';
                 s.phaseStart = cap.now;
                 cap.setVelocity(0, 0);
-                // Telegraph: red pulsing circle warns player of incoming charge
+                // Brief red flash at enemy position — warns of incoming charge
                 cap.playTelegraph(pos.x, pos.y, {
-                    radius: 30, color: 0xFF4444, duration: windupDuration, pulses: 2
+                    radius: 20, color: 0xFF4444, duration: Math.min(windupDuration, 400)
                 });
             }
             break;

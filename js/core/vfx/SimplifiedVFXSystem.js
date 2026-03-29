@@ -583,6 +583,9 @@ export class SimplifiedVFXSystem {
     playTelegraph(x, y, opts = {}) {
         if (!this.scene?.sys?.isActive()) return null;
 
+        // Limit concurrent telegraphs to prevent visual overload
+        if (this._activeTelegraphs.length >= 8) return null;
+
         const color = opts.color || 0xFF0000;
         const radius = opts.radius || 80;
         const duration = opts.duration || 1000;
