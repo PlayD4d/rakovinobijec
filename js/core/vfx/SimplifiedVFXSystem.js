@@ -124,18 +124,19 @@ export class SimplifiedVFXSystem {
         const quantity = config.quantity || 10;
 
         if (!emitter) {
-            emitter = this.scene.add.particles(x, y, 'particle', config);
+            // Create at origin — position set below via setPosition
+            emitter = this.scene.add.particles(0, 0, 'particle', config);
         } else {
             // Reuse from pool — reset state for clean reuse
             if (emitter.follow) emitter.follow = null;
-            emitter.setPosition(x, y);
             emitter.setConfig(config);
             emitter.setVisible(true);
             emitter.setActive(true);
         }
 
-        // explode() is Phaser's native one-shot burst — sets frequency=-1 internally
-        emitter.explode(quantity, x, y);
+        // Set position ONCE, then explode WITHOUT x,y to avoid double-offset
+        emitter.setPosition(x, y);
+        emitter.explode(quantity);
 
         // Track active emitter
         const emitterId = `em_${this._emitterCounter++}`;
