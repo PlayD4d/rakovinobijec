@@ -91,7 +91,7 @@ export function orbit(cap, cfg, dt, mem, setState) {
     cap.faceTo(player.x, player.y);
     
     // Shoot with proper cooldown
-    const now = cap.now > 0 ? cap.now : (cap.scene?.time?.now || 1);
+    const now = cap.now || 1;
     if (now - mem.orbit.lastShootAt >= config.shootCooldownMs) {
         if (Math.random() < config.shootChance) {
             const angle = Math.atan2(player.y - pos.y, player.x - pos.x);

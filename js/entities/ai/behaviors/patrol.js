@@ -57,7 +57,7 @@ export function patrol(cap, cfg, dt, mem, setState) {
     }
     
     const state = mem.patrol;
-    const now = cap.now > 0 ? cap.now : (cap.scene?.time?.now || 1);
+    const now = cap.now || 1;
     
     // Update patrol target based on pattern
     if (now - state.lastChange > config.changeInterval) {

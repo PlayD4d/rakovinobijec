@@ -264,6 +264,12 @@ export class MainMenu extends Phaser.Scene {
             this.mainMenuUI = null;
         }
 
+        // Cleanup global high score manager
+        if (this.globalHighScoreManager) {
+            this.globalHighScoreManager.shutdown();
+            this.globalHighScoreManager = null;
+        }
+
         // Cleanup event listeners
         // Obnovit normální FPS při opuštění menu
         try { this.game.loop.targetFps = 60; } catch (_) { }

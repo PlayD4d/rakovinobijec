@@ -5,8 +5,7 @@ import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { MobileControlsSystem} from '../core/systems/MobileControlsSystem.js';
 import { SimpleLootSystem } from '../core/systems/SimpleLootSystem.js';
 import { centralEventBus } from '../core/events/CentralEventBus.js';
-import { TelemetryLogger } from '../core/TelemetryLogger.js';
-import { DebugOverlay } from '../utils/DebugOverlay.js';
+// TelemetryLogger and DebugOverlay imported via GameSceneFlow
 import { BlueprintLoader } from '../core/data/BlueprintLoader.js';
 import { SpawnDirector } from '../core/spawn/SpawnDirector.js';
 import { FrameworkDebugAPI } from '../core/FrameworkDebugAPI.js';
@@ -109,22 +108,7 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    _preloadAllAudio() {
-        this.load.json('audio_manifest', '/data/generated/audio_manifest.json');
-        this.load.on('filecomplete-json-audio_manifest', (key, type, data) => {
-            if (!data?.audio) {
-                DebugLogger.error('bootstrap', '[AudioPreload] Invalid or missing audio manifest!');
-                return;
-            }
-            let loadedCount = 0;
-            DebugLogger.info('bootstrap', `[AudioPreload] Loading ${data.audio.length} files from manifest v${data.version}`);
-            data.audio.forEach(path => {
-                const k = path.replace(/[^a-zA-Z0-9]/g, '_');
-                if (!this.cache.audio.has(k)) { this.load.audio(k, path); loadedCount++; }
-            });
-            DebugLogger.info('bootstrap', `[AudioPreload] Prepared ${loadedCount} audio files`);
-        });
-    }
+    _preloadAllAudio() { SceneFlow.preloadAllAudio(this); }
 
     async create() {
         // Initialize DisposableRegistry for cleanup
@@ -152,30 +136,9 @@ export class GameScene extends Phaser.Scene {
         // Do NOT register a second listener here — it causes double application
     }
     
-    initializeDebugSystems() {
-        try {
-            // Telemetry logger
-            this.telemetryLogger = new TelemetryLogger(this);
-            
-            // Debug overlay (F3 to toggle via KeyboardManager)
-            if (!this.debugOverlay) {
-                this.debugOverlay = new DebugOverlay(this);
-            }
-            
-        } catch (error) {
-            DebugLogger.warn('game', 'Debug systems init failed:', error);
-        }
-    }
+    initializeDebugSystems() { SceneFlow.initializeDebugSystems(this); }
 
-    showCriticalError(title, message) {
-        // Delegate to UI scene
-        const uiScene = this.scene.get('GameUIScene');
-        if (uiScene?.events) {
-            uiScene.events.emit('show-error', { title, message });
-        } else {
-            DebugLogger.error('game', '[GameScene] Critical error:', title, message);
-        }
-    }
+    showCriticalError(title, message) { SceneFlow.showCriticalError(this, title, message); }
     
     setupInput() {
         // Create unified input system
@@ -389,19 +352,9 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    updateTime() {
-        if (!this.isPaused && !this.isGameOver) {
-            this.gameStats.time++;
-        }
-    }
-    
-    handleResize(gameSize) {
-        const { width, height } = gameSize;
-        this.mainCam?.setSize(width, height);
-        this.uiCam?.setSize(width, height);
-        this.pauseMenu?.onResize?.(width, height);
-        if (this.mobileControls?.enabled) this.mobileControls.handleResize(width, height);
-    }
+    updateTime() { SceneFlow.updateTime(this); }
+
+    handleResize(gameSize) { SceneFlow.handleResize(this, gameSize); }
     
     // ========== PR7 Phaser API Interface Methods ==========
     // Controlled access to Phaser API for managers

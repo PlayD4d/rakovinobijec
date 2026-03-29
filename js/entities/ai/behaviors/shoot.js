@@ -18,7 +18,7 @@ export function shoot(cap, cfg, dt, mem, setState) {
 
     // Shoot with cooldown
     // Use game time; avoid Date.now() fallback which is incompatible in scale
-    const now = cap.now > 0 ? cap.now : (cap.scene?.time?.now || 1);
+    const now = cap.now || 1;
     const cooldown = cfg?.cooldown || 3000;
 
     // Initialize lastShotAt to current time on first call (prevents instant shot on spawn)

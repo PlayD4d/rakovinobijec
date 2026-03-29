@@ -7,6 +7,8 @@
  */
 
 import { DebugLogger } from '../core/debug/DebugLogger.js';
+import { TelemetryLogger } from '../core/TelemetryLogger.js';
+import { DebugOverlay } from '../utils/DebugOverlay.js';
 
 /**
  * Create XP orbs based on XP amount (tiered: small=1, medium=5, large=10)
@@ -100,4 +102,70 @@ export function spawnLootDrop(scene, drop, x, y) {
  */
 export function attractXPOrb(scene, orb) {
     // No-op — magnet attraction is handled per-frame in SimpleLootSystem.update()
+}
+
+/**
+ * Preload all audio files from the generated manifest
+ */
+export function preloadAllAudio(scene) {
+    scene.load.json('audio_manifest', '/data/generated/audio_manifest.json');
+    scene.load.on('filecomplete-json-audio_manifest', (key, type, data) => {
+        if (!data?.audio) {
+            DebugLogger.error('bootstrap', '[AudioPreload] Invalid or missing audio manifest!');
+            return;
+        }
+        let loadedCount = 0;
+        DebugLogger.info('bootstrap', `[AudioPreload] Loading ${data.audio.length} files from manifest v${data.version}`);
+        data.audio.forEach(path => {
+            const k = path.replace(/[^a-zA-Z0-9]/g, '_');
+            if (!scene.cache.audio.has(k)) { scene.load.audio(k, path); loadedCount++; }
+        });
+        DebugLogger.info('bootstrap', `[AudioPreload] Prepared ${loadedCount} audio files`);
+    });
+}
+
+/**
+ * Show a critical error message via the UI scene
+ */
+export function showCriticalError(scene, title, message) {
+    const uiScene = scene.scene.get('GameUIScene');
+    if (uiScene?.events) {
+        uiScene.events.emit('show-error', { title, message });
+    } else {
+        DebugLogger.error('game', '[GameScene] Critical error:', title, message);
+    }
+}
+
+/**
+ * Update game time counter
+ */
+export function updateTime(scene) {
+    if (!scene.isPaused && !scene.isGameOver) {
+        scene.gameStats.time++;
+    }
+}
+
+/**
+ * Handle window resize
+ */
+/**
+ * Initialize debug/telemetry systems
+ */
+export function initializeDebugSystems(scene) {
+    try {
+        scene.telemetryLogger = new TelemetryLogger(scene);
+        if (!scene.debugOverlay) {
+            scene.debugOverlay = new DebugOverlay(scene);
+        }
+    } catch (error) {
+        DebugLogger.warn('game', 'Debug systems init failed:', error);
+    }
+}
+
+export function handleResize(scene, gameSize) {
+    const { width, height } = gameSize;
+    scene.mainCam?.setSize(width, height);
+    scene.uiCam?.setSize(width, height);
+    scene.pauseMenu?.onResize?.(width, height);
+    if (scene.mobileControls?.enabled) scene.mobileControls.handleResize(width, height);
 }
