@@ -585,27 +585,16 @@ export class SimplifiedVFXSystem {
         g.lineStyle(2, color, 0.6);
         g.strokeCircle(0, 0, radius);
 
-        // Pulse animation: scale in/out + alpha fade, then cleanup
-        const pulseDuration = duration / pulses;
+        // Single tween: pulse then fade — no nested tweens (prevents leak if inner fails)
         this.scene.tweens.add({
             targets: g,
             scaleX: { from: 0.85, to: 1.0 },
             scaleY: { from: 0.85, to: 1.0 },
-            alpha: { from: 0.8, to: 0.3 },
-            duration: pulseDuration,
-            yoyo: true,
-            repeat: pulses - 1,
-            ease: 'Sine.easeInOut',
+            alpha: { from: 0.6, to: 0 },
+            duration: duration,
+            ease: 'Sine.easeOut',
             onComplete: () => {
-                // Final fade-out
-                this.scene.tweens.add({
-                    targets: g,
-                    alpha: 0,
-                    duration: 150,
-                    onComplete: () => {
-                        if (gf) gf.release(g); else g.destroy();
-                    }
-                });
+                if (gf) gf.release(g); else g.destroy();
             }
         });
 
