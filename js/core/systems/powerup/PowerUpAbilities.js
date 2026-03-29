@@ -90,11 +90,15 @@ export class PowerUpAbilities {
                 break;
 
             case 'chemo_aura':
-                // Keys must match what DamageZoneAbilities.startChemoCloud reads
-                config.chemoCloudDuration = ability.chemoCloudDuration || 6000;
-                config.chemoCloudDamage = ability.chemoCloudDamage || 4;
-                config.chemoCloudRadius = ability.chemoCloudRadius || 35;
+                // Chemo reservoir = explosive projectiles only (cloud removed → use immune_aura instead)
                 config.enableExplosions = ability.enableExplosions || false;
+                break;
+
+            case 'immune_aura':
+                config.damage = (ability.damagePerLevel || [5])[level - 1] || 5;
+                config.radius = (ability.radiusPerLevel || [60])[level - 1] || 60;
+                config.knockback = (ability.knockbackPerLevel || [100])[level - 1] || 100;
+                config.tickRate = ability.tickRate || 0.5;
                 break;
 
             case 'piercing':
@@ -214,8 +218,13 @@ export class PowerUpAbilities {
                 break;
 
             case 'chemo_aura':
-                this._damageZones.startChemoCloud(player, config);
-                DebugLogger.info('powerup', `[PowerUpAbilities] Activated chemo aura — cloud damage ${config.chemoCloudDamage}, radius ${config.chemoCloudRadius}`);
+                // Explosive projectiles enabled via config.enableExplosions (processed by onBulletHit)
+                DebugLogger.info('powerup', `[PowerUpAbilities] Chemo reservoir — explosive projectiles enabled`);
+                break;
+
+            case 'immune_aura':
+                this._damageZones.startImmuneAura(player, config);
+                DebugLogger.info('powerup', `[PowerUpAbilities] Immune Aura activated — dmg=${config.damage}, radius=${config.radius}, knockback=${config.knockback}`);
                 break;
 
             case 'piercing':
@@ -249,9 +258,10 @@ export class PowerUpAbilities {
             this._damageZones.updateAura(player, delta, auraConfig);
         }
 
-        // Delegate chemo cloud position update
-        if (this._abilityConfigs.has('chemo_aura')) {
-            this._damageZones.updateChemoCloud(player);
+        // Immune aura update (Garlic-style constant damage)
+        const auraImmuneConfig = this._abilityConfigs.get('immune_aura');
+        if (auraImmuneConfig) {
+            this._damageZones.updateImmuneAura(player);
         }
 
         // Delegate shield regeneration

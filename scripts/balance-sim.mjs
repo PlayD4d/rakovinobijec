@@ -473,8 +473,9 @@ function pickPowerup(sim, powerups, pool, forceBuild) {
 
     // Utility
     if (id.includes('piercing')) return 4 + upgradeBonus;
+    if (id.includes('immune_aura')) return (isMidGame ? 7 : 4) + upgradeBonus;
     if (id.includes('metabolic')) return 3 + upgradeBonus;
-    if (id.includes('shield')) return 2 + upgradeBonus; // Shield at higher levels
+    if (id.includes('shield')) return 2 + upgradeBonus;
     if (id.includes('chemo')) return 2 + upgradeBonus;
     if (id.includes('xp_magnet')) return (isEarlyGame ? 6 : 1); // Great early, useless late
     return 0;
@@ -517,9 +518,15 @@ function applyPowerup(sim, pupId, powerups) {
     const interval = (ab.interval || 1500) / 1000;
     sim.abilities.set(pupId, { level, dps: dmg * level / interval }); // chains = level count
     return { id: pupId, level };
+  } else if (pupId.includes('immune_aura')) {
+    const dmg = (ab.damagePerLevel || [6])[level - 1] || 6;
+    const tickRate = ab.tickRate || 0.5;
+    // Aura hits ~30% of nearby enemies (not all are in range)
+    sim.abilities.set(pupId, { level, dps: dmg / tickRate * 0.3 });
+    return { id: pupId, level };
   } else if (pupId.includes('chemo')) {
-    const dmg = ab.chemoCloudDamage || 12;
-    sim.abilities.set(pupId, { level, dps: dmg * 0.5 }); // ~50% uptime
+    // Chemo = explosive projectiles only (no cloud DPS)
+    sim.abilities.set(pupId, { level, dps: 0 });
     return { id: pupId, level };
   } else if (pupId.includes('metabolic')) {
     sim.attackInterval = Math.max(200, sim.attackInterval * 0.92); // 8% faster

@@ -26,10 +26,7 @@
   },
   ability: {
     type: 'chemo_aura',
-    chemoCloudDuration: 6000,
-    chemoCloudDamage: 8,
-    chemoCloudRadius: 50,
-    enableExplosions: true,
+    enableExplosions: true,  // Explosive projectiles only (cloud moved to immune_aura)
   },
   vfx: {
     pickup: 'vfx.pickup',

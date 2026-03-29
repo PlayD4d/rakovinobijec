@@ -159,12 +159,99 @@ export class DamageZoneAbilities {
         this._auraRadius = null;
     }
 
+    // ──────────────────────────────────────────────
+    //  Immune Aura (Garlic-style: constant damage + knockback)
+    // ──────────────────────────────────────────────
+
+    /**
+     * Start immune aura — constant damage zone with knockback
+     */
+    startImmuneAura(player, config) {
+        this.destroyImmuneAura();
+
+        const enemiesGroup = this.scene.enemiesGroup;
+        if (!enemiesGroup || !this.scene.physics) return;
+
+        this._immuneConfig = config;
+        const radius = config.radius || 60;
+        const d = radius * 2;
+
+        // Invisible physics zone
+        this._immuneZone = this.scene.add.zone(player.x, player.y, d, d);
+        this.scene.physics.add.existing(this._immuneZone, false);
+        this._immuneZone.body.setCircle(radius);
+        this._immuneZone.body.setOffset(-radius + d / 2, -radius + d / 2);
+        this._immuneZone.body.setImmovable(true);
+        this._immuneZone.body.moves = false;
+        this._immuneZone.setDepth(-1);
+
+        this._immuneHitTimes = new Map();
+        const tickMs = (config.tickRate || 0.5) * 1000;
+
+        // Register overlap
+        this._immuneOverlap = registerDynamicOverlap(
+            this.scene, this._immuneZone, enemiesGroup,
+            (zone, enemy) => {
+                if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
+                const now = this.scene.time?.now || 0;
+                const lastHit = this._immuneHitTimes.get(enemy) || 0;
+                if (now - lastHit < tickMs) return;
+
+                // Damage
+                enemy.takeDamage(config.damage, 'immune_aura');
+                this._immuneHitTimes.set(enemy, now);
+
+                // Knockback — push enemy away from player
+                if (enemy.body && config.knockback > 0) {
+                    const dx = enemy.x - player.x;
+                    const dy = enemy.y - player.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    enemy.body.setVelocity((dx / dist) * config.knockback, (dy / dist) * config.knockback);
+                }
+
+                if (Math.random() < 0.05) {
+                    getSession()?.log('combat', 'immune_aura_hit', { enemyId: enemy.blueprintId, damage: config.damage });
+                }
+            }
+        );
+
+        // VFX aura ring
+        if (this.scene.vfxSystem) {
+            this.scene.vfxSystem.attachEffect(player, 'immune_aura', {
+                radius, color: 0x44ff44, alpha: 0.15
+            });
+        }
+    }
+
+    /**
+     * Update immune aura position (follows player)
+     */
+    updateImmuneAura(player) {
+        if (this._immuneZone?.body && player?.active) {
+            this._immuneZone.setPosition(player.x, player.y);
+        }
+    }
+
+    destroyImmuneAura() {
+        if (this._immuneOverlap) {
+            this.scene?.physics?.world?.removeCollider(this._immuneOverlap);
+            this._immuneOverlap = null;
+        }
+        if (this._immuneZone) {
+            if (this._immuneZone.active) this._immuneZone.destroy();
+            this._immuneZone = null;
+        }
+        this._immuneHitTimes = null;
+        this._immuneConfig = null;
+    }
+
     /**
      * Cleanup all damage zone resources
      */
     destroy() {
         this.destroyAuraZone();
         this.destroyChemoCloud();
+        this.destroyImmuneAura();
         this.scene = null;
         this.powerUpSystem = null;
     }
