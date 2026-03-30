@@ -30,6 +30,8 @@ export class PowerUpOptionGenerator {
         for (const blueprint of allPowerUps) {
             if (!blueprint?.id) continue;
             if (blueprint.id.includes('template') || blueprint.id.includes('.bak')) continue;
+            // Disabled powerups (kept for redesign, hidden from selection)
+            if (blueprint.id === 'powerup.flamethrower') continue;
 
             const current = applied.get(blueprint.id);
             const currentLevel = current?.level || 0;

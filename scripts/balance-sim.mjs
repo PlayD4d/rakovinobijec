@@ -79,7 +79,7 @@ class SimPlayer {
     this.speed = playerBp.stats?.speed || 135;
     this.baseDamage = playerBp.mechanics?.projectile?.stats?.damage || 10;
     this.attackInterval = playerBp.mechanics?.attack?.intervalMs || 1000;
-    this.projectileCount = 1;
+    this.projectileCount = playerBp.mechanics?.projectile?.count || 4; // Base: 4-directional
     this.damageBonus = 0;
     this.level = 1;
     this.xp = 0;
@@ -109,7 +109,10 @@ class SimPlayer {
   getDPS() {
     const dmgPerShot = this.baseDamage + this.damageBonus;
     const shotsPerSec = 1000 / this.attackInterval;
-    return dmgPerShot * this.projectileCount * shotsPerSec;
+    // 4-directional base: ~30% of projectiles hit (enemies not in all directions)
+    // With homing: all projectiles are aimed → full DPS
+    const hitRate = this.abilities.has('powerup.homing_shot') ? 0.8 : 0.3;
+    return dmgPerShot * this.projectileCount * shotsPerSec * hitRate;
   }
 
   getAbilityDPS() {
@@ -482,6 +485,8 @@ function pickPowerup(sim, powerups, pool, forceBuild) {
 
     // Utility
     if (id.includes('piercing')) return 4 + upgradeBonus;
+    if (id.includes('flamethrower')) return -1; // Disabled
+    if (id.includes('homing_shot')) return (isEarlyGame ? 8 : 6) + upgradeBonus;
     if (id.includes('immune_aura')) return (isMidGame ? 7 : 4) + upgradeBonus;
     if (id.includes('metabolic')) return 3 + upgradeBonus;
     if (id.includes('shield')) return 2 + upgradeBonus;
@@ -505,6 +510,11 @@ function applyPowerup(sim, pupId, powerups) {
   // Apply effects based on type
   if (pupId.includes('damage_boost')) {
     sim.damageBonus += 3;
+  } else if (pupId.includes('homing_shot')) {
+    // Homing enables targeted shooting — effectively doubles weapon DPS
+    // (directional shots miss ~50% of the time, homing always hits)
+    sim.abilities.set(pupId, { level, dps: sim.getDPS() * 0.5 }); // +50% effective weapon DPS
+    return { id: pupId, level };
   } else if (pupId.includes('multi_shot')) {
     sim.projectileCount += 1;
   } else if (pupId.includes('shield')) {

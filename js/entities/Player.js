@@ -90,6 +90,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         // Power-up runtime state (mutable per-frame — stays on Player)
         // Boolean flags removed — use scene.powerUpSystem.hasAbility() instead
         this.piercingLevel = 0;
+        this.homingLevel = 0;  // Set by homing_shot powerup
         this.piercingMaxPierces = 0;
         this.piercingDamageReduction = 0;
 

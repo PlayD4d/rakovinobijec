@@ -101,6 +101,11 @@ export class PowerUpAbilities {
                 config.tickRate = ability.tickRate || 0.5;
                 break;
 
+            case 'homing_shot':
+                config.speedBonus = (ability.speedBonusPerLevel || [20])[level - 1] || 20;
+                config.rangeBonus = (ability.rangeBonusPerLevel || [50])[level - 1] || 50;
+                break;
+
             case 'piercing':
                 config.maxPierces = ability.maxPierces?.[level - 1] || 1;
                 config.damageReduction = ability.damageReduction || 0.1;
@@ -225,6 +230,11 @@ export class PowerUpAbilities {
             case 'immune_aura':
                 this._damageZones.startImmuneAura(player, config);
                 DebugLogger.info('powerup', `[PowerUpAbilities] Immune Aura activated — dmg=${config.damage}, radius=${config.radius}, knockback=${config.knockback}`);
+                break;
+
+            case 'homing_shot':
+                player.homingLevel = config.level;
+                DebugLogger.info('powerup', `[PowerUpAbilities] Homing shot level ${config.level} — auto-tracking enabled`);
                 break;
 
             case 'piercing':

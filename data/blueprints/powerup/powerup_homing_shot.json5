@@ -1,0 +1,56 @@
+{
+  id: 'powerup.homing_shot',
+  type: 'powerup',
+  stats: {
+    maxLevel: 5,
+  },
+  mechanics: {
+    modifiersPerLevel: [
+      {
+        path: 'attackIntervalMs',
+        type: 'mul',
+        value: -0.08,
+        description: 'Each level reduces attack interval by 8% (faster shooting)',
+      },
+    ],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'homing_shot',
+  },
+  ability: {
+    type: 'homing_shot',
+    // Homing enables auto-tracking nearest enemy
+    // Level also increases projectile speed and range
+    speedBonusPerLevel: [20, 40, 60, 90, 120],
+    rangeBonusPerLevel: [50, 100, 150, 200, 250],
+  },
+  vfx: {
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
+  },
+  display: {
+    key: 'powerup.homing_shot.name',
+    descKey: 'powerup.homing_shot.desc',
+    devNameFallback: 'Navedena protilatka',
+    devDescFallback: 'Strely se automaticky navaduji na nejblizsiho nepritele. Vyssi urovne zvysuji kadenci a dosah.',
+    levelDescriptions: [
+      'Navedene strely na nejblizsiho nepritele',
+      'Rychlejsi kadence, vetsi dosah',
+      'Jeste rychlejsi strelba',
+      'Vysoka kadence a dosah',
+      'Maximalni navadeci system',
+    ],
+    icon: 'powerup_homing',
+    color: '#FF6600',
+    rarity: 'rare',
+    category: 'weapon',
+    sortOrder: 200,
+    tags: ['powerup', 'weapon', 'homing', 'targeting'],
+  },
+}

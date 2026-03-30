@@ -19,19 +19,19 @@
   },
   mechanics: {
     attack: {
-      intervalMs: 600,
-      damageBase: 15,
+      intervalMs: 800,    // 0.8s between volleys (slow but steady)
+      damageBase: 18,
       critChance: 0.05,
       critMultiplier: 2,
     },
     projectile: {
       ref: 'projectile.player_basic',
-      count: 1,
+      count: 4,           // Base: 4-directional shot
       spreadDeg: 15,
       stats: {
-        damage: 15,
-        speed: 300,
-        range: 600,
+        damage: 18,
+        speed: 250,
+        range: 350,
         piercing: false,
       },
     },
