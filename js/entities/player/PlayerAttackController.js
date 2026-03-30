@@ -30,24 +30,16 @@ export class PlayerAttackController {
 
         if (time < player._nextAttackAt) return;
 
-        // Homing mode: if player has homing_shot ability, use auto-targeting
-        const hasHoming = player.homingLevel > 0;
+        // Base attack ALWAYS fires (4-directional)
+        this._shootDirectional(stats);
 
-        if (hasHoming) {
+        // Homing shot fires ADDITIONALLY if powerup equipped (like VS ability)
+        if (player.homingLevel > 0) {
             const target = this._findNearestEnemy();
-            if (target) {
-                this._shootAtTarget(target);
-                player._nextAttackAt = Math.max(player._nextAttackAt + attackInterval, time + attackInterval);
-            } else {
-                // No target — fallback to directional
-                this._shootDirectional(stats);
-                player._nextAttackAt = Math.max(player._nextAttackAt + attackInterval, time + attackInterval);
-            }
-        } else {
-            // Base attack: 4-directional fixed shots
-            this._shootDirectional(stats);
-            player._nextAttackAt = Math.max(player._nextAttackAt + attackInterval, time + attackInterval);
+            if (target) this._shootHoming(target, stats);
         }
+
+        player._nextAttackAt = Math.max(player._nextAttackAt + attackInterval, time + attackInterval);
 
         player._playSfx(player.sfx.shoot);
         player.scene.frameworkDebug?.onPlayerShoot?.(player, Math.max(1, Math.round(stats.projectileCount)));
@@ -83,7 +75,7 @@ export class PlayerAttackController {
     /**
      * Homing attack: shoot at nearest enemy (from homing_shot powerup)
      */
-    _shootAtTarget(target) {
+    _shootHoming(target) {
         const player = this.player;
         const ps = player.scene.projectileSystem;
         if (!ps) return;

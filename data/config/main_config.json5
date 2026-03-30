@@ -88,6 +88,20 @@
     file: true
   },
   
+  // Player config (values also in player blueprint — these are ConfigResolver fallbacks)
+  player: {
+    targeting: { maxRange: 350 },
+  },
+  mechanics: {
+    xpMagnet: { baseRadius: 100 },
+  },
+  spawn: {
+    maxEnemies: 50,
+  },
+  features: {
+    telemetryLogger: false,
+  },
+
   // Powerup systém
   powerups: {
     maxSlots: 6,     // VS-style slot limit — player must choose build
