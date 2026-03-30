@@ -43,15 +43,26 @@ export class PropertyEditor {
      */
     render() {
         if (!this.currentBlueprint) {
-            this.formContainer.innerHTML = '<div class="form-placeholder">Select a blueprint to edit</div>';
+            const placeholder = document.createElement('div');
+            placeholder.className = 'form-placeholder';
+            placeholder.textContent = 'Select a blueprint to edit';
+            this.formContainer.replaceChildren(placeholder);
             return;
         }
-        
-        this.formContainer.innerHTML = '';
-        
+
+        this.formContainer.replaceChildren();
+
+        // Insert elite comparison view before other groups if applicable
+        if (this.currentBlueprint.baseEnemyId || this.currentBlueprint.multipliers) {
+            const comparison = this.createEliteComparison(this.currentBlueprint);
+            if (comparison) {
+                this.formContainer.appendChild(comparison);
+            }
+        }
+
         // Create form groups for each top-level property
         const groups = this.createPropertyGroups(this.currentBlueprint);
-        
+
         for (const group of groups) {
             this.formContainer.appendChild(group);
         }
@@ -142,16 +153,63 @@ export class PropertyEditor {
         // Group content
         const content = document.createElement('div');
         content.className = 'property-group-content';
-        
-        // Create fields for each property
+
+        // Check for specialized rendering of stats and sfx/vfx categories
+        let usedSpecialRenderer = false;
+
+        // Stat cards: when the 'stats' key holds an object with known stat keys
+        if (properties.stats && typeof properties.stats === 'object' && !Array.isArray(properties.stats)) {
+            const knownStats = ['hp', 'damage', 'speed', 'size', 'armor', 'xp'];
+            const keys = Object.keys(properties.stats);
+            const hasKnownStats = keys.some(k => knownStats.includes(k));
+            if (hasKnownStats && keys.length >= 3) {
+                const statsPath = path ? `${path}.stats` : 'stats';
+                content.appendChild(this.createStatCards(properties.stats, statsPath));
+                usedSpecialRenderer = true;
+            }
+        }
+
+        // Event audio table: when sfx/vfx key holds a flat object with >3 audio entries
+        for (const audioKey of ['sfx', 'vfx']) {
+            if (properties[audioKey] && typeof properties[audioKey] === 'object'
+                && !Array.isArray(properties[audioKey]) && Object.keys(properties[audioKey]).length > 3) {
+                const audioPath = path ? `${path}.${audioKey}` : audioKey;
+                const type = audioKey; // 'sfx' or 'vfx'
+                content.appendChild(this.createEventAudioTable(audioKey, properties[audioKey], audioPath, type));
+                usedSpecialRenderer = true;
+            }
+        }
+
+        // Ability grid: when 'abilities' key holds an object of objects (boss abilities)
+        let abilityGridRendered = false;
+        if (properties.abilities && typeof properties.abilities === 'object'
+            && !Array.isArray(properties.abilities)) {
+            const abilitiesObj = properties.abilities;
+            const vals = Object.values(abilitiesObj);
+            const isObjectOfObjects = vals.length > 0 && vals.every(v => typeof v === 'object' && v !== null && !Array.isArray(v));
+            if (isObjectOfObjects) {
+                const abilitiesPath = path ? `${path}.abilities` : 'abilities';
+                content.appendChild(this.createAbilityGrid(abilitiesObj, abilitiesPath));
+                abilityGridRendered = true;
+                usedSpecialRenderer = true;
+            }
+        }
+
+        // Create fields for each property (skip keys already rendered by special renderers)
         for (const [key, value] of Object.entries(properties)) {
+            // Skip if already rendered by stat cards or event audio table
+            if (usedSpecialRenderer) {
+                if (key === 'stats' && content.querySelector('.stat-cards-grid')) continue;
+                if ((key === 'sfx' || key === 'vfx') && content.querySelector(`.event-audio-table[data-audio-key="${key}"]`)) continue;
+                if (key === 'abilities' && abilityGridRendered) continue;
+            }
             const fieldPath = path ? `${path}.${key}` : key;
             const field = this.createField(key, value, fieldPath);
             content.appendChild(field);
         }
-        
+
         group.appendChild(content);
-        
+
         return group;
     }
     
@@ -1325,6 +1383,238 @@ export class PropertyEditor {
         return container;
     }
     
+    // =========================================================================
+    //  STAT CARDS — visual cards for stats objects
+    // =========================================================================
+
+    /**
+     * Create visual stat cards for a stats object (hp, damage, speed, etc.)
+     */
+    createStatCards(statsObj, path) {
+        const STAT_META = {
+            hp:     { icon: '\u2764\uFE0F', label: 'HP',     range: [0, 200],  bossRange: [0, 5000], color: '#e74c3c' },
+            damage: { icon: '\u2694\uFE0F', label: 'Damage', range: [0, 50],   bossRange: [0, 100],  color: '#e67e22' },
+            speed:  { icon: '\uD83D\uDCA8',  label: 'Speed',  range: [0, 200],  bossRange: [0, 200],  color: '#3498db' },
+            armor:  { icon: '\uD83D\uDEE1\uFE0F', label: 'Armor',  range: [0, 20],   bossRange: [0, 50],   color: '#95a5a6' },
+            size:   { icon: '\uD83D\uDCCF',  label: 'Size',   range: [0, 60],   bossRange: [0, 120],  color: '#9b59b6' },
+            xp:     { icon: '\u2B50',  label: 'XP',     range: [0, 50],   bossRange: [0, 500],  color: '#f1c40f' }
+        };
+
+        const isBoss = this.currentBlueprint?.type === 'boss' ||
+                        (this.currentBlueprint?.id || '').startsWith('boss');
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'stat-cards-grid';
+
+        for (const [key, val] of Object.entries(statsObj)) {
+            const meta = STAT_META[key];
+            const fieldPath = `${path}.${key}`;
+
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+
+            // Icon
+            const iconEl = document.createElement('div');
+            iconEl.className = 'stat-card-icon';
+            iconEl.textContent = meta ? meta.icon : '\uD83D\uDD39';
+            card.appendChild(iconEl);
+
+            // Editable value
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'stat-card-value';
+            input.value = val;
+            input.step = (key === 'xp' || key === 'hp' || key === 'damage' || key === 'armor') ? 1 : 5;
+            input.min = 0;
+            input.dataset.path = fieldPath;
+            input.addEventListener('change', () => {
+                this.handleChange(fieldPath, parseFloat(input.value));
+                this._updateStatBar(bar, parseFloat(input.value), rangeMax);
+            });
+            card.appendChild(input);
+
+            // Label
+            const label = document.createElement('div');
+            label.className = 'stat-card-label';
+            label.textContent = meta ? meta.label : this.formatName(key);
+            card.appendChild(label);
+
+            // Comparison bar
+            const barWrap = document.createElement('div');
+            barWrap.className = 'stat-card-bar-wrap';
+            const bar = document.createElement('div');
+            bar.className = 'stat-card-bar';
+            const rangeArr = meta ? (isBoss ? meta.bossRange : meta.range) : [0, 100];
+            const rangeMax = rangeArr[1];
+            const pct = Math.min(100, Math.max(0, (val / rangeMax) * 100));
+            bar.style.width = pct + '%';
+            bar.style.background = meta ? meta.color : '#7f8c8d';
+            barWrap.appendChild(bar);
+            card.appendChild(barWrap);
+
+            wrapper.appendChild(card);
+        }
+
+        return wrapper;
+    }
+
+    /** Helper to update a stat bar element */
+    _updateStatBar(barEl, value, rangeMax) {
+        const pct = Math.min(100, Math.max(0, (value / rangeMax) * 100));
+        barEl.style.width = pct + '%';
+    }
+
+    // =========================================================================
+    //  EVENT AUDIO TABLE — structured table for SFX / VFX event maps
+    // =========================================================================
+
+    /**
+     * Create a structured event table for sfx/vfx object with many entries.
+     * Groups by lifecycle / phase / ability events.
+     */
+    createEventAudioTable(name, audioObj, path, type) {
+        const LIFECYCLE = ['spawn', 'hit', 'death', 'aura'];
+        const PHASE_RE = /^phase\d+$|^phaseChange$/;
+
+        const lifecycle = [];
+        const phases = [];
+        const abilities = [];
+
+        for (const key of Object.keys(audioObj)) {
+            if (LIFECYCLE.includes(key)) {
+                lifecycle.push(key);
+            } else if (PHASE_RE.test(key)) {
+                phases.push(key);
+            } else {
+                abilities.push(key);
+            }
+        }
+
+        const isSfx = type === 'sfx';
+
+        // Build wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'event-audio-table';
+        wrapper.dataset.audioKey = name;
+
+        // Section label
+        const sectionLabel = document.createElement('div');
+        sectionLabel.className = 'eat-section-label';
+        sectionLabel.textContent = (isSfx ? 'Sound' : 'VFX') + ' Events (' + Object.keys(audioObj).length + ')';
+        wrapper.appendChild(sectionLabel);
+
+        // Table
+        const table = document.createElement('table');
+        table.className = 'eat-table';
+
+        // Header
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        for (const col of ['Event', 'Group', 'File', ...(isSfx ? [''] : [])]) {
+            const th = document.createElement('th');
+            th.className = 'eat-th';
+            th.textContent = col;
+            headRow.appendChild(th);
+        }
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+
+        // Body
+        const tbody = document.createElement('tbody');
+
+        const groupOrder = [
+            { keys: lifecycle, label: 'Lifecycle', cls: 'eat-badge-lifecycle' },
+            { keys: phases,    label: 'Phase',     cls: 'eat-badge-phase' },
+            { keys: abilities, label: 'Ability',   cls: 'eat-badge-ability' }
+        ];
+
+        let firstGroup = true;
+        for (const grp of groupOrder) {
+            if (grp.keys.length === 0) continue;
+
+            // Divider row between groups (except before first)
+            if (!firstGroup) {
+                const divRow = document.createElement('tr');
+                divRow.className = 'eat-divider-row';
+                const divCell = document.createElement('td');
+                divCell.colSpan = isSfx ? 4 : 3;
+                divRow.appendChild(divCell);
+                tbody.appendChild(divRow);
+            }
+            firstGroup = false;
+
+            for (const key of grp.keys) {
+                const val = audioObj[key];
+                const fieldPath = `${path}.${key}`;
+                const tr = document.createElement('tr');
+                tr.className = 'eat-row';
+
+                // Event name
+                const tdEvent = document.createElement('td');
+                tdEvent.className = 'eat-td eat-td-event';
+                tdEvent.textContent = this.formatName(key);
+                tr.appendChild(tdEvent);
+
+                // Group badge
+                const tdGroup = document.createElement('td');
+                tdGroup.className = 'eat-td eat-td-group';
+                const badge = document.createElement('span');
+                badge.className = 'eat-badge ' + grp.cls;
+                badge.textContent = grp.label;
+                tdGroup.appendChild(badge);
+                tr.appendChild(tdGroup);
+
+                // File input (editable)
+                const tdFile = document.createElement('td');
+                tdFile.className = 'eat-td eat-td-file';
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'eat-input';
+                input.value = val || '';
+                input.dataset.path = fieldPath;
+                input.addEventListener('change', () => {
+                    this.handleChange(fieldPath, input.value);
+                });
+                tdFile.appendChild(input);
+                tr.appendChild(tdFile);
+
+                // Play button (SFX only)
+                if (isSfx) {
+                    const tdPlay = document.createElement('td');
+                    tdPlay.className = 'eat-td eat-td-play';
+                    const playBtn = document.createElement('button');
+                    playBtn.type = 'button';
+                    playBtn.className = 'eat-play-btn';
+                    playBtn.textContent = '\u25B6';
+                    playBtn.title = 'Preview';
+                    const buttonId = `eat-${fieldPath}-${Date.now()}`;
+                    playBtn.dataset.buttonId = buttonId;
+                    playBtn.addEventListener('click', async () => {
+                        if (!input.value) return;
+                        const isPlaying = playBtn.classList.contains('playing');
+                        if (isPlaying) {
+                            this.stopAudioPreview(buttonId);
+                            playBtn.textContent = '\u25B6';
+                            playBtn.classList.remove('playing');
+                        } else {
+                            await this.playAudioPreview(input.value, buttonId, playBtn);
+                            playBtn.textContent = '\u25A0';
+                        }
+                    });
+                    tdPlay.appendChild(playBtn);
+                    tr.appendChild(tdPlay);
+                }
+
+                tbody.appendChild(tr);
+            }
+        }
+
+        table.appendChild(tbody);
+        wrapper.appendChild(table);
+
+        return wrapper;
+    }
+
     /**
      * Handle property change
      */
@@ -1498,16 +1788,384 @@ export class PropertyEditor {
     }
     
     /**
-     * Create placeholder methods for other specialized editors
+     * Create phase editor (delegates to modifier editor for array phases)
      */
     createPhaseEditor(name, value, path, fieldDef) {
         return this.createModifierEditor(name, value, path, { ...fieldDef, help: 'Boss phase editor coming soon!' });
     }
-    
+
+    /**
+     * Create ability editor (uses ability grid for object-of-objects, fallback for others)
+     */
     createAbilityEditor(name, value, path, fieldDef) {
-        return this.createModifierEditor(name, value, path, { ...fieldDef, help: 'Boss ability editor coming soon!' });
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+            const vals = Object.values(value);
+            const isObjectOfObjects = vals.length > 0 && vals.every(v => typeof v === 'object' && v !== null && !Array.isArray(v));
+            if (isObjectOfObjects) {
+                return this.createAbilityGrid(value, path);
+            }
+        }
+        return this.createModifierEditor(name, value, path, { ...fieldDef, help: 'Boss ability editor' });
     }
-    
+
+    /**
+     * Detect ability type from key name and ability config
+     * Returns { type, icon, badgeClass }
+     */
+    _detectAbilityType(key, ability) {
+        const k = key.toLowerCase();
+        const t = (ability.type || '').toLowerCase();
+        const combined = k + ' ' + t;
+
+        if (/projectile|burst|shoot|beam|rapid|fire/.test(combined)) {
+            return { type: 'attack', icon: '\uD83D\uDD34', badgeClass: 'ability-type-badge--attack' };
+        }
+        if (/area|aoe|field|nova|storm|pulse|overload/.test(combined)) {
+            return { type: 'aoe', icon: '\uD83D\uDFE1', badgeClass: 'ability-type-badge--aoe' };
+        }
+        if (/summon|spawn|minion|pool|toxic_pool/.test(combined)) {
+            return { type: 'summon', icon: '\uD83D\uDFE2', badgeClass: 'ability-type-badge--summon' };
+        }
+        if (/heal|regen/.test(combined)) {
+            return { type: 'heal', icon: '\uD83D\uDD35', badgeClass: 'ability-type-badge--heal' };
+        }
+        if (/shield|barrier/.test(combined)) {
+            return { type: 'defense', icon: '\uD83D\uDEE1\uFE0F', badgeClass: 'ability-type-badge--defense' };
+        }
+        if (/rage|buff|boost/.test(combined)) {
+            return { type: 'buff', icon: '\u26A1', badgeClass: 'ability-type-badge--buff' };
+        }
+        return { type: 'other', icon: '\u26AA', badgeClass: 'ability-type-badge--other' };
+    }
+
+    /**
+     * Create a visual card grid for boss abilities
+     * @param {Object} abilities - Object where keys are ability names and values are config objects
+     * @param {string} path - Data path prefix (e.g. "mechanics.abilities")
+     */
+    createAbilityGrid(abilities, path) {
+        const container = document.createElement('div');
+
+        // Section label
+        const label = document.createElement('div');
+        label.className = 'property-label';
+        label.style.marginBottom = '6px';
+        const count = Object.keys(abilities).length;
+        label.textContent = 'Abilities (' + count + ')';
+        container.appendChild(label);
+
+        const grid = document.createElement('div');
+        grid.className = 'ability-grid';
+
+        // Stat display config: which stats to show on each card
+        const statConfig = [
+            { keys: ['damage'], label: 'DMG', color: '#ef5350' },
+            { keys: ['interval', 'cooldown'], label: 'CD', color: '#42a5f5' },
+            { keys: ['radius', 'range', 'spreadRadius'], label: 'Range', color: '#66bb6a' },
+            { keys: ['count', 'beamCount', 'pulseCount', 'explosionCount'], label: 'Count', color: '#ffa726' }
+        ];
+
+        for (const [abilityKey, abilityData] of Object.entries(abilities)) {
+            const typeInfo = this._detectAbilityType(abilityKey, abilityData);
+            const abilityPath = path + '.' + abilityKey;
+
+            // Card
+            const card = document.createElement('div');
+            card.className = 'ability-card';
+
+            // Header
+            const header = document.createElement('div');
+            header.className = 'ability-card-header';
+
+            const icon = document.createElement('span');
+            icon.className = 'ability-card-icon';
+            icon.textContent = typeInfo.icon;
+            header.appendChild(icon);
+
+            const nameEl = document.createElement('span');
+            nameEl.className = 'ability-card-name';
+            nameEl.textContent = this.formatName(abilityKey);
+            nameEl.title = abilityKey;
+            header.appendChild(nameEl);
+
+            const badge = document.createElement('span');
+            badge.className = 'ability-type-badge ' + typeInfo.badgeClass;
+            badge.textContent = typeInfo.type;
+            header.appendChild(badge);
+
+            card.appendChild(header);
+
+            // Stats mini-grid
+            const statsGrid = document.createElement('div');
+            statsGrid.className = 'ability-card-stats';
+
+            for (const sc of statConfig) {
+                // Find the first matching key in the ability data
+                let foundKey = null;
+                let foundVal = null;
+                for (const k of sc.keys) {
+                    if (abilityData[k] !== undefined) {
+                        foundKey = k;
+                        foundVal = abilityData[k];
+                        break;
+                    }
+                }
+                if (foundKey === null) continue;
+
+                const stat = document.createElement('div');
+                stat.className = 'ability-stat';
+
+                const dot = document.createElement('span');
+                dot.className = 'ability-stat-dot';
+                dot.style.background = sc.color;
+                stat.appendChild(dot);
+
+                const statLabel = document.createElement('span');
+                statLabel.className = 'ability-stat-label';
+                statLabel.textContent = sc.label;
+                stat.appendChild(statLabel);
+
+                const statValue = document.createElement('span');
+                statValue.className = 'ability-stat-value';
+                // Format: intervals/cooldowns as seconds
+                if (/interval|cooldown|duration|chargeTime/i.test(foundKey) && typeof foundVal === 'number' && foundVal >= 100) {
+                    statValue.textContent = (foundVal / 1000).toFixed(1) + 's';
+                } else {
+                    statValue.textContent = String(foundVal);
+                }
+                stat.appendChild(statValue);
+
+                statsGrid.appendChild(stat);
+            }
+
+            card.appendChild(statsGrid);
+
+            // Footer with edit button
+            const footer = document.createElement('div');
+            footer.className = 'ability-card-footer';
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'ability-edit-btn';
+            editBtn.textContent = 'Edit';
+
+            // Detail panel (initially hidden)
+            const detailPanel = document.createElement('div');
+            detailPanel.className = 'ability-detail-panel';
+
+            editBtn.addEventListener('click', () => {
+                const isExpanded = detailPanel.classList.contains('expanded');
+                if (isExpanded) {
+                    detailPanel.classList.remove('expanded');
+                    editBtn.classList.remove('expanded');
+                    editBtn.textContent = 'Edit';
+                } else {
+                    // Populate detail panel if not yet populated
+                    if (detailPanel.childElementCount === 0) {
+                        for (const [fieldKey, fieldVal] of Object.entries(abilityData)) {
+                            const fieldPath = abilityPath + '.' + fieldKey;
+                            const fieldEl = this.createField(fieldKey, fieldVal, fieldPath);
+                            detailPanel.appendChild(fieldEl);
+                        }
+                    }
+                    detailPanel.classList.add('expanded');
+                    editBtn.classList.add('expanded');
+                    editBtn.textContent = 'Close';
+                }
+            });
+
+            footer.appendChild(editBtn);
+            card.appendChild(footer);
+            card.appendChild(detailPanel);
+
+            grid.appendChild(card);
+        }
+
+        container.appendChild(grid);
+        return container;
+    }
+
+    /**
+     * Create elite comparison view showing base vs elite stats with visual bars
+     * @param {Object} blueprint - The elite blueprint with baseEnemyId and multipliers
+     * @returns {HTMLElement|null}
+     */
+    createEliteComparison(blueprint) {
+        const multipliers = blueprint.multipliers;
+        const baseId = blueprint.baseEnemyId;
+        const eliteStats = blueprint.stats;
+
+        if (!multipliers || !eliteStats) return null;
+
+        const container = document.createElement('div');
+        container.className = 'elite-comparison';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'elite-comparison-header';
+
+        const title = document.createElement('span');
+        title.className = 'elite-comparison-title';
+        title.textContent = 'Elite Comparison';
+        header.appendChild(title);
+
+        if (baseId) {
+            const baseLink = document.createElement('button');
+            baseLink.className = 'elite-base-link';
+            baseLink.textContent = 'Base: ' + baseId;
+            baseLink.title = 'Jump to base blueprint';
+            baseLink.addEventListener('click', () => {
+                // Try to find and load the base blueprint via the editor
+                const browser = this.editor.modules.browser;
+                if (browser && browser.blueprints) {
+                    const entry = browser.blueprints.find(b => b.id === baseId);
+                    if (entry) {
+                        this.editor.loadBlueprint(entry.path);
+                        return;
+                    }
+                }
+                // Fallback: try guessing the path
+                const guessedPath = 'blueprints/enemy/' + baseId.replace(/\./g, '_') + '.json5';
+                this.editor.loadBlueprint(guessedPath);
+            });
+            header.appendChild(baseLink);
+        }
+
+        container.appendChild(header);
+
+        // Try to compute base stats from elite stats and multipliers
+        const statKeys = Object.keys(eliteStats);
+        // Find the maximum elite stat value for bar scaling
+        let maxEliteVal = 0;
+        for (const key of statKeys) {
+            const v = typeof eliteStats[key] === 'number' ? eliteStats[key] : 0;
+            if (v > maxEliteVal) maxEliteVal = v;
+        }
+        if (maxEliteVal === 0) maxEliteVal = 1;
+
+        // Stat colors
+        const statColors = {
+            hp: '#ef5350',
+            damage: '#ff7043',
+            speed: '#42a5f5',
+            size: '#ab47bc',
+            armor: '#78909c',
+            xp: '#ffd54f'
+        };
+
+        for (const key of statKeys) {
+            const eliteVal = typeof eliteStats[key] === 'number' ? eliteStats[key] : 0;
+            const mult = (multipliers && typeof multipliers[key] === 'number') ? multipliers[key] : null;
+            const baseVal = mult && mult !== 0 ? Math.round(eliteVal / mult) : null;
+
+            const row = document.createElement('div');
+            row.className = 'elite-comparison-row';
+
+            // Label
+            const labelEl = document.createElement('span');
+            labelEl.className = 'elite-comparison-label';
+            labelEl.textContent = key.toUpperCase();
+            row.appendChild(labelEl);
+
+            // Bars container
+            const bars = document.createElement('div');
+            bars.className = 'elite-comparison-bars';
+
+            // Base bar
+            const baseWrap = document.createElement('div');
+            baseWrap.className = 'elite-bar-wrap';
+            const baseFill = document.createElement('div');
+            baseFill.className = 'elite-bar-fill elite-bar-fill--base';
+            if (baseVal !== null) {
+                const basePct = Math.max(5, Math.round((baseVal / maxEliteVal) * 100));
+                baseFill.style.width = basePct + '%';
+                baseFill.textContent = String(baseVal);
+            } else {
+                baseFill.style.width = '15%';
+                baseFill.textContent = '?';
+            }
+            baseWrap.appendChild(baseFill);
+            bars.appendChild(baseWrap);
+
+            // Arrow
+            const arrow = document.createElement('span');
+            arrow.className = 'elite-bar-arrow';
+            arrow.textContent = '\u2192';
+            bars.appendChild(arrow);
+
+            // Elite bar
+            const eliteWrap = document.createElement('div');
+            eliteWrap.className = 'elite-bar-wrap';
+            const eliteFill = document.createElement('div');
+            eliteFill.className = 'elite-bar-fill elite-bar-fill--elite';
+            const elitePct = Math.max(5, Math.round((eliteVal / maxEliteVal) * 100));
+            eliteFill.style.width = elitePct + '%';
+            eliteFill.textContent = String(eliteVal);
+            if (statColors[key]) {
+                eliteFill.style.background = 'linear-gradient(90deg, ' + statColors[key] + 'cc, ' + statColors[key] + ')';
+            }
+            eliteWrap.appendChild(eliteFill);
+            bars.appendChild(eliteWrap);
+
+            // Multiplier badge
+            if (mult !== null) {
+                const multBadge = document.createElement('span');
+                multBadge.className = 'elite-multiplier-badge';
+                multBadge.textContent = '\u00D7' + mult;
+                row.appendChild(bars);
+                row.appendChild(multBadge);
+            } else {
+                row.appendChild(bars);
+            }
+
+            container.appendChild(row);
+        }
+
+        // Async: try loading the actual base blueprint to fill in real base values
+        if (baseId) {
+            this._tryLoadBaseBlueprint(baseId, container, eliteStats, multipliers, statColors, maxEliteVal);
+        }
+
+        return container;
+    }
+
+    /**
+     * Attempt to load the base blueprint and update comparison bars with real values
+     */
+    async _tryLoadBaseBlueprint(baseId, container, eliteStats, multipliers, statColors, maxEliteVal) {
+        try {
+            const browser = this.editor.modules.browser;
+            let filePath = null;
+            if (browser && browser.blueprints) {
+                const entry = browser.blueprints.find(b => b.id === baseId);
+                if (entry) filePath = entry.path;
+            }
+            if (!filePath) {
+                filePath = 'blueprints/enemy/' + baseId.replace(/\./g, '_') + '.json5';
+            }
+            const baseBp = await this.editor.dataManager.loadBlueprint(filePath);
+            if (!baseBp || !baseBp.stats) return;
+
+            // Update base bar fills with real values
+            const rows = container.querySelectorAll('.elite-comparison-row');
+            const statKeys = Object.keys(eliteStats);
+            rows.forEach((row, idx) => {
+                if (idx >= statKeys.length) return;
+                const key = statKeys[idx];
+                const realBase = baseBp.stats[key];
+                if (realBase === undefined || typeof realBase !== 'number') return;
+
+                const baseFill = row.querySelector('.elite-bar-fill--base');
+                if (baseFill) {
+                    const basePct = Math.max(5, Math.round((realBase / maxEliteVal) * 100));
+                    baseFill.style.width = basePct + '%';
+                    baseFill.textContent = String(realBase);
+                }
+            });
+        } catch (e) {
+            // Silent fail - computed values from multipliers are already shown
+        }
+    }
+
     createReferenceField(name, value, path, fieldDef) {
         const def = { ...fieldDef, tooltip: fieldDef.tooltip || 'Reference to another blueprint' };
         return this.createTextField(name, value, path, def);
