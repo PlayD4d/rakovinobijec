@@ -75,23 +75,27 @@ export class PlayerAttackController {
     /**
      * Homing attack: shoot at nearest enemy (from homing_shot powerup)
      */
-    _shootHoming(target) {
+    /**
+     * Homing: projectile count = homingLevel (1-5), NOT stats.projectileCount.
+     * multi_shot only affects directional base attack.
+     */
+    _shootHoming(target, stats) {
         const player = this.player;
         const ps = player.scene.projectileSystem;
         if (!ps) return;
+        if (!stats) stats = player._stats();
 
         const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
-        const stats = player._stats();
-        const projectileCount = Math.max(1, Math.round(stats.projectileCount));
+        const homingCount = player.homingLevel || 1;
 
         const opts = this._fireOpts;
         opts.projectileId = stats.projectileRef || 'projectile.player_basic';
 
-        if (projectileCount > 1) {
-            const spreadRad = (stats.spreadDeg * Math.PI) / 180;
-            for (let i = 0; i < projectileCount; i++) {
-                const t = (i - (projectileCount - 1) / 2);
-                const angleOffset = (spreadRad / (projectileCount - 1)) * t;
+        if (homingCount > 1) {
+            const spreadRad = 0.3; // ~17° tight spread
+            for (let i = 0; i < homingCount; i++) {
+                const t = (i - (homingCount - 1) / 2);
+                const angleOffset = (spreadRad / Math.max(1, homingCount - 1)) * t;
                 opts.damageMul = this._rollCrit(stats.projectileDamage, stats) / ps.config.damage;
                 ps.firePlayer(player.x, player.y, Math.cos(baseAngle + angleOffset), Math.sin(baseAngle + angleOffset), opts);
             }
