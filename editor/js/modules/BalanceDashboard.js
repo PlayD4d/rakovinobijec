@@ -22,20 +22,28 @@ export class BalanceDashboard {
 
     async init() {
         this.createDOM();
-        await this.loadConfigs();
+        this._configsReady = false;
 
         this.editor.on('blueprint:loaded', (data) => {
             this.currentBlueprint = data.blueprint;
-            this.update();
+            if (this._configsReady) this.update();
+            else this._pendingUpdate = true;
         });
         this.editor.on('blueprint:changed', (data) => {
             this.currentBlueprint = data.blueprint;
-            this.update();
+            if (this._configsReady) this.update();
         });
         this.editor.on('blueprint:created', (data) => {
             this.currentBlueprint = data.blueprint;
-            this.update();
+            if (this._configsReady) this.update();
         });
+
+        await this.loadConfigs();
+        this._configsReady = true;
+        if (this._pendingUpdate && this.currentBlueprint) {
+            this._pendingUpdate = false;
+            this.update();
+        }
     }
 
     // ----------------------------------------------------------------
@@ -326,6 +334,7 @@ export class BalanceDashboard {
 
             const totalHpPerSec = spawnPerSec * avgHp;
             const ttk = avgHp > 0 ? avgHp / playerDPS : 0;
+            // ~1.5% of spawned enemies deal contact damage per second (empirical from balance-sim runs)
             const incomingDps = spawnPerSec * avgDmg * 0.015;
 
             timeline.push({ t, spawnPerSec, totalHpPerSec, ttk, incomingDps, hpMul });
