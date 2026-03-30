@@ -185,35 +185,44 @@ export class DamageZoneAbilities {
         this._immuneZone.body.moves = false;
         this._immuneZone.setDepth(-1);
 
-        this._immuneHitTimes = new Map();
+        this._immuneHitTimes = new WeakMap();
         const tickMs = (config.tickRate || 0.5) * 1000;
 
-        // Register overlap
-        this._immuneOverlap = registerDynamicOverlap(
-            this.scene, this._immuneZone, enemiesGroup,
-            (zone, enemy) => {
-                if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
-                const now = this.scene.time?.now || 0;
-                const lastHit = this._immuneHitTimes.get(enemy) || 0;
-                if (now - lastHit < tickMs) return;
+        // Overlap callback — shared for enemies and bosses
+        const onOverlap = (zone, enemy) => {
+            if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
+            const now = this.scene.time?.now || 0;
+            const lastHit = this._immuneHitTimes.get(enemy) || 0;
+            if (now - lastHit < tickMs) return;
 
-                // Damage
-                enemy.takeDamage(config.damage, 'immune_aura');
-                this._immuneHitTimes.set(enemy, now);
+            enemy.takeDamage(config.damage, 'immune_aura');
+            this._immuneHitTimes.set(enemy, now);
 
-                // Knockback — push enemy away from player
-                if (enemy.body && config.knockback > 0) {
-                    const dx = enemy.x - player.x;
-                    const dy = enemy.y - player.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                    enemy.body.setVelocity((dx / dist) * config.knockback, (dy / dist) * config.knockback);
-                }
-
-                if (Math.random() < 0.05) {
-                    getSession()?.log('combat', 'immune_aura_hit', { enemyId: enemy.blueprintId, damage: config.damage });
-                }
+            // Knockback — push enemy away from player
+            if (enemy.body && config.knockback > 0) {
+                const dx = enemy.x - player.x;
+                const dy = enemy.y - player.y;
+                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                enemy.body.setVelocity((dx / dist) * config.knockback, (dy / dist) * config.knockback);
             }
+
+            if (Math.random() < 0.05) {
+                getSession()?.log('combat', 'immune_aura_hit', { enemyId: enemy.blueprintId, damage: config.damage });
+            }
+        };
+
+        // Register overlap with enemies
+        this._immuneOverlap = registerDynamicOverlap(
+            this.scene, this._immuneZone, enemiesGroup, onOverlap
         );
+
+        // Register overlap with bosses (separate physics group)
+        const bossGroup = this.scene.bossGroup;
+        if (bossGroup) {
+            this._immuneBossOverlap = registerDynamicOverlap(
+                this.scene, this._immuneZone, bossGroup, onOverlap
+            );
+        }
 
         // VFX aura ring
         if (this.scene.vfxSystem) {
@@ -236,6 +245,10 @@ export class DamageZoneAbilities {
         if (this._immuneOverlap) {
             this.scene?.physics?.world?.removeCollider(this._immuneOverlap);
             this._immuneOverlap = null;
+        }
+        if (this._immuneBossOverlap) {
+            this.scene?.physics?.world?.removeCollider(this._immuneBossOverlap);
+            this._immuneBossOverlap = null;
         }
         if (this._immuneZone) {
             if (this._immuneZone.active) this._immuneZone.destroy();

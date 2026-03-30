@@ -84,14 +84,14 @@ export class UpdateManager {
                 if (enemies) {
                     for (let i = 0, len = enemies.length; i < len; i++) {
                         const e = enemies[i];
-                        if (e.active && e.update) e.update(time, delta);
+                        if (e && e.active && e.update) e.update(time, delta);
                     }
                 }
                 const bosses = scene.bossGroup?.getChildren();
                 if (bosses) {
                     for (let i = 0, len = bosses.length; i < len; i++) {
                         const b = bosses[i];
-                        if (b.active && b.update) b.update(time, delta);
+                        if (b && b.active && b.update) b.update(time, delta);
                     }
                 }
             }

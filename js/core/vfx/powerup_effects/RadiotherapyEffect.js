@@ -176,10 +176,8 @@ export class RadiotherapyEffect {
             this._beamsDrawn = true;
         }
 
-        // Damage tick — time-based, checked in _onEnemyOverlap (not frame-dependent flag)
-        // The flag approach was broken: physics overlap fires BEFORE update(), so
-        // _canDamage was always false during overlap checks.
-        this._currentTime = time;
+        // Damage timing uses scene.time.now directly in _onEnemyOverlap
+        // (not _currentTime — physics overlap fires BEFORE update, so cached time lags)
     }
 
     // ==================== Physics overlap (broadphase + narrowphase) ====================
@@ -197,17 +195,30 @@ export class RadiotherapyEffect {
         // Phaser zone origin is center, body origin is top-left → offset to align
         this._damageZone.body.setOffset(-this.beamRange + d/2, -this.beamRange + d/2);
 
-        // Register overlap — Phaser calls _onEnemyOverlap only for nearby enemies
+        // Register overlap with enemies
         this._overlapCollider = registerDynamicOverlap(
             this.scene, this._damageZone, enemiesGroup,
             (zone, enemy) => this._onEnemyOverlap(enemy)
         );
+
+        // Register overlap with bosses (separate physics group)
+        const bossGroup = this.scene.bossGroup;
+        if (bossGroup) {
+            this._bossOverlapCollider = registerDynamicOverlap(
+                this.scene, this._damageZone, bossGroup,
+                (zone, boss) => this._onEnemyOverlap(boss)
+            );
+        }
     }
 
     _destroyDamageZone() {
         if (this._overlapCollider) {
             this.scene.physics.world.removeCollider(this._overlapCollider);
             this._overlapCollider = null;
+        }
+        if (this._bossOverlapCollider) {
+            this.scene.physics.world.removeCollider(this._bossOverlapCollider);
+            this._bossOverlapCollider = null;
         }
         if (this._damageZone) {
             this._damageZone.destroy();
@@ -233,8 +244,9 @@ export class RadiotherapyEffect {
         if (!enemy?.active || enemy.hp <= 0) return;
         if (typeof enemy.takeDamage !== 'function') return;
 
-        // Time-based tick check (replaces broken frame-dependent _canDamage flag)
-        const now = this._currentTime || this.scene?.time?.now || 0;
+        // Use scene.time.now directly — physics overlap fires BEFORE update(),
+        // so any cached _currentTime would lag by one frame
+        const now = this.scene?.time?.now || 0;
         if (now - this.lastDamageTick < this.tickRate * 1000) return;
 
         // New tick — clear hit set and update timestamp

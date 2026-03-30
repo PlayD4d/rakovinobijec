@@ -121,12 +121,18 @@ export class BootstrapManager {
             if (this.scene.player?.resetTimersAfterPause) {
                 this.scene.player.resetTimersAfterPause();
             }
-            this.scene.enemiesGroup?.getChildren().forEach(e => {
-                e.behaviors?.resetTimersAfterPause?.();
-            });
-            this.scene.bossGroup?.getChildren().forEach(b => {
-                b.behaviors?.resetTimersAfterPause?.();
-            });
+            const enemies = this.scene.enemiesGroup?.getChildren();
+            if (enemies) {
+                for (let i = enemies.length - 1; i >= 0; i--) {
+                    enemies[i]?.behaviors?.resetTimersAfterPause?.();
+                }
+            }
+            const bosses = this.scene.bossGroup?.getChildren();
+            if (bosses) {
+                for (let i = bosses.length - 1; i >= 0; i--) {
+                    bosses[i]?.behaviors?.resetTimersAfterPause?.();
+                }
+            }
             this.scene.spawnDirector?.resetTimersAfterPause?.();
             this.scene.powerUpSystem?.resetTimersAfterPause?.();
         };

@@ -483,9 +483,9 @@ export class GameScene extends Phaser.Scene {
         } catch (e) {
             console.error('[GameScene] Critical error during shutdown:', e);
         }
-
-        // Phaser base scene cleanup — input handlers, event emitter clear
-        super.shutdown();
+        // NOTE: Do NOT call super.shutdown() here — Phaser calls it automatically
+        // via the SHUTDOWN lifecycle event. Calling it from within that event
+        // corrupts the listener dispatch mid-iteration.
     }
 }
 

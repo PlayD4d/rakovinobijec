@@ -7,9 +7,11 @@
       "scene.add.particles"
     ],
     "allowedFiles": [
-      "js/core/vfx/SimplifiedVFXSystem.js",
+      "js/core/vfx/VFXSystem.js",
       "js/core/audio/SimplifiedAudioSystem.js",
-      "js/core/vfx/effects/*.js",
+      "js/core/vfx/powerup_effects/*.js",
+      "js/core/vfx/CombatVFXEffects.js",
+      "js/core/vfx/TelegraphEffects.js",
       "js/ui/lite/*.js",
       "js/utils/DebugOverlay.js",
       "js/utils/PerformanceProfiler.js",

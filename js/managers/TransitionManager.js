@@ -201,6 +201,7 @@ export class TransitionManager {
 
             this.scene.sceneTimeSec = 0;
             this.scene.gameStats.enemiesKilled = 0;
+            this.scene.gameStats.kills = 0;
 
             await initializeLevel(this, this.scene.currentLevel);
 

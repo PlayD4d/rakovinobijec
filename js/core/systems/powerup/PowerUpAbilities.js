@@ -53,9 +53,9 @@ export class PowerUpAbilities {
                 config.beamCount = ability.beamsPerLevel?.[level - 1] || 1;
                 config.range = ability.rangePerLevel?.[level - 1] || 80;
                 config.damage = ability.damagePerLevel?.[level - 1] || 5;
-                config.rotationSpeed = ability.rotationSpeed || 2;
+                config.rotationSpeed = ability.rotationSpeedPerLevel?.[level - 1] || ability.rotationSpeed || 2;
+                config.beamWidth = ability.beamWidthPerLevel?.[level - 1] || ability.beamWidth || 0.45;
                 config.tickRate = ability.tickRate || 0.1;
-                config.beamWidth = ability.beamWidth || 0.25;
                 config.beamColor = ability.beamColor || 0x00ff00;
                 config.beamAlpha = ability.beamAlpha || 0.7;
                 break;
@@ -164,8 +164,11 @@ export class PowerUpAbilities {
             case 'shield':
                 player.shieldActive = true;
                 player.shieldLevel = config.level;
-                player.shieldHP = config.shieldHP;
+                // Preserve remaining shield HP ratio on level-up (don't restore full)
+                const oldMax = player.maxShieldHP || 0;
+                const hpRatio = oldMax > 0 ? Math.min(1, player.shieldHP / oldMax) : 1;
                 player.maxShieldHP = config.shieldHP;
+                player.shieldHP = Math.round(config.shieldHP * hpRatio);
                 player.shieldRechargeTime = config.rechargeTime;
                 player.shieldRecharging = false;
                 player.shieldRechargeAt = 0;

@@ -73,7 +73,7 @@
     </div>
     
     <script type="module">
-        import { SimplifiedVFXSystem } from './js/core/vfx/SimplifiedVFXSystem.js';
+        import { VFXSystem } from './js/core/vfx/VFXSystem.js';
         import { SimplifiedAudioSystem } from './js/core/audio/SimplifiedAudioSystem.js';
         import { VFXPresets } from './js/core/vfx/VFXPresets.js';
         
@@ -92,7 +92,7 @@
             
             create() {
                 // Initialize systems
-                this.vfxSystem = new SimplifiedVFXSystem(this);
+                this.vfxSystem = new VFXSystem(this);
                 this.vfxSystem.initialize();
                 
                 this.audioSystem = new SimplifiedAudioSystem(this);

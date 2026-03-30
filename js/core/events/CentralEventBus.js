@@ -66,6 +66,10 @@ class CentralEventBus {
      * Listen to specific event
      */
     on(eventName, callback, context = null) {
+        // Use sentinel object for null context — prevents unrelated null-context
+        // listeners from sharing a Map entry and being bulk-removed together
+        const ctxKey = context || this._nullCtx || (this._nullCtx = {});
+
         const wrappedCallback = (event) => {
             try {
                 if (context) {
@@ -81,10 +85,10 @@ class CentralEventBus {
         this.eventEmitter.on(eventName, wrappedCallback);
 
         // Track listeners for cleanup — store both original and wrapped callback
-        if (!this.listeners.has(context)) {
-            this.listeners.set(context, []);
+        if (!this.listeners.has(ctxKey)) {
+            this.listeners.set(ctxKey, []);
         }
-        this.listeners.get(context).push({
+        this.listeners.get(ctxKey).push({
             eventName: eventName,
             callback: wrappedCallback,
             originalCallback: callback
@@ -139,10 +143,11 @@ class CentralEventBus {
      * Remove listener
      */
     off(eventName, callback, context = null) {
+        const ctxKey = context || this._nullCtx || (this._nullCtx = {});
         // Find the wrapped callback that corresponds to the original
         let wrappedCallback = callback;
-        if (this.listeners.has(context)) {
-            const contextListeners = this.listeners.get(context);
+        if (this.listeners.has(ctxKey)) {
+            const contextListeners = this.listeners.get(ctxKey);
             const index = contextListeners.findIndex(l =>
                 l.eventName === eventName && l.originalCallback === callback
             );

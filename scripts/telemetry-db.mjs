@@ -721,6 +721,27 @@ function printDetails(sid) {
 }
 
 // ============================================================
+// PRUNE — keep only N most recent sessions, cascade-delete the rest
+// ============================================================
+function pruneSessions(keep = 10) {
+  const total = db.prepare('SELECT COUNT(*) as c FROM sessions').get().c;
+  if (total <= keep) {
+    console.log(`DB has ${total} sessions (limit ${keep}) — nothing to prune.`);
+    return;
+  }
+  // Find IDs to delete (oldest first, skip the N newest)
+  const toDelete = db.prepare(
+    'SELECT id FROM sessions ORDER BY imported_at DESC LIMIT -1 OFFSET ?'
+  ).all(keep);
+  const deleteStmt = db.prepare('DELETE FROM sessions WHERE id = ?');
+  const tx = db.transaction(() => {
+    for (const row of toDelete) deleteStmt.run(row.id);
+  });
+  tx();
+  console.log(`🗑️  Pruned ${toDelete.length} old sessions (kept ${keep} newest, DB had ${total}).`);
+}
+
+// ============================================================
 // CLI
 // ============================================================
 const [,, cmd, ...args] = process.argv;
@@ -736,6 +757,7 @@ switch (cmd) {
   case 'tuning': printBalance(); break;
   case 'details': printDetails(args[0]); break;
   case 'list': listAll(); break;
-  default: console.log(`Telemetry DB — Usage: import|summary|balance|compare|trends|details|list\nDB: ${DB_PATH}`);
+  case 'prune': pruneSessions(parseInt(args[0]) || 10); break;
+  default: console.log(`Telemetry DB — Usage: import|summary|balance|compare|trends|details|list|prune [N]\nDB: ${DB_PATH}`);
 }
 db.close();

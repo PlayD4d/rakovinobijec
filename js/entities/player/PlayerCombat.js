@@ -120,7 +120,8 @@ export class PlayerCombat {
             });
         }
 
-        // Deactivate
+        // Deactivate — set _isDead to prevent reactivation by stale heal overlaps
+        player._isDead = true;
         player.setActive(false);
         player.setVisible(false);
         if (player.body) player.body.setEnable(false);

@@ -97,14 +97,14 @@ export class SystemsInitializer {
      */
     async initializeVFXSystem() {
         try {
-            const { SimplifiedVFXSystem } = await import('../core/vfx/SimplifiedVFXSystem.js');
-            this.scene.vfxSystem = new SimplifiedVFXSystem(this.scene);
+            const { VFXSystem } = await import('../core/vfx/VFXSystem.js');
+            this.scene.vfxSystem = new VFXSystem(this.scene);
             this.scene.newVFXSystem = this.scene.vfxSystem; // Compatibility alias
 
             this.scene.vfxSystem.initialize();
-            DebugLogger.info('vfx', '[SimplifiedVFXSystem] Initialized and ready');
+            DebugLogger.info('vfx', '[VFXSystem] Initialized and ready');
         } catch (error) {
-            DebugLogger.error('vfx', '[SimplifiedVFXSystem] Failed to initialize:', error);
+            DebugLogger.error('vfx', '[VFXSystem] Failed to initialize:', error);
         }
     }
 

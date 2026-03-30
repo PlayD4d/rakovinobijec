@@ -115,8 +115,11 @@ export class ShieldRegeneration {
         if (!player) return;
 
         if (player.shieldActive && player.shieldRecharging && player.shieldRechargeAt > 0) {
-            const remainingTime = Math.max(0, player.shieldRechargeAt - (player._lastPauseTime || now));
+            // Calculate how long was left before pause based on the pause timestamp
+            const pauseTime = player._lastPauseTime || now;
+            const remainingTime = Math.max(0, player.shieldRechargeAt - pauseTime);
             player.shieldRechargeAt = now + remainingTime;
+            player._lastPauseTime = 0; // Clear to prevent stale reference on next cycle
             DebugLogger.info('powerup', `[ShieldRegeneration] Shield recharge preserved: ${remainingTime}ms remaining`);
         }
     }

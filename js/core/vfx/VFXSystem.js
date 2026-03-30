@@ -1,19 +1,21 @@
 /**
- * SimplifiedVFXSystem - Direct VFX system without registry
- * PR7 Compliant - 100% data-driven from blueprints
- * 
- * Accepts VFX configurations directly from blueprints
- * Uses VFXPresets for common effects
+ * VFXSystem - Data-driven visual effects system
+ * PR7 Compliant - all VFX from blueprints
+ *
+ * Telegraph/combat effects: TelegraphEffects.js, CombatVFXEffects.js
+ * Player powerup effects:  powerup_effects/
  */
 
 import { VFXPresets } from './VFXPresets.js';
-import { RadiotherapyEffect } from './effects/RadiotherapyEffect.js';
-import { FlamethrowerEffect } from './effects/FlamethrowerEffect.js';
-import { ShieldEffect } from './effects/ShieldEffect.js';
-import { ImmuneAuraEffect } from './effects/ImmuneAuraEffect.js';
+import { RadiotherapyEffect } from './powerup_effects/RadiotherapyEffect.js';
+import { FlamethrowerEffect } from './powerup_effects/FlamethrowerEffect.js';
+import { ShieldEffect } from './powerup_effects/ShieldEffect.js';
+import { ImmuneAuraEffect } from './powerup_effects/ImmuneAuraEffect.js';
+import { installCombatVFX } from './CombatVFXEffects.js';
+import { installTelegraphEffects } from './TelegraphEffects.js';
 import { DebugLogger } from '../debug/DebugLogger.js';
 
-export class SimplifiedVFXSystem {
+export class VFXSystem {
     static _uidCounter = 0; // Unique ID counter for effect key generation
 
     constructor(scene) {
@@ -31,8 +33,13 @@ export class SimplifiedVFXSystem {
         this.maxParticles = 1000;
         this._emitterCounter = 0;
 
-        // Active telegraph sprites — tracked for cleanup on boss death / level transition
+        // Active telegraph handles — tracked for cleanup on boss death / level transition
         this._activeTelegraphs = [];
+
+        // Install telegraph effects (circle, directional, danger zone)
+        installTelegraphEffects(this);
+        // Install combat VFX (explosion, beam, lightning)
+        installCombatVFX(this);
 
         this.initialized = false;
     }
@@ -50,7 +57,7 @@ export class SimplifiedVFXSystem {
         // Self-registration causes double-shutdown race with the explicit loop
 
         this.initialized = true;
-        DebugLogger.info('vfx', '[SimplifiedVFXSystem] Initialized');
+        DebugLogger.info('vfx', '[VFXSystem] Initialized');
     }
     
     /**
@@ -180,7 +187,7 @@ export class SimplifiedVFXSystem {
     attachEffect(entity, effectType, config = {}) {
         if (!entity || !effectType) return;
         
-        if (!entity._vfxUid) entity._vfxUid = ++SimplifiedVFXSystem._uidCounter;
+        if (!entity._vfxUid) entity._vfxUid = ++VFXSystem._uidCounter;
         const effectKey = `${entity._vfxUid}_${effectType}`;
         
         // Check if already active
@@ -459,11 +466,15 @@ export class SimplifiedVFXSystem {
 
     /** Destroy all active telegraph sprites — called on boss death, level transition, shutdown */
     clearTelegraphs() {
+        const gf = this.scene?.graphicsFactory;
         for (let i = this._activeTelegraphs.length - 1; i >= 0; i--) {
-            const s = this._activeTelegraphs[i];
-            if (s?.scene) {
-                this.scene.tweens.killTweensOf(s);
-                s.destroy();
+            const handle = this._activeTelegraphs[i];
+            // New handle format: { graphics, tween, progress }
+            if (handle?.tween) {
+                handle.tween.stop();
+            }
+            if (handle?.graphics?.scene) {
+                if (gf) gf.release(handle.graphics); else handle.graphics.destroy();
             }
         }
         this._activeTelegraphs.length = 0;
@@ -516,213 +527,8 @@ export class SimplifiedVFXSystem {
         return this.play(VFXPresets.deathBurst('medium', color), x, y);
     }
 
-    /**
-     * Multi-layer explosion effect — particle burst + expanding shockwave ring + impact flash.
-     * Uses Phaser Graphics for the ring (generateTexture would be wasteful for one-shot).
-     * @param {number} x - Center X
-     * @param {number} y - Center Y
-     * @param {object} opts - { color, radius, duration }
-     */
-    playExplosionEffect(x, y, opts = {}) {
-        if (!this.scene?.sys?.isActive()) return;
-
-        const color = opts.color || 0xFF6600;
-        const radius = opts.radius || 60;
-        const duration = opts.duration || 400;
-
-        // Layer 1: Particle burst (Phaser native)
-        this.play(VFXPresets.explosion('medium', color), x, y);
-
-        // Layer 2: Expanding shockwave ring (Graphics + tween)
-        const gf = this.scene.graphicsFactory;
-        const ring = gf.create();
-        // Reset pooled Graphics state — alpha/scale may be 0 from previous tween
-        ring.clear();
-        ring.setAlpha(1);
-        ring.setScale(1);
-        ring.setPosition(x, y);
-        ring.setDepth(this.scene.DEPTH_LAYERS?.VFX || 3000);
-
-        // Draw initial ring (small, will be scaled up by tween)
-        ring.lineStyle(3, color, 0.8);
-        ring.strokeCircle(0, 0, 5);
-        ring.fillStyle(color, 0.15);
-        ring.fillCircle(0, 0, 5);
-
-        // Expand ring outward with fading alpha
-        this.scene.tweens.add({
-            targets: ring,
-            scaleX: radius / 5,
-            scaleY: radius / 5,
-            alpha: 0,
-            duration: duration,
-            ease: 'Power2',
-            onComplete: () => {
-                if (gf) gf.release(ring); else ring.destroy();
-            }
-        });
-
-        // Layer 3: Brief center flash
-        const flash = gf.create();
-        flash.clear();
-        flash.setAlpha(1);
-        flash.setScale(1);
-        flash.setPosition(x, y);
-        flash.setDepth((this.scene.DEPTH_LAYERS?.VFX || 3000) + 1);
-        flash.fillStyle(0xFFFFFF, 0.9);
-        flash.fillCircle(0, 0, radius * 0.3);
-
-        this.scene.tweens.add({
-            targets: flash,
-            alpha: 0,
-            scaleX: 0.5,
-            scaleY: 0.5,
-            duration: duration * 0.4,
-            ease: 'Power3',
-            onComplete: () => {
-                if (gf) gf.release(flash); else flash.destroy();
-            }
-        });
-    }
-
-    /**
-     * Play a telegraph warning — circle that shows danger area before ability fires.
-     * Phaser best practice: generateTexture once, then use lightweight Sprite + tween.
-     * No per-call Graphics rendering — texture is cached and shared.
-     *
-     * @param {number} x - Center X
-     * @param {number} y - Center Y
-     * @param {object} opts - { radius, color, duration, fillAlpha }
-     */
-    playTelegraph(x, y, opts = {}) {
-        if (!this.scene?.sys?.isActive()) return null;
-
-        // Limit concurrent telegraphs to prevent visual overload
-        if (this._activeTelegraphs.length >= 8) return null;
-
-        const color = opts.color || 0xFF0000;
-        const radius = opts.radius || 80;
-        const duration = opts.duration || 1000;
-        const fillAlpha = opts.fillAlpha || 0.12;
-
-        // Generate telegraph circle texture once per color (cached by Phaser texture manager)
-        const texKey = `_telegraph_${color.toString(16)}`;
-        if (!this.scene.textures.exists(texKey)) {
-            const size = 128; // Base texture size — scaled to match radius via sprite scale
-            const gf = this.scene.graphicsFactory;
-            const g = gf.create();
-            g.clear();
-            // Filled circle
-            g.fillStyle(color, 0.25);
-            g.fillCircle(size / 2, size / 2, size / 2 - 2);
-            // Stroke border
-            g.lineStyle(2, color, 0.8);
-            g.strokeCircle(size / 2, size / 2, size / 2 - 2);
-            g.generateTexture(texKey, size, size);
-            if (gf) gf.release(g); else g.destroy();
-        }
-
-        // Lightweight sprite with pre-generated texture — much cheaper than Graphics per call
-        const scale = (radius * 2) / 128;
-        const sprite = this.scene.add.sprite(x, y, texKey);
-        sprite.setOrigin(0.5, 0.5);
-        sprite.setScale(scale);
-        sprite.setAlpha(fillAlpha > 0.2 ? 0.8 : 0.6);
-        sprite.setDepth(this.scene.DEPTH_LAYERS?.VFX || 3000);
-
-        // Track for cleanup (boss death, level transition)
-        this._activeTelegraphs.push(sprite);
-
-        // Single tween: scale pulse + fade out, then destroy + untrack
-        this.scene.tweens.add({
-            targets: sprite,
-            scaleX: scale * 1.05,
-            scaleY: scale * 1.05,
-            alpha: 0,
-            duration: duration,
-            ease: 'Sine.easeOut',
-            onComplete: () => {
-                const idx = this._activeTelegraphs.indexOf(sprite);
-                if (idx !== -1) this._activeTelegraphs.splice(idx, 1);
-                sprite.destroy();
-            }
-        });
-
-        return sprite;
-    }
-
-    /**
-     * Draw a lightning bolt between two points — jagged line with glow + fade.
-     * Uses Phaser Graphics for the bolt geometry + tween for fade-out.
-     *
-     * @param {number} x1 - Start X
-     * @param {number} y1 - Start Y
-     * @param {number} x2 - End X
-     * @param {number} y2 - End Y
-     * @param {object} opts - { color, width, duration, segments }
-     */
-    playLightningBolt(x1, y1, x2, y2, opts = {}) {
-        if (!this.scene?.sys?.isActive()) return;
-
-        const color = opts.color || 0x4488FF;
-        const width = opts.width || 3;
-        const duration = opts.duration || 200;
-        const segments = opts.segments || 6;
-
-        const gf = this.scene.graphicsFactory;
-        const g = gf.create();
-        g.clear();
-        g.setAlpha(1);
-        g.setScale(1);
-        g.setPosition(0, 0);
-        g.setDepth((this.scene.DEPTH_LAYERS?.VFX || 3000) + 1);
-
-        // Build jagged bolt path with random offsets
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        const perpX = -dy;
-        const perpY = dx;
-        const len = Math.sqrt(perpX * perpX + perpY * perpY) || 1;
-        const normPX = perpX / len;
-        const normPY = perpY / len;
-
-        // Glow layer (wider, lower alpha)
-        g.lineStyle(width + 4, color, 0.3);
-        g.beginPath();
-        g.moveTo(x1, y1);
-        for (let i = 1; i < segments; i++) {
-            const t = i / segments;
-            const jitter = (Math.random() - 0.5) * 20;
-            g.lineTo(x1 + dx * t + normPX * jitter, y1 + dy * t + normPY * jitter);
-        }
-        g.lineTo(x2, y2);
-        g.strokePath();
-
-        // Core bolt (thinner, full alpha, white-ish)
-        g.lineStyle(width, 0xFFFFFF, 0.9);
-        g.beginPath();
-        g.moveTo(x1, y1);
-        for (let i = 1; i < segments; i++) {
-            const t = i / segments;
-            const jitter = (Math.random() - 0.5) * 12;
-            g.lineTo(x1 + dx * t + normPX * jitter, y1 + dy * t + normPY * jitter);
-        }
-        g.lineTo(x2, y2);
-        g.strokePath();
-
-        // Impact spark at target
-        this.play(VFXPresets.smallHit(color, 6), x2, y2);
-
-        // Fade out and cleanup
-        this.scene.tweens.add({
-            targets: g,
-            alpha: 0,
-            duration: duration,
-            ease: 'Power2',
-            onComplete: () => {
-                if (gf) gf.release(g); else g.destroy();
-            }
-        });
-    }
+    // Combat VFX methods installed from:
+    //  - TelegraphEffects.js: playTelegraph, playDirectionalTelegraph, playDangerZone
+    //  - CombatVFXEffects.js: playExplosionEffect, playBeamEffect, playLightningBolt
 }
 

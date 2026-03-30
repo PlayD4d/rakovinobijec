@@ -63,8 +63,11 @@ export class MusicPlayer {
                     volume: 0,
                     duration: options.fadeOut,
                     onComplete: () => {
-                        if (oldMusic.isPlaying) oldMusic.stop();
-                        oldMusic.destroy();
+                        // Guard: sound may already be destroyed by stopMusic/shutdown
+                        try {
+                            if (oldMusic.isPlaying) oldMusic.stop();
+                            oldMusic.destroy();
+                        } catch (_) {}
                     }
                 });
             } else {

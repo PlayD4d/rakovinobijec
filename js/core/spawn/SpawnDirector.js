@@ -139,6 +139,7 @@ export class SpawnDirector {
             });
         }
         this.lastSpawnTime = 0;
+        this._lastBossCheck = 0;
 
         // Reset cooldowns
         this.eliteCooldowns.clear();

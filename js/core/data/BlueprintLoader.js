@@ -408,7 +408,7 @@ export class BlueprintLoader {
      * Get loot table by ID
      */
     getLootTable(tableId) {
-        return this.categories.lootTable.get(tableId) || 
+        return this.categories.lootTable?.get(tableId) ||
                this.blueprints.get(tableId);
     }
     

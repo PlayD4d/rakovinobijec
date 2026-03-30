@@ -1,7 +1,7 @@
 import { calculateGameSize } from '../config.js';
 import { HighScoreManager } from '../managers/HighScoreManager.js';
 import { GlobalHighScoreManager } from '../managers/GlobalHighScoreManager.js';
-import { SimplifiedVFXSystem } from '../core/vfx/SimplifiedVFXSystem.js';
+import { VFXSystem } from '../core/vfx/VFXSystem.js';
 import { GraphicsFactory } from '../core/graphics/GraphicsFactory.js';
 import { centralEventBus } from '../core/events/CentralEventBus.js';
 import { KeyboardManager } from '../core/input/KeyboardManager.js';
@@ -105,7 +105,7 @@ export class MainMenu extends Phaser.Scene {
         // PR7: Init GraphicsFactory and VFX pro menu
         try {
             this.graphicsFactory = new GraphicsFactory(this);
-            this.vfxSystem = new SimplifiedVFXSystem(this);
+            this.vfxSystem = new VFXSystem(this);
             this.vfxSystem.initialize();
         } catch (_) { }
 
@@ -151,19 +151,17 @@ export class MainMenu extends Phaser.Scene {
 
         // Obnovit normální FPS před přechodem do hry
         try { this.game.loop.targetFps = 60; } catch (_) { }
-        // Pro jistotu okamžitě uklidit posluchače z MainMenu ještě před přepnutím scény
-        try { this.shutdown(); } catch (_) { }
-        // Play pickup sound for menu confirm
+        // Play pickup sound for menu confirm (before scene transition tears down audio)
         try {
             if (this.sound && this.sound.add) {
-                const pickupKey = 'sound_pickup_mp3'; // Key generated from 'sound/pickup.mp3'
+                const pickupKey = 'sound_pickup_mp3';
                 if (this.cache.audio.exists(pickupKey)) {
                     this.sound.play(pickupKey, { volume: 0.5 });
                 }
             }
         } catch (_) { }
 
-        // Transition to game
+        // Transition to game — Phaser auto-triggers SHUTDOWN on this scene
         this.scene.start('GameScene');
     }
 

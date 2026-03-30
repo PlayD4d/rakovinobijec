@@ -41,11 +41,11 @@ export function executeProjectileBurst(bossAbilities, abilityData, params) {
     const spread = abilityData.spreadAngle || 360;
     const chargeTime = abilityData.chargeTime || 600; // telegraph duration before firing
 
-    // Telegraph: pulsing circle at boss position warns player of incoming burst
+    // Telegraph: progressive fill at boss position warns player of incoming burst
     const vfx = bossAbilities.scene.vfxSystem;
     if (vfx?.playTelegraph) {
         vfx.playTelegraph(bossAbilities.boss.x, bossAbilities.boss.y, {
-            radius: 50, color: 0xFF4400, duration: chargeTime, pulses: 2
+            radius: 50, color: 0xDD1111, duration: chargeTime, followTarget: bossAbilities.boss
         });
     }
 
@@ -138,10 +138,10 @@ export function executeAreaDamage(bossAbilities, abilityData, params) {
     const chargeTime = abilityData.chargeTime || 800;
     const scene = bossAbilities.scene;
 
-    // Telegraph: warning circle showing exact damage area
+    // Telegraph: progressive fill showing exact damage area, follows boss
     if (scene.vfxSystem?.playTelegraph) {
         scene.vfxSystem.playTelegraph(center.x, center.y, {
-            radius, color: 0xFF2200, duration: chargeTime, fillAlpha: 0.15, pulses: 3
+            radius, color: 0xDD1111, duration: chargeTime, followTarget: bossAbilities.boss
         });
     }
 
@@ -266,10 +266,10 @@ export function executeToxicCloud(bossAbilities, abilityData, params) {
         const cloudX = bossAbilities.boss.x + Math.cos(angle) * distance;
         const cloudY = bossAbilities.boss.y + Math.sin(angle) * distance;
 
-        // Telegraph: green warning circle at each cloud position
+        // Telegraph: progressive fill at each cloud position
         if (scene.vfxSystem?.playTelegraph) {
             scene.vfxSystem.playTelegraph(cloudX, cloudY, {
-                radius: cloudRadius, color: 0x00FF00, duration: 800, fillAlpha: 0.1, pulses: 2
+                radius: cloudRadius, color: 0x44BB00, duration: 800
             });
         }
 

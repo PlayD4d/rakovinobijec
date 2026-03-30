@@ -17,6 +17,7 @@ sys.stdout = sys.__stdout__
 sys.stderr = sys.__stderr__
 
 PORT = 8000
+MAX_SESSIONS = 10  # Keep only the most recent N session files
 DEV_SCRIPT = """
 <script>
     // Development Mode Enabled
@@ -69,14 +70,22 @@ class DevHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             print(f"📊 Session {session_id} received ({event_count} events), saved to {file_path}")
 
-            # Import into telemetry DB in background
+            # Prune old session files — keep only the most recent MAX_SESSIONS
+            self._prune_old_sessions()
+
+            # Import into telemetry DB + prune old sessions in background
             if os.path.exists(TELEMETRY_SCRIPT):
                 try:
                     subprocess.Popen(
                         ['node', TELEMETRY_SCRIPT, 'import', file_path],
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE
                     )
-                    print(f"📊 Telemetry DB import started for {session_id}")
+                    # Prune DB to keep only MAX_SESSIONS newest
+                    subprocess.Popen(
+                        ['node', TELEMETRY_SCRIPT, 'prune', str(MAX_SESSIONS)],
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                    )
+                    print(f"📊 Telemetry DB import + prune started for {session_id}")
                 except Exception as e:
                     print(f"⚠️  Telemetry DB import failed: {e}", file=sys.stderr)
 
@@ -98,6 +107,26 @@ class DevHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(500)
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+
+    def _prune_old_sessions(self):
+        """Remove oldest session files if count exceeds MAX_SESSIONS"""
+        try:
+            if not os.path.isdir(SESSIONS_DIR):
+                return
+            files = [
+                os.path.join(SESSIONS_DIR, f)
+                for f in os.listdir(SESSIONS_DIR)
+                if f.startswith('session_') and f.endswith('.json')
+            ]
+            if len(files) <= MAX_SESSIONS:
+                return
+            # Sort by modification time (newest first)
+            files.sort(key=os.path.getmtime, reverse=True)
+            for old_file in files[MAX_SESSIONS:]:
+                os.remove(old_file)
+                print(f"🗑️  Pruned old session: {os.path.basename(old_file)}")
+        except Exception as e:
+            print(f"⚠️  Session prune failed: {e}", file=sys.stderr)
 
     def end_headers(self):
         # Check if this is an HTML file request
