@@ -483,8 +483,7 @@ body {
     grid-column: 1 / -1;
 }
 
-/* Nested objects/arrays span full row */
-.property-group-content > .property-group,
+/* Complex elements span full row */
 .property-group-content > .array-editor,
 .property-group-content > .nested-audio-container,
 .property-group-content > .event-audio-table,
@@ -492,6 +491,41 @@ body {
 .property-group-content > .ability-grid,
 .property-group-content > .elite-comparison {
     grid-column: 1 / -1;
+}
+
+/* Nested property-groups span full row but their inner content is also grid */
+.property-group-content > .property-group {
+    grid-column: 1 / -1;
+}
+
+/* Flatten single-level nesting: if a nested group's content has only fields,
+   show them inline. The nested group header acts as a section divider. */
+.property-group-content .property-group-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 2px var(--sp-2);
+    align-items: start;
+    padding-left: 0;
+}
+
+/* Nested group header: more subtle, less space */
+.property-group-content .property-group .property-group-header {
+    margin-bottom: 1px;
+    padding: var(--sp-1) var(--sp-2);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--b-subtle);
+    border-radius: 0;
+}
+
+.property-group-content .property-group .property-group-title {
+    font-size: 10px;
+    color: var(--t-muted);
+}
+
+/* Hide redundant nested group toggle */
+.property-group-content .property-group .property-group-toggle {
+    display: none;
 }
 
 .property-input:focus {

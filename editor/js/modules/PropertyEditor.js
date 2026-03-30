@@ -147,7 +147,7 @@ export class PropertyEditor {
         header.addEventListener('click', () => {
             expanded = !expanded;
             header.querySelector('.property-group-toggle').textContent = expanded ? '▼' : '▶';
-            content.style.display = expanded ? 'block' : 'none';
+            content.style.display = expanded ? '' : 'none';
         });
         
         group.appendChild(header);
