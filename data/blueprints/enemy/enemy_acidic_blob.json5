@@ -27,7 +27,7 @@
   },
   graphics: {
     sprite: 'enemy_acidic_blob',
-    tint: 0xDDAA00,
+    tint: 0x88CC00,
     scale: 1.1,
     animation: {
       idle: 'blob_idle',
@@ -39,8 +39,9 @@
     params: {
       speed: 70,
       detonateRange: 35,
-      fuseTime: 8000,
-      warningTime: 2000,
+      telegraphMs: 400,
+      explosionDamage: 12,
+      explosionRadius: 80,
     },
   },
   drops: [

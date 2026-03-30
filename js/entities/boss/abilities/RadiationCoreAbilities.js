@@ -66,7 +66,7 @@ export function executeToxicPools(bossAbilities, abilityData, params) {
     const poolCount = abilityData.poolCount || abilityData.count || 2;
     const boss = bossAbilities.boss;
     const vfx = bossAbilities.scene.vfxSystem;
-    const warningTime = 800;
+    const warningTime = abilityData.warningTime || 800;
 
     getSession()?.log('boss', 'ability_execute', { ability: 'toxic_pools', poolCount });
 
@@ -203,10 +203,10 @@ export function executeRadiationStorm(bossAbilities, abilityData, params) {
     const radius = abilityData.radius || 250;
     const stormDuration = abilityData.stormDuration || 5000;
     const tickInterval = Math.max(abilityData.tickInterval || 400, 100);
-    const chargeTime = 600;
-    const beamCount = 3;
-    const beamWidth = 0.4;
-    const rotations = 1.5;
+    const chargeTime = abilityData.chargeTime || 600;
+    const beamCount = abilityData.beamCount || 3;
+    const beamWidth = abilityData.beamWidth || 0.4;
+    const rotations = abilityData.rotations || 1.5;
     const boss = bossAbilities.boss;
     const player = bossAbilities.scene.player;
     const vfx = bossAbilities.scene.vfxSystem;
@@ -283,8 +283,8 @@ export function executeRadiationStorm(bossAbilities, abilityData, params) {
 export function executeRapidBeams(bossAbilities, abilityData, params) {
     const damage = abilityData.damage || 8;
     const range = abilityData.range || 350;
-    const beamWidth = 36;
-    const chargeTime = 1200; // Longer charge = more time to read and react
+    const beamWidth = abilityData.beamWidth || 36;
+    const chargeTime = abilityData.chargeTime || 1200;
     const boss = bossAbilities.boss;
     const player = bossAbilities.scene.player;
     const vfx = bossAbilities.scene.vfxSystem;

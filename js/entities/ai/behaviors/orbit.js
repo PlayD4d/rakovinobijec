@@ -89,18 +89,6 @@ export function orbit(cap, cfg, dt, mem, setState) {
     
     // Always face player while orbiting
     cap.faceTo(player.x, player.y);
-    
-    // Shoot with proper cooldown
-    const now = cap.now || 1;
-    if (now - mem.orbit.lastShootAt >= config.shootCooldownMs) {
-        if (Math.random() < config.shootChance) {
-            const angle = Math.atan2(player.y - pos.y, player.x - pos.x);
-            cap.shoot('straight', { 
-                angle: angle,
-                damage: cap.damage
-            });
-            mem.orbit.lastShootAt = now;
-        }
-    }
+    // Shooting is handled by the 'shoot' combat layer — not duplicated here
 }
 

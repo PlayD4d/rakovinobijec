@@ -70,9 +70,8 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
             this.setTint(blueprint.visuals.tint);
         }
         
-        // Add to scene — physics body is configured by EnemyManager after group.add()
+        // Add to display list only — physics body created by group.add() in EnemyManager
         scene.add.existing(this);
-        scene.physics.add.existing(this);
 
         // Per-enemy timer tracking for cleanup on death
         this._trackedTimers = [];

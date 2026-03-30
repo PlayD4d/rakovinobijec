@@ -1,13 +1,19 @@
 /**
- * Explode behavior — cell rushes at player and self-destructs on contact or timer.
- * Inspired by apoptosis (programmed cell death) weaponized against the player.
+ * Explode behavior — chase player, detonate on proximity.
  *
- * Approaches at moderate speed, detonates when close or after maxLifetime.
+ * Flow: spawn → chase player → reach detonateRange → brief telegraph → explode (area damage) → die.
+ * Player must dodge at the last moment to avoid explosion damage.
  * Pure function, no Phaser API.
  */
-export function explode(cap, cfg, dt, mem, setState) {
+export function explode(cap, cfg, dt, mem) {
     const player = cap.getPlayer();
     if (!player?.active) return;
+
+    if (!mem.explode) {
+        mem.explode = { detonating: false, detonated: false };
+    }
+    const s = mem.explode;
+    if (s.detonated) return;
 
     const pos = cap.getPos();
     const dx = player.x - pos.x;
@@ -15,49 +21,48 @@ export function explode(cap, cfg, dt, mem, setState) {
     const distSq = dx * dx + dy * dy;
 
     const speed = cfg.speed || 100;
-    const detonateRange = cfg.detonateRange || 30;
-    const detonateRangeSq = detonateRange * detonateRange;
-    const fuseTime = cfg.fuseTime || 6000;
-    const warningTime = cfg.warningTime || 1500;
+    const detonateRange = cfg.detonateRange || 35;
+    const telegraphMs = cfg.telegraphMs || 400;
+    const explosionDamage = cfg.explosionDamage || cfg.damage || 12;
+    const explosionRadius = cfg.explosionRadius || detonateRange * 2.5;
 
-    if (!mem.explode) {
-        mem.explode = { spawnTime: cap.now, warned: false, detonated: false };
-    }
-    const s = mem.explode;
+    // Phase 1: Chase player
+    if (!s.detonating) {
+        if (distSq <= detonateRange * detonateRange) {
+            // In range — start detonation sequence
+            s.detonating = true;
+            cap.setVelocity(0, 0);
 
-    // Once detonated, stop all processing — prevents infinite explosion loop
-    if (s.detonated) return;
+            // Telegraph at current position (red circle, brief)
+            cap.playTelegraph(pos.x, pos.y, {
+                radius: explosionRadius, color: 0xDD1111, duration: telegraphMs
+            });
 
-    const alive = cap.now - s.spawnTime;
+            // Explode after telegraph
+            cap.schedule(() => {
+                if (s.detonated) return;
+                s.detonated = true;
+                const p = cap.getPos();
+                cap.playExplosion(p.x, p.y, { color: 0x88CC00, radius: explosionRadius });
+                cap.playSfx('death');
 
-    // Warning telegraph near end of fuse
-    if (!s.warned && alive >= fuseTime - warningTime) {
-        s.warned = true;
-        cap.playTelegraph(pos.x, pos.y, {
-            radius: detonateRange, color: 0xFF2200, duration: Math.min(warningTime, 800)
-        });
-    }
+                // Damage player if still in explosion radius
+                const px = player.x - p.x;
+                const py = player.y - p.y;
+                if (player.active && px * px + py * py <= explosionRadius * explosionRadius) {
+                    player.takeDamage(explosionDamage, 'acidic_explosion');
+                }
 
-    // Auto-detonate on fuse timer
-    if (alive >= fuseTime) {
-        s.detonated = true;
-        cap.playExplosion(pos.x, pos.y, { color: 0xFF6600, radius: detonateRange * 2.5 });
-        cap.playSfx('death');
-        cap.setVelocity(0, 0);
+                cap.die();
+            }, telegraphMs);
+        } else {
+            // Chase — constant speed toward player
+            const dist = Math.sqrt(distSq) || 1;
+            cap.setVelocity((dx / dist) * speed, (dy / dist) * speed);
+        }
         return;
     }
 
-    // Detonate on proximity
-    if (distSq < detonateRangeSq) {
-        s.detonated = true;
-        cap.playExplosion(pos.x, pos.y, { color: 0xFF6600, radius: detonateRange * 2.5 });
-        cap.playSfx('death');
-        cap.setVelocity(0, 0);
-        return;
-    }
-
-    // Chase toward player — accelerate as fuse burns
-    const urgency = 1.0 + 0.5 * (alive / fuseTime);
-    const dist = Math.sqrt(distSq) || 1;
-    cap.setVelocity((dx / dist) * speed * urgency, (dy / dist) * speed * urgency);
+    // Phase 2: Detonating — stay still, wait for scheduled explosion
+    cap.setVelocity(0, 0);
 }

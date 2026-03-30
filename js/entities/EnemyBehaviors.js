@@ -159,8 +159,9 @@ export class EnemyBehaviors {
             }
         }
 
-        // Stuck detection for movement layer
-        if (this.layers.movement === 'chase') {
+        // Stuck detection for velocity-based movement layers
+        const ml = this.layers.movement;
+        if (ml === 'chase' || ml === 'swarm' || ml === 'evasion' || ml === 'charge') {
             this._detectStuck(delta);
         }
     }
@@ -199,6 +200,7 @@ export class EnemyBehaviors {
             spawnVfx: (id, at, opts) => enemy.spawnVfx(id, at, opts),
             playTelegraph: (x, y, opts) => enemy.scene?.vfxSystem?.playTelegraph?.(x, y, opts),
             playExplosion: (x, y, opts) => enemy.scene?.vfxSystem?.playExplosionEffect?.(x, y, opts),
+            die: () => enemy.die('self_destruct'),
             schedule: (fn, ms) => enemy.schedule(fn, ms),
             getState: () => this.state,
             // Focused accessors (no raw scene reference — architecture rule)

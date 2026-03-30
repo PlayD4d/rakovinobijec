@@ -18,8 +18,9 @@ export function processEnemyWaves(director) {
     const now = director.gameTime;
     const maxEnemies = director._maxEnemies;
 
-    // Read enemy count ONCE per frame
-    let enemyCount = director.scene.enemiesGroup ? director.scene.enemiesGroup.countActive() : 0;
+    // Read total entity count ONCE per frame (enemies + bosses)
+    let enemyCount = (director.scene.enemiesGroup?.countActive?.() || 0)
+                   + (director.scene.bossGroup?.countActive?.() || 0);
 
     // Debug: log spawn state every 5 seconds (stateful bucket — exactly 1 log per 5s)
     const tickBucket = Math.floor(now / 5000);
@@ -72,8 +73,9 @@ export function processEliteWindows(director) {
 
     const now = director.gameTime;
 
-    // PR7: Check if we can spawn more enemies
-    const currentEnemyCount = director.scene.enemiesGroup ? director.scene.enemiesGroup.countActive() : 0;
+    // Check total entity count (enemies + bosses)
+    const currentEnemyCount = (director.scene.enemiesGroup?.countActive?.() || 0)
+                            + (director.scene.bossGroup?.countActive?.() || 0);
     const maxEnemies = director._maxEnemies;
 
     if (currentEnemyCount >= maxEnemies - 5) { // Leave room for regular spawns
@@ -110,6 +112,11 @@ export function processEliteWindows(director) {
  */
 export function processUniqueSpawns(director) {
     if (!director.currentTable.uniqueSpawns) return;
+
+    // Respect max enemies cap (same as waves and elites)
+    const currentCount = (director.scene.enemiesGroup?.countActive?.() || 0)
+                       + (director.scene.bossGroup?.countActive?.() || 0);
+    if (currentCount >= director._maxEnemies) return;
 
     const now = director.gameTime;
 

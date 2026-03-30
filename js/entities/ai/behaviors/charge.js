@@ -25,7 +25,7 @@ export function charge(cap, cfg, dt, mem, setState) {
 
     // Initialize
     if (!mem.charge) {
-        mem.charge = { phase: 'approach', phaseStart: cap.now, dashDx: 0, dashDy: 0 };
+        mem.charge = { phase: 'approach', phaseStart: cap.now || Date.now(), dashDx: 0, dashDy: 0 };
     }
     const s = mem.charge;
     const elapsed = cap.now - s.phaseStart;

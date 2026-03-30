@@ -39,8 +39,13 @@ export function shoot(cap, cfg, dt, mem, setState) {
 
         for (let i = 0; i < burstCount; i++) {
             cap.schedule(() => {
+                // Fresh angle at fire time (player moves during charge)
+                const p = cap.getPlayer();
+                if (!p?.active) return;
+                const freshPos = cap.getPos();
+                const freshAngle = Math.atan2(p.y - freshPos.y, p.x - freshPos.x);
                 cap.shoot('straight', {
-                    angle,
+                    angle: freshAngle,
                     speed: cfg?.speed || 200,
                     damage: cfg?.damage || cap.damage
                 });

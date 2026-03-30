@@ -20,6 +20,16 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
 
     // Find nearest ally to orbit — search from PLAYER position (where combat happens)
     const player = cap.getPlayer();
+    // Update live position from tracked target each frame
+    if (s.targetRef?.active) {
+        s.targetX = s.targetRef.x;
+        s.targetY = s.targetRef.y;
+    } else {
+        s.hasTarget = false;
+        s.targetRef = null;
+    }
+
+    // Re-search for a new target periodically or if current one died
     if (!s.hasTarget || cap.now - s.lastSearch > 1500) {
         s.lastSearch = cap.now;
         const searchX = player?.x || pos.x;
@@ -27,16 +37,17 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
         const nearby = cap.getEnemiesNearby(searchX, searchY, 300);
         let bestDist = Infinity;
         s.hasTarget = false;
+        s.targetRef = null;
 
         for (let i = 0; i < nearby.length; i++) {
             const e = nearby[i];
-            // Don't target self or other shield allies
             if (e.blueprintId === 'enemy.shielding_helper' || e.blueprintId === 'enemy.support_bacteria') continue;
             const edx = e.x - searchX;
             const edy = e.y - searchY;
             const edSq = edx * edx + edy * edy;
             if (edSq < bestDist) {
                 bestDist = edSq;
+                s.targetRef = e; // Store reference for live position tracking
                 s.targetX = e.x;
                 s.targetY = e.y;
                 s.hasTarget = true;
