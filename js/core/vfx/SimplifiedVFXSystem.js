@@ -10,6 +10,7 @@ import { VFXPresets } from './VFXPresets.js';
 import { RadiotherapyEffect } from './effects/RadiotherapyEffect.js';
 import { FlamethrowerEffect } from './effects/FlamethrowerEffect.js';
 import { ShieldEffect } from './effects/ShieldEffect.js';
+import { ImmuneAuraEffect } from './effects/ImmuneAuraEffect.js';
 import { DebugLogger } from '../debug/DebugLogger.js';
 
 export class SimplifiedVFXSystem {
@@ -215,7 +216,12 @@ export class SimplifiedVFXSystem {
                 effect = new FlamethrowerEffect(this.scene, effectType, config);
                 effect.attach(entity);
                 break;
-                
+
+            case 'immune_aura':
+                effect = new ImmuneAuraEffect(this.scene, effectType, config);
+                effect.attach(entity);
+                break;
+
             default:
                 // Generic particle effect that follows entity
                 const particleConfig = config.particles || VFXPresets.aura(config.color);
