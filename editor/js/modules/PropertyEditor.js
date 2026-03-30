@@ -1566,18 +1566,28 @@ export class PropertyEditor {
                 tdGroup.appendChild(badge);
                 tr.appendChild(tdGroup);
 
-                // File input (editable)
+                // File input / VFX picker
                 const tdFile = document.createElement('td');
                 tdFile.className = 'eat-td eat-td-file';
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'eat-input';
-                input.value = val || '';
-                input.dataset.path = fieldPath;
-                input.addEventListener('change', () => {
-                    this.handleChange(fieldPath, input.value);
-                });
-                tdFile.appendChild(input);
+
+                if (!isSfx && this.editor.modules.vfxPreview) {
+                    // VFX: use picker dropdown with preview
+                    const picker = this.editor.modules.vfxPreview.createVFXPicker(val || '', (newVal) => {
+                        this.handleChange(fieldPath, newVal);
+                    });
+                    picker.dataset.path = fieldPath;
+                    tdFile.appendChild(picker);
+                } else {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'eat-input';
+                    input.value = val || '';
+                    input.dataset.path = fieldPath;
+                    input.addEventListener('change', () => {
+                        this.handleChange(fieldPath, input.value);
+                    });
+                    tdFile.appendChild(input);
+                }
                 tr.appendChild(tdFile);
 
                 // Play button (SFX only)
@@ -1593,7 +1603,8 @@ export class PropertyEditor {
                     const buttonId = `eat-${fieldPath}-${this._btnIdCtr}`;
                     playBtn.dataset.buttonId = buttonId;
                     playBtn.addEventListener('click', async () => {
-                        if (!input.value) return;
+                        const input = tdFile.querySelector('.eat-input');
+                        if (!input || !input.value) return;
                         const isPlaying = playBtn.classList.contains('playing');
                         if (isPlaying) {
                             this.stopAudioPreview(buttonId);
