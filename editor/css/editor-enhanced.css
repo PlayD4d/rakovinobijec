@@ -1113,7 +1113,8 @@ select.property-input {
     color: #ccc;
     font-weight: 500;
     white-space: nowrap;
-    width: 140px;
+    max-width: 140px;
+    min-width: 80px;
 }
 
 .eat-td-group {

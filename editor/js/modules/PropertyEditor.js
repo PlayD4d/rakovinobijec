@@ -50,6 +50,8 @@ export class PropertyEditor {
             return;
         }
 
+        // Mark old elite comparison containers as abandoned (prevents stale async updates)
+        this.formContainer.querySelectorAll('.elite-comparison').forEach(el => { el.dataset.abandoned = 'true'; });
         this.formContainer.replaceChildren();
 
         // Insert elite comparison view before other groups if applicable
@@ -172,7 +174,7 @@ export class PropertyEditor {
         // Event audio table: when sfx/vfx key holds a flat object with >3 audio entries
         for (const audioKey of ['sfx', 'vfx']) {
             if (properties[audioKey] && typeof properties[audioKey] === 'object'
-                && !Array.isArray(properties[audioKey]) && Object.keys(properties[audioKey]).length > 3) {
+                && !Array.isArray(properties[audioKey]) && Object.keys(properties[audioKey]).length >= 3) {
                 const audioPath = path ? `${path}.${audioKey}` : audioKey;
                 const type = audioKey; // 'sfx' or 'vfx'
                 content.appendChild(this.createEventAudioTable(audioKey, properties[audioKey], audioPath, type));
@@ -1587,7 +1589,8 @@ export class PropertyEditor {
                     playBtn.className = 'eat-play-btn';
                     playBtn.textContent = '\u25B6';
                     playBtn.title = 'Preview';
-                    const buttonId = `eat-${fieldPath}-${Date.now()}`;
+                    this._btnIdCtr = (this._btnIdCtr || 0) + 1;
+                    const buttonId = `eat-${fieldPath}-${this._btnIdCtr}`;
                     playBtn.dataset.buttonId = buttonId;
                     playBtn.addEventListener('click', async () => {
                         if (!input.value) return;
@@ -2034,13 +2037,11 @@ export class PropertyEditor {
 
         // Try to compute base stats from elite stats and multipliers
         const statKeys = Object.keys(eliteStats);
-        // Find the maximum elite stat value for bar scaling
-        let maxEliteVal = 0;
-        for (const key of statKeys) {
-            const v = typeof eliteStats[key] === 'number' ? eliteStats[key] : 0;
-            if (v > maxEliteVal) maxEliteVal = v;
-        }
-        if (maxEliteVal === 0) maxEliteVal = 1;
+        // Per-stat scaling ranges (not shared max — prevents HP dominating all bars)
+        const statRanges = {
+            hp: 200, damage: 50, speed: 200, size: 60, armor: 20, xp: 100
+        };
+        const getRange = (key) => statRanges[key] || 100;
 
         // Stat colors
         const statColors = {
@@ -2076,7 +2077,7 @@ export class PropertyEditor {
             const baseFill = document.createElement('div');
             baseFill.className = 'elite-bar-fill elite-bar-fill--base';
             if (baseVal !== null) {
-                const basePct = Math.max(5, Math.round((baseVal / maxEliteVal) * 100));
+                const basePct = Math.max(5, Math.round((baseVal / getRange(key)) * 100));
                 baseFill.style.width = basePct + '%';
                 baseFill.textContent = String(baseVal);
             } else {
@@ -2097,7 +2098,7 @@ export class PropertyEditor {
             eliteWrap.className = 'elite-bar-wrap';
             const eliteFill = document.createElement('div');
             eliteFill.className = 'elite-bar-fill elite-bar-fill--elite';
-            const elitePct = Math.max(5, Math.round((eliteVal / maxEliteVal) * 100));
+            const elitePct = Math.max(5, Math.round((eliteVal / getRange(key)) * 100));
             eliteFill.style.width = elitePct + '%';
             eliteFill.textContent = String(eliteVal);
             if (statColors[key]) {
@@ -2122,7 +2123,7 @@ export class PropertyEditor {
 
         // Async: try loading the actual base blueprint to fill in real base values
         if (baseId) {
-            this._tryLoadBaseBlueprint(baseId, container, eliteStats, multipliers, statColors, maxEliteVal);
+            this._tryLoadBaseBlueprint(baseId, container, eliteStats, multipliers, statColors, getRange);
         }
 
         return container;
@@ -2131,8 +2132,9 @@ export class PropertyEditor {
     /**
      * Attempt to load the base blueprint and update comparison bars with real values
      */
-    async _tryLoadBaseBlueprint(baseId, container, eliteStats, multipliers, statColors, maxEliteVal) {
+    async _tryLoadBaseBlueprint(baseId, container, eliteStats, multipliers, statColors, getRange) {
         try {
+            if (container.dataset.abandoned === 'true') return;
             const browser = this.editor.modules.browser;
             let filePath = null;
             if (browser && browser.blueprints) {
@@ -2156,7 +2158,7 @@ export class PropertyEditor {
 
                 const baseFill = row.querySelector('.elite-bar-fill--base');
                 if (baseFill) {
-                    const basePct = Math.max(5, Math.round((realBase / maxEliteVal) * 100));
+                    const basePct = Math.max(5, Math.round((realBase / getRange(key)) * 100));
                     baseFill.style.width = basePct + '%';
                     baseFill.textContent = String(realBase);
                 }
@@ -2206,7 +2208,7 @@ export class PropertyEditor {
         contentContainer.className = 'vfx-content';
         
         const updateContent = () => {
-            contentContainer.innerHTML = '';
+            contentContainer.replaceChildren();
             
             if (modeCheckbox.checked) {
                 // Direct config mode - show config editor
@@ -2865,7 +2867,7 @@ export class PropertyEditor {
         
         // Render existing items
         const renderItems = () => {
-            arrayContainer.innerHTML = '';
+            arrayContainer.replaceChildren();
             
             items.forEach((item, index) => {
                 const itemDiv = document.createElement('div');
