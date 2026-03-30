@@ -20,7 +20,7 @@ export class MainMenu extends Phaser.Scene {
         this.musicManager = null;
         this.keyboardManager = null;
 
-        // Flag pro tracking fullscreen stavu
+        // Flag for tracking fullscreen state
         this.isFullscreenMode = false;
     }
 
@@ -30,7 +30,7 @@ export class MainMenu extends Phaser.Scene {
 
     preload() {
         // LiteUI doesn't need external plugins
-        // Načíst pouze základní UI zvuky pro menu
+        // Load only basic UI sounds for menu
         const menuSounds = [
             'sound/intro.mp3',
             'sound/pickup.mp3'
@@ -62,9 +62,9 @@ export class MainMenu extends Phaser.Scene {
 
     async create() {
         DebugLogger.info('menu', '[MainMenu] create');
-        // V menu fyziku nepotřebujeme – pauznout pro úsporu CPU
+        // We don't need physics in menu - pause to save CPU
         try { this.physics?.world?.pause(); } catch (_) { }
-        // Bezpečnost: zastavit všechny hrající zvuky/hudbu po návratu z GameScene
+        // Safety: stop all playing sounds/music after returning from GameScene
         try { this.sound && this.sound.stopAll && this.sound.stopAll(); } catch (_) { }
         try { this.game && this.game.sound && this.game.sound.stopAll && this.game.sound.stopAll(); } catch (_) { }
         // Debug: Check scene dimensions
@@ -74,14 +74,14 @@ export class MainMenu extends Phaser.Scene {
         DebugLogger.info('menu', 'scene.scale.gameSize:', this.scale.gameSize);
         DebugLogger.info('menu', 'scene.cameras.main size:', this.cameras.main.width, 'x', this.cameras.main.height);
 
-        // Načtení verze hry ze version.js
+        // Load game version from version.js
         try {
             this.gameVersion = await loadGameVersion();
         } catch (e) {
             this.gameVersion = getCachedVersion();
         }
 
-        // Inicializace high score managerů
+        // Initialize high score managers
         this.highScoreManager = new HighScoreManager();
         this.globalHighScoreManager = new GlobalHighScoreManager();
         this.globalHighScoreManager.setLocalFallback(this.highScoreManager);
@@ -89,7 +89,7 @@ export class MainMenu extends Phaser.Scene {
         // Use shared CentralEventBus (Phaser recommended: standalone EventEmitter singleton)
         this.eventBus = centralEventBus;
 
-        // Vytvoření main menu UI (LiteUI)
+        // Create main menu UI (LiteUI)
         this.mainMenuUI = new MainMenuUI(this, this.gameVersion);
 
         // Setup KeyboardManager for MainMenu
@@ -102,7 +102,7 @@ export class MainMenu extends Phaser.Scene {
             DebugLogger.error('menu', 'MainMenu KeyboardManager init failed:', error);
         }
 
-        // PR7: Init GraphicsFactory and VFX pro menu
+        // PR7: Init GraphicsFactory and VFX for menu
         try {
             this.graphicsFactory = new GraphicsFactory(this);
             this.vfxSystem = new VFXSystem(this);
@@ -115,7 +115,7 @@ export class MainMenu extends Phaser.Scene {
         this.input.once('pointerdown', () => this._startMenuAudio());
 
         // LiteUI doesn't need resize handlers - it's simple and fixed
-        // Ujistit se, že při ukončení scény proběhne úklid (odregistrování posluchačů)
+        // Ensure cleanup runs when the scene shuts down (unregister listeners)
         try {
             this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this);
             this.events.once(Phaser.Scenes.Events.DESTROY, this.shutdown, this);
@@ -125,9 +125,9 @@ export class MainMenu extends Phaser.Scene {
         // Keep the game running in menu for responsive UI
         DebugLogger.info('menu', '[MainMenu] Skipping blur/focus sleep/wake - keeping menu responsive');
 
-        // NEUSPÁVAT menu automaticky - nechme ho běžet, ale s nízkou frame rate
-        // Menu je jednoduché a LiteUI nezatěžuje systém
-        // Sleep pouze při blur (ztráta fokusu okna)
+        // Do NOT auto-sleep menu - let it run but at a low frame rate
+        // Menu is simple and LiteUI doesn't strain the system
+        // Sleep only on blur (window focus loss)
 
         // Keep normal FPS in menu for responsive UI
         // Low FPS can cause input lag and unresponsive buttons
@@ -149,7 +149,7 @@ export class MainMenu extends Phaser.Scene {
             this.musicManager.stopMusic();
         }
 
-        // Obnovit normální FPS před přechodem do hry
+        // Restore normal FPS before transitioning to game
         try { this.game.loop.targetFps = 60; } catch (_) { }
         // Play pickup sound for menu confirm (before scene transition tears down audio)
         try {
@@ -269,7 +269,7 @@ export class MainMenu extends Phaser.Scene {
         }
 
         // Cleanup event listeners
-        // Obnovit normální FPS při opuštění menu
+        // Restore normal FPS when leaving menu
         try { this.game.loop.targetFps = 60; } catch (_) { }
 
         // No blur/focus listeners to clean up

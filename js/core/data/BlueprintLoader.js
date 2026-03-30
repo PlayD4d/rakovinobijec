@@ -1,15 +1,15 @@
 /**
- * BlueprintLoader - Centralizovaný systém pro načítání všech blueprint dat
- * 
- * PR7 kompatibilní - všechny cesty a konfigurace z ConfigResolver
- * Načítá a spravuje blueprinty ze složky /data/ včetně:
- * - Nepřátelé, Bossové, Unikátní jednotky
- * - Power-upy a Drop předměty  
- * - Loot tabulky a Spawn tabulky
- * - Systémové konfigurace (NG+, pity systém)
+ * BlueprintLoader - Centralized system for loading all blueprint data
+ *
+ * PR7 compatible - all paths and configuration from ConfigResolver
+ * Loads and manages blueprints from /data/ including:
+ * - Enemies, Bosses, Unique units
+ * - Power-ups and Drop items
+ * - Loot tables and Spawn tables
+ * - System configurations (NG+, pity system)
  */
 
-// JSON5 se použije pokud je dostupné globálně, jinak fallback na JSON
+// JSON5 is used if available globally, otherwise falls back to JSON
 
 import { DebugLogger } from '../debug/DebugLogger.js';
 
@@ -21,21 +21,21 @@ export class BlueprintLoader {
         this.loaded = false;
         this.config = null;
         
-        // Kategorie blueprintů - budou inicializované z konfigurace
+        // Blueprint categories - will be initialized from configuration
         this.categories = {};
         
         DebugLogger.info('bootstrap', 'BlueprintLoader initialized');
     }
     
     /**
-     * Načte konfiguraci z ConfigResolver
-     * PR7 kompatibilní - vše je řízeno daty
+     * Load configuration from ConfigResolver
+     * PR7 compatible - everything is data-driven
      */
     loadConfig() {
         const CR = window.ConfigResolver;
         if (!CR) {
-            DebugLogger.error('bootstrap', ' ConfigResolver není dostupný!');
-            // Záložní konfigurace pro případ selhání
+            DebugLogger.error('bootstrap', ' ConfigResolver is not available!');
+            // Fallback configuration in case of failure
             this.config = {
                 paths: {
                     dataRoot: '/data',
@@ -80,12 +80,12 @@ export class BlueprintLoader {
             };
         }
         
-        // Inicializovat kategorie z konfigurace
+        // Initialize categories from configuration
         this.config.categories.forEach(category => {
             this.categories[category] = new Map();
         });
         
-        DebugLogger.debug('bootstrap', 'BlueprintLoader konfigurace načtena:', {
+        DebugLogger.debug('bootstrap', 'BlueprintLoader configuration loaded:', {
             categories: this.config.categories.length,
             spawnTables: this.config.spawnTables.length,
             systemConfigs: this.config.systemConfigs.length
@@ -98,7 +98,7 @@ export class BlueprintLoader {
     async init() {
         DebugLogger.info('bootstrap', 'BlueprintLoader starting initialization...');
         
-        // Nejprve načíst konfiguraci
+        // First load configuration
         this.loadConfig();
         
         try {
@@ -329,10 +329,10 @@ export class BlueprintLoader {
     
     /**
      * Get category from blueprint ID
-     * PR7 kompatibilní - používá mapování z konfigurace
+     * PR7 compatible - uses mapping from configuration
      */
     getCategoryFromId(id) {
-        // Zkusit najít v mapování
+        // Try to find in mapping
         if (this.config.categoryMapping) {
             for (const [prefix, category] of Object.entries(this.config.categoryMapping)) {
                 if (id.startsWith(prefix)) {
@@ -341,7 +341,7 @@ export class BlueprintLoader {
             }
         }
         
-        // Záložní logika
+        // Fallback logic
         const parts = id.split('.');
         if (parts.length > 0) {
             const category = parts[0];
@@ -388,10 +388,10 @@ export class BlueprintLoader {
     
     /**
      * Get spawn table by ID
-     * PR7 kompatibilní - JEDEN správný formát: spawnTable.XXX
+     * PR7 compatible - ONE correct format: spawnTable.XXX
      */
     getSpawnTable(scenarioId) {
-        // Očekáváme ID ve formátu spawnTable.XXX
+        // We expect ID in format spawnTable.XXX
         const expectedId = scenarioId.startsWith('spawnTable.') ? scenarioId : `spawnTable.${scenarioId}`;
         
         const table = this.categories.spawnTable?.get(expectedId) || 

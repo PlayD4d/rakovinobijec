@@ -1,8 +1,8 @@
 /**
- * BossPhases - Systém pro správu boss fází
- * 
- * Spravuje přechody mezi fázemi na základě HP prahů a jiných podmínek.
- * Implementuje phase transition logiku odděleně od core boss třídy.
+ * BossPhases - Boss phase management system
+ *
+ * Manages transitions between phases based on HP thresholds and other conditions.
+ * Implements phase transition logic separately from the core boss class.
  */
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
 import { getSession } from '../../core/debug/SessionLog.js';
@@ -37,13 +37,13 @@ export class BossPhases {
     }
     
     /**
-     * Vypočítá HP prahy pro všechny fáze
+     * Calculate HP thresholds for all phases
      */
     calculateHpThresholds() {
         const thresholds = [];
         
         this.phaseData.forEach((phase, index) => {
-            // BUGFIX: Blueprint používá thresholdPct místo hpThreshold
+            // BUGFIX: Blueprint uses thresholdPct instead of hpThreshold
             const threshold = phase.hpThreshold || phase.thresholdPct;
             if (threshold !== undefined) {
                 thresholds.push({
@@ -55,12 +55,12 @@ export class BossPhases {
             }
         });
         
-        // Seřadit podle HP ratio (descending)
+        // Sort by HP ratio (descending)
         return thresholds.sort((a, b) => b.hpRatio - a.hpRatio);
     }
     
     /**
-     * Update method - kontroluje HP a spouští phase transitions
+     * Update method - checks HP and triggers phase transitions
      */
     update(time, delta) {
         if (!this.boss || this.isTransitioning) return;
@@ -72,7 +72,7 @@ export class BossPhases {
 
         const currentHpRatio = this.boss.getHpRatio();
         
-        // Kontrola phase transitions při snížení HP
+        // Check phase transitions on HP decrease
         if (currentHpRatio < this.lastHpRatio) {
             this.checkPhaseTransition(currentHpRatio);
         }
@@ -81,7 +81,7 @@ export class BossPhases {
     }
     
     /**
-     * Zkontroluje, zda by mělo dojít k phase transition
+     * Check if a phase transition should occur
      */
     checkPhaseTransition(currentHpRatio) {
         for (const threshold of this.hpThresholds) {
@@ -94,7 +94,7 @@ export class BossPhases {
     }
     
     /**
-     * Spustí přechod na novou fázi
+     * Trigger transition to a new phase
      */
     triggerPhaseTransition(newPhase) {
         if (newPhase === this.currentPhase || this.isTransitioning) return;
@@ -134,7 +134,7 @@ export class BossPhases {
     }
     
     /**
-     * Efekty před přechodem fáze
+     * Pre-transition phase effects
      */
     executePreTransitionEffects(newPhase) {
         const phaseData = this.phaseData[newPhase];
@@ -168,7 +168,7 @@ export class BossPhases {
     }
     
     /**
-     * Efekty po přechodu fáze
+     * Post-transition phase effects
      */
     executePostTransitionEffects(newPhase) {
         const phaseData = this.phaseData[newPhase];
@@ -198,7 +198,7 @@ export class BossPhases {
     }
     
     /**
-     * Aplikuje modifikátory pro danou fázi
+     * Apply modifiers for the given phase
      */
     applyPhaseModifiers(phaseData) {
         if (phaseData.modifiers) {
@@ -221,7 +221,7 @@ export class BossPhases {
     }
     
     /**
-     * Aplikuje specifické efekty pro fázi
+     * Apply phase-specific effects
      */
     applyPhaseSpecificEffects(phaseData) {
         // Passive auras
@@ -326,7 +326,7 @@ export class BossPhases {
     }
     
     /**
-     * Aktivuje speciální chování
+     * Activate special behavior
      */
     activateSpecialBehavior(behavior) {
         DebugLogger.info('boss', `[BossPhases] Activating special behavior: ${behavior}`);
@@ -349,7 +349,7 @@ export class BossPhases {
     }
     
     /**
-     * Registruje callback pro phase transition
+     * Register a callback for phase transition
      */
     onPhaseTransition(phase, callback) {
         if (!this.transitionCallbacks.has(phase)) {
@@ -359,7 +359,7 @@ export class BossPhases {
     }
     
     /**
-     * Vykoná registrované callbacks pro fázi
+     * Execute registered callbacks for a phase
      */
     executeTransitionCallbacks(phase) {
         // Execute phase-specific callbacks
@@ -381,7 +381,7 @@ export class BossPhases {
     }
     
     /**
-     * Získá dostupné schopnosti pro aktuální fázi
+     * Get available abilities for the current phase
      */
     getCurrentPhaseAbilities() {
         const phaseData = this.phaseData[this.currentPhase];
@@ -389,7 +389,7 @@ export class BossPhases {
     }
     
     /**
-     * Zkontroluje, zda je schopnost dostupná v aktuální fázi
+     * Check if an ability is available in the current phase
      */
     isAbilityAvailableInCurrentPhase(abilityId) {
         const abilities = this.getCurrentPhaseAbilities();
@@ -397,7 +397,7 @@ export class BossPhases {
     }
     
     /**
-     * Získá číslo aktuální fáze
+     * Get the current phase number
      * @returns {number} Current phase number
      */
     getCurrentPhase() {
@@ -405,7 +405,7 @@ export class BossPhases {
     }
     
     /**
-     * Získá data pro specifickou fázi
+     * Get data for a specific phase
      * @param {number} phase - Phase number
      * @returns {object|null} Phase data or null
      */
@@ -414,7 +414,7 @@ export class BossPhases {
     }
     
     /**
-     * Získá data pro aktuální fázi
+     * Get data for the current phase
      * @returns {object|null} Current phase data or null
      */
     getCurrentPhaseData() {
@@ -422,7 +422,7 @@ export class BossPhases {
     }
     
     /**
-     * Manuální přechod na fázi (pro testing nebo speciální případy)
+     * Manual phase transition (for testing or special cases)
      */
     forcePhaseTransition(newPhase) {
         if (newPhase >= 0 && newPhase < this.phaseData.length) {
@@ -431,7 +431,7 @@ export class BossPhases {
     }
     
     /**
-     * Cleanup při odstranění bosse
+     * Cleanup on boss removal
      */
     cleanup() {
         this.isTransitioning = false;

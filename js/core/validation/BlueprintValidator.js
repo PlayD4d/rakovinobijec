@@ -1,5 +1,5 @@
 /**
- * BlueprintValidator - validace blueprintů při načítání
+ * BlueprintValidator - blueprint validation during loading
  *
  * Delegates type-specific validation to sub-modules:
  *   - CombatValidator (enemy, boss, projectile)

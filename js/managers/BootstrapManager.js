@@ -134,6 +134,13 @@ export class BootstrapManager {
             }
             this.scene.spawnDirector?.resetTimersAfterPause?.();
             this.scene.powerUpSystem?.resetTimersAfterPause?.();
+            // Flush excess XP on next frame (not synchronously inside resume event)
+            // Prevents re-entrant scene.pause() if flush triggers another level-up
+            if (this.scene.progressionSystem?._pendingXP > 0) {
+                this.scene.time.delayedCall(1, () => {
+                    this.scene.progressionSystem?.flushPendingXP?.();
+                });
+            }
         };
         this._onPowerUpSelected = (selection) => {
             this.handlePowerUpSelection(selection);

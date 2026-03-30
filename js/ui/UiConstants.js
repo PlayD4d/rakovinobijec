@@ -1,26 +1,26 @@
 /**
- * Rozšířené UI konstanty pro unified UI systém
- * Integrace s novým UI_THEME systémem
+ * Extended UI constants for unified UI system
+ * Integration with the new UI_THEME system
  */
 import { UI_THEME } from './UITheme.js';
 
-// Responsive utilities pro komponenty
+// Responsive utilities for components
 export const RESPONSIVE = {
-    // Adaptivní velikosti karet (PowerUpSystem, atd.)
+    // Adaptive card sizes (PowerUpSystem, etc.)
     getCardSize: (isMobile = false) => ({
         width: isMobile ? 280 : 320,
-        height: isMobile ? 320 : 360,  // Menší výška pro lepší fit
+        height: isMobile ? 320 : 360,  // Smaller height for better fit
         padding: isMobile ? UI_THEME.spacing.s : UI_THEME.spacing.m
     }),
     
-    // Adaptivní rozestupy
+    // Adaptive spacing
     getSpacing: (isMobile = false) => ({
         small: isMobile ? UI_THEME.spacing.xs : UI_THEME.spacing.s,
         medium: isMobile ? UI_THEME.spacing.s : UI_THEME.spacing.m,
         large: isMobile ? UI_THEME.spacing.m : UI_THEME.spacing.l
     }),
     
-    // Adaptivní velikosti modálů - menší výška aby se vešlo na obrazovku
+    // Adaptive modal sizes - smaller height to fit on screen
     getModalSize: (isMobile = false, screenWidth = window.innerWidth, screenHeight = window.innerHeight) => {
         if (isMobile) {
             return {
@@ -46,14 +46,14 @@ export const RESPONSIVE = {
         recommended: 48 // Android recommended
     }),
     
-    // Breakpoints pro responsive design
+    // Breakpoints for responsive design
     breakpoints: {
         mobile: 768,
         tablet: 1024,
         desktop: 1440
     },
     
-    // Utility pro detekci screen size
+    // Utility for screen size detection
     getScreenType: (width = window.innerWidth) => {
         if (width < RESPONSIVE.breakpoints.mobile) return 'mobile';
         if (width < RESPONSIVE.breakpoints.tablet) return 'tablet';
@@ -61,7 +61,7 @@ export const RESPONSIVE = {
     }
 };
 
-// Zachováváme původní funkce pro kompatibilitu
+// Keep original functions for backward compatibility
 export function isMobile() {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
 }

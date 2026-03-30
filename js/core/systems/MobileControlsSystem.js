@@ -1,8 +1,8 @@
 /**
- * MobileControlsSystem - Systém pro mobilní ovládání
- * 
- * PR7 kompatibilní - všechny parametry z ConfigResolver
- * Virtuální joystick pro mobilní zařízení
+ * MobileControlsSystem - Mobile controls system
+ *
+ * PR7 compatible - all parameters from ConfigResolver
+ * Virtual joystick for mobile devices
  */
 
 export class MobileControlsSystem {
@@ -11,9 +11,9 @@ export class MobileControlsSystem {
     this.enabled = false;
     this.activePointerId = null;
     
-    // Přímé použití Phaser API (InputSystem a CameraSystem odstraněny)
+    // Direct Phaser API usage (InputSystem and CameraSystem removed)
     
-    // PR7: Získat parametry z ConfigResolver
+    // PR7: Get parameters from ConfigResolver
     const CR = this.scene.configResolver || window.ConfigResolver;
     
     this.side = options.side === 'right' ? 'right' : 'left';
@@ -69,7 +69,7 @@ export class MobileControlsSystem {
   _createVisuals() {
     const s = this.scene;
     
-    // PR7: Získat depth hodnoty z ConfigResolver
+    // PR7: Get depth values from ConfigResolver
     const CR = this.scene.configResolver || window.ConfigResolver;
     const baseDepth = CR?.get('mobile.joystick.baseDepth', { defaultValue: 4000 }) || 4000;
     const knobDepth = CR?.get('mobile.joystick.knobDepth', { defaultValue: 4001 }) || 4001;
@@ -115,20 +115,20 @@ export class MobileControlsSystem {
     this.base.clear();
     this.knob.clear();
     
-    // PR7: Získat vizuální parametry z ConfigResolver
+    // PR7: Get visual parameters from ConfigResolver
     const CR = this.scene.configResolver || window.ConfigResolver;
     const baseColor = CR?.get('mobile.joystick.baseColor', { defaultValue: 0x000000 }) || 0x000000;
     const baseAlpha = CR?.get('mobile.joystick.baseAlpha', { defaultValue: 0.25 }) || 0.25;
     const knobSize = CR?.get('mobile.joystick.knobSize', { defaultValue: 24 }) || 24;
     
-    // Základní kruh
+    // Base circle
     this.base.fillStyle(baseColor, baseAlpha);
     this.base.fillCircle(0, 0, this.maxRadius + 8);
     this.base.lineStyle(2, 0xffffff, 0.4);
     this.base.strokeCircle(0, 0, this.maxRadius + 8);
     this.base.setAlpha(0.9);
     
-    // Ovládací knoflík
+    // Control knob
     this.knob.fillStyle(0xffffff, 0.8);
     this.knob.fillCircle(0, 0, knobSize);
     this.knob.lineStyle(2, 0x000000, 0.4);
@@ -136,7 +136,7 @@ export class MobileControlsSystem {
   }
 
   _bindInput() {
-    // Připojení vstupních událostí přes InputSystem
+    // Bind input events via InputSystem
     if (this.scene.input.getPointersTotal() < 2) {
       this.scene.input.addPointers(2 - this.scene.input.getPointersTotal());
     }
@@ -164,7 +164,7 @@ export class MobileControlsSystem {
   }
 
   _unbindInput() {
-    // Odpojení vstupních událostí přes InputSystem
+    // Unbind input events via InputSystem
     if (this._onDown) this.scene.input.off('pointerdown', this._onDown, this);
     if (this._onMove) this.scene.input.off('pointermove', this._onMove, this);
     if (this._onUp) {

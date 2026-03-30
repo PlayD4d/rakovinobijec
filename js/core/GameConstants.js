@@ -1,46 +1,46 @@
 /**
- * GameConstants - Centrální místo pro všechny game konstanty
- * 
- * Nahrazuje "magic numbers" rozházené po celém kódu.
- * Usnadňuje balancing a údržbu.
+ * GameConstants - Central place for all game constants
+ *
+ * Replaces "magic numbers" scattered throughout the codebase.
+ * Makes balancing and maintenance easier.
  */
 
 export const GameConstants = {
-    // Kolizní radiusy
+    // Collision radiuses
     COLLISION: {
-        PROJECTILE: 15,          // Radius kolize projektil ↔ enemy
-        LOOT_PICKUP: 15,         // Radius sběru lootu (LootSystem)
-        LOOT_OVERLAP: 20,        // Radius pro physics.overlap
-        PLAYER_ENEMY: 25,        // Radius kontaktního damage
-        EXPLOSION: 50,           // Základní radius exploze
+        PROJECTILE: 15,          // Projectile ↔ enemy collision radius
+        LOOT_PICKUP: 15,         // Loot pickup radius (LootSystem)
+        LOOT_OVERLAP: 20,        // Radius for physics.overlap
+        PLAYER_ENEMY: 25,        // Contact damage radius
+        EXPLOSION: 50,           // Base explosion radius
     },
     
-    // Vzdálenosti a pozice
+    // Distances and positions
     DISTANCE: {
-        BOSS_SAFE_SPAWN: 220,    // Minimální vzdálenost spawn bosse od hráče
-        PROJECTILE_VISIBILITY: 20, // Vzdálenost pro zobrazení projektilu
-        OUT_OF_BOUNDS: 50,       // Okraj pro destroy projektilů mimo obrazovku
+        BOSS_SAFE_SPAWN: 220,    // Minimum boss spawn distance from player
+        PROJECTILE_VISIBILITY: 20, // Distance for projectile visibility
+        OUT_OF_BOUNDS: 50,       // Margin for destroying off-screen projectiles
     },
     
-    // Časové konstanty (ms)
+    // Time constants (ms)
     TIME: {
-        PROJECTILE_LIFETIME: 1500,  // Životnost projektilu
-        INVINCIBILITY_FRAMES: 1000, // i-frames po zásahu
-        BLINK_INTERVAL: 180,        // Blikání metotrexátu
-        DEBUG_LOG_THROTTLE: 5000,   // Throttle debug logů
+        PROJECTILE_LIFETIME: 1500,  // Projectile lifetime
+        INVINCIBILITY_FRAMES: 1000, // i-frames after hit
+        BLINK_INTERVAL: 180,        // Metotrexat blink interval
+        DEBUG_LOG_THROTTLE: 5000,   // Debug log throttle
     },
     
-    // Vizuální konstanty
+    // Visual constants
     VISUAL: {
-        PROJECTILE_SIZE: 5,      // Velikost player projektilu
-        ENEMY_PROJECTILE_SIZE: 4, // Velikost enemy projektilu
-        EXPLOSION_SCALE: 2,      // Multiplier exploze při animaci
-        EXPLOSION_DURATION: 300, // ms animace exploze
+        PROJECTILE_SIZE: 5,      // Player projectile size
+        ENEMY_PROJECTILE_SIZE: 4, // Enemy projectile size
+        EXPLOSION_SCALE: 2,      // Explosion animation multiplier
+        EXPLOSION_DURATION: 300, // ms explosion animation
     },
     
-    // Physics konstanty
+    // Physics constants
     PHYSICS: {
-        DIAGONAL_NORMALIZER: Math.sqrt(2), // Pro normalizaci diagonálního pohybu
+        DIAGONAL_NORMALIZER: Math.sqrt(2), // For normalizing diagonal movement
     },
     
     // Homing projectile blueprints - all parameters configurable
@@ -100,11 +100,11 @@ export const GameConstants = {
         }
     },
     
-    // Debug konstanty
+    // Debug constants
     DEBUG: {
-        OVERLAY_UPDATE_INTERVAL: 500,  // ms mezi aktualizacemi debug overlay
-        LOOT_LOG_THROTTLE: 1000,       // Throttle loot debug logů
-        PERFORMANCE_THRESHOLD: 33,     // ms nad kterým se loguje low FPS
+        OVERLAY_UPDATE_INTERVAL: 500,  // ms between debug overlay updates
+        LOOT_LOG_THROTTLE: 1000,       // Loot debug log throttle
+        PERFORMANCE_THRESHOLD: 33,     // ms above which low FPS is logged
     }
 };
 

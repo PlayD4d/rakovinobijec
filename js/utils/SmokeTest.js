@@ -1,6 +1,6 @@
 /**
- * Smoke Test pro verifikaci runtime integrace
- * Ověřuje, že hra používá nové data-driven systémy místo legacy kódu
+ * Smoke Test for runtime integration verification
+ * Verifies that the game uses new data-driven systems instead of legacy code
  */
 export class SmokeTest {
     constructor(scene) {
@@ -11,34 +11,34 @@ export class SmokeTest {
     }
 
     /**
-     * Spustí kompletní smoke test
-     * @returns {Promise<Object>} Výsledky testu
+     * Run complete smoke test
+     * @returns {Promise<Object>} Test results
      */
     async run() {
         console.log('%c[SmokeTest] Starting runtime integration verification...', 'color: #00ff00; font-weight: bold');
         
         try {
-            // 1. Kontrola framework API
+            // 1. Check framework API
             await this.checkFrameworkAPI();
-            
-            // 2. Kontrola blueprint systému
+
+            // 2. Check blueprint system
             await this.checkBlueprintSystem();
-            
-            // 3. Kontrola spawn systému
+
+            // 3. Check spawn system
             await this.checkSpawnSystem();
-            
-            // 4. Kontrola enemy typů
+
+            // 4. Check enemy types
             await this.checkEnemyTypes();
-            
-            // 5. Kontrola loot tables
+
+            // 5. Check loot tables
             await this.checkLootTables();
-            
-            // 6. Kontrola VFX/SFX systémů
+
+            // 6. Check VFX/SFX systems
             await this.checkVFXSFXSystems();
-            
-            // 7. Kontrola telemetrie
+
+            // 7. Check telemetry
             await this.checkTelemetry();
-            
+
             // 8. Performance check
             await this.checkPerformance();
             
@@ -54,26 +54,26 @@ export class SmokeTest {
     }
 
     /**
-     * Kontrola Framework Debug API
+     * Check Framework Debug API
      */
     async checkFrameworkAPI() {
         const testName = 'Framework API';
         
         try {
-            // Kontrola existence __framework
+            // Check __framework existence
             if (!window.__framework) {
                 throw new Error('__framework not found in window');
             }
             
-            // Kontrola healthcheck
+            // Check healthcheck
             const health = window.__framework.healthcheck();
             
-            // Ověření modernSystemsActive
+            // Verify modernSystemsActive
             if (health.modernSystemsActive !== true) {
                 throw new Error(`modernSystemsActive is ${health.modernSystemsActive}, expected true`);
             }
             
-            // Ověření spawnedFromLegacy
+            // Verify spawnedFromLegacy
             if (health.spawnedFromLegacy !== 0) {
                 console.warn(`[SmokeTest] Warning: ${health.spawnedFromLegacy} enemies spawned from legacy system`);
             }
@@ -98,7 +98,7 @@ export class SmokeTest {
     }
 
     /**
-     * Kontrola Blueprint systému
+     * Check Blueprint system
      */
     async checkBlueprintSystem() {
         const testName = 'Blueprint System';
@@ -108,7 +108,7 @@ export class SmokeTest {
                 throw new Error('BlueprintLoader not found in scene');
             }
             
-            // Kontrola načtených blueprintů
+            // Check loaded blueprints
             const requiredBlueprints = [
                 'enemy.viral_swarm',
                 'enemy.acidic_blob',
@@ -129,7 +129,7 @@ export class SmokeTest {
                 throw new Error(`Missing blueprints: ${missingBlueprints.join(', ')}`);
             }
             
-            // Kontrola blueprint struktury
+            // Check blueprint structure
             const testBlueprint = this.scene.blueprints.get('enemy.viral_swarm');
             if (!testBlueprint.stats || !testBlueprint.mechanics || !testBlueprint.display) {
                 throw new Error('Blueprint structure invalid');
@@ -153,7 +153,7 @@ export class SmokeTest {
     }
 
     /**
-     * Kontrola Spawn systému
+     * Check Spawn system
      */
     async checkSpawnSystem() {
         const testName = 'Spawn System';
@@ -163,12 +163,12 @@ export class SmokeTest {
                 throw new Error('SpawnDirector not found in scene');
             }
             
-            // Kontrola aktivní spawn table
+            // Check active spawn table
             if (!this.scene.spawnDirector.currentTable) {
                 throw new Error('No active spawn table');
             }
             
-            // Kontrola spawn table dat
+            // Check spawn table data
             const table = this.scene.spawnDirector.currentTable;
             if (!table.waves || !table.eliteWindows || !table.uniqueSpawns) {
                 throw new Error('Spawn table structure invalid');
@@ -194,13 +194,13 @@ export class SmokeTest {
     }
 
     /**
-     * Kontrola nových enemy typů
+     * Check new enemy types
      */
     async checkEnemyTypes() {
         const testName = 'Enemy Types';
         
         try {
-            // Získat všechny aktivní nepřátele ze skupiny enemies
+            // Get all active enemies from the enemies group
             const enemies = this.scene.enemies?.getChildren() || [];
             const enemyTypes = new Set();
             
@@ -210,7 +210,7 @@ export class SmokeTest {
                 }
             });
             
-            // Kontrola, že se spawnují nové typy
+            // Check that new types are spawning
             const newTypes = ['enemy.viral_swarm', 'enemy.acidic_blob', 'enemy.shadow_stalker'];
             const foundNewTypes = newTypes.filter(type => {
                 return Array.from(enemyTypes).some(id => id && id.includes(type.split('.')[1]));
@@ -239,24 +239,24 @@ export class SmokeTest {
     }
 
     /**
-     * Kontrola Loot Tables
+     * Check Loot Tables
      */
     async checkLootTables() {
         const testName = 'Loot Tables';
         
         try {
-            // Kontrola existence loot systému
+            // Check loot system existence
             if (!this.scene.lootDropManager && !this.scene.coreLootSystem) {
                 console.warn('[SmokeTest] No loot system found, checking blueprint loot tables');
             }
             
-            // Kontrola loot table v blueprintech
+            // Check loot table in blueprints
             const lootTableBlueprint = this.scene.blueprints?.get('loot_table.standard');
             if (!lootTableBlueprint) {
                 throw new Error('Standard loot table not found in blueprints');
             }
             
-            // Kontrola loot table struktury
+            // Check loot table structure
             if (!lootTableBlueprint.drops || !Array.isArray(lootTableBlueprint.drops)) {
                 throw new Error('Loot table structure invalid');
             }
@@ -279,7 +279,7 @@ export class SmokeTest {
     }
 
     /**
-     * Kontrola VFX/SFX systémů
+     * Check VFX/SFX systems
      */
     async checkVFXSFXSystems() {
         const testName = 'VFX/SFX Systems';
@@ -288,10 +288,10 @@ export class SmokeTest {
             let vfxActive = false;
             let sfxActive = false;
             
-            // Kontrola VFX systému
+            // Check VFX system
             if (this.scene.newVFXSystem) {
                 vfxActive = true;
-                // Zkusit získat VFX countery pokud existují
+                // Try to get VFX counters if available
                 if (window.__framework?.getCounters) {
                     const counters = window.__framework.getCounters();
                     if (counters.vfxPlayed > 0) {
@@ -300,10 +300,10 @@ export class SmokeTest {
                 }
             }
             
-            // Kontrola SFX systému
+            // Check SFX system
             if (this.scene.newSFXSystem || this.scene.audioManager) {
                 sfxActive = true;
-                // Zkusit získat SFX countery pokud existují
+                // Try to get SFX counters if available
                 if (window.__framework?.getCounters) {
                     const counters = window.__framework.getCounters();
                     if (counters.sfxPlayed > 0) {
@@ -330,18 +330,18 @@ export class SmokeTest {
     }
 
     /**
-     * Kontrola telemetrie
+     * Check telemetry
      */
     async checkTelemetry() {
         const testName = 'Telemetry';
         
         try {
-            // Kontrola analytics manager
+            // Check analytics manager
             if (!this.scene.analyticsManager) {
                 console.warn('[SmokeTest] AnalyticsManager not found');
             }
             
-            // Kontrola telemetrie v __framework
+            // Check telemetry in __framework
             if (window.__framework?.getTelemetry) {
                 const telemetry = window.__framework.getTelemetry();
                 
@@ -404,7 +404,7 @@ export class SmokeTest {
     }
 
     /**
-     * Generuje finální report
+     * Generate final report
      */
     generateReport() {
         const duration = Date.now() - this.startTime;
@@ -437,7 +437,7 @@ export class SmokeTest {
         console.log(`[SmokeTest] Duration: ${duration}ms`);
         console.log(`[SmokeTest] Results: ${passed} passed, ${failed} failed, ${warnings} warnings, ${skipped} skipped`);
         
-        // Detailní výpis
+        // Detailed output
         this.results.forEach((result, testName) => {
             const icon = result.status === 'PASSED' ? '✅' : 
                         result.status === 'FAILED' ? '❌' : 
@@ -464,7 +464,7 @@ export class SmokeTest {
     }
 
     /**
-     * Quick check - rychlá kontrola klíčových systémů
+     * Quick check - fast verification of key systems
      */
     static async quickCheck(scene) {
         const checks = {

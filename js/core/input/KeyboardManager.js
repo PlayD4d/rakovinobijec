@@ -1,13 +1,13 @@
 import { DebugLogger } from '../debug/DebugLogger.js';
 
 /**
- * KeyboardManager - Centralizovaný management keyboard inputů
+ * KeyboardManager - Centralized keyboard input management
  *
- * PR7 kompatibilní systém pro správu klávesových zkratek s:
- * - Automatickým cleanup
- * - Kontext-based organizací
- * - EventBus integrací
- * - Žádné removeKey errors
+ * PR7 compatible system for managing keyboard shortcuts with:
+ * - Automatic cleanup
+ * - Context-based organization
+ * - EventBus integration
+ * - No removeKey errors
  */
 
 export class KeyboardManager {
@@ -22,16 +22,16 @@ export class KeyboardManager {
     }
     
     /**
-     * Zaregistrovat klávesovou zkratku
-     * @param {string} keyCode - kód klávesy (např. 'ESC', 'F3', 'SPACE')
-     * @param {string} eventName - název eventu pro EventBus
-     * @param {string} context - kontext pro groupování (např. 'game', 'debug', 'ui')
-     * @param {Object} payload - volitelný payload pro event
+     * Register a keyboard shortcut
+     * @param {string} keyCode - key code (e.g. 'ESC', 'F3', 'SPACE')
+     * @param {string} eventName - event name for EventBus
+     * @param {string} context - context for grouping (e.g. 'game', 'debug', 'ui')
+     * @param {Object} payload - optional payload for event
      */
     register(keyCode, eventName, context = 'global', payload = {}) {
         const id = `${context}:${keyCode}`;
-        
-        // Pokud už je registrovaný, nejdřív ho odregistruj
+
+        // If already registered, unregister first
         if (this.handlers.has(id)) {
             this.unregister(keyCode, context);
         }
@@ -54,10 +54,10 @@ export class KeyboardManager {
     }
     
     /**
-     * Zaregistrovat klávesovou zkratku s přímým callback
-     * @param {string} keyCode - kód klávesy
-     * @param {Function} callback - funkce k zavolání
-     * @param {string} context - kontext
+     * Register a keyboard shortcut with a direct callback
+     * @param {string} keyCode - key code
+     * @param {Function} callback - function to call
+     * @param {string} context - context
      */
     registerDirect(keyCode, callback, context = 'global') {
         const id = `${context}:${keyCode}`;
@@ -80,9 +80,9 @@ export class KeyboardManager {
     }
     
     /**
-     * Odregistrovat specifickou klávesovou zkratku
-     * @param {string} keyCode 
-     * @param {string} context 
+     * Unregister a specific keyboard shortcut
+     * @param {string} keyCode
+     * @param {string} context
      */
     unregister(keyCode, context = 'global') {
         const id = `${context}:${keyCode}`;
@@ -100,8 +100,8 @@ export class KeyboardManager {
     }
     
     /**
-     * Vyčistit všechny klávesy z daného kontextu
-     * @param {string} context 
+     * Clean up all keys from a given context
+     * @param {string} context
      */
     cleanupContext(context) {
         const toRemove = [];
@@ -125,10 +125,10 @@ export class KeyboardManager {
     }
     
     /**
-     * Zaregistrovat modální klávesový handler (temporary)
-     * @param {string} modalId - unikátní ID modalu
-     * @param {string} keyCode - kód klávesy
-     * @param {Function} callback - funkce k zavolání
+     * Register a modal keyboard handler (temporary)
+     * @param {string} modalId - unique modal ID
+     * @param {string} keyCode - key code
+     * @param {Function} callback - function to call
      */
     registerModal(modalId, keyCode, callback) {
         const context = `modal:${modalId}`;
@@ -136,9 +136,9 @@ export class KeyboardManager {
     }
     
     /**
-     * Zaregistrovat text input handler pro modal
-     * @param {string} modalId - unikátní ID modalu  
-     * @param {Function} onKeyDown - callback pro všechny klávesy
+     * Register a text input handler for a modal
+     * @param {string} modalId - unique modal ID
+     * @param {Function} onKeyDown - callback for all keys
      */
     registerTextInput(modalId, onKeyDown) {
         const context = `modal:${modalId}`;
@@ -166,20 +166,20 @@ export class KeyboardManager {
     }
     
     /**
-     * Vyčistit všechny klávesy pro modal
-     * @param {string} modalId 
+     * Clean up all keys for a modal
+     * @param {string} modalId
      */
     cleanupModal(modalId) {
         this.cleanupContext(`modal:${modalId}`);
     }
     
     /**
-     * Kompletní cleanup všech handlerů
+     * Complete cleanup of all handlers
      */
     destroy() {
         const count = this.handlers.size;
-        
-        // Kontrola existence input systému před cleanup
+
+        // Check input system existence before cleanup
         if (!this.scene || !this.scene.input || !this.scene.input.keyboard) {
             console.warn('[KeyboardManager] Scene or input already destroyed, clearing handlers');
             this.handlers.clear();
@@ -210,7 +210,7 @@ export class KeyboardManager {
     }
     
     /**
-     * Získat seznam registrovaných kláves pro debugging
+     * Get list of registered keys for debugging
      */
     getRegisteredKeys() {
         const keys = {};
@@ -223,19 +223,16 @@ export class KeyboardManager {
     }
     
     /**
-     * Nastavit standardní herní klávesy
+     * Set up standard game keys
      */
     setupGameKeys() {
-        // Herní klávesy - movement je zpracován přímo v GameScene update loop
-        // Pouze utility klávesy půjdou přes EventBus
+        // Game keys - movement is handled directly in GameScene update loop
+        // Only utility keys go through EventBus
         this.register('R', 'game:restart', 'game');
 
         DebugLogger.info('input', '[KeyboardManager] Game keys registered');
     }
     
-    /**
-     * Nastavit debug klávesy
-     */
     /**
      * Register debug keys with direct callbacks (bypass CentralEventBus)
      * @param {Object} handlers - Map of key→callback: { F3: () => {}, F9: () => {} }
@@ -254,7 +251,7 @@ export class KeyboardManager {
     }
     
     /**
-     * Nastavit UI klávesy
+     * Set up UI keys
      */
     setupUIKeys() {
         this.register('ESC', 'ui:escape', 'ui');

@@ -133,7 +133,7 @@ export class FlamethrowerEffect {
         }
         this._hitThisTick.clear();
 
-        // Stop looping flame sound - PR7: používáme audioSystem
+        // Stop looping flame sound - PR7: using audioSystem
         if (this.loopId && this.scene.audioSystem) {
             this.scene.audioSystem.stopLoop(this.loopId);
             this.loopId = null;

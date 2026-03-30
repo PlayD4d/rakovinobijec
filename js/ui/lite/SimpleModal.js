@@ -1,7 +1,7 @@
 /**
- * SimpleModal - Minimalistický modal container pro LiteUI
- * Podporuje pause-safe animace (detekuje time.paused)
- * UITheme integrace pro konzistentní styling
+ * SimpleModal - Minimalist modal container for LiteUI
+ * Supports pause-safe animations (detects time.paused)
+ * UITheme integration for consistent styling
  */
 import { UI_THEME } from '../UITheme.js';
 

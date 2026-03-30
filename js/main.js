@@ -4,13 +4,13 @@ import { MainMenu } from './scenes/MainMenu.js';
 import { GameConfig, calculateGameSize } from './config.js';
 import { ConfigResolver } from './core/utils/ConfigResolver.js';
 
-// ConfigResolver je statická třída - PR7 princip
-// Nastavíme ji jako globální pro přístup ze všech scén
+// ConfigResolver is a static class - PR7 principle
+// Set it as global for access from all scenes
 window.ConfigResolver = ConfigResolver;
 
-// Funkce pro inicializaci hry
+// Function for game initialization
 async function initializeGame() {
-    // Nejprve inicializovat ConfigResolver s externími konfiguracemi
+    // First initialize ConfigResolver with external configurations
     try {
         await ConfigResolver.initialize();
     } catch (err) {
@@ -29,9 +29,9 @@ async function initializeGame() {
         snap: { width: 1, height: 1 }  // Phaser 3.80: pixel-perfect integer scaling
     },
     render: {
-        pixelArt: true,      // Zapnout pro pixel font
-        antialias: false,    // Vypnout pro sharp pixel text
-        roundPixels: true    // Round pixels pro pixel perfect rendering
+        pixelArt: true,      // Enable for pixel font
+        antialias: false,    // Disable for sharp pixel text
+        roundPixels: true    // Round pixels for pixel perfect rendering
     },
     physics: {
         default: 'arcade',
@@ -51,5 +51,5 @@ async function initializeGame() {
     window.game = game;
 }
 
-// Spustit inicializaci hry
+// Start game initialization
 initializeGame();

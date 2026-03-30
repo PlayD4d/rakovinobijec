@@ -1,6 +1,6 @@
 /**
  * SimpleLootSystem - Phaser-native loot pooling system
- * PR7 compliant - vše řízeno blueprinty
+ * PR7 compliant - all driven by blueprints
  *
  * Uses Phaser Group pooling: get() reuses inactive sprites, disableBody() returns to pool.
  * Pickup detection via physics.add.overlap (registered in setupCollisions.js).
@@ -355,8 +355,10 @@ export class SimpleLootSystem {
             }
             if (cluster.length >= 3) {
                 const cx = anchor.x, cy = anchor.y;
+                const mergedValue = cluster.reduce((sum, o) => sum + (o.value || 0), 0);
                 for (let k = 0; k < cluster.length; k++) this._returnToPool(cluster[k]);
-                this.createDrop(cx, cy, 'item.xp_medium');
+                const newDrop = this.createDrop(cx, cy, 'item.xp_medium');
+                if (newDrop) newDrop.value = mergedValue; // Preserve total XP
                 merged++;
             }
         }
@@ -372,9 +374,11 @@ export class SimpleLootSystem {
                 const dy = anchor.y - other.y;
                 if (dx * dx + dy * dy < MERGE_RADIUS_SQ) {
                     const cx = anchor.x, cy = anchor.y;
+                    const mergedValue = (anchor.value || 0) + (other.value || 0);
                     this._returnToPool(anchor);
                     this._returnToPool(other);
-                    this.createDrop(cx, cy, 'item.xp_large');
+                    const newDrop = this.createDrop(cx, cy, 'item.xp_large');
+                    if (newDrop) newDrop.value = mergedValue; // Preserve total XP
                     merged++;
                     break;
                 }
@@ -392,26 +396,35 @@ export class SimpleLootSystem {
         if (activeCount <= FIELD_CAP) return;
 
         let excess = activeCount - FIELD_CAP;
+        let autoCollectedXP = 0;
 
-        // Pass 1: remove smalls (lowest value)
+        // Pass 1: auto-collect smalls (lowest value — award XP instead of discarding)
         for (let i = 0; i < children.length && excess > 0; i++) {
             const loot = children[i];
             if (loot.active && loot.dropId === 'item.xp_small') {
+                autoCollectedXP += loot.value || 0;
                 this._returnToPool(loot);
                 excess--;
             }
         }
-        // Pass 2: remove mediums if still over cap
+        // Pass 2: auto-collect mediums if still over cap
         for (let i = 0; i < children.length && excess > 0; i++) {
             const loot = children[i];
             if (loot.active && loot.dropId === 'item.xp_medium') {
+                autoCollectedXP += loot.value || 0;
                 this._returnToPool(loot);
                 excess--;
             }
         }
 
-        if (activeCount - this.lootGroup.countActive() > 0) {
-            getSession()?.log('loot', 'field_cap_trim', { removed: activeCount - this.lootGroup.countActive(), remaining: this.lootGroup.countActive() });
+        // Award auto-collected XP to player (no XP lost)
+        if (autoCollectedXP > 0 && this.scene.addXP) {
+            this.scene.addXP(autoCollectedXP);
+        }
+
+        const removed = activeCount - this.lootGroup.countActive();
+        if (removed > 0) {
+            getSession()?.log('loot', 'field_cap_autocollect', { removed, xpAwarded: autoCollectedXP, remaining: this.lootGroup.countActive() });
         }
     }
 

@@ -1,8 +1,8 @@
 /**
- * SpawnWaveProcessor - Zpracování vln nepřátel, elitních a unikátních spawnů
+ * SpawnWaveProcessor - Processing enemy waves, elite and unique spawns
  *
- * Extrahováno ze SpawnDirector pro dodržení limitu 500 LOC.
- * Všechny funkce přijímají `director` (SpawnDirector instance) jako první parametr.
+ * Extracted from SpawnDirector to comply with the 500 LOC limit.
+ * All functions receive `director` (SpawnDirector instance) as the first parameter.
  */
 
 import { DebugLogger } from '../debug/DebugLogger.js';

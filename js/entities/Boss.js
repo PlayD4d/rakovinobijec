@@ -1,12 +1,12 @@
 /**
- * Boss - Thin Composer pro boss entity
- * 
- * Refaktorována z 1097 LOC monolitického souboru na thin orchestrator.
- * Deleguje na specializované systémy podle PR7 Thin Composer Pattern.
- * 
- * Zodpovědnosti:
- * - BossCore: Phaser integrace + capability interface
- * - BossMovement: Dash, teleport, complex movement patterns  
+ * Boss - Thin Composer for boss entity
+ *
+ * Refactored from 1097 LOC monolithic file to thin orchestrator.
+ * Delegates to specialized systems per PR7 Thin Composer Pattern.
+ *
+ * Responsibilities:
+ * - BossCore: Phaser integration + capability interface
+ * - BossMovement: Dash, teleport, complex movement patterns
  * - BossPhases: Phase transitions based on HP thresholds
  * - BossAbilities: Ability execution and cooldown management
  */
@@ -32,12 +32,12 @@ const BOSS_BEHAVIOR_MAP = {
 export class Boss extends BossCore {
     static BEHAVIOR_MAP = BOSS_BEHAVIOR_MAP;
     constructor(scene, x, y, blueprint, opts = {}) {
-        // Validace povinných systémů (PR7 - fail fast)
-        if (!scene) throw new Error('[Boss] Chybí scéna');
-        if (!scene.configResolver) throw new Error('[Boss] Chybí ConfigResolver');
-        if (!scene.projectileSystem?.createEnemyProjectile) throw new Error('[Boss] Chybí ProjectileSystem');
+        // Validate required systems (PR7 - fail fast)
+        if (!scene) throw new Error('[Boss] Missing scene');
+        if (!scene.configResolver) throw new Error('[Boss] Missing ConfigResolver');
+        if (!scene.projectileSystem?.createEnemyProjectile) throw new Error('[Boss] Missing ProjectileSystem');
         if (!blueprint || blueprint.type !== 'boss' || !blueprint.id) {
-            throw new Error('[Boss] Neplatný boss blueprint');
+            throw new Error('[Boss] Invalid boss blueprint');
         }
         
         // Initialize BossCore with enemy-compatible interface
@@ -67,14 +67,14 @@ export class Boss extends BossCore {
     }
     
     /**
-     * Inicializuje specializované boss systémy
+     * Initialize specialized boss systems
      */
     initializeBossSystems() {
         try {
             // Initialize AI behaviors for movement (PR7: reuse existing system)
             this.behaviors = new EnemyBehaviors(this);
             
-            // Movement system - řeší tween violation (for special moves like dash/teleport)
+            // Movement system - handles tween violation (for special moves like dash/teleport)
             this.movement = new BossMovement(this);
             
             // Phase system - HP threshold management
@@ -97,15 +97,15 @@ export class Boss extends BossCore {
     }
     
     /**
-     * Propojí systémy pro vzájemnou komunikaci
+     * Link systems for cross-system communication
      */
     linkSystems() {
-        // Abilities může používat movement system
+        // Abilities can use the movement system
         if (this.abilitiesSystem && this.movement) {
             this.abilitiesSystem.movement = this.movement;
         }
         
-        // Phases může triggernout abilities
+        // Phases can trigger abilities
         if (this.phases && this.abilitiesSystem) {
             this.phases.onPhaseTransition('all', (phase) => {
                 // Clear ability cooldowns on phase change
@@ -156,7 +156,7 @@ export class Boss extends BossCore {
     }
     
     /**
-     * Main update - deleguje na všechny systémy
+     * Main update - delegates to all systems
      */
     update(time, delta) {
         if (!this.active || this.hp <= 0) return;
@@ -193,7 +193,7 @@ export class Boss extends BossCore {
             DebugLogger.info('boss', `[Boss] Ability decision executed, next at: ${this.nextAiDecisionAt}`);
         }
         
-        // Movement system nemá vlastní update - je event-driven
+        // Movement system has no own update - it is event-driven
     }
     
     /**
@@ -220,10 +220,10 @@ export class Boss extends BossCore {
     }
     
     /**
-     * Boss AI decision making - vybrání a execution schopnosti
+     * Boss AI decision making - ability selection and execution
      */
     makeBossDecision(time, delta) {
-        // Získej dostupné schopnosti pro aktuální fázi
+        // Get available abilities for the current phase
         const availableAbilities = this.phases?.getCurrentPhaseAbilities() || [];
         
         DebugLogger.info('boss', `[Boss] AI Decision - Phase: ${this.getCurrentPhase()}, Available abilities: ${availableAbilities.length}`);
@@ -233,7 +233,7 @@ export class Boss extends BossCore {
             return;
         }
         
-        // Základní AI - vyber random dostupnou schopnost
+        // Basic AI - pick a random available ability
         const readyAbilities = availableAbilities.filter(abilityId => {
             // Check if ability is ready using BossCore method
             return this.isAbilityReady(abilityId);
@@ -251,7 +251,7 @@ export class Boss extends BossCore {
     }
     
     /**
-     * Deleguje ability execution na BossAbilities systém
+     * Delegate ability execution to BossAbilities system
      */
     executeAbility(abilityId, params = {}) {
         if (this.abilitiesSystem) {
@@ -261,7 +261,7 @@ export class Boss extends BossCore {
     }
     
     /**
-     * Override damage handling pro phase transitions
+     * Override damage handling for phase transitions
      */
     takeDamage(amountOrHit, source = null) {
         // Shield ability blocks all damage while active
@@ -362,7 +362,7 @@ export class Boss extends BossCore {
     }
     
     /**
-     * Override pro boss-specific cleanup
+     * Override for boss-specific cleanup
      */
     cleanup() {
         // Cleanup order matters: cancel ability timers BEFORE phases
@@ -389,7 +389,7 @@ export class Boss extends BossCore {
     }
     
     /**
-     * Debug informace o boss stavu
+     * Debug info about boss state
      */
     getDebugInfo() {
         return {

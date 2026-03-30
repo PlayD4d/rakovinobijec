@@ -1,7 +1,7 @@
 /**
- * SimpleButton - Minimalistické interaktivní tlačítko pro LiteUI
- * Čistý Phaser, žádné externí závislosti
- * UITheme integrace pro konzistentní styling
+ * SimpleButton - Minimalist interactive button for LiteUI
+ * Pure Phaser, no external dependencies
+ * UITheme integration for consistent styling
  *
  * NOTE: This constructor does NOT call scene.add.existing(this).
  * When used standalone (e.g. MainMenuUI), the caller must call
@@ -14,7 +14,7 @@ export class SimpleButton extends Phaser.GameObjects.Container {
   constructor(scene, x, y, text, onClick, width = 220, height = 48, style = {}) {
     super(scene, x, y);
 
-    // Merge default style s custom - use UI_THEME values
+    // Merge default style with custom - use UI_THEME values
     const config = {
       bgColor: UI_THEME.colors.background.panel,
       bgAlpha: 0.95,
@@ -50,7 +50,7 @@ export class SimpleButton extends Phaser.GameObjects.Container {
     this.config = config;
     this.onClick = onClick;
 
-    // Interaktivita - make sure it's always responsive
+    // Interactivity - make sure it's always responsive
     // Use the default hit area which matches the container size
     this.setInteractive();
 
@@ -58,7 +58,7 @@ export class SimpleButton extends Phaser.GameObjects.Container {
     this.setActive(true);
     this.setVisible(true);
 
-    // Hover efekty
+    // Hover effects
     this.on('pointerover', () => {
       this.bg.setFillStyle(config.hoverColor, 1);
       if (scene.input?.setDefaultCursor) {

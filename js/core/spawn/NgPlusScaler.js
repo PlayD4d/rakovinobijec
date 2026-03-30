@@ -1,8 +1,8 @@
 /**
- * NgPlusScaler - NG+ scaling logika s cache
+ * NgPlusScaler - NG+ scaling logic with cache
  *
- * Extrahováno ze SpawnDirector pro dodržení limitu 500 LOC.
- * Standalone třída s interním cache pro škálované blueprinty.
+ * Extracted from SpawnDirector to comply with the 500 LOC limit.
+ * Standalone class with internal cache for scaled blueprints.
  */
 
 export class NgPlusScaler {

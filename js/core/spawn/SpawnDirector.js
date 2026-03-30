@@ -1,13 +1,13 @@
 /**
- * SpawnDirector - Systém spawnu řízený daty používající spawn tabulky
+ * SpawnDirector - Data-driven spawn system using spawn tables
  *
- * Spravuje spawn nepřátel na základě spawn tabulek z /data/blueprints/spawn/
- * Zajišťuje vlny, elite okna, unikátní spawny a boss triggery
+ * Manages enemy spawning based on spawn tables from /data/blueprints/spawn/
+ * Handles waves, elite windows, unique spawns, and boss triggers
  *
- * Deleguje na:
- *  - SpawnWaveProcessor (vlny, elity, unikáty)
- *  - BossSpawnController (boss triggery a spawn)
- *  - NgPlusScaler (NG+ škálování s cache)
+ * Delegates to:
+ *  - SpawnWaveProcessor (waves, elites, uniques)
+ *  - BossSpawnController (boss triggers and spawning)
+ *  - NgPlusScaler (NG+ scaling with cache)
  */
 
 import { DebugLogger } from '../debug/DebugLogger.js';
@@ -29,27 +29,27 @@ export class SpawnDirector {
         this._xpRetuner = new XpRetuner(this.blueprints, this.config);
         this._ngPlusScaler = new NgPlusScaler();
 
-        // Aktuální spawn tabulka
+        // Current spawn table
         this.currentTable = null;
         this.scenarioId = null;
         this.ngPlusLevel = 0;
 
-        // Stav běhu aplikace
+        // Runtime state
         this.running = false;
         this.startTime = 0; // When spawning started (absolute time)
         this.gameTime = 0; // Still needed for compatibility
         this.lastSpawnTime = 0;
 
-        // Správa vln
+        // Wave management
         this.currentWaveIndex = 0;
         this.activeWaves = [];
 
-        // Cooldowny (doba čekání)
+        // Cooldowns
         this.eliteCooldowns = new Map();
         this.uniqueCooldowns = new Map();
         this.lastBossSpawn = 0;
 
-        // Statistiky
+        // Statistics
         this.stats = {
             totalSpawned: 0,
             spawnedByType: new Map(),
@@ -63,7 +63,7 @@ export class SpawnDirector {
     }
 
     /**
-     * Načte spawn tabulku pro daný scénář
+     * Load spawn table for a given scenario
      */
     async loadSpawnTable(scenarioId) {
         DebugLogger.info('spawn', `Loading spawn table: ${scenarioId}`);
@@ -116,8 +116,7 @@ export class SpawnDirector {
         this.ngPlusLevel = options.ngPlusLevel || 0;
 
         this.running = true;
-        this.startTime = this.scene.time.now; // Record absolute start time
-        this.gameTime = 0; // Reset for compatibility
+        this.gameTime = 0; // Delta-accumulated game time (pause-safe)
 
         // Cache per-frame config values (avoid ConfigResolver.get on every frame)
         this._maxEnemies = 50; // Max active enemies on field
@@ -158,15 +157,11 @@ export class SpawnDirector {
     }
 
     /**
-     * Reset timers after pause — re-anchor startTime to prevent spawn burst
+     * Reset timers after pause — no-op with delta accumulation
+     * (gameTime only advances via delta in update(), which doesn't run during pause)
      */
     resetTimersAfterPause() {
-        if (!this.running) return;
-        // Re-anchor: keep elapsed gameTime but shift startTime to current moment
-        const now = this.scene.time?.now || 0;
-        if (now > 0) {
-            this.startTime = now - this.gameTime;
-        }
+        // Delta-based timing is inherently pause-safe — nothing to re-anchor
     }
 
     /**
@@ -188,10 +183,9 @@ export class SpawnDirector {
     update(delta) {
         if (!this.running || !this.currentTable) return;
 
-        // Use absolute time instead of delta accumulation
-        const time = this.scene.time.now;
-        const gameTime = time - this.startTime;
-        this.gameTime = gameTime; // Update for compatibility
+        // Accumulate delta instead of absolute clock — scene.time.now ticks during pause
+        this.gameTime += delta;
+        const gameTime = this.gameTime;
 
         // Debug: Show game time every 10 seconds
         if (Math.floor(this.gameTime / 10000) !== Math.floor((this.gameTime - delta) / 10000)) {

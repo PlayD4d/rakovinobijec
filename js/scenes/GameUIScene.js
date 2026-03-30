@@ -134,6 +134,10 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         if (!gameScene) return;
 
+        // Set isPaused BEFORE Phaser pause — prevents addXP from firing another levelUp
+        // in the same frame (Phaser scene.pause() is deferred to next update)
+        gameScene.isPaused = true;
+
         this.scene.bringToTop();
         this.input.setTopOnly(true);
 

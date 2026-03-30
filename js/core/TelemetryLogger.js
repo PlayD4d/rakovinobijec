@@ -1,8 +1,8 @@
 /**
- * TelemetryLogger.js - Herní telemetrie pro balance analýzu
- * 
- * Loguje gameplay eventy do JSON souborů pro následnou analýzu.
- * Optimalizováno pro minimální výkonový dopad.
+ * TelemetryLogger.js - Game telemetry for balance analysis
+ *
+ * Logs gameplay events to JSON files for subsequent analysis.
+ * Optimized for minimal performance impact.
  */
 
 export class TelemetryLogger {

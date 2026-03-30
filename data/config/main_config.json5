@@ -1,8 +1,8 @@
 {
-  // Hlavní konfigurační soubor - PR7 kompatibilní
-  // ConfigResolver načte tento soubor pomocí initialize()
+  // Main configuration file - PR7 compatible
+  // ConfigResolver loads this file via initialize()
   
-  // Herní konfigurace
+  // Game configuration
   game: {
     version: "0.4.1",
     title: "Rakovinobijec",
@@ -14,7 +14,7 @@
     }
   },
   
-  // Vrstvy pro správné řazení objektů
+  // Layers for correct object depth sorting
   layers: {
     background: 0,
     groundEffects: 5,
@@ -26,36 +26,36 @@
     overlays: 60
   },
   
-  // Debug nastavení
+  // Debug settings
   debug: {
     enabled: true,
     logLevel: "error", // "always" | "error" | "warn" | "info" | "debug" | "verbose"
     
-    // Kategorie debug hlášek - jednotlivě zapínatelné/vypínatelné
+    // Debug message categories - individually toggleable
     categories: {
-      // Core systémy
+      // Core systems
       spawn: false,        // SpawnDirector logs
       collision: false,    // Collision detection
       physics: false,      // Physics engine
       bootstrap: false,    // Game initialization
       
-      // Entity systémy
+      // Entity systems
       player: true,        // Player actions & state - ENABLED FOR DEBUG
       enemy: false,        // Enemy spawning & lifecycle
       boss: true,          // Boss phases & abilities - ENABLED FOR DEBUG
       projectile: false,   // Projectile system
       
-      // Game systémy
+      // Game systems
       loot: false,         // Loot drops & pickups
       powerup: true,       // Power-up applications - ENABLED FOR DEBUG
       vfx: false,          // Visual effects
       sfx: false,          // Sound effects
       
-      // UI systémy
+      // UI systems
       ui: false,           // UI events & updates
       modal: false,        // Modal dialogs
       
-      // AI a behaviors
+      // AI and behaviors
       ai: false,           // AI state changes
       behavior: false,     // Behavior execution
       
@@ -68,7 +68,7 @@
       dev: true            // DEV console commands
     },
     
-    // Legacy flags (postupně odstranit)
+    // Legacy flags (gradually remove)
     showFPS: false,
     showCollisions: false,
     showSpawnInfo: false,
@@ -88,12 +88,12 @@
     file: true
   },
   
-  // Powerup systém
+  // Powerup system
   powerups: {
     maxSlots: 6,     // VS-style slot limit — player must choose build
   },
 
-  // Výkonnostní nastavení
+  // Performance settings
   performance: {
     maxEnemies: 100,
     maxProjectiles: 200,
@@ -103,7 +103,7 @@
     updateRate: 60
   },
   
-  // VFX konfigurace
+  // VFX configuration
   vfx: {
     shield: {
       radius: 30,
@@ -138,14 +138,14 @@
   // PR7: Progression system configuration with softcap
   progression: {
     xp: {
-      baseRequirement: 8,        // Rychlejší early-game
-      scalingMultiplier: 1.18,   // Mírnější růst
-      maxLevel: 30,               // Více level-upů pro lepší ekonomiku
-      softcapStart: 21,           // Softcap začíná od levelu 21
-      postSlope: 0.5,             // Poloviční růst po softcapu
+      baseRequirement: 8,        // Faster early-game
+      scalingMultiplier: 1.18,   // Gentler growth curve
+      maxLevel: 1000,              // Safety hardcap (softcap handles XP curve)
+      softcapStart: 21,           // Softcap starts at level 21
+      postSlope: 0.5,             // Half growth after softcap
       
       targets: {
-        // defaultní XP/min křivka pro 0–20 min; dá se zkrátit/extendovat podle levelu
+        // Default XP/min curve for 0-20 min; can be shortened/extended per level
         xpPerMinute: [85,95,110,125,140,155,170,185,200,215,230,245,260,230,220,210,200,195,190,185],
         bossXp: { min: 250, max: 600, capLevelsGranted: 1.5 },
         pity: { enabled: true, minXpPerMinute: 60, untilMinute: 4 },
@@ -186,11 +186,11 @@
     }
   },
   
-  // Herní mechaniky
+  // Game mechanics
   mechanics: {
-    // XP konfigurace přesunuta do progression sekce
+    // XP configuration moved to progression section
     
-    // Zdraví hráče
+    // Player health
     health: {
       base: 100,
       perLevel: 10,
@@ -215,7 +215,7 @@
     }
   },
   
-  // UI konfigurace
+  // UI configuration
   ui: {
     // HP bar
     hpBar: {
@@ -258,7 +258,7 @@
     }
   },
   
-  // Audio nastavení
+  // Audio settings
   audio: {
     volume: {
       master: 1.0,
@@ -270,7 +270,7 @@
       enabled: true
     },
     
-    // Hudba pro různé scény
+    // Music for different scenes
     scenes: {
       mainMenu: {
         backgroundMusic: "music/8bit_main_menu.mp3",
@@ -384,7 +384,7 @@
     maxRetries: 3
   },
   
-  // Player configuration - rozšířeno o fallback hodnoty z ConfigResolver
+  // Player configuration - extended with fallback values from ConfigResolver
   playerConfig: {
     projectile: {
       baseDamage: 10,
@@ -413,7 +413,7 @@
     }
   },
   
-  // Abilities - převedeno z ConfigResolver fallbacks
+  // Abilities - migrated from ConfigResolver fallbacks
   abilities: {
     radiotherapy: {
       baseInterval: 1000,
@@ -432,7 +432,7 @@
     }
   },
   
-  // Weapons - převedeno z ConfigResolver fallbacks
+  // Weapons - migrated from ConfigResolver fallbacks
   weapons: {
     explosive: {
       baseRadius: 30,
@@ -444,7 +444,7 @@
     }
   },
   
-  // Scaling - převedeno z ConfigResolver fallbacks
+  // Scaling - migrated from ConfigResolver fallbacks
   scaling: {
     boss: {
       hpMultiplier: 1.2,
@@ -465,7 +465,7 @@
     }
   },
   
-  // Spawn system - převedeno z ConfigResolver fallbacks
+  // Spawn system - migrated from ConfigResolver fallbacks
   spawn: {
     intervalReductionRate: 0.005,
     defeatedBossRespawnChance: 0.0001,
@@ -473,7 +473,7 @@
     enemiesPerLevel: 2
   },
   
-  // Performance limits - převedeno z ConfigResolver fallbacks
+  // Performance limits - migrated from ConfigResolver fallbacks
   limits: {
     maxEmitters: 24,
     maxProjectiles: 100,
@@ -481,7 +481,7 @@
     maxTrails: 10
   },
   
-  // Collision radiuses - z GameConfig
+  // Collision radiuses - from GameConfig
   collision: {
     projectile: 15,          // Projectile ↔ Enemy
     lootPickup: 15,         // LootSystem pickup radius

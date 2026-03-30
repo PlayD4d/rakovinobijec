@@ -1,94 +1,54 @@
-# 🎮 Rakovinobijec
+# Rakovinobijec
 
-**Věnováno Mardovi - bojovníkovi s rakovinou a všem, kdo bojují s jakoukoliv nemocí.** 💪
+**Dedicated to Marda — a cancer fighter — and everyone battling any illness.**
 
-## 🌟 Hrát online
+## Play Online
 
-**➡️ [Hrát Rakovinobijec online](https://playd4d.github.io/rakovinobijec/)**
+[Play Rakovinobijec](https://playd4d.github.io/rakovinobijec/)
 
-## 📖 O hře
+## About
 
-Rakovinobijec je arkádová 2D top-down střílečka, kde hráč v roli bílé krvinky bojuje proti rakovinným buňkám a dalším patogenům. Hra symbolicky zobrazuje boj imunitního systému s nemocí.
+Rakovinobijec ("Cancer Slayer") is a 2D top-down survival shooter inspired by Vampire Survivors. The player controls a white blood cell fighting waves of cancer cells, mutations, and bosses across 7 levels.
 
-### Herní principy
+### Gameplay
 
-- **Survival gameplay** - Přežijte co nejdéle proti vlnám nepřátel
-- **Progresivní obtížnost** - Nepřátelé postupně sílí
-- **Power-up systém** - Sbírejte vylepšení a posilujte své schopnosti  
-- **Boss souboje** - Čelte mocným mutovaným buňkám
-- **XP a levelování** - Získávejte zkušenosti a odemykejte nové schopnosti
-- **Globální žebříček** - Soutěžte s hráči z celého světa
+- **Survival** — survive enemy waves and defeat the boss at the end of each level
+- **6-slot powerup system** — build from 12 abilities (radiotherapy, shield, immune aura, homing, chain lightning, ...)
+- **XP gems** — collect crystals, level up, choose powerups
+- **7 bosses** — each with unique phases, telegraphed attacks, and mechanics
+- **Progressive difficulty** — enemy scaling, elite/unique spawns
 
-### Ovládání
+### Controls
 
-- **WASD / Šipky** - Pohyb
-- **Myš** - Míření a střelba (automatická)
-- **ESC** - Pauza
-- **Mobilní zařízení** - Virtuální joystick
+- **WASD / Arrows** — Movement
+- **Auto-attack** — 4-directional shots + homing if equipped
+- **ESC** — Pause
 
-## 🚀 Rychlý start
+## Quick Start
 
 ```bash
-# Naklonovat repozitář
 git clone https://github.com/playd4d/rakovinobijec.git
-
-# Nainstalovat závislosti
 npm install
-
-# Spustit vývojový server
 npm run dev
-
-# Otevřít v prohlížeči
-http://localhost:8000
+# http://localhost:8000
 ```
 
-## 🛠️ Pro vývojáře
+## Tech Stack
 
-### Dokumentace
+- **Engine**: Phaser 3.90.0 (local, no CDN)
+- **Architecture**: 100% data-driven (JSON5 blueprints)
+- **Telemetry**: Local SQLite via dev-server
+- **Zero external runtime dependencies** — works fully offline
 
-- [Developer Guide](docs/DEVELOPER_GUIDE.md) - Kompletní průvodce vývojem
-- [Dev Guidelines](DEV_GUIDELINES.md) - PR7 pravidla a best practices
-- [Changelog](CHANGELOG.md) - Historie verzí
+## Documentation
 
-### Hlavní příkazy
+- [CLAUDE.md](CLAUDE.md) — Source of truth for AI agents and developers
+- [docs/](docs/README.md) — Architecture, code standards, Phaser 3.90 reference
 
-```bash
-npm run dev              # Vývojový server s hot-reload
-npm run audit:data       # Kontrola validity blueprintů
-npm run rebuild:index    # Přestavba registry indexu
-npm run smoke:test       # Spuštění smoke testů
-npm run verify:all       # Kompletní verifikace
-```
-
-### Technologie
-
-- **Engine**: Phaser 3
-- **Architektura**: PR7 (100% data-driven)
-- **Blueprinty**: JSON5 formát
-- **Audio**: Web Audio API
-- **Analytics**: Local SQLite (dev-server)
-## 📊 Aktuální verze
-
-**v0.4.1** (2025-08-16)
-- Centralizace konfigurace do main_config.json5
-- Oprava chybějících power-upů (XP Magnet)
-- Aktualizace validátorů pro PR7 kompatibilitu
-- Vylepšení editoru blueprintů
-
-[Kompletní historie verzí](CHANGELOG.md)
-
-## 🤝 Přispívání
-
-Příspěvky jsou vítány! Prosím přečtěte si [Dev Guidelines](DEV_GUIDELINES.md) před vytvořením pull requestu.
-
-## 📝 Licence
+## License
 
 MIT
 
-## 💝 Poděkování
-
-Speciální poděkování všem, kdo bojují s nemocí a nevzdávají se. Tato hra je symbolickou podporou vašeho boje.
-
 ---
 
-*"V každém z nás je bojovník. Někdy jen potřebujeme připomenout, jak silní dokážeme být."*
+*"There is a fighter in each of us. Sometimes we just need to be reminded how strong we can be."*

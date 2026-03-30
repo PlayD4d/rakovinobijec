@@ -1,53 +1,53 @@
 /**
- * ConfigResolver - Bezpečný systém pro čtení konfiguračních hodnot
+ * ConfigResolver - Safe system for reading configuration values
  *
- * Zajišťuje jednotný přístup k hodnotám z blueprintů a externích konfigurací.
- * Žádný tichý fallback na legacy GameConfig — chybějící data = hard fail.
+ * Provides unified access to values from blueprints and external configurations.
+ * No silent fallback to legacy GameConfig — missing data = hard fail.
  *
- * Hierarchie zdrojů:
- * 1. Blueprint (pokud poskytnut)
- * 2. Externí konfigurace (main_config.json5, managers_config.json5, atd.)
- * 3. Centrální fallback registry (jen kritické boot hodnoty)
- * 4. Explicitní defaultValue
+ * Source hierarchy:
+ * 1. Blueprint (if provided)
+ * 2. External configuration (main_config.json5, managers_config.json5, etc.)
+ * 3. Central fallback registry (only critical boot values)
+ * 4. Explicit defaultValue
  */
 
 import { DebugLogger } from '../debug/DebugLogger.js';
 
 export class ConfigResolver {
-  // Externí konfigurace načtené ze souborů
+  // External configurations loaded from files
   static _externalConfigs = {};
   
-  // Minimální kritické fallbacky - pouze pro případ chybějící konfigurace
-  // PR7: Všechny hodnoty jsou nyní v main_config.json5
+  // Minimal critical fallbacks - only for missing configuration
+  // PR7: All values are now in main_config.json5
   static _fallbacks = {
-    // Kritické hodnoty pro případ, že main_config.json5 není dostupný
+    // Critical values in case main_config.json5 is unavailable
     'game.version': '0.3.0',
     'game.title': 'Rakovinobijec',
     'debug.enabled': false,
     'features.lootTablesEnabled': true
   };
 
-  // Telemetrie pro sledování chybějících hodnot
+  // Telemetry for tracking missing values
   static _telemetry = {
     missingPaths: new Map(), // path -> count
     enabled: true
   };
 
   /**
-   * Získá hodnotu s inteligentním fallbackem
-   * @param {string} path - Cesta k hodnotě (např. 'player.projectile.baseDamage')
-   * @param {Object} options - Konfigurace resolveru
-   * @returns {*} Hodnota nebo bezpečný fallback
+   * Get a value with intelligent fallback
+   * @param {string} path - Path to the value (e.g. 'player.projectile.baseDamage')
+   * @param {Object} options - Resolver configuration
+   * @returns {*} Value or safe fallback
    */
   static get(path, options = {}) {
     const {
-      blueprint = null,        // Preferovaný blueprint objekt
-      defaultValue = null,     // Explicitní fallback hodnota
-      warnIfMissing = true,    // Logovat varování při použití fallbacku
+      blueprint = null,        // Preferred blueprint object
+      defaultValue = null,     // Explicit fallback value
+      warnIfMissing = true,    // Log warning when using fallback
       source = 'auto'          // 'blueprint' | 'config' | 'auto'
     } = options;
 
-    // 1. Pokus o blueprint (pokud poskytnut a není zakázán)
+    // 1. Try blueprint (if provided and not disabled)
     if (blueprint && source !== 'config') {
       const value = this._resolvePath(blueprint, path);
       if (value !== undefined) {
@@ -55,10 +55,10 @@ export class ConfigResolver {
       }
     }
 
-    // 2. Externí konfigurace (managers_config, features, atd.)
-    // PR7: Zkusit najít v main_config jako první
+    // 2. External configuration (managers_config, features, etc.)
+    // PR7: Try main_config first
     if (source !== 'blueprint') {
-      // Nejprve zkusit main config
+      // Try main config first
       if (this._externalConfigs.main) {
         const mainValue = this._resolvePath(this._externalConfigs.main, path);
         if (mainValue !== undefined) {
@@ -66,14 +66,14 @@ export class ConfigResolver {
         }
       }
       
-      // Pak zkusit ostatní externí konfigurace
+      // Then try other external configurations
       const externalValue = this._resolvePath(this._externalConfigs, path);
       if (externalValue !== undefined) {
         return externalValue;
       }
     }
     
-    // 3. Centrální fallback registry
+    // 3. Central fallback registry
     const fallback = this._fallbacks[path];
     if (fallback !== undefined) {
       if (warnIfMissing && this._telemetry.enabled) {
@@ -83,7 +83,7 @@ export class ConfigResolver {
       return fallback;
     }
 
-    // 4. Explicitní defaultValue
+    // 4. Explicit defaultValue
     if (defaultValue !== null) {
       if (warnIfMissing && this._telemetry.enabled) {
         DebugLogger.warn('bootstrap', `Missing value for '${path}', using provided default: ${defaultValue}`);
@@ -92,7 +92,7 @@ export class ConfigResolver {
       return defaultValue;
     }
 
-    // 5. Hodnota nenalezena nikde — hard fail
+    // 5. Value not found anywhere — hard fail
     const msg = `[ConfigResolver] MISSING: '${path}' — not in blueprint, external configs, or fallbacks. No default provided.`;
     DebugLogger.error('bootstrap', msg);
     this._recordMissing(path);
@@ -101,10 +101,10 @@ export class ConfigResolver {
   }
 
   /**
-   * Získá více hodnot najednou
-   * @param {Array<string>} paths - Seznam cest
-   * @param {Object} options - Společné options pro všechny cesty
-   * @returns {Object} Objekt s hodnotami
+   * Get multiple values at once
+   * @param {Array<string>} paths - List of paths
+   * @param {Object} options - Shared options for all paths
+   * @returns {Object} Object with values
    */
   static getMany(paths, options = {}) {
     const result = {};
@@ -115,10 +115,10 @@ export class ConfigResolver {
   }
 
   /**
-   * Kontroluje existenci hodnoty
-   * @param {string} path - Cesta k hodnotě
-   * @param {string} source - Kde hledat ('blueprint' | 'config' | 'any')
-   * @returns {boolean} True pokud hodnota existuje
+   * Check if a value exists
+   * @param {string} path - Path to the value
+   * @param {string} source - Where to look ('blueprint' | 'config' | 'any')
+   * @returns {boolean} True if the value exists
    */
   static has(path, source = 'any') {
     if (source === 'blueprint' || source === 'any') {
@@ -135,17 +135,17 @@ export class ConfigResolver {
   }
 
   /**
-   * Registruje nový fallback
-   * @param {string} path - Cesta
-   * @param {*} value - Fallback hodnota
+   * Register a new fallback
+   * @param {string} path - Path
+   * @param {*} value - Fallback value
    */
   static registerFallback(path, value) {
     this._fallbacks[path] = value;
   }
 
   /**
-   * Získá telemetrii o chybějících hodnotách
-   * @returns {Object} Report s nejčastěji chybějícími hodnotami
+   * Get telemetry about missing values
+   * @returns {Object} Report with most frequently missing values
    */
   static getTelemetryReport() {
     const sorted = Array.from(this._telemetry.missingPaths.entries())
@@ -160,7 +160,7 @@ export class ConfigResolver {
   }
 
   /**
-   * Resetuje telemetrii
+   * Reset telemetry
    */
   static resetTelemetry() {
     this._telemetry.missingPaths.clear();
@@ -169,7 +169,7 @@ export class ConfigResolver {
   // === PRIVATE METHODS ===
 
   /**
-   * Rozloží cestu a získá hodnotu z objektu
+   * Resolve a dot-separated path and get value from object
    * @private
    */
   static _resolvePath(obj, path) {
@@ -183,7 +183,7 @@ export class ConfigResolver {
         return undefined;
       }
       
-      // Podpora pro array indexy: "enemies[0].hp"
+      // Support for array indices: "enemies[0].hp"
       const arrayMatch = part.match(/^(\w+)\[(\d+)\]$/);
       if (arrayMatch) {
         current = current[arrayMatch[1]];
@@ -198,7 +198,7 @@ export class ConfigResolver {
   }
 
   /**
-   * Zaznamenává chybějící cestu do telemetrie
+   * Record a missing path in telemetry
    * @private
    */
   static _recordMissing(path) {
@@ -209,8 +209,8 @@ export class ConfigResolver {
   }
 
   /**
-   * Validuje, že všechny požadované cesty existují
-   * @param {Array<string>} requiredPaths - Seznam požadovaných cest
+   * Validate that all required paths exist
+   * @param {Array<string>} requiredPaths - List of required paths
    * @returns {Object} Validation result
    */
   static validate(requiredPaths) {
@@ -234,14 +234,14 @@ export class ConfigResolver {
   }
   
   /**
-   * Inicializuje ConfigResolver s externími konfiguracemi
-   * PR7 kompatibilní - načítá všechny konfigurace z data/config/
+   * Initialize ConfigResolver with external configurations
+   * PR7 compatible - loads all configurations from data/config/
    * @returns {Promise<void>}
    */
   static async initialize() {
-    DebugLogger.info('bootstrap', 'ConfigResolver inicializace...');
+    DebugLogger.info('bootstrap', 'ConfigResolver initializing...');
     
-    // Seznam konfiguračních souborů k načtení - PR7 kompletní konfigurace
+    // List of configuration files to load - PR7 complete configuration
     const configFiles = [
       { key: 'main', path: 'data/config/main_config.json5' },
       { key: 'blueprintLoader', path: 'data/config/blueprint_loader.json5' },
@@ -250,7 +250,7 @@ export class ConfigResolver {
       { key: 'features', path: 'data/config/features.json5' }
     ];
     
-    // Načíst všechny konfigurační soubory
+    // Load all configuration files
     for (const { key, path } of configFiles) {
       try {
         const response = await fetch(path);
@@ -259,16 +259,16 @@ export class ConfigResolver {
             continue;
         }
         const text = await response.text();
-        // Použít JSON5 pro parsování (podporuje komentáře, trailing commas, atd.)
+        // Use JSON5 for parsing (supports comments, trailing commas, etc.)
         const data = window.JSON5 ? window.JSON5.parse(text) : JSON.parse(text);
         this._externalConfigs[key] = data;
-        DebugLogger.debug('bootstrap', `✅ Načteno: ${key} z ${path}`);
+        DebugLogger.debug('bootstrap', `Loaded: ${key} from ${path}`);
       } catch (error) {
-        DebugLogger.warn('bootstrap', `⚠️ Nelze načíst ${path}:`, error.message);
+        DebugLogger.warn('bootstrap', `Cannot load ${path}:`, error.message);
       }
     }
     
-    DebugLogger.info('bootstrap', 'ConfigResolver inicializace dokončena, načteno ' + Object.keys(this._externalConfigs).length + ' konfiguračních souborů');
+    DebugLogger.info('bootstrap', 'ConfigResolver initialization complete, loaded ' + Object.keys(this._externalConfigs).length + ' configuration files');
   }
 }
 

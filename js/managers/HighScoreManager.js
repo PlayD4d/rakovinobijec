@@ -12,7 +12,7 @@ export class HighScoreManager {
             const stored = localStorage.getItem(this.storageKey);
             if (stored) {
                 const scores = JSON.parse(stored);
-                // Validace dat
+                // Data validation
                 if (Array.isArray(scores)) {
                     return scores.filter(score => 
                         score && 
@@ -27,7 +27,7 @@ export class HighScoreManager {
             DebugLogger.error('general', 'Error loading high scores:', error);
         }
         
-        // Výchozí prázdný seznam
+        // Default empty list
         return [];
     }
     
@@ -40,9 +40,9 @@ export class HighScoreManager {
     }
     
     isHighScore(score) {
-        // Je high score pokud:
-        // 1. Máme méně než 10 záznamů, NEBO
-        // 2. Skóre je vyšší než nejnižší v TOP10
+        // Is a high score if:
+        // 1. We have fewer than 10 entries, OR
+        // 2. Score is higher than the lowest in TOP10
         return this.highScores.length < this.maxEntries || 
                score > this.getLowestScore();
     }
@@ -53,7 +53,7 @@ export class HighScoreManager {
     }
     
     addHighScore(name, score, level, enemiesKilled, time, bossesDefeated) {
-        // Validace jména (max 8 znaků)
+        // Name validation (max 8 characters)
         name = String(name).trim().slice(0, 8);
         if (name.length === 0) name = "Anonym";
         
@@ -62,33 +62,33 @@ export class HighScoreManager {
             score: score,
             level: level,
             enemiesKilled: enemiesKilled,
-            time: time, // v sekundách
+            time: time, // in seconds
             bossesDefeated: bossesDefeated,
             date: new Date().toLocaleDateString('cs-CZ')
         };
         
-        // Přidat do seznamu
+        // Add to the list
         this.highScores.push(newEntry);
         
-        // Seřadit podle skóre (nejvyšší první)
+        // Sort by score (highest first)
         this.highScores.sort((a, b) => b.score - a.score);
         
-        // Omezit na TOP10
+        // Limit to TOP10
         this.highScores = this.highScores.slice(0, this.maxEntries);
         
-        // Uložit
+        // Save
         this.saveHighScores();
         
-        // Vrátit pozici v žebříčku (1-based)
+        // Return position in the leaderboard (1-based)
         const position = this.highScores.findIndex(entry => entry === newEntry) + 1;
         return position;
     }
     
     getHighScores() {
-        // Pokud máme méně než 10 záznamů, doplnit defaulty
-        const scores = [...this.highScores]; // Kopie skutečných skóre
-        
-        // Doplnit na 10 záznamů
+        // If we have fewer than 10 entries, fill with defaults
+        const scores = [...this.highScores]; // Copy of actual scores
+
+        // Fill up to 10 entries
         while (scores.length < 10) {
             scores.push({
                 name: 'PLAYD4D',
@@ -106,14 +106,14 @@ export class HighScoreManager {
     
     getLastPlayerName() {
         if (this.highScores.length > 0) {
-            // Vrátit jméno posledního přidaného hráče (první v seznamu)
+            // Return the name of the last added player (first in list)
             return this.highScores[0].name;
         }
         return null;
     }
     
     getRank(score) {
-        // Vrátit pozici, na kterou by skóre bylo zařazeno (1-based)
+        // Return the position at which the score would be ranked (1-based)
         let rank = 1;
         for (const entry of this.highScores) {
             if (score <= entry.score) {

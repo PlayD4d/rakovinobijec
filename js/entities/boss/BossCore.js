@@ -2,11 +2,11 @@ import { EnemyCore } from '../core/EnemyCore.js';
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
 
 /**
- * BossCore - Phaser integrace pro boss entity s capability interface
- * 
- * Poskytuje capability methods pro boss-specific operace.
- * Rozšiřuje EnemyCore o boss funkcionalitu zachovávající PR7 principy.
- * 
+ * BossCore - Phaser integration for boss entity with capability interface
+ *
+ * Provides capability methods for boss-specific operations.
+ * Extends EnemyCore with boss functionality preserving PR7 principles.
+ *
  * @extends EnemyCore
  */
 export class BossCore extends EnemyCore {
@@ -15,7 +15,7 @@ export class BossCore extends EnemyCore {
         
         // Boss-specific state
         this.currentPhase = 0;
-        // BUGFIX: Správné cesty k blueprint datům - mechanics.phases a mechanics.abilities
+        // BUGFIX: Correct paths to blueprint data - mechanics.phases and mechanics.abilities
         this.phaseData = blueprint.mechanics?.phases || [];
         this.abilities = blueprint.mechanics?.abilities || {};
         this.abilityCooldowns = new Map();
@@ -34,15 +34,15 @@ export class BossCore extends EnemyCore {
     // ===============================
     
     /**
-     * Získá aktuální fázi bosse
-     * @returns {number} Číslo aktuální fáze (0-based)
+     * Get the current boss phase
+     * @returns {number} Current phase number (0-based)
      */
     getCurrentPhase() {
         return this.currentPhase;
     }
     
     /**
-     * Získá poměr aktuálního HP (0.0 - 1.0)
+     * Get the current HP ratio (0.0 - 1.0)
      * @returns {number} HP ratio
      */
     getHpRatio() {
@@ -50,9 +50,9 @@ export class BossCore extends EnemyCore {
     }
     
     /**
-     * Zkontroluje, zda je schopnost připravena k použití
-     * @param {string} abilityId ID schopnosti
-     * @returns {boolean} True pokud je schopnost ready
+     * Check if an ability is ready to use
+     * @param {string} abilityId Ability ID
+     * @returns {boolean} True if the ability is ready
      */
     isAbilityReady(abilityId) {
         const cooldownEnd = this.abilityCooldowns.get(abilityId) || 0;
@@ -62,9 +62,9 @@ export class BossCore extends EnemyCore {
     }
 
     /**
-     * Nastaví cooldown pro schopnost
-     * @param {string} abilityId ID schopnosti
-     * @param {number} cooldownMs Cooldown v milisekundách
+     * Set cooldown for an ability
+     * @param {string} abilityId Ability ID
+     * @param {number} cooldownMs Cooldown in milliseconds
      */
     setAbilityCooldown(abilityId, cooldownMs) {
         const now = this.scene?.time?.now;
@@ -73,25 +73,25 @@ export class BossCore extends EnemyCore {
     }
     
     /**
-     * Získá data o schopnosti
-     * @param {string} abilityId ID schopnosti
-     * @returns {object|null} Ability data nebo null
+     * Get ability data
+     * @param {string} abilityId Ability ID
+     * @returns {object|null} Ability data or null
      */
     getAbilityData(abilityId) {
         return this.abilities[abilityId] || null;
     }
     
     /**
-     * Získá data aktuální fáze
-     * @returns {object|null} Phase data nebo null
+     * Get current phase data
+     * @returns {object|null} Phase data or null
      */
     getCurrentPhaseData() {
         return this.phaseData[this.currentPhase] || null;
     }
     
     /**
-     * Přepne na následující fázi
-     * @param {number} newPhase Nové číslo fáze
+     * Transition to a new phase
+     * @param {number} newPhase New phase number
      */
     transitionToPhase(newPhase) {
         if (newPhase >= 0 && newPhase < this.phaseData.length) {
@@ -110,7 +110,7 @@ export class BossCore extends EnemyCore {
     }
     
     /**
-     * Získá seznam dostupných schopností pro aktuální fázi
+     * Get the list of available abilities for the current phase
      * @returns {string[]} Array ability IDs
      */
     getAvailableAbilities() {
@@ -119,9 +119,9 @@ export class BossCore extends EnemyCore {
     }
     
     /**
-     * Capability pro spawn minions - deleguje na EnemyManager
-     * @param {number} count Počet minionů
-     * @param {string} enemyType Typ nepřítele
+     * Capability for spawning minions - delegates to EnemyManager
+     * @param {number} count Number of minions
+     * @param {string} enemyType Enemy type
      * @param {object} options Spawn options
      */
     spawnMinions(count, enemyType, options = {}) {
@@ -142,11 +142,11 @@ export class BossCore extends EnemyCore {
     }
     
     /**
-     * Capability pro dash movement - deleguje na VFXSystem pro animaci
-     * @param {number} targetX Cílová X pozice
-     * @param {number} targetY Cílová Y pozice
-     * @param {number} duration Délka dashe v ms
-     * @param {function} onComplete Callback po dokončení
+     * Capability for dash movement - delegates to VFXSystem for animation
+     * @param {number} targetX Target X position
+     * @param {number} targetY Target Y position
+     * @param {number} duration Dash duration in ms
+     * @param {function} onComplete Callback on completion
      */
     dashTo(targetX, targetY, duration = 500, onComplete = null) {
         if (this.isDashing) return; // Prevent multiple dashes
@@ -155,7 +155,7 @@ export class BossCore extends EnemyCore {
         const oldSpeed = this.moveSpeed;
         this.moveSpeed = 0; // Stop normal movement
         
-        // Deleguje na VFXSystem místo přímého tweens volání
+        // Delegates to VFXSystem instead of direct tweens call
         if (this.scene.vfxSystem && this.scene.vfxSystem.animateMovement) {
             this.scene.vfxSystem.animateMovement(this, {
                 to: { x: targetX, y: targetY },
@@ -184,9 +184,9 @@ export class BossCore extends EnemyCore {
     }
     
     /**
-     * Capability pro teleport - okamžitý přesun
-     * @param {number} targetX Cílová X pozice
-     * @param {number} targetY Cílová Y pozice
+     * Capability for teleport - instant relocation
+     * @param {number} targetX Target X position
+     * @param {number} targetY Target Y position
      */
     teleportTo(targetX, targetY) {
         // Teleport out effect
@@ -209,7 +209,7 @@ export class BossCore extends EnemyCore {
     }
 
     /**
-     * Override pro boss-specific cleanup
+     * Override for boss-specific cleanup
      */
     cleanup() {
         // Clear ability cooldowns

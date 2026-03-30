@@ -1,64 +1,64 @@
 /**
- * Centrální UI Theme systém pro Rakovinobijec
- * Definuje všechny barvy, fonty, rozměry a styly
- * Základ pro konzistentní design napříč celou hrou
+ * Central UI Theme system for Rakovinobijec
+ * Defines all colors, fonts, dimensions and styles
+ * Foundation for consistent design across the entire game
  */
 
 export const UI_THEME = {
-    // Barevná paleta
+    // Color palette
     colors: {
-        // Primární barvy
-        primary: 0x00ffff,      // Cyan - hlavní akcent (UI prvky, buttony)
-        secondary: 0xff4444,     // Červená - nebezpečí, health warning
-        success: 0x44ff44,       // Zelená - pozitivní akce, health
-        warning: 0xffaa00,       // Oranžová - varování, upgrade
-        info: 0x4488ff,         // Modrá - informace
-        
-        // Pozadí
+        // Primary colors
+        primary: 0x00ffff,      // Cyan - main accent (UI elements, buttons)
+        secondary: 0xff4444,     // Red - danger, health warning
+        success: 0x44ff44,       // Green - positive action, health
+        warning: 0xffaa00,       // Orange - warning, upgrade
+        info: 0x4488ff,         // Blue - information
+
+        // Backgrounds
         background: {
-            panel: 0x2a2a2a,        // Tmavé panely (hlavní UI pozadí)
-            modal: 0x1a1a1a,        // Ještě tmavší modals a dialogy  
-            hud: 0x222222,          // HUD pozadí
-            card: 0x333333,         // Karty (power-upy, atd.)
+            panel: 0x2a2a2a,        // Dark panels (main UI background)
+            modal: 0x1a1a1a,        // Even darker modals and dialogs
+            hud: 0x222222,          // HUD background
+            card: 0x333333,         // Cards (power-ups, etc.)
             overlay: 0x000000       // Semi-transparent overlay (alpha 0.8)
         },
-        
-        // Text barvy
+
+        // Text colors
         text: {
-            primary: 0xffffff,      // Hlavní text (títulky, důležité info)
-            secondary: 0xaaaaaa,    // Sekundární text (popisky)
-            disabled: 0x666666,     // Zakázaný/neaktivní text
-            accent: 0x00ffff,       // Zvýrazněný text (stejný jako primary)
-            danger: 0xff4444,       // Varovný text (stejný jako secondary)
-            success: 0x44ff44       // Pozitivní text (stejný jako success)
+            primary: 0xffffff,      // Main text (titles, important info)
+            secondary: 0xaaaaaa,    // Secondary text (descriptions)
+            disabled: 0x666666,     // Disabled/inactive text
+            accent: 0x00ffff,       // Highlighted text (same as primary)
+            danger: 0xff4444,       // Warning text (same as secondary)
+            success: 0x44ff44       // Positive text (same as success)
         },
-        
-        // Rámečky a ohraničení
+
+        // Borders and outlines
         borders: {
-            default: 0xffffff,     // Standardní rámeček
-            active: 0x00ffff,      // Aktivní prvky (hover, focus)
-            selected: 0xffaa00,    // Vybrané prvky
-            danger: 0xff4444,      // Nebezpečné akce
-            success: 0x44ff44,     // Pozitivní akce
-            disabled: 0x666666     // Zakázané prvky
+            default: 0xffffff,     // Standard border
+            active: 0x00ffff,      // Active elements (hover, focus)
+            selected: 0xffaa00,    // Selected elements
+            danger: 0xff4444,      // Dangerous actions
+            success: 0x44ff44,     // Positive actions
+            disabled: 0x666666     // Disabled elements
         },
-        
-        // Specifické barvy pro power-upy (z PowerUpSystem)
+
+        // Power-up specific colors (from PowerUpSystem)
         powerUp: {
-            weapon: 0xff4444,      // Zbraňové power-upy (červená)
-            upgrade: 0x44ff44,     // Upgrade power-upy (zelená) 
-            special: 0x4488ff,     // Speciální power-upy (modrá)
-            rare: 0xffaa00         // Vzácné power-upy (oranžová)
+            weapon: 0xff4444,      // Weapon power-ups (red)
+            upgrade: 0x44ff44,     // Upgrade power-ups (green)
+            special: 0x4488ff,     // Special power-ups (blue)
+            rare: 0xffaa00         // Rare power-ups (orange)
         }
     },
     
-    // Font systém
+    // Font system
     fonts: {
         primary: 'Public Pixel, monospace',
         fallback: 'monospace'
     },
     
-    // Velikosti fontů (responzivní)
+    // Font sizes (responsive)
     fontSizes: {
         tiny: { desktop: 14, mobile: 12 },
         small: { desktop: 16, mobile: 14 },
@@ -68,7 +68,7 @@ export const UI_THEME = {
         title: { desktop: 36, mobile: 28 }
     },
     
-    // Rozestupy a padding
+    // Spacing and padding
     spacing: {
         xs: 4,    // Extra small
         s: 8,     // Small  
@@ -78,16 +78,16 @@ export const UI_THEME = {
         xxl: 48   // XX Large
     },
     
-    // Border radius pro zaoblení rohů
+    // Border radius for rounded corners
     borderRadius: {
         none: 0,
         small: 4,
         medium: 8, 
         large: 16,
-        pill: 999  // Kompletně zaoblené (pilulka)
+        pill: 999  // Fully rounded (pill shape)
     },
     
-    // Tloušťky rámečků
+    // Border widths
     borderWidth: {
         thin: 1,
         normal: 2,
@@ -109,12 +109,12 @@ export const UI_THEME = {
 };
 
 /**
- * Utility funkce pro práci s UI Theme
+ * Utility functions for working with UI Theme
  */
 export class UIThemeUtils {
     
     /**
-     * Získá barvu podle typu power-upu
+     * Get color by power-up type
      */
     static getPowerUpColor(type) {
         const colorMap = {
@@ -127,7 +127,7 @@ export class UIThemeUtils {
     }
     
     /**
-     * Získá responzivní font size
+     * Get responsive font size
      */
     static getFontSize(size, isMobile = false) {
         const sizeConfig = UI_THEME.fontSizes[size];
@@ -136,13 +136,13 @@ export class UIThemeUtils {
     }
     
     /**
-     * Vytvoří font config objekt (kompatibilní s existujícím fontConfig.js)
+     * Create font config object (compatible with existing fontConfig.js)
      */
     static createFontConfig(size, color = 'primary', options = {}) {
         const isMobile = options.isMobile || false;
         const fontSize = this.getFontSize(size, isMobile);
         
-        // Bezpečné řešení pro text color
+        // Safe resolution of text color
         let textColor;
         if (typeof color === 'string') {
             textColor = UI_THEME.colors.text[color] || UI_THEME.colors.text.primary;
@@ -156,7 +156,7 @@ export class UIThemeUtils {
             color: `#${textColor.toString(16).padStart(6, '0')}`
         };
         
-        // Přidat stroke pokud je požadován
+        // Add stroke if requested
         if (options.stroke) {
             config.stroke = '#000000';
             config.strokeThickness = options.strokeThickness || 2;
@@ -166,7 +166,7 @@ export class UIThemeUtils {
     }
     
     /**
-     * Získá hex string z color hodnoty
+     * Get hex string from color value
      */
     static colorToHex(color) {
         if (typeof color === 'string') return color;
@@ -175,13 +175,13 @@ export class UIThemeUtils {
     }
     
     /**
-     * Zkontroluje zda je zařízení mobile (helper)
+     * Check if device is mobile (helper)
      */
     static isMobile() {
         return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
     }
 }
 
-// Přidat colorToHex funkci na UI_THEME objekt pro lepší kompatibilitu
+// Add colorToHex function to UI_THEME object for better compatibility
 UI_THEME.colorToHex = UIThemeUtils.colorToHex;
 

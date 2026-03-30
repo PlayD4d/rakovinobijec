@@ -1,6 +1,6 @@
 /**
- * Centralizovaná registrace všech kolizí pro GameScene
- * PR7 compliant - single source of truth pro fyzikální interakce
+ * Centralized registration of all collisions for GameScene
+ * PR7 compliant - single source of truth for physics interactions
  */
 
 import { DebugLogger } from '../core/debug/DebugLogger.js';
@@ -41,12 +41,12 @@ function killBullet(bullet) {
 }
 
 /**
- * Nastaví všechny kolize pro herní scénu
+ * Set up all collisions for the game scene
  * @param {Phaser.Scene} scene - GameScene instance
- * @returns {Array} Colliders pro DisposableRegistry cleanup
+ * @returns {Array} Colliders for DisposableRegistry cleanup
  */
 export function setupCollisions(scene) {
-    // Validace
+    // Validation
     if (!scene || !scene.physics) {
         DebugLogger.error('collision', '[setupCollisions] Invalid scene or physics not initialized');
         return [];

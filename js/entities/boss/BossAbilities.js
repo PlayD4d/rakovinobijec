@@ -1,8 +1,8 @@
 /**
- * BossAbilities - Systém pro boss schopnosti a ability execution
+ * BossAbilities - Boss abilities and ability execution system
  *
- * Spravuje všechny boss schopnosti, jejich cooldowny a execution logiku.
- * Odděluje ability logic od core boss třídy podle PR7 principů.
+ * Manages all boss abilities, their cooldowns, and execution logic.
+ * Separates ability logic from the core boss class per PR7 principles.
  *
  * Handler implementations are split into:
  *   - abilities/GenericAbilities.js   (10 generic handlers)
@@ -63,7 +63,7 @@ export class BossAbilities {
     }
 
     /**
-     * Registruje výchozí boss schopnosti
+     * Register default boss abilities
      */
     registerDefaultAbilities() {
         // Generic abilities
@@ -88,7 +88,7 @@ export class BossAbilities {
         this.abilityHandlers.set('massive_summon', (data, params) => executeMassiveSummon(this, data, params));
         this.abilityHandlers.set('core_overload', (data, params) => executeCoreOverload(this, data, params));
 
-        // Karcinogenní Král + Onkogen abilities (map to projectile burst variants)
+        // Karcinogenni Kral + Onkogen abilities (map to projectile burst variants)
         this.abilityHandlers.set('shoot_fan', (data, params) => executeProjectileBurst(this, data, params));
         this.abilityHandlers.set('shoot_circle', (data, params) => executeProjectileBurst(this, data, params));
         this.abilityHandlers.set('tracking_burst', (data, params) => executeProjectileBurst(this, data, params));
@@ -103,7 +103,7 @@ export class BossAbilities {
     }
 
     /**
-     * Update method - zpracovává ability queue a cooldowny
+     * Update method - processes ability queue and cooldowns
      */
     update(time, delta) {
         // Process execution queue
@@ -121,7 +121,7 @@ export class BossAbilities {
     }
 
     /**
-     * Pokusí se vykonat schopnost
+     * Attempt to execute an ability
      */
     executeAbility(abilityId, params = {}) {
         if (!this.abilities[abilityId]) {
@@ -145,7 +145,7 @@ export class BossAbilities {
     }
 
     /**
-     * Interní execution schopnosti
+     * Internal ability execution
      */
     executeAbilityInternal(abilityId, params) {
         const abilityData = this.abilities[abilityId];
@@ -193,7 +193,7 @@ export class BossAbilities {
     }
 
     /**
-     * Callback po dokončení schopnosti
+     * Callback after ability completion
      */
     onAbilityCompleted(abilityId) {
         this.isExecutingAbility = false;
@@ -202,7 +202,7 @@ export class BossAbilities {
     }
 
     /**
-     * Registruje vlastní ability handler
+     * Register a custom ability handler
      */
     registerAbility(abilityId, handler) {
         this.abilityHandlers.set(abilityId, handler);
@@ -210,14 +210,14 @@ export class BossAbilities {
     }
 
     /**
-     * Získá seznam aktivních schopností
+     * Get the list of active abilities
      */
     getActiveAbilities() {
         return Array.from(this.activeAbilities);
     }
 
     /**
-     * Zastaví všechny aktivní schopnosti
+     * Stop all active abilities
      */
     stopAllAbilities() {
         this.isExecutingAbility = false;
@@ -246,7 +246,7 @@ export class BossAbilities {
     }
 
     /**
-     * Cleanup při odstranění bosse
+     * Cleanup on boss removal
      */
     cleanup() {
         // Cancel all pending timers

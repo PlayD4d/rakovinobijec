@@ -1,10 +1,10 @@
 /**
- * BossMovement - Systém pro pokročilé boss pohyby
- * 
- * Spravuje dash, teleport a komplexní pohybové vzory pro bosse.
- * Vyřešuje tween violation delegací na povolené systémy.
- * 
- * ŘEŠÍ: Guard violation z Boss.js:861 (this.scene.tweens.add)
+ * BossMovement - Advanced boss movement system
+ *
+ * Manages dash, teleport, and complex movement patterns for bosses.
+ * Resolves tween violation by delegating to allowed systems.
+ *
+ * FIXES: Guard violation from Boss.js:861 (this.scene.tweens.add)
  */
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
 export class BossMovement {
@@ -25,21 +25,21 @@ export class BossMovement {
     }
     
     /**
-     * Spustí dash movement - PŮVODNÍ TWEEN VIOLATION ŘEŠENÍ
-     * 
-     * Místo přímého this.scene.tweens.add volání deleguje na VFXSystem
-     * nebo SimpleLootSystem pro animaci s tweens API.
+     * Execute dash movement - ORIGINAL TWEEN VIOLATION FIX
+     *
+     * Instead of direct this.scene.tweens.add calls, delegates to VFXSystem
+     * or SimpleLootSystem for animation via tweens API.
      */
     executeDash(direction, distance, duration = 800) {
         if (this.isExecutingMovement) return false;
         
         const { x: startX, y: startY } = this.boss.getPos();
         
-        // Vypočítej cílovou pozici
+        // Calculate target position
         const targetX = startX + direction.x * distance;
         const targetY = startY + direction.y * distance;
         
-        // Clamp k hranicím herního světa (ne viewport)
+        // Clamp to game world bounds (not viewport)
         const wb = this.scene.physics?.world?.bounds;
         const bw = wb?.width || this.scene.cameras.main.width;
         const bh = wb?.height || this.scene.cameras.main.height;
@@ -48,7 +48,7 @@ export class BossMovement {
         
         DebugLogger.info('boss', `[BossMovement] Executing dash: (${startX}, ${startY}) -> (${clampedX}, ${clampedY}`);
         
-        // ŘEŠENÍ TWEEN VIOLATION - delegace na BossCore capability
+        // TWEEN VIOLATION FIX - delegate to BossCore capability
         this.boss.dashTo(clampedX, clampedY, duration, () => {
             this.isExecutingMovement = false;
             DebugLogger.info('boss', '[BossMovement] Dash completed');
@@ -59,7 +59,7 @@ export class BossMovement {
     }
     
     /**
-     * Teleport strike - kombinuje teleport s útokem
+     * Teleport strike - combines teleport with an attack
      */
     executeTeleportStrike(target, damage = 30) {
         if (this.isExecutingMovement) return false;
@@ -102,7 +102,7 @@ export class BossMovement {
     }
     
     /**
-     * Kruhovitý pohybový vzor
+     * Circular movement pattern
      */
     executeCirclePattern(centerX, centerY, radius, duration = 3000) {
         if (this.isExecutingMovement) return false;
@@ -113,7 +113,7 @@ export class BossMovement {
     }
     
     /**
-     * Zigzag pohybový vzor
+     * Zigzag movement pattern
      */
     executeZigzagPattern(startX, startY, endX, endY, segments = 4) {
         if (this.isExecutingMovement) return false;
@@ -124,7 +124,7 @@ export class BossMovement {
     }
     
     /**
-     * Spustí sekvenci pohybů podle vzoru
+     * Execute a sequence of movements following a pattern
      */
     executeMovementPattern(points, totalDuration) {
         if (points.length === 0) return;
@@ -142,7 +142,7 @@ export class BossMovement {
             const point = points[currentIndex];
             currentIndex++;
             
-            // Delegace na BossCore capability místo přímého tweens
+            // Delegate to BossCore capability instead of direct tweens
             this.boss.dashTo(point.x, point.y, segmentDuration, moveToNext);
         };
         
@@ -150,7 +150,7 @@ export class BossMovement {
     }
     
     /**
-     * Vytvoří kruhovitý vzor bodů
+     * Create a circular pattern of points
      */
     createCirclePattern(centerX, centerY, radius, pointCount) {
         const points = [];
@@ -165,19 +165,19 @@ export class BossMovement {
     }
     
     /**
-     * Vytvoří zigzag vzor bodů
+     * Create a zigzag pattern of points
      */
     createZigzagPattern(startX, startY, endX, endY, segments) {
         const points = [];
         const deltaX = (endX - startX) / segments;
         const deltaY = (endY - startY) / segments;
-        const amplitude = 100; // Amplituda zigzagu
+        const amplitude = 100; // Zigzag amplitude
         
         for (let i = 1; i <= segments; i++) {
             const baseX = startX + deltaX * i;
             const baseY = startY + deltaY * i;
             
-            // Alternující offset pro zigzag
+            // Alternating offset for zigzag
             const offset = (i % 2 === 0 ? amplitude : -amplitude);
             const perpAngle = Math.atan2(deltaY, deltaX) + Math.PI / 2;
             
@@ -191,7 +191,7 @@ export class BossMovement {
     }
     
     /**
-     * Teleport strike pattern - kompletní schopnost
+     * Teleport strike pattern - complete ability
      */
     createTeleportStrikePattern(target, strikeCount = 3) {
         const pattern = [];
@@ -212,7 +212,7 @@ export class BossMovement {
     }
     
     /**
-     * Zastaví aktuální pohyb
+     * Stop current movement
      */
     stopCurrentMovement() {
         this.isExecutingMovement = false;
@@ -226,14 +226,14 @@ export class BossMovement {
     }
     
     /**
-     * Cleanup při odstranění bosse
+     * Cleanup on boss removal
      */
     cleanup() {
         this.stopCurrentMovement();
         this.patterns = {};
         this.boss = null;
         this.scene = null;
-        
+
         DebugLogger.info('boss', '[BossMovement] Cleanup completed');
     }
 }

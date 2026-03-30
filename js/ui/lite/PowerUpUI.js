@@ -1,7 +1,7 @@
 /**
  * PowerUpUI - Level-up power-up selection modal
- * Zobrazuje 3 karty s power-upy k výběru
- * UITheme integrace pro konzistentní styling
+ * Displays 3 power-up cards for selection
+ * UITheme integration for consistent styling
  */
 import { SimpleModal } from './SimpleModal.js';
 import { UI_THEME } from '../UITheme.js';

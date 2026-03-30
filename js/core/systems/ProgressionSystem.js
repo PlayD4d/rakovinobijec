@@ -43,39 +43,37 @@ export class ProgressionSystem {
         const willLevelUp = this.gameStats.xp >= this.gameStats.xpToNext;
         getSession()?.log('xp', 'add', { raw: baseAmount, scaled: amount, totalXP: this.gameStats.xp, xpToNext: this.gameStats.xpToNext, willLevelUp });
 
-        // Process ONE level-up per call to prevent stacking
-        if (willLevelUp) {
-            // If paused (e.g., power-up selection), defer ALL XP — don't consume any
-            // The level-up will be processed after unpause via _pendingXP
+        // Process ONE level-up per call — excess XP is stored as pending
+        // and processed on next addXP or after unpause (NO recursion)
+        const maxLevel = this._config?.maxLevel || 1000;
+        if (willLevelUp && this.gameStats.level < maxLevel) {
             if (this.scene.isPaused) {
                 this._pendingXP += amount;
-                this.gameStats.xp -= amount; // Undo the add above
+                this.gameStats.xp -= amount;
                 if (this.scene.player) this.scene.player.xp = this.gameStats.xp;
-                getSession()?.log('xp', 'deferred', { deferredAmount: amount, pendingTotal: this._pendingXP });
                 return;
             }
             const excessXP = this.gameStats.xp - this.gameStats.xpToNext;
 
             this.gameStats.xp = 0;
-            if (this.scene.player) {
-                this.scene.player.xp = this.gameStats.xp;
-            }
+            if (this.scene.player) this.scene.player.xp = this.gameStats.xp;
 
             this.gameStats.level++;
-
             this.gameStats.xpToNext = this.getXPToNextLevel(this.gameStats.level);
-
             this._pendingXP += excessXP;
 
             getSession()?.log('xp', 'level_up', { newLevel: this.gameStats.level, xpToNext: this.gameStats.xpToNext, excessXP });
-            DebugLogger.log('progression', 'DEBUG',
-                `Level up → ${this.gameStats.level}  (xpToNext=${this.gameStats.xpToNext}, pending=${this._pendingXP})`);
 
-            // Delegate the actual level-up ceremony back to the scene
+            // Delegate level-up ceremony — this pauses the game for powerup selection
+            // Excess XP stays in _pendingXP until next addXP call after unpause
             this.scene.levelUp();
         }
+    }
 
-        // Re-apply excess XP from level-up if not paused (avoids waiting for unpause cycle)
+    /**
+     * Flush pending XP after unpause (called from update or resume handler)
+     */
+    flushPendingXP() {
         if (this._pendingXP > 0 && !this.scene?.isPaused) {
             const pending = this._pendingXP;
             this._pendingXP = 0;
