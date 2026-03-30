@@ -1392,12 +1392,12 @@ export class PropertyEditor {
      */
     createStatCards(statsObj, path) {
         const STAT_META = {
-            hp:     { icon: '\u2764\uFE0F', label: 'HP',     range: [0, 200],  bossRange: [0, 5000], color: '#e74c3c' },
-            damage: { icon: '\u2694\uFE0F', label: 'Damage', range: [0, 50],   bossRange: [0, 100],  color: '#e67e22' },
-            speed:  { icon: '\uD83D\uDCA8',  label: 'Speed',  range: [0, 200],  bossRange: [0, 200],  color: '#3498db' },
-            armor:  { icon: '\uD83D\uDEE1\uFE0F', label: 'Armor',  range: [0, 20],   bossRange: [0, 50],   color: '#95a5a6' },
-            size:   { icon: '\uD83D\uDCCF',  label: 'Size',   range: [0, 60],   bossRange: [0, 120],  color: '#9b59b6' },
-            xp:     { icon: '\u2B50',  label: 'XP',     range: [0, 50],   bossRange: [0, 500],  color: '#f1c40f' }
+            hp:     { icon: 'HP',  label: 'Health',  range: [0, 200],  bossRange: [0, 5000], color: '#d94f4f' },
+            damage: { icon: 'DMG', label: 'Damage',  range: [0, 50],   bossRange: [0, 100],  color: '#e8a838' },
+            speed:  { icon: 'SPD', label: 'Speed',   range: [0, 200],  bossRange: [0, 200],  color: '#5b9bd5' },
+            armor:  { icon: 'ARM', label: 'Armor',   range: [0, 20],   bossRange: [0, 50],   color: '#8891a4' },
+            size:   { icon: 'SZ',  label: 'Size',    range: [0, 60],   bossRange: [0, 120],  color: '#9b59b6' },
+            xp:     { icon: 'XP',  label: 'Exp',     range: [0, 50],   bossRange: [0, 500],  color: '#daa520' }
         };
 
         const isBoss = this.currentBlueprint?.type === 'boss' ||
