@@ -395,14 +395,14 @@
       value: 220000,
       bossId: 'boss.onkogen',
       spawnDelay: 3000,
-      clearEnemies: true,
+      clearEnemies: false,
     },
     {
       condition: 'kills',
       value: 120,
       bossId: 'boss.onkogen',
       spawnDelay: 3000,
-      clearEnemies: true,
+      clearEnemies: false,
     },
   ],
   lootTables: {
@@ -488,7 +488,7 @@
         enemyXpOverrides: {
           'enemy.acidic_blob': 5,
           'enemy.metastasis_runner': 4,
-          'enemy.fungal_parasite': 5,
+          'enemy.acidic_blob': 5,
         },
       },
     },

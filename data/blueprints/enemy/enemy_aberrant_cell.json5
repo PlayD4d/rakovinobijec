@@ -79,6 +79,8 @@
       dodgeInterval: 700,
       dodgeDuration: 300,
       dodgeSpeedMul: 2.8,
+      enrageThreshold: 0.4,
+      enrageSpeedMul: 1.5,
     },
   },
   display: {

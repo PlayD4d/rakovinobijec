@@ -58,7 +58,6 @@
     "enemy.necrotic_cell": "blueprints/enemy/enemy_necrotic_cell.json5",
     "enemy.micro_shooter": "blueprints/enemy/enemy_micro_shooter.json5",
     "enemy.metastasis_runner": "blueprints/enemy/enemy_metastasis_runner.json5",
-    "enemy.fungal_parasite": "blueprints/enemy/enemy_fungal_parasite.json5",
     "enemy.acidic_blob": "blueprints/enemy/enemy_acidic_blob.json5",
     "enemy.aberrant_cell": "blueprints/enemy/enemy_aberrant_cell.json5",
     "elite.tank_cell": "blueprints/elite/elite_tank_cell.json5",

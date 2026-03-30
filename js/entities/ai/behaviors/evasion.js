@@ -1,9 +1,8 @@
 /**
- * Evasion behavior — cell dodges player projectiles while approaching.
- * Inspired by immune evasion: cancer cells that avoid the immune system's attacks.
+ * Evasion behavior — cell dodges while approaching.
+ * Inspired by immune evasion: cancer cells that avoid the immune system.
  *
- * Approaches player but periodically sidesteps in a random direction,
- * making it harder to hit with projectiles.
+ * Supports enrage: when HP drops below threshold, speed and dodge frequency increase.
  * Pure function, no Phaser API.
  */
 export function evasion(cap, cfg, dt, mem, setState) {
@@ -15,13 +14,28 @@ export function evasion(cap, cfg, dt, mem, setState) {
     const dy = player.y - pos.y;
     const distSq = dx * dx + dy * dy;
 
-    const speed = cfg.speed || 85;
-    const dodgeInterval = cfg.dodgeInterval || 800; // ms between dodges
-    const dodgeDuration = cfg.dodgeDuration || 250; // ms of dodge movement
-    const dodgeSpeedMul = cfg.dodgeSpeedMul || 2.5;
+    let speed = cfg.speed || 85;
+    let dodgeInterval = cfg.dodgeInterval || 800;
+    const dodgeDuration = cfg.dodgeDuration || 250;
+    let dodgeSpeedMul = cfg.dodgeSpeedMul || 2.5;
+
+    // Enrage: below HP threshold → faster, more aggressive dodging
+    const enrageThreshold = cfg.enrageThreshold || 0;
+    if (enrageThreshold > 0 && cap.getHpRatio && cap.getHpRatio() <= enrageThreshold) {
+        const enrageSpeedMul = cfg.enrageSpeedMul || 1.5;
+        speed *= enrageSpeedMul;
+        dodgeInterval *= 0.5; // Dodge twice as often
+        dodgeSpeedMul *= 1.3;
+
+        // Visual indicator — tint red on first enrage
+        if (!mem.evasion?.enraged) {
+            cap.setTint?.(0xFF4444);
+        }
+        if (mem.evasion) mem.evasion.enraged = true;
+    }
 
     if (!mem.evasion) {
-        mem.evasion = { lastDodge: cap.now, dodging: false, dodgeDir: 1, dodgeStart: 0 };
+        mem.evasion = { lastDodge: cap.now, dodging: false, dodgeDir: 1, dodgeStart: 0, enraged: false };
     }
     const s = mem.evasion;
 
@@ -35,10 +49,8 @@ export function evasion(cap, cfg, dt, mem, setState) {
         if (elapsed >= dodgeDuration) {
             s.dodging = false;
         } else {
-            // Perpendicular vector (rotated 90°)
             const perpX = -toPlayerY * s.dodgeDir;
             const perpY = toPlayerX * s.dodgeDir;
-            // Mix: mostly dodge + slight approach
             const mx = perpX * 0.8 + toPlayerX * 0.2;
             const my = perpY * 0.8 + toPlayerY * 0.2;
             cap.setVelocity(mx * speed * dodgeSpeedMul, my * speed * dodgeSpeedMul);
@@ -51,7 +63,7 @@ export function evasion(cap, cfg, dt, mem, setState) {
         s.lastDodge = cap.now;
         s.dodging = true;
         s.dodgeStart = cap.now;
-        s.dodgeDir = Math.random() > 0.5 ? 1 : -1; // Random side
+        s.dodgeDir = Math.random() > 0.5 ? 1 : -1;
         return;
     }
 

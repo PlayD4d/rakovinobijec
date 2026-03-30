@@ -201,6 +201,8 @@ export class EnemyBehaviors {
             playTelegraph: (x, y, opts) => enemy.scene?.vfxSystem?.playTelegraph?.(x, y, opts),
             playExplosion: (x, y, opts) => enemy.scene?.vfxSystem?.playExplosionEffect?.(x, y, opts),
             die: () => enemy.die('self_destruct'),
+            getHpRatio: () => enemy.maxHp > 0 ? enemy.hp / enemy.maxHp : 1,
+            setTint: (color) => enemy.setTint?.(color),
             schedule: (fn, ms) => enemy.schedule(fn, ms),
             getState: () => this.state,
             // Focused accessors (no raw scene reference — architecture rule)

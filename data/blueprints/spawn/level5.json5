@@ -10,14 +10,14 @@
   enemyWaves: [
     { enemyId: 'enemy.micro_shooter', weight: 30, countRange: [3, 5], interval: 1500, startAt: 0, endAt: 60000 },
     { enemyId: 'enemy.acidic_blob', weight: 25, countRange: [3, 5], interval: 1600, startAt: 0, endAt: 60000 },
-    { enemyId: 'enemy.fungal_parasite', weight: 20, countRange: [2, 3], interval: 2500, startAt: 5000, endAt: 60000 },
+    { enemyId: 'enemy.acidic_blob', weight: 20, countRange: [2, 3], interval: 2500, startAt: 5000, endAt: 60000 },
     { enemyId: 'enemy.support_bacteria', weight: 15, countRange: [2, 3], interval: 3000, startAt: 10000, endAt: 60000 },
     { enemyId: 'enemy.metastasis_runner', weight: 10, countRange: [1, 2], interval: 3500, startAt: 15000, endAt: 60000 },
     // Mid phase — heavy shooters + swarms
     { enemyId: 'enemy.micro_shooter', weight: 30, countRange: [4, 6], interval: 1200, startAt: 60000, endAt: 120000 },
     { enemyId: 'enemy.viral_swarm', weight: 25, countRange: [5, 8], interval: 1500, startAt: 60000, endAt: 120000 },
     { enemyId: 'enemy.acidic_blob', weight: 20, countRange: [4, 6], interval: 1400, startAt: 60000, endAt: 120000 },
-    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [2, 4], interval: 2500, startAt: 65000, endAt: 120000 },
+    { enemyId: 'enemy.acidic_blob', weight: 15, countRange: [2, 4], interval: 2500, startAt: 65000, endAt: 120000 },
     { enemyId: 'enemy.shielding_helper', weight: 8, countRange: [1, 2], interval: 5000, startAt: 70000, endAt: 120000 },
     // Late phase — maximum pressure
     { enemyId: 'enemy.micro_shooter', weight: 25, countRange: [4, 7], interval: 1000, startAt: 120000, endAt: 999999 },
@@ -39,8 +39,8 @@
     { enemyId: 'unique.necrocyte_sentinel', weight: 1, countRange: [1, 1], cooldown: 80000, startAt: 80000, endAt: 999999, conditions: { playerLevel: { min: 18 }, enemiesKilled: { min: 250 } } },
   ],
   bossTriggers: [
-    { condition: 'time', value: 180000, bossId: 'boss.onkogen_prime', spawnDelay: 3000, clearEnemies: true },
-    { condition: 'kills', value: 200, bossId: 'boss.onkogen_prime', spawnDelay: 3000, clearEnemies: true },
+    { condition: 'time', value: 180000, bossId: 'boss.onkogen_prime', spawnDelay: 3000, clearEnemies: false },
+    { condition: 'kills', value: 200, bossId: 'boss.onkogen_prime', spawnDelay: 3000, clearEnemies: false },
   ],
   lootTables: {
     normal: {

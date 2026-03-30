@@ -104,12 +104,8 @@ export class UpdateManager {
             }
         }, 'spawn_director');
         
-        // Projectile system
-        this.addTask('projectiles', (time, delta) => {
-            if (scene.projectileSystem && !scene.isPaused) {
-                scene.projectileSystem.update(time, delta);
-            }
-        }, 'projectile_system');
+        // Projectile system — Phaser handles updates via runChildUpdate: true on groups.
+        // No manual update needed (ProjectileSystem.update() is a no-op).
         
         // Loot system
         this.addTask('loot', (time, delta) => {

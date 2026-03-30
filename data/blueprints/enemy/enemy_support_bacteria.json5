@@ -28,6 +28,7 @@
       buffInterval: 2500,
       buffRange: 70,
       supportType: 'healer',
+      healAmount: 3,
     },
   },
   mechanics: {

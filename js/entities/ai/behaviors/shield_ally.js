@@ -75,11 +75,45 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
     const gd = Math.sqrt(gdx * gdx + gdy * gdy) || 1;
     cap.setVelocity((gdx / gd) * speed, (gdy / gd) * speed);
 
-    // Shield buff pulse — brief flash on buff tick only (not persistent aura)
+    // Support ability tick — heal allies or grant damage reduction
     if (cap.now - s.lastBuff >= buffInterval) {
         s.lastBuff = cap.now;
-        cap.playTelegraph(pos.x, pos.y, {
-            radius: buffRange * 0.5, color: 0x00FFCC, duration: 300, fillAlpha: 0.1
-        });
+
+        const supportType = cfg.supportType || 'shield';
+        const nearby = cap.getEnemiesNearby(pos.x, pos.y, buffRange);
+
+        if (supportType === 'healer') {
+            // Heal: restore HP to nearby allies (green pulse VFX)
+            const healAmount = cfg.healAmount || 2;
+            for (let i = 0; i < nearby.length && i < 5; i++) {
+                const ally = nearby[i];
+                if (ally.hp < ally.maxHp) {
+                    ally.hp = Math.min(ally.maxHp, ally.hp + healAmount);
+                }
+            }
+            cap.playTelegraph(pos.x, pos.y, {
+                radius: buffRange * 0.5, color: 0x44FF44, duration: 400
+            });
+        } else {
+            // Shield: grant temporary armor boost (cyan pulse VFX)
+            const armorBoost = cfg.armorBoost || 3;
+            const boostDuration = cfg.boostDuration || 3000;
+            for (let i = 0; i < nearby.length && i < 5; i++) {
+                const ally = nearby[i];
+                if (!ally._shieldBuff) {
+                    ally._shieldBuff = true;
+                    ally.armor = (ally.armor || 0) + armorBoost;
+                    cap.schedule(() => {
+                        if (ally?.active) {
+                            ally.armor = Math.max(0, (ally.armor || 0) - armorBoost);
+                            ally._shieldBuff = false;
+                        }
+                    }, boostDuration);
+                }
+            }
+            cap.playTelegraph(pos.x, pos.y, {
+                radius: buffRange * 0.5, color: 0x00CCFF, duration: 400
+            });
+        }
     }
 }

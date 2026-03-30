@@ -7,7 +7,7 @@
     speed: 100,
     size: 20,
     armor: 0,
-    xp: 3,
+    xp: 7,
   },
   mechanics: {
     movementType: 'dash_attack',
@@ -49,11 +49,11 @@
     behavior: 'charge',
     params: {
       speed: 80,
-      dashSpeed: 300,
-      dashDuration: 500,
+      dashSpeed: 400,
+      dashDuration: 600,
       recoverDuration: 1000,
-      windupDuration: 800,
-      triggerRange: 180,
+      windupDuration: 700,
+      triggerRange: 200,
     },
   },
   display: {

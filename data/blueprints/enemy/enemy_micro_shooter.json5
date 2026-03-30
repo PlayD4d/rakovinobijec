@@ -15,7 +15,6 @@
     aggroRange: 450,
     kiteDistance: 280,
     canShoot: true,
-    shootInterval: 3500,
     projectileDamage: 8,
     inaccuracyRange: 0.4,
     dropChance: 1,
@@ -36,7 +35,7 @@
     layers: { movement: 'orbit', combat: 'shoot' },
     layerConfig: {
       movement: { speed: 95, orbitRadius: 180, orbitSpeed: 1.2, fleeDistance: 60 },
-      combat: { cooldown: 2500, burstCount: 2, burstDelay: 150, speed: 220 },
+      combat: { cooldown: 2500, burstCount: 2, burstDelay: 150, speed: 150 },
     },
   },
   drops: [

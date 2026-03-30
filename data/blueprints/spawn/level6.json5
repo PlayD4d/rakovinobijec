@@ -11,21 +11,21 @@
     { enemyId: 'enemy.micro_shooter', weight: 25, countRange: [4, 6], interval: 1200, startAt: 0, endAt: 60000 },
     { enemyId: 'enemy.acidic_blob', weight: 25, countRange: [4, 6], interval: 1300, startAt: 0, endAt: 60000 },
     { enemyId: 'enemy.viral_swarm', weight: 20, countRange: [5, 8], interval: 1500, startAt: 0, endAt: 60000 },
-    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [2, 4], interval: 2000, startAt: 5000, endAt: 60000 },
+    { enemyId: 'enemy.acidic_blob', weight: 15, countRange: [2, 4], interval: 2000, startAt: 5000, endAt: 60000 },
     { enemyId: 'enemy.support_bacteria', weight: 10, countRange: [2, 3], interval: 2500, startAt: 10000, endAt: 60000 },
     { enemyId: 'enemy.shielding_helper', weight: 5, countRange: [1, 2], interval: 4000, startAt: 15000, endAt: 60000 },
     // Mid phase — massive waves
     { enemyId: 'enemy.micro_shooter', weight: 25, countRange: [5, 7], interval: 1000, startAt: 60000, endAt: 130000 },
     { enemyId: 'enemy.viral_swarm', weight: 25, countRange: [6, 10], interval: 1100, startAt: 60000, endAt: 130000 },
     { enemyId: 'enemy.acidic_blob', weight: 20, countRange: [5, 7], interval: 1000, startAt: 60000, endAt: 130000 },
-    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [3, 5], interval: 1800, startAt: 65000, endAt: 130000 },
+    { enemyId: 'enemy.acidic_blob', weight: 15, countRange: [3, 5], interval: 1800, startAt: 65000, endAt: 130000 },
     { enemyId: 'enemy.metastasis_runner', weight: 10, countRange: [2, 4], interval: 2000, startAt: 70000, endAt: 130000 },
     { enemyId: 'enemy.shielding_helper', weight: 5, countRange: [2, 3], interval: 3500, startAt: 75000, endAt: 130000 },
     // Late phase — all-out assault
     { enemyId: 'enemy.micro_shooter', weight: 20, countRange: [5, 8], interval: 900, startAt: 130000, endAt: 999999 },
     { enemyId: 'enemy.viral_swarm', weight: 20, countRange: [8, 12], interval: 1000, startAt: 130000, endAt: 999999 },
     { enemyId: 'enemy.acidic_blob', weight: 20, countRange: [5, 8], interval: 900, startAt: 130000, endAt: 999999 },
-    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [3, 5], interval: 1500, startAt: 130000, endAt: 999999 },
+    { enemyId: 'enemy.acidic_blob', weight: 15, countRange: [3, 5], interval: 1500, startAt: 130000, endAt: 999999 },
     { enemyId: 'enemy.support_bacteria', weight: 10, countRange: [3, 5], interval: 1800, startAt: 130000, endAt: 999999 },
     { enemyId: 'enemy.metastasis_runner', weight: 10, countRange: [3, 5], interval: 1500, startAt: 130000, endAt: 999999 },
     { enemyId: 'enemy.shielding_helper', weight: 5, countRange: [2, 3], interval: 3000, startAt: 135000, endAt: 999999 },
@@ -42,8 +42,8 @@
     { enemyId: 'unique.phage_overlord', weight: 1.5, countRange: [1, 1], cooldown: 60000, startAt: 70000, endAt: 999999, conditions: { playerLevel: { min: 22 }, enemiesKilled: { min: 300 } } },
   ],
   bossTriggers: [
-    { condition: 'time', value: 180000, bossId: 'boss.radiation', spawnDelay: 3000, clearEnemies: true },
-    { condition: 'kills', value: 250, bossId: 'boss.radiation', spawnDelay: 3000, clearEnemies: true },
+    { condition: 'time', value: 180000, bossId: 'boss.radiation', spawnDelay: 3000, clearEnemies: false },
+    { condition: 'kills', value: 250, bossId: 'boss.radiation', spawnDelay: 3000, clearEnemies: false },
   ],
   lootTables: {
     normal: {

@@ -40,6 +40,9 @@
       orbitSpeed: 1.8,
       buffInterval: 2500,
       buffRange: 100,
+      supportType: 'shield',
+      armorBoost: 3,
+      boostDuration: 3000,
     },
   },
   drops: [

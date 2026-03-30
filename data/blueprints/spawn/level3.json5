@@ -86,7 +86,7 @@
       endAt: 70000,
     },
     {
-      enemyId: 'enemy.fungal_parasite',
+      enemyId: 'enemy.acidic_blob',
       weight: 10,
       countRange: [
         1,
@@ -130,7 +130,7 @@
       endAt: 120000,
     },
     {
-      enemyId: 'enemy.fungal_parasite',
+      enemyId: 'enemy.acidic_blob',
       weight: 15,
       countRange: [
         1,
@@ -185,7 +185,7 @@
       endAt: 999999,
     },
     {
-      enemyId: 'enemy.fungal_parasite',
+      enemyId: 'enemy.acidic_blob',
       weight: 20,
       countRange: [
         2,
@@ -288,14 +288,14 @@
       value: 150000,
       bossId: 'boss.karcinogenni_kral',
       spawnDelay: 3000,
-      clearEnemies: true,
+      clearEnemies: false,
     },
     {
       condition: 'kills',
       value: 150,
       bossId: 'boss.karcinogenni_kral',
       spawnDelay: 3000,
-      clearEnemies: true,
+      clearEnemies: false,
     },
   ],
   lootTables: {

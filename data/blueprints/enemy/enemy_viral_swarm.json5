@@ -48,9 +48,9 @@
     behavior: 'swarm',
     params: {
       speed: 100,
-      separationDist: 20,
-      cohesionWeight: 0.2,
-      flankAngle: 0.5,
+      separationDist: 12,
+      cohesionWeight: 0.4,
+      flankAngle: 0.25,
     },
   },
   display: {

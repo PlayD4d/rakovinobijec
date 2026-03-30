@@ -11,19 +11,19 @@
     { enemyId: 'enemy.acidic_blob', weight: 35, countRange: [3, 5], interval: 1800, startAt: 0, endAt: 50000 },
     { enemyId: 'enemy.micro_shooter', weight: 30, countRange: [2, 3], interval: 2000, startAt: 0, endAt: 50000 },
     { enemyId: 'enemy.support_bacteria', weight: 20, countRange: [1, 2], interval: 3500, startAt: 5000, endAt: 50000 },
-    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [1, 2], interval: 4000, startAt: 10000, endAt: 50000 },
+    { enemyId: 'enemy.acidic_blob', weight: 15, countRange: [1, 2], interval: 4000, startAt: 10000, endAt: 50000 },
     // Mid phase — more aggressive
     { enemyId: 'enemy.acidic_blob', weight: 30, countRange: [4, 6], interval: 1500, startAt: 50000, endAt: 100000 },
     { enemyId: 'enemy.micro_shooter', weight: 30, countRange: [3, 4], interval: 1600, startAt: 50000, endAt: 100000 },
     { enemyId: 'enemy.viral_swarm', weight: 20, countRange: [4, 7], interval: 2000, startAt: 50000, endAt: 100000 },
-    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [2, 3], interval: 3000, startAt: 55000, endAt: 100000 },
+    { enemyId: 'enemy.acidic_blob', weight: 15, countRange: [2, 3], interval: 3000, startAt: 55000, endAt: 100000 },
     { enemyId: 'enemy.metastasis_runner', weight: 10, countRange: [1, 2], interval: 4000, startAt: 60000, endAt: 100000 },
     // Late phase — swarm
     { enemyId: 'enemy.acidic_blob', weight: 25, countRange: [5, 7], interval: 1200, startAt: 100000, endAt: 999999 },
     { enemyId: 'enemy.micro_shooter', weight: 25, countRange: [3, 5], interval: 1300, startAt: 100000, endAt: 999999 },
     { enemyId: 'enemy.viral_swarm', weight: 20, countRange: [5, 8], interval: 1500, startAt: 100000, endAt: 999999 },
     { enemyId: 'enemy.support_bacteria', weight: 15, countRange: [2, 4], interval: 2500, startAt: 100000, endAt: 999999 },
-    { enemyId: 'enemy.fungal_parasite', weight: 15, countRange: [2, 3], interval: 2500, startAt: 100000, endAt: 999999 },
+    { enemyId: 'enemy.acidic_blob', weight: 15, countRange: [2, 3], interval: 2500, startAt: 100000, endAt: 999999 },
     { enemyId: 'enemy.shielding_helper', weight: 5, countRange: [1, 2], interval: 6000, startAt: 110000, endAt: 999999 },
   ],
   eliteWindows: [
@@ -38,8 +38,8 @@
     { enemyId: 'unique.radiomorph_titan', weight: 1, countRange: [1, 1], cooldown: 90000, startAt: 90000, endAt: 999999, conditions: { playerLevel: { min: 15 }, enemiesKilled: { min: 200 } } },
   ],
   bossTriggers: [
-    { condition: 'time', value: 150000, bossId: 'boss.genova_mutace', spawnDelay: 3000, clearEnemies: true },
-    { condition: 'kills', value: 180, bossId: 'boss.genova_mutace', spawnDelay: 3000, clearEnemies: true },
+    { condition: 'time', value: 150000, bossId: 'boss.genova_mutace', spawnDelay: 3000, clearEnemies: false },
+    { condition: 'kills', value: 180, bossId: 'boss.genova_mutace', spawnDelay: 3000, clearEnemies: false },
   ],
   lootTables: {
     normal: {
