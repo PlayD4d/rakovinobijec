@@ -66,7 +66,7 @@ npm run verify:all       # Kompletní verifikace
 - **Architektura**: PR7 (100% data-driven)
 - **Blueprinty**: JSON5 formát
 - **Audio**: Web Audio API
-- **Analytics**: Supabase
+- **Analytics**: Local SQLite (dev-server)
 ## 📊 Aktuální verze
 
 **v0.4.1** (2025-08-16)

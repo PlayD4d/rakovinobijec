@@ -66,8 +66,7 @@ export class BootstrapManager {
         try {
             const { AnalyticsManager } = window;
             if (AnalyticsManager) {
-                const supabaseClient = this.scene.globalHighScoreManager?.supabase || null;
-                this.scene.analyticsManager = new AnalyticsManager(supabaseClient);
+                this.scene.analyticsManager = new AnalyticsManager();
             }
         } catch (error) {
             DebugLogger.warn('bootstrap', '⚠️ Analytics manager init failed (silenced):', error.message);

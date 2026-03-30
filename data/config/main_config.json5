@@ -374,10 +374,9 @@
     }
   },
   
-  // Analytics
+  // Analytics — local SQLite via dev-server telemetry endpoint
   analytics: {
     enabled: true,
-    endpoint: "https://gonsippgsrbutwanzpyo.supabase.co",
     batchSize: 10,
     flushInterval: 30000,
     performanceSnapshotInterval: 60000,
