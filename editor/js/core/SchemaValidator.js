@@ -76,7 +76,7 @@ export class SchemaValidator {
                     required: ['phases'],
                     phases: {
                         minCount: 1,
-                        required: ['thresholdPct', 'abilities']
+                        required: ['abilities']
                     }
                 }
             },
