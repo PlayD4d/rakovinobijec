@@ -20,7 +20,7 @@
   mechanics: {
     attack: {
       intervalMs: 2000,   // 2s between volleys — slow base, powerups speed it up
-      damageBase: 18,
+      damageBase: 15,
       critChance: 0.05,
       critMultiplier: 2,
     },
@@ -29,7 +29,7 @@
       count: 4,           // Base: 4-directional shot
       spreadDeg: 15,
       stats: {
-        damage: 18,
+        damage: 15,
         speed: 200,
         range: 175,
         piercing: false,
