@@ -132,13 +132,13 @@ export class TransitionManager {
 
         try {
             await executeGameOver(this);
+            // Keep isShowingDefeat=true until player takes action (retry/menu)
+            // — prevents re-entrancy from damage ticks still in flight
+            this.flushAnalytics();
         } catch (error) {
             DebugLogger.error('transition', '[TransitionManager] Game over sequence failed:', error);
-            this.resetTransitionState();
-        } finally {
             this.isShowingDefeat = false;
             this.isTransitioning = false;
-            this.flushAnalytics();
         }
     }
 

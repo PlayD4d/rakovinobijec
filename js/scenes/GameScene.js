@@ -71,6 +71,7 @@ export class GameScene extends Phaser.Scene {
         this.isGameOver = false;
         this.powerUps = [];
         this.currentLevel = 1;
+        this.maxLevel = 7; // 7 levels with bosses
         this.bossActive = false;
         this._shutdownDone = false;
     }
@@ -308,6 +309,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     async transitionToNextLevel() {
+        if (this.isGameOver || this.transitionManager?.isTransitioning) return;
+
         const nextLevel = (this.currentLevel || 1) + 1;
 
         if (nextLevel > (this.maxLevel || 99)) {
@@ -388,8 +391,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     restartGame() {
+        // Mark shutdown done to prevent double cleanup (shutdown() will also fire via SHUTDOWN event)
+        this._shutdownDone = true;
         this._cleanupForTransition();
-        // Reset analytics for fresh session on restart
         if (this.analyticsManager) {
             try { this.analyticsManager.shutdown(); } catch (_) {}
         }

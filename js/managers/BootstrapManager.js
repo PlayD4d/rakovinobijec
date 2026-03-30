@@ -106,7 +106,14 @@ export class BootstrapManager {
             this.scene.gameOver();
         };
         this._onBossDie = (data) => {
-            DebugLogger.info('bootstrap', '[GameScene] Boss defeated! Seamless transition to next level...');
+            // Skip if game is paused (e.g. powerup selection) or already transitioning
+            if (this.scene.isPaused || this.scene.transitionManager?.isTransitioning) {
+                DebugLogger.info('bootstrap', '[GameScene] Boss died during pause — deferring transition');
+                // Defer until next resume
+                this._pendingBossTransition = true;
+                return;
+            }
+            DebugLogger.info('bootstrap', '[GameScene] Boss defeated! Transition to next level...');
             this.scene.transitionToNextLevel().catch(err => {
                 DebugLogger.error('bootstrap', '[GameScene] Level transition failed:', err);
             });
@@ -134,12 +141,21 @@ export class BootstrapManager {
             }
             this.scene.spawnDirector?.resetTimersAfterPause?.();
             this.scene.powerUpSystem?.resetTimersAfterPause?.();
-            // Flush excess XP on next frame (not synchronously inside resume event)
-            // Prevents re-entrant scene.pause() if flush triggers another level-up
+
+            // Handle deferred boss transition (boss died during pause)
+            if (this._pendingBossTransition) {
+                this._pendingBossTransition = false;
+                setTimeout(() => {
+                    this.scene.transitionToNextLevel?.().catch(() => {});
+                }, 100);
+                return; // Don't flush XP — transition will handle everything
+            }
+
+            // Flush excess XP on next frame — setTimeout (immune to scene timer state)
             if (this.scene.progressionSystem?._pendingXP > 0) {
-                this.scene.time.delayedCall(1, () => {
+                setTimeout(() => {
                     this.scene.progressionSystem?.flushPendingXP?.();
-                });
+                }, 1);
             }
         };
         this._onPowerUpSelected = (selection) => {

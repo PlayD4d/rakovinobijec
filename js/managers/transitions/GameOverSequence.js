@@ -13,8 +13,9 @@ export async function executeGameOver(tm) {
     DebugLogger.info('transition', '[TransitionManager] Game Over sequence starting');
     getSession()?.log('game', 'gameover_start', { score: scene.gameStats?.score, level: scene.currentLevel, cause: scene.lastDamageCause || 'unknown' });
 
-    // 1. Pause everything immediately
+    // 1. Pause everything immediately + mark game over
     tm.pauseGameSystems();
+    scene.isGameOver = true;
 
     // 2. Log analytics
     const stats = tm.calculateFinalStats();

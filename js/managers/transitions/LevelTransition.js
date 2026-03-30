@@ -124,13 +124,8 @@ async function executeCleanupStep(tm, step) {
             break;
     }
 
-    // Small delay between steps for stability
-    await new Promise(resolve => {
-        if (scene?.time) {
-            scene.time.delayedCall(10, resolve);
-        } else {
-            resolve();
-        }
+    // Small delay between steps — setTimeout (scene.time freezes during Phaser pause)
+    await new Promise(resolve => setTimeout(resolve, 10));
     });
 }
 

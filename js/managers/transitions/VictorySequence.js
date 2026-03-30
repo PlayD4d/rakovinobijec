@@ -2,7 +2,7 @@ import { DebugLogger } from '../../core/debug/DebugLogger.js';
 import { getSession } from '../../core/debug/SessionLog.js';
 
 /**
- * VictorySequence - Extracted victory transition logic
+ * VictorySequence - Victory transition logic
  * Called by TransitionManager.showVictory()
  *
  * @param {import('../TransitionManager.js').TransitionManager} tm
@@ -13,15 +13,15 @@ export async function executeVictory(tm) {
     DebugLogger.info('transition', '[TransitionManager] Showing victory screen');
     getSession()?.log('game', 'victory_start', { score: scene.gameStats?.score, level: scene.currentLevel });
 
-    // 1. Pause game systems
+    // 1. Clear enemies with celebration effect BEFORE pausing (needs scene timer)
+    await clearAllEnemiesWithEffect(tm);
+
+    // 2. Now pause game systems
     tm.pauseGameSystems();
 
-    // 2. Calculate and log stats
+    // 3. Calculate and log stats
     const stats = tm.calculateFinalStats();
     tm.logAnalytics('level_complete', stats);
-
-    // 3. Clear enemies with celebration effect
-    await clearAllEnemiesWithEffect(tm);
 
     // 4. Show UI victory modal via event
     await tm.showUIModal('ui:victory-show', {
@@ -29,21 +29,16 @@ export async function executeVictory(tm) {
         level: scene.currentLevel,
         time: Math.floor(scene.sceneTimeSec)
     });
-
-    // 5. Wait for user input (handled by UI scene)
-    // UI scene will emit 'ui:victory:continue' when ready
 }
 
 /**
- * Clear all enemies with staggered celebration effect
- *
- * @param {import('../TransitionManager.js').TransitionManager} tm
+ * Clear all enemies with staggered celebration effect.
+ * Must run BEFORE scene pause (uses scene.time for stagger delays).
  */
 async function clearAllEnemiesWithEffect(tm) {
     const scene = tm.scene;
     const enemies = [];
 
-    // Collect all active enemies
     if (scene.enemiesGroup) {
         enemies.push(...scene.enemiesGroup.getChildren().filter(e => e.active));
     }
@@ -51,47 +46,41 @@ async function clearAllEnemiesWithEffect(tm) {
         enemies.push(...scene.bossGroup.getChildren().filter(b => b.active));
     }
 
-    // Create staggered destruction effect
-    const staggerDelay = Math.min(50, 1000 / Math.max(enemies.length, 1));
+    if (enemies.length === 0) return;
+
+    // Staggered destruction — short delay between each kill for visual effect
+    const staggerDelay = Math.min(50, 1000 / enemies.length);
 
     for (let i = 0; i < enemies.length; i++) {
         const enemy = enemies[i];
+        if (!enemy?.active) continue;
 
-        // Delay for stagger effect
-        await new Promise(resolve => {
-            if (scene?.time) {
-                scene.time.delayedCall(i * staggerDelay, resolve);
-            } else {
-                resolve();
-            }
-        });
+        // Stagger delay — use setTimeout (safe even if scene timer is unreliable)
+        if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, staggerDelay));
+        }
 
-        // VFX at enemy position
+        // Celebration VFX at enemy position
         if (scene.vfxSystem) {
-            scene.vfxSystem.play('vfx.enemy.celebration_death', enemy.x, enemy.y);
+            scene.vfxSystem.play('enemy.celebration_death', enemy.x, enemy.y);
         }
 
-        // Destroy enemy
-        if (enemy.die) {
-            enemy.die(true); // Skip loot drops
-        } else {
-            enemy.destroy();
+        // Kill enemy (die() handles cleanup, VFX, XP)
+        if (enemy.active) {
+            enemy.setActive(false);
+            enemy.setVisible(false);
+            if (enemy.body) enemy.body.setEnable(false);
         }
     }
 
-    // Final celebration burst
+    // Final celebration burst at screen center
     if (scene.vfxSystem) {
-        scene.vfxSystem.play('vfx.level.complete',
-            scene.getScaleManager().width / 2,
-            scene.getScaleManager().height / 2
-        );
+        const cam = scene.cameras?.main;
+        if (cam) {
+            scene.vfxSystem.play('victory', cam.centerX, cam.centerY);
+        }
     }
 
-    return new Promise(resolve => {
-        if (scene?.time) {
-            scene.time.delayedCall(500, resolve);
-        } else {
-            resolve();
-        }
-    });
+    // Brief pause for celebration to play out
+    await new Promise(resolve => setTimeout(resolve, 500));
 }
