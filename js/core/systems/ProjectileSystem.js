@@ -46,12 +46,14 @@ export class ProjectileSystem {
       runChildUpdate: true
     });
 
-    // PR7: Use ConfigResolver for all configuration values
+    // PR7: Read from player blueprint first, fall back to ConfigResolver
+    const playerBp = scene.blueprintLoader?.get('player');
+    const projStats = playerBp?.mechanics?.projectile?.stats || {};
     this.config = {
-      speed: ConfigResolver ? ConfigResolver.get('player.projectileSpeed', { defaultValue: 300 }) : 300,
-      range: ConfigResolver ? ConfigResolver.get('player.projectileRange', { defaultValue: 600 }) : 600,
-      damage: ConfigResolver ? ConfigResolver.get('player.projectileDamage', { defaultValue: 10 }) : 10,
-      muzzleOffset: ConfigResolver ? ConfigResolver.get('player.muzzleOffset', { defaultValue: 24 }) : 24,
+      speed: projStats.speed || 200,
+      range: projStats.range || 175,
+      damage: projStats.damage || 15,
+      muzzleOffset: 20,
       // Enemy projectile defaults
       enemySpeed: ConfigResolver ? ConfigResolver.get('enemy.projectileSpeed', { defaultValue: 150 }) : 150,
       enemyRange: ConfigResolver ? ConfigResolver.get('enemy.projectileRange', { defaultValue: 400 }) : 400,
