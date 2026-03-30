@@ -27,10 +27,9 @@ export class ProjectileSystem {
     // Delegate explosion handling to extracted module
     this._explosionHandler = new ExplosionHandler(scene);
 
-    // PR7: Get pool sizes from ConfigResolver
     const ConfigResolver = this.scene.configResolver || window.ConfigResolver;
-    const playerPoolSize = ConfigResolver ? ConfigResolver.get('projectiles.player.poolSize', { defaultValue: 256 }) : 256;
-    const enemyPoolSize = ConfigResolver ? ConfigResolver.get('projectiles.enemy.poolSize', { defaultValue: 256 }) : 256;
+    const playerPoolSize = 256;
+    const enemyPoolSize = 256;
 
     // Player projectile group with built-in pooling
     this.playerBullets = scene.physics.add.group({
@@ -54,10 +53,10 @@ export class ProjectileSystem {
       range: projStats.range || 175,
       damage: projStats.damage || 15,
       muzzleOffset: 20,
-      // Enemy projectile defaults
-      enemySpeed: ConfigResolver ? ConfigResolver.get('enemy.projectileSpeed', { defaultValue: 150 }) : 150,
-      enemyRange: ConfigResolver ? ConfigResolver.get('enemy.projectileRange', { defaultValue: 400 }) : 400,
-      enemyDamage: ConfigResolver ? ConfigResolver.get('enemy.projectileDamage', { defaultValue: 5 }) : 5
+      // Enemy projectile defaults (overridden per-enemy at fire time via opts)
+      enemySpeed: 150,
+      enemyRange: 400,
+      enemyDamage: 5
     };
 
     // World-bounds cleanup (prevents invisible projectile buildup)

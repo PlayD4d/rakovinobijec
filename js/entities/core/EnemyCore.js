@@ -55,8 +55,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         this.setDisplaySize(this.size, this.size);
         
         // Depth
-        const enemyDepth = scene.DEPTH_LAYERS?.ENEMIES || CR.get('layers.enemies', { defaultValue: 1000 });
-        this.setDepth(enemyDepth);
+        this.setDepth(scene.DEPTH_LAYERS?.ENEMIES || 1000);
         
         // Visibility
         this.setVisible(true).setActive(true);
@@ -66,8 +65,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         if (blueprint.color && typeof blueprint.color === 'number') {
             this.setTint(blueprint.color);
         } else if (this.isElite) {
-            const eliteTint = CR.get('enemy.rendering.eliteTint', { defaultValue: 0xffdd00 });
-            this.setTint(eliteTint);
+            this.setTint(0xffdd00); // Elite gold tint
         } else if (this.isUnique && blueprint.visuals?.tint) {
             this.setTint(blueprint.visuals.tint);
         }

@@ -120,7 +120,7 @@ export class SpawnDirector {
         this.gameTime = 0; // Reset for compatibility
 
         // Cache per-frame config values (avoid ConfigResolver.get on every frame)
-        this._maxEnemies = this.config?.get('spawn.maxEnemies', { defaultValue: 50 }) || 50;
+        this._maxEnemies = 50; // Max active enemies on field
 
         // Clear NG+ cache on level start to avoid stale scaling
         this._ngPlusScaler.clear();

@@ -8,9 +8,9 @@ export class TargetingSystem {
     constructor(scene) {
         this.scene = scene;
         
-        // PR7: Configuration from ConfigResolver instead of hardcoded values
-        const CR = scene.configResolver;
-        this.maxRange = CR?.get('player.targeting.maxRange', { defaultValue: 600 }) || 600;
+        // Read targeting range from player blueprint
+        const playerBp = scene.blueprintLoader?.get('player');
+        this.maxRange = playerBp?.mechanics?.projectile?.stats?.range || 350;
         this.maxRangeSquared = this.maxRange * this.maxRange;
     }
     
