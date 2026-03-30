@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rakovinobijec - Blueprint Editor</title>
+    <link rel="stylesheet" href="css/editor.css">
+    <link rel="stylesheet" href="css/editor-enhanced.css">
+    <!-- JSON5 library for proper JSON5 parsing -->
+    <script src="https://unpkg.com/json5@2/dist/index.min.js"></script>
+</head>
+<body>
+    <div id="editor-container">
+        <!-- Header -->
+        <header id="editor-header">
+            <h1>Blueprint Editor</h1>
+            <div class="header-controls">
+                <button id="btn-new" title="New Blueprint">➕ New</button>
+                <button id="btn-save" title="Save Changes">💾 Save</button>
+                <button id="btn-reload" title="Reload">🔄 Reload</button>
+                <button id="btn-test" title="Test in Game">▶️ Test</button>
+                <span class="status-indicator">
+                    <span id="status-text">Ready</span>
+                    <span id="auto-save-indicator" class="active">Auto-save ON</span>
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div id="editor-main">
+            <!-- Left Panel: Blueprint Browser -->
+            <div id="panel-browser" class="panel">
+                <div class="panel-header">
+                    <h2>Blueprints</h2>
+                    <div class="panel-controls">
+                        <input type="text" id="search-blueprints" placeholder="Search...">
+                        <select id="filter-type">
+                            <option value="">All Types</option>
+                            <option value="config">⚙️ Config Files</option>
+                            <option value="enemy">Enemies</option>
+                            <option value="boss">Bosses</option>
+                            <option value="elite">Elites</option>
+                            <option value="unique">Uniques</option>
+                            <option value="item">Items</option>
+                            <option value="powerup">Power-ups</option>
+                            <option value="projectile">Projectiles</option>
+                            <option value="spawn">Spawn Tables</option>
+                            <option value="player">Player</option>
+                            <option value="system">System</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div id="blueprint-tree">
+                        <!-- Blueprint tree will be populated here -->
+                        <div class="tree-placeholder">Loading blueprints...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Panel: Property Editor -->
+            <div id="panel-editor" class="panel">
+                <div class="panel-header">
+                    <h2>Properties</h2>
+                    <div class="panel-controls">
+                        <button id="btn-collapse-all" title="Collapse All">⊟</button>
+                        <button id="btn-expand-all" title="Expand All">⊞</button>
+                        <button id="btn-validate" title="Validate">✓</button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div id="property-form">
+                        <!-- Property form will be generated here -->
+                        <div class="form-placeholder">Select a blueprint to edit</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Preview & Test -->
+            <div id="panel-preview" class="panel">
+                <div class="panel-header">
+                    <h2>Preview</h2>
+                    <div class="panel-controls">
+                        <button id="btn-refresh-preview" title="Refresh">🔄</button>
+                        <select id="preview-mode">
+                            <option value="visual">Visual</option>
+                            <option value="stats">Stats</option>
+                            <option value="json">JSON</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <!-- Visual Preview -->
+                    <div id="preview-visual" class="preview-section">
+                        <div class="preview-canvas">
+                            <canvas id="entity-preview" width="200" height="200"></canvas>
+                        </div>
+                        <div class="preview-info">
+                            <h3 id="preview-name">-</h3>
+                            <div id="preview-stats">
+                                <!-- Stats will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats View -->
+                    <div id="preview-stats-container" class="preview-section" style="display: none;">
+                        <table id="stats-table">
+                            <!-- Stats table will be populated here -->
+                        </table>
+                    </div>
+                    
+                    <!-- JSON View -->
+                    <div id="preview-json" class="preview-section" style="display: none;">
+                        <pre id="json-display"></pre>
+                    </div>
+
+                    <!-- Test Runner -->
+                    <div id="test-runner" class="preview-section">
+                        <h3>Test Runner</h3>
+                        <div class="test-controls">
+                            <button id="btn-spawn">Spawn</button>
+                            <button id="btn-reset">Reset</button>
+                            <button id="btn-pause">Pause</button>
+                        </div>
+                        <div id="test-output">
+                            <!-- Test output/console will appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <footer id="editor-footer">
+            <div class="footer-info">
+                <span id="current-file">No file selected</span>
+                <span id="last-saved">Never saved</span>
+            </div>
+            <div class="footer-stats">
+                <span id="blueprint-count">0 blueprints</span>
+                <span id="error-count">0 errors</span>
+                <span id="warning-count">0 warnings</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for dialogs -->
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Dialog</h2>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel" class="btn-secondary">Cancel</button>
+                <button id="modal-confirm" class="btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script type="module" src="js/core/EditorCore.js"></script>
+</body>
+</html>

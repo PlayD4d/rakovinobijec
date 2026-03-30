@@ -26,7 +26,6 @@ build/
 
 # Internal tools (not for public repo)
 analytics-dashboard/
-editor/
 start-editor.sh
 test-shapes.html
 test-projectiles.html
