@@ -494,14 +494,18 @@ export class SimpleLootSystem {
 
     /** Clear all drops and return pool to empty state */
     clearAll() {
-        if (this.scene?.tweens) {
-            const children = this.lootGroup.getChildren();
-            for (let i = 0; i < children.length; i++) {
-                this.scene.tweens.killTweensOf(children[i]);
+        try {
+            if (this.lootGroup?.children?.entries && this.scene?.tweens) {
+                const children = this.lootGroup.getChildren();
+                for (let i = 0; i < children.length; i++) {
+                    this.scene.tweens.killTweensOf(children[i]);
+                }
             }
+            this.lootGroup?.clear?.(true, true);
+        } catch (_) {
+            // Group may already be destroyed during scene shutdown
         }
-        this.lootGroup.clear(true, true);
-        this.recentDrops.length = 0;
+        if (this.recentDrops) this.recentDrops.length = 0;
     }
 
     /** Shutdown — alias for clearAll (single cleanup path) */
