@@ -399,8 +399,10 @@ export class GameScene extends Phaser.Scene {
 
     returnToMenu() {
         try { endSession('quit'); } catch (_) {}
-        this._cleanupForTransition();
-        this.scene.stop('GameUIScene');
+        // Mark shutdown done to prevent double cleanup
+        this._shutdownDone = true;
+        try { this._cleanupForTransition(); } catch (_) {}
+        try { this.scene.stop('GameUIScene'); } catch (_) {}
         this.scene.start('MainMenu');
     }
 
