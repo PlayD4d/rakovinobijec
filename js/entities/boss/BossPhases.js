@@ -23,6 +23,15 @@ export class BossPhases {
         // HP thresholds for phase changes (sorted descending)
         this.hpThresholds = this.calculateHpThresholds();
         
+        // Activate persistent passive auras from mechanics.passiveAuras
+        this._activeAuras = [];
+        const passiveAuras = bossCore.blueprint?.mechanics?.passiveAuras;
+        if (passiveAuras) {
+            for (const aura of passiveAuras) {
+                this._activatePassiveAura(aura);
+            }
+        }
+
         DebugLogger.info('boss', `[BossPhases] Initialized with ${this.phaseData.length} phases`);
         DebugLogger.info('boss', `[BossPhases] HP thresholds:`, this.hpThresholds);
     }
@@ -55,6 +64,11 @@ export class BossPhases {
      */
     update(time, delta) {
         if (!this.boss || this.isTransitioning) return;
+
+        // Update persistent aura visuals (follow boss, pulse)
+        if (this._activeAuras.length > 0) {
+            this._updatePassiveAuras(time);
+        }
 
         const currentHpRatio = this.boss.getHpRatio();
         
@@ -213,7 +227,7 @@ export class BossPhases {
         // Passive auras
         if (phaseData.passiveAuras) {
             phaseData.passiveAuras.forEach(auraType => {
-                this.activatePassiveAura(auraType);
+                this._activatePassiveAura(auraType);
             });
         }
         
@@ -226,23 +240,89 @@ export class BossPhases {
     }
     
     /**
-     * Aktivuje pasivní auru
+     * Activate a persistent passive aura — visual + damage ticks
+     * @param {object} auraConfig - { type, radius, damage, tickInterval, slowEffect }
      */
-    activatePassiveAura(auraType) {
-        DebugLogger.info('boss', `[BossPhases] Activating passive aura: ${auraType}`);
-        
-        switch (auraType) {
-            case 'radiation_field':
-                this.boss.spawnVfx('vfx.boss.aura.radiation', this.boss.x, this.boss.y);
-                break;
-            case 'healing_disruption':
-                this.boss.spawnVfx('vfx.boss.aura.healing_disrupt', this.boss.x, this.boss.y);
-                break;
-            case 'damage_boost':
-                // Visual indicator for damage boost
-                this.boss.setTint(0xFF4444);
-                break;
+    _activatePassiveAura(auraConfig) {
+        const type = auraConfig.type || auraConfig;
+        const radius = auraConfig.radius || 64;
+        const damage = auraConfig.damage || 1;
+        const tickInterval = auraConfig.tickInterval || 1500;
+        const boss = this.boss;
+        const scene = this.scene;
+
+        DebugLogger.info('boss', `[BossPhases] Activating passive aura: ${type}, radius=${radius}`);
+
+        if (type === 'radiation_field') {
+            // Persistent radioactive green/yellow circle — Chernobyl style
+            const gf = scene.graphicsFactory;
+            if (gf) {
+                const g = gf.create();
+                g.clear();
+                g.setAlpha(1);
+                g.setScale(1);
+                g.setPosition(boss.x, boss.y);
+                g.setDepth((scene.DEPTH_LAYERS?.ENEMIES || 1000) - 2);
+
+                this._activeAuras.push({ type, graphics: g, radius });
+
+                // Damage tick timer
+                const timer = scene.time.addEvent({
+                    delay: tickInterval,
+                    loop: true,
+                    callback: () => {
+                        if (!boss?.active) return;
+                        const player = scene.player;
+                        if (!player?.active) return;
+                        const dx = player.x - boss.x;
+                        const dy = player.y - boss.y;
+                        if (dx * dx + dy * dy <= radius * radius) {
+                            player.takeDamage(damage, 'radiation_field');
+                        }
+                    }
+                });
+                this._activeAuras[this._activeAuras.length - 1].timer = timer;
+            }
+        } else if (type === 'damage_boost') {
+            if (boss.setTint) boss.setTint(0xFF4444);
         }
+    }
+
+    /**
+     * Update passive aura visuals — follow boss position, pulsing glow
+     */
+    _updatePassiveAuras(time) {
+        for (const aura of this._activeAuras) {
+            if (!aura.graphics?.scene) continue;
+            const g = aura.graphics;
+            g.setPosition(this.boss.x, this.boss.y);
+
+            g.clear();
+            // Slow pulse (~1 per second)
+            const pulse = 0.5 + 0.5 * Math.sin(time * 0.003);
+
+            // Radioactive glow — yellow-green fill
+            g.fillStyle(0x88CC00, 0.04 + pulse * 0.06);
+            g.fillCircle(0, 0, aura.radius);
+
+            // Border ring
+            g.lineStyle(1.5, 0xAADD00, 0.2 + pulse * 0.2);
+            g.strokeCircle(0, 0, aura.radius);
+        }
+    }
+
+    /**
+     * Clean up passive auras on boss death
+     */
+    _destroyPassiveAuras() {
+        const gf = this.scene?.graphicsFactory;
+        for (const aura of this._activeAuras) {
+            if (aura.timer) aura.timer.destroy();
+            if (aura.graphics?.scene) {
+                if (gf) gf.release(aura.graphics); else aura.graphics.destroy();
+            }
+        }
+        this._activeAuras.length = 0;
     }
     
     /**
@@ -355,6 +435,8 @@ export class BossPhases {
      */
     cleanup() {
         this.isTransitioning = false;
+        // Clean up persistent passive auras
+        this._destroyPassiveAuras();
         // Cancel any pending transition timer
         if (this._transitionTimer) {
             this._transitionTimer.destroy();

@@ -67,8 +67,8 @@ export class BossCore extends EnemyCore {
      * @param {number} cooldownMs Cooldown v milisekundách
      */
     setAbilityCooldown(abilityId, cooldownMs) {
-        const now = this.scene?.time?.now || 0;
-        if (!now) return;
+        const now = this.scene?.time?.now;
+        if (now == null) return; // Scene time truly unavailable (time=0 is valid)
         this.abilityCooldowns.set(abilityId, now + cooldownMs);
     }
     

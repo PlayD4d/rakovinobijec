@@ -167,7 +167,9 @@ export function setupCollisions(scene) {
 function handlePlayerEnemyCollision(player, enemy) {
     if (!player.active || !enemy.active) return;
 
-    // Shield knockback is handled per-frame in ShieldRegeneration._pushEnemiesAtBoundary()
+    // If shield is active and has HP, shield absorbs contact damage (not player)
+    // The actual shield contact logic is in ShieldRegeneration._onEnemyContactShield
+    if (player.shieldActive && player.shieldHP > 0) return;
 
     if (player.canTakeDamage?.()) {
         const damage = enemy.contactDamage || enemy.damage || 10;
@@ -183,7 +185,8 @@ function handlePlayerEnemyCollision(player, enemy) {
 function handlePlayerBossCollision(player, boss) {
     if (!player.active || !boss.active) return;
 
-    // Shield knockback is handled per-frame in ShieldRegeneration._pushEnemiesAtBoundary()
+    // Shield absorbs boss contact damage when active
+    if (player.shieldActive && player.shieldHP > 0) return;
 
     if (player.canTakeDamage && player.canTakeDamage()) {
         const damage = boss.contactDamage || boss.damage || 20;
@@ -281,6 +284,15 @@ function handlePlayerBulletBossCollision(bullet, boss) {
  */
 function handleEnemyBulletPlayerCollision(bullet, player) {
     if (!bullet.active || !player.active) return;
+
+    // Shield already intercepted this bullet in same physics step
+    if (bullet._shieldIntercepted) { killBullet(bullet); return; }
+
+    // Shield absorbs bullets — safety net for overlap registration order
+    if (player.shieldActive && player.shieldHP > 0) {
+        killBullet(bullet);
+        return;
+    }
 
     if (player.canTakeDamage?.()) {
         const damage = bullet.damage || 5;

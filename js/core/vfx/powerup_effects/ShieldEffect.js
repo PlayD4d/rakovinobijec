@@ -12,11 +12,9 @@ export class ShieldEffect {
         this.type = type;
         this.config = config;
         
-        // PR7: Get configuration from ConfigResolver
-        const CR = scene.configResolver || window.ConfigResolver;
-        this.radius = config.radius || CR?.get('vfx.shield.radius', { defaultValue: 30 }) || 30;
-        this.color = config.color || CR?.get('vfx.shield.color', { defaultValue: 0x00ffff }) || 0x00ffff;
-        this.lineWidth = config.lineWidth || CR?.get('vfx.shield.lineWidth', { defaultValue: 2 }) || 2;
+        this.radius = config.radius || 28;
+        this.color = config.color || 0x00ccff;
+        this.lineWidth = config.lineWidth || 2;
         
         // Visual components
         this.graphics = null;
@@ -160,7 +158,8 @@ export class ShieldEffect {
      * Trigger hit flash — called when shield absorbs damage
      */
     flash() {
-        this._hitFlashUntil = (this.animationTime || 0) + 120;
+        const now = this.scene?.time?.now ?? this.animationTime ?? 0;
+        this._hitFlashUntil = now + 120;
         this._flashDrawn = false;
     }
     
@@ -174,34 +173,9 @@ export class ShieldEffect {
         const color = colorOverride ?? this.color;
         this.graphics.clear();
 
-        // Main shield circle
-        this.graphics.lineStyle(this.lineWidth, color, 0.8);
+        // Single clean circle — minimal, readable even with other effects active
+        this.graphics.lineStyle(this.lineWidth, color, 0.7);
         this.graphics.strokeCircle(0, 0, this.radius);
-
-        // Inner glow ring
-        this.graphics.lineStyle(1, color, 0.3);
-        this.graphics.strokeCircle(0, 0, this.radius * 0.85);
-
-        // Hexagonal pattern for sci-fi look
-        const hexRadius = this.radius * 0.9;
-        const hexSides = 6;
-
-        this.graphics.lineStyle(1, color, 0.4);
-        this.graphics.beginPath();
-
-        for (let i = 0; i <= hexSides; i++) {
-            const angle = (Math.PI * 2 / hexSides) * i - Math.PI / 2;
-            const x = Math.cos(angle) * hexRadius;
-            const y = Math.sin(angle) * hexRadius;
-
-            if (i === 0) {
-                this.graphics.moveTo(x, y);
-            } else {
-                this.graphics.lineTo(x, y);
-            }
-        }
-
-        this.graphics.strokePath();
     }
     
     /**
@@ -213,11 +187,9 @@ export class ShieldEffect {
         this.animationTime = 0;
         this._shieldDrawn = false;
         
-        // Update parameters from new config
-        const CR = this.scene.configResolver || window.ConfigResolver;
-        this.radius = config.radius || CR?.get('vfx.shield.radius', { defaultValue: 30 }) || 30;
-        this.color = config.color || CR?.get('vfx.shield.color', { defaultValue: 0x00ffff }) || 0x00ffff;
-        this.lineWidth = config.lineWidth || CR?.get('vfx.shield.lineWidth', { defaultValue: 2 }) || 2;
+        this.radius = config.radius || 28;
+        this.color = config.color || 0x00ccff;
+        this.lineWidth = config.lineWidth || 2;
     }
     
     /**

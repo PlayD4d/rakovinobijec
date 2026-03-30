@@ -337,15 +337,22 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      * Flash effect when hit
      */
     flashEffect() {
-        if (this._flashTimer) return;
-
-        const originalTint = this.tintTopLeft;
+        // Always show flash — restart timer if already running (don't skip)
+        const originalTint = this._originalTint ?? this.tintTopLeft;
+        if (!this._flashTimer) {
+            this._originalTint = this.tintTopLeft;
+        }
         this.setTint(0xffffff);
 
-        // Use scene.time for pause-aware flash reset (no tween needed for simple tint toggle)
+        // Cancel previous timer and start fresh (allows rapid re-triggering)
+        if (this._flashTimer) {
+            this._flashTimer.destroy();
+        }
+
         if (this.scene?.time) {
-            this._flashTimer = this.scene.time.delayedCall(100, () => {
+            this._flashTimer = this.scene.time.delayedCall(80, () => {
                 this._flashTimer = null;
+                this._originalTint = null;
                 if (this.active) this.setTint(originalTint || 0xffffff);
             });
         } else {
@@ -368,6 +375,13 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         if (this._flashTimer) {
             try { this._flashTimer.destroy?.(); } catch (_) {}
             this._flashTimer = null;
+        }
+
+        // Cancel aura slow timer (set externally by DamageZoneAbilities)
+        if (this._auraSlowTimer) {
+            try { this._auraSlowTimer.destroy?.(); } catch (_) {}
+            this._auraSlowTimer = null;
+            this._auraSlowOrigSpeed = null;
         }
 
         // Cancel all tracked timers

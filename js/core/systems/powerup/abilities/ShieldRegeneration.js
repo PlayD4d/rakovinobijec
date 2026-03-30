@@ -22,12 +22,9 @@ export class ShieldRegeneration {
     update(player, time) {
         if (!player || !player.shieldActive) return;
 
-        // Update shield hitbox + push zone position (follows player)
+        // Update shield hitbox position (follows player)
         if (player._shieldHitbox?.active) {
             player._shieldHitbox.setPosition(player.x, player.y);
-        }
-        if (player._shieldPushZone?.active) {
-            player._shieldPushZone.setPosition(player.x, player.y);
         }
 
         // Shield auto-regeneration logic
@@ -52,8 +49,8 @@ export class ShieldRegeneration {
                 const vfxManager = this.powerUpSystem?.vfxManager;
                 if (vfxManager) {
                     vfxManager.attachEffect(player, 'shield', {
-                        radius: 40 + (player.shieldLevel * 5),
-                        color: 0x00ffff,
+                        radius: 28,
+                        color: 0x00ccff,
                         alpha: 0.3
                     });
                     getSession()?.log('shield', 'vfx_restored', { shieldHP: player.shieldHP });
@@ -132,7 +129,7 @@ export class ShieldRegeneration {
         const scene = this.scene;
         if (!scene || player._shieldHitbox) return; // Already exists
 
-        const shieldRadius = 40 + (player.shieldLevel || 1) * 5;
+        const shieldRadius = 28; // Fixed — tight around player, doesn't grow with level
 
         // Invisible sprite with circular body at shield radius
         const hitbox = scene.physics.add.sprite(player.x, player.y, '__DEFAULT');
@@ -158,30 +155,25 @@ export class ShieldRegeneration {
             );
         }
 
-        // Create push zone for enemy knockback (slightly larger than shield)
-        const pushZone = scene.physics.add.sprite(player.x, player.y, '__DEFAULT');
-        pushZone.setVisible(false);
-        pushZone.setAlpha(0);
-        pushZone.body.setCircle(shieldRadius + 10);
-        const pushOffset = (pushZone.width / 2) - (shieldRadius + 10);
-        pushZone.body.setOffset(pushOffset, pushOffset);
-        pushZone.body.setImmovable(true);
-        pushZone.body.moves = false;
-        pushZone.setDepth(-1);
-        player._shieldPushZone = pushZone;
+        // Shield body — physically blocks enemies (collider, not overlap)
+        // Using the same hitbox for both bullet interception and enemy blocking
+        // Enemies that touch the shield take no player damage — shield absorbs it
+        this._shieldContactTicks = new WeakMap(); // Track per-enemy contact tick time
 
-        // Register overlap: push zone vs enemies — Phaser calls this only for overlapping pairs
+        // Collider: shield vs enemies — physically stops them + contact damage to shield
         if (scene.enemiesGroup) {
-            player._shieldEnemyOverlap = registerDynamicOverlap(
-                scene, pushZone, scene.enemiesGroup,
-                (zone, enemy) => this._pushEnemyOut(player, enemy, 250),
-                () => player.shieldActive && player.shieldHP > 0
+            player._shieldEnemyCollider = scene.physics.add.collider(
+                hitbox, scene.enemiesGroup,
+                (shield, enemy) => this._onEnemyContactShield(player, enemy),
+                () => player.shieldActive && player.shieldHP > 0,
+                this
             );
         }
+        // Boss: overlap only (contact damage to shield, but NO physical knockback)
         if (scene.bossGroup) {
-            player._shieldBossOverlap = registerDynamicOverlap(
-                scene, pushZone, scene.bossGroup,
-                (zone, boss) => this._pushEnemyOut(player, boss, 125),
+            player._shieldBossCollider = registerDynamicOverlap(
+                scene, hitbox, scene.bossGroup,
+                (shield, boss) => this._onEnemyContactShield(player, boss),
                 () => player.shieldActive && player.shieldHP > 0
             );
         }
@@ -191,23 +183,27 @@ export class ShieldRegeneration {
      * Callback: enemy bullet hit shield hitbox
      */
     _onBulletHitShield(player, bullet) {
-        if (!bullet?.active || !player.shieldActive || player.shieldHP <= 0) return;
+        if (!bullet?.active || bullet._shieldIntercepted) return;
+        if (!player.shieldActive || player.shieldHP <= 0) return;
+
+        // Flag bullet BEFORE processing — prevents same-frame double-hit via player overlap
+        bullet._shieldIntercepted = true;
 
         const damage = bullet.damage || 5;
         const time = this.scene?.time?.now || 0;
         this.processDamageWithShield(player, damage, time);
 
-        // Spark VFX at bullet position (already at shield boundary due to overlap)
+        // Spark VFX
         if (this.scene?.vfxSystem) {
-            this.scene.vfxSystem.play('vfx.hit.spark.small', bullet.x, bullet.y);
+            this.scene.vfxSystem.play('hit.small', bullet.x, bullet.y, { color: 0x00CCFF });
         }
 
-        // Destroy bullet
-        bullet.setActive(false).setVisible(false);
-        if (bullet.body) bullet.body.enable = false;
+        // Kill bullet
+        if (bullet.kill) bullet.kill();
+        else { bullet.setActive(false).setVisible(false); if (bullet.body) bullet.body.enable = false; }
 
-        // Brief iFrames to prevent multi-hit
-        player._iFramesMsLeft = Math.max(player._iFramesMsLeft || 0, 50);
+        // No player iFrames for shield interceptions — shield absorbed it, not the player.
+        // _shieldIntercepted flag on bullet prevents same-frame double-hit.
 
         getSession()?.log('shield', 'bullet_intercepted', { damage, shieldHP: player.shieldHP });
     }
@@ -217,34 +213,44 @@ export class ShieldRegeneration {
      */
     destroyShieldHitbox(player) {
         const world = this.scene?.physics?.world;
-        // Remove all shield overlaps
-        for (const key of ['_shieldOverlap', '_shieldEnemyOverlap', '_shieldBossOverlap']) {
+        // Remove all shield colliders and overlaps
+        for (const key of ['_shieldOverlap', '_shieldEnemyCollider', '_shieldBossCollider']) {
             if (player[key]) {
                 world?.removeCollider(player[key]);
                 player[key] = null;
             }
         }
-        // Destroy hitbox and push zone sprites
-        for (const key of ['_shieldHitbox', '_shieldPushZone']) {
-            if (player[key]) {
-                player[key].destroy();
-                player[key] = null;
-            }
+        // Destroy hitbox sprite
+        if (player._shieldHitbox) {
+            player._shieldHitbox.destroy();
+            player._shieldHitbox = null;
         }
+        this._shieldContactTicks = null;
     }
 
     /**
-     * Overlap callback: push a single enemy out of shield zone
-     * Called by Phaser physics only for actually overlapping pairs (not all enemies)
+     * Collider callback: enemy physically blocked by shield + contact damage to shield
+     * Tick-based — max 1 damage tick per 500ms per enemy to prevent instant drain
      */
-    _pushEnemyOut(player, entity, force) {
-        if (!entity?.active || !entity.body) return;
-        const dx = entity.x - player.x;
-        const dy = entity.y - player.y;
-        const distSq = dx * dx + dy * dy;
-        if (distSq < 1) return;
-        const dist = Math.sqrt(distSq);
-        entity.body.setVelocity((dx / dist) * force, (dy / dist) * force);
+    _onEnemyContactShield(player, enemy) {
+        if (!enemy?.active || !player.shieldActive || player.shieldHP <= 0) return;
+
+        const now = this.scene?.time?.now || 0;
+        const tickMs = 500; // Contact damage tick interval
+
+        // Per-enemy tick tracking
+        if (!this._shieldContactTicks) this._shieldContactTicks = new WeakMap();
+        const lastTick = this._shieldContactTicks.get(enemy) || 0;
+        if (now - lastTick < tickMs) return;
+        this._shieldContactTicks.set(enemy, now);
+
+        // Enemy's contact damage hits the shield, not the player
+        const contactDamage = enemy.damage || 10;
+        this.processDamageWithShield(player, contactDamage, now);
+
+        getSession()?.log('shield', 'contact_absorbed', {
+            enemyId: enemy.blueprintId, damage: contactDamage, shieldHP: player.shieldHP
+        });
     }
 
     /**

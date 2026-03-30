@@ -164,8 +164,8 @@ export class BossAbilities {
         this.isExecutingAbility = true;
         this.activeAbilities.add(abilityId);
 
-        // Set cooldown
-        const cooldown = abilityData.cooldown || 3000;
+        // Set cooldown — blueprint uses either 'cooldown' or 'interval'
+        const cooldown = abilityData.cooldown || abilityData.interval || 3000;
         this.boss.setAbilityCooldown(abilityId, cooldown);
 
         // Execute ability

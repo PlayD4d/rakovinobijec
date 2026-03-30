@@ -4,11 +4,10 @@
  * Each function receives (bossAbilities, abilityData, params) where
  * bossAbilities provides access to boss, scene, and _schedule.
  *
- * All abilities use:
- * - playTelegraph: progressive fill circle that follows boss
- * - playDangerZone: persistent area for DoT abilities
- * - playBeamEffect: visible beam line for beam attacks
- * - playExplosionEffect: burst on damage impact
+ * Visual language:
+ * - Telegraph (red 0xDD1111): warning — attack is charging, dodge now
+ * - Beam/explosion (green 0x88CC00): active radiation damage
+ * - Core overload (yellow 0xFFDD44): nuclear explosion
  */
 import { DebugLogger } from '../../../core/debug/DebugLogger.js';
 import { getSession } from '../../../core/debug/SessionLog.js';
@@ -39,12 +38,12 @@ export function executeRadiationPulse(bossAbilities, abilityData, params) {
         bossAbilities.scene.audioSystem.play('sound/boss_radiation.mp3');
     }
 
-    // Damage + explosion VFX fires AFTER telegraph fills
+    // Damage + explosion VFX fires AFTER telegraph fills (green = active radiation)
     bossAbilities._schedule(warningTime, () => {
         if (!boss?.active) return;
         if (vfx?.playExplosionEffect) {
             vfx.playExplosionEffect(boss.x, boss.y, {
-                color: 0xDD1111, radius: pulseRange, duration: 300
+                color: 0x88CC00, radius: pulseRange, duration: 300
             });
         }
         const player = bossAbilities.scene?.player;
@@ -61,40 +60,61 @@ export function executeRadiationPulse(bossAbilities, abilityData, params) {
 }
 
 /**
- * Toxic Pools - create damaging pools on ground (VFX only — cosmetic hazards)
+ * Toxic Pools - telegraph warning circles at pool positions, then green explosion
  */
 export function executeToxicPools(bossAbilities, abilityData, params) {
-    const poolCount = abilityData.poolCount || abilityData.count || 3;
-    getSession()?.log('boss', 'ability_execute', { ability: 'toxic_pools', poolCount });
-
-    if (bossAbilities.scene.audioSystem) {
-        bossAbilities.scene.audioSystem.play('sound/toxic_pools.mp3');
-    }
-
+    const poolCount = abilityData.poolCount || abilityData.count || 2;
     const boss = bossAbilities.boss;
     const vfx = bossAbilities.scene.vfxSystem;
+    const warningTime = 800;
 
+    getSession()?.log('boss', 'ability_execute', { ability: 'toxic_pools', poolCount });
+
+    // Calculate pool positions upfront (so telegraph and explosion match)
+    const pools = [];
     for (let i = 0; i < poolCount; i++) {
-        const angle = (i / poolCount) * Math.PI * 2;
-        const distance = 100 + Math.random() * 150;
-        const poolX = boss.x + Math.cos(angle) * distance;
-        const poolY = boss.y + Math.sin(angle) * distance;
+        const angle = (i / poolCount) * Math.PI * 2 + Math.random() * 0.5;
+        const distance = 100 + Math.random() * 120;
+        pools.push({
+            x: boss.x + Math.cos(angle) * distance,
+            y: boss.y + Math.sin(angle) * distance
+        });
+    }
 
-        if (vfx) {
-            vfx.play('boss.special', poolX, poolY);
+    // Telegraph: red circle at each pool location
+    for (const pool of pools) {
+        if (vfx?.playTelegraph) {
+            vfx.playTelegraph(pool.x, pool.y, {
+                radius: 50, color: 0xDD1111, duration: warningTime
+            });
         }
     }
+
+    // Explosion after telegraph — green (toxic)
+    bossAbilities._schedule(warningTime, () => {
+        if (!boss?.active) return;
+        for (const pool of pools) {
+            if (vfx?.playExplosionEffect) {
+                vfx.playExplosionEffect(pool.x, pool.y, {
+                    color: 0x44BB00, radius: 50, duration: 300
+                });
+            }
+        }
+        if (bossAbilities.scene.audioSystem) {
+            bossAbilities.scene.audioSystem.play('sound/toxic_pools.mp3');
+        }
+    });
 
     return true;
 }
 
 /**
- * Beam Sweep - directional rectangle telegraph + beam VFX
+ * Beam Sweep - directional telegraph with position lock + radioactive beam
  */
 export function executeBeamSweep(bossAbilities, abilityData, params) {
     const range = abilityData.range || 300;
     const damage = abilityData.damage || 10;
-    const chargeTime = abilityData.chargeTime || 1000;
+    const chargeTime = abilityData.chargeTime || 1500;
     const beamWidth = abilityData.beamWidth || 40;
     const boss = bossAbilities.boss;
     const player = bossAbilities.scene.player;
@@ -104,38 +124,55 @@ export function executeBeamSweep(bossAbilities, abilityData, params) {
 
     getSession()?.log('boss', 'ability_execute', { ability: 'beam_sweep', range, damage });
 
-    // Directional rectangle telegraph — aims at player, fills along length
+    // Directional telegraph — tracks player, locks direction at 80% for dodge window
     if (vfx?.playDirectionalTelegraph) {
         vfx.playDirectionalTelegraph(boss.x, boss.y, {
             targetX: player.x, targetY: player.y,
             length: range, width: beamWidth,
             color: 0xDD1111,
             duration: chargeTime,
-            followSource: boss
+            followSource: boss,
+            lockFraction: 0.80
         });
     }
 
-    // After charge: beam fires + damage
+    // Lock angle independently from VFX handle (captures even if VFX is unavailable)
+    let lockedAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
+    bossAbilities._schedule(Math.floor(chargeTime * 0.80), () => {
+        if (player?.active && boss?.active) {
+            lockedAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
+        }
+    });
+
+    // After charge: beam fires in LOCKED direction
     bossAbilities._schedule(chargeTime, () => {
-        if (!boss?.active || !player?.active) return;
+        if (!boss?.active) return;
 
-        const dx = player.x - boss.x;
-        const dy = player.y - boss.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const angle = lockedAngle;
+        const dirX = Math.cos(angle);
+        const dirY = Math.sin(angle);
 
-        // Beam VFX line from boss toward player
+        // Radioactive green beam VFX (telegraph red → beam green = clear phase distinction)
         if (vfx?.playBeamEffect) {
-            const dirX = dist > 0 ? dx / dist : 1;
-            const dirY = dist > 0 ? dy / dist : 0;
             vfx.playBeamEffect(
                 boss.x, boss.y,
                 boss.x + dirX * range, boss.y + dirY * range,
-                { color: 0xFF2200, width: beamWidth * 0.3, duration: 300 }
+                { color: 0x88CC00, width: 10, duration: 600 }
             );
         }
 
-        if (dist <= range) {
-            player.takeDamage(damage, bossAbilities.boss);
+        // Damage if player is in beam line (within range + rough width check)
+        if (player?.active) {
+            const dx = player.x - boss.x;
+            const dy = player.y - boss.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist <= range) {
+                // Check if player is within beam width (perpendicular distance)
+                const cross = Math.abs(dx * dirY - dy * dirX);
+                if (cross <= beamWidth / 2) {
+                    player.takeDamage(damage, bossAbilities.boss);
+                }
+            }
         }
     });
 
@@ -157,111 +194,155 @@ export function executeSummonIrradiated(bossAbilities, abilityData, params) {
 }
 
 /**
- * Radiation Storm - persistent danger zone with visible area + DoT ticks
+ * Radiation Storm - 3 rotating beams (boss version of player's radiotherapy)
+ * Phase 1: Red wedge telegraph (reusable playWedgeTelegraph) — shows exact beam shape
+ * Phase 2: Green rotating beams (reusable playRotatingBeams) — damage in arc narrowphase
  */
 export function executeRadiationStorm(bossAbilities, abilityData, params) {
     const damage = abilityData.damage || 3;
     const radius = abilityData.radius || 250;
-    const stormDuration = abilityData.stormDuration || 3000;
-    const tickInterval = Math.max(abilityData.tickInterval || 500, 100);
+    const stormDuration = abilityData.stormDuration || 5000;
+    const tickInterval = Math.max(abilityData.tickInterval || 400, 100);
+    const chargeTime = 600;
+    const beamCount = 3;
+    const beamWidth = 0.4;
+    const rotations = 1.5;
     const boss = bossAbilities.boss;
     const player = bossAbilities.scene.player;
     const vfx = bossAbilities.scene.vfxSystem;
 
     getSession()?.log('boss', 'ability_execute', { ability: 'radiation_storm', damage, radius });
 
-    // Persistent danger zone — visible pulsing circle on ground for full duration
-    if (vfx?.playDangerZone) {
-        vfx.playDangerZone(boss.x, boss.y, {
-            radius,
+    // Phase 1: Wedge telegraph — red, same shape as beams, progressive fill
+    if (vfx?.playWedgeTelegraph) {
+        vfx.playWedgeTelegraph(boss.x, boss.y, {
+            radius, beamCount, beamWidth,
             color: 0xDD1111,
-            duration: stormDuration,
+            duration: chargeTime,
             followTarget: boss
         });
     }
 
-    if (bossAbilities.scene.audioSystem) {
-        bossAbilities.scene.audioSystem.play('sound/boss_radiation.mp3');
-    }
+    // Phase 2: Green rotating beams (after telegraph)
+    bossAbilities._schedule(chargeTime, () => {
+        if (!boss?.active) return;
 
-    // DoT damage ticks in radius over duration
-    const ticks = Math.min(Math.floor(stormDuration / tickInterval), 30);
+        if (bossAbilities.scene.audioSystem) {
+            bossAbilities.scene.audioSystem.play('sound/boss_radiation.mp3');
+        }
 
-    for (let i = 0; i < ticks; i++) {
-        bossAbilities._schedule(i * tickInterval, () => {
-            if (!player?.active || !boss?.active) return;
-            const dx = player.x - boss.x;
-            const dy = player.y - boss.y;
-            if (dx * dx + dy * dy <= radius * radius) {
-                player.takeDamage(damage, bossAbilities.boss);
-            }
-        });
-    }
+        // Reusable rotating beam VFX
+        if (vfx?.playRotatingBeams) {
+            vfx.playRotatingBeams(boss.x, boss.y, {
+                radius, beamCount, beamWidth,
+                color: 0x88CC00,
+                duration: stormDuration,
+                rotations,
+                followTarget: boss
+            });
+        }
+
+        // Damage ticks — arc narrowphase
+        const ticks = Math.min(Math.floor(stormDuration / tickInterval), 30);
+        const rotSpeed = (Math.PI * 2 * rotations) / stormDuration;
+        const angleStep = (Math.PI * 2) / beamCount;
+        const halfW = beamWidth / 2;
+
+        for (let i = 0; i < ticks; i++) {
+            bossAbilities._schedule(i * tickInterval, () => {
+                if (!player?.active || !boss?.active) return;
+                const dx = player.x - boss.x;
+                const dy = player.y - boss.y;
+                if (dx * dx + dy * dy > radius * radius) return;
+
+                let playerAngle = Math.atan2(dy, dx);
+                if (playerAngle < 0) playerAngle += Math.PI * 2;
+
+                const currentRot = (rotSpeed * (i * tickInterval)) % (Math.PI * 2);
+                for (let b = 0; b < beamCount; b++) {
+                    let beamAngle = (currentRot + angleStep * b) % (Math.PI * 2);
+                    let diff = Math.abs(playerAngle - beamAngle);
+                    if (diff > Math.PI) diff = Math.PI * 2 - diff;
+                    if (diff <= halfW) {
+                        player.takeDamage(damage, bossAbilities.boss);
+                        break;
+                    }
+                }
+            });
+        }
+    });
 
     return true;
 }
 
 /**
- * Rapid Beams - directional telegraph per beam + visible beam line VFX
+ * Radiation Beam - single targeted beam with position lock
+ * Tracks player → locks direction → fires in locked direction
+ * Player must dodge sideways during the lock window
  */
 export function executeRapidBeams(bossAbilities, abilityData, params) {
-    const beamCount = abilityData.beamCount || 5;
     const damage = abilityData.damage || 8;
     const range = abilityData.range || 350;
-    const beamWidth = 30;
+    const beamWidth = 36;
+    const chargeTime = 1200; // Longer charge = more time to read and react
     const boss = bossAbilities.boss;
     const player = bossAbilities.scene.player;
     const vfx = bossAbilities.scene.vfxSystem;
 
-    getSession()?.log('boss', 'ability_execute', { ability: 'rapid_beams', beamCount, damage });
+    if (!player?.active) return false;
 
-    // fireRate: blueprint may use seconds (0.3) or ms (300) — normalize to ms
-    let fireRateMs = abilityData.fireRate || 300;
-    if (fireRateMs < 10) fireRateMs *= 1000;
+    getSession()?.log('boss', 'ability_execute', { ability: 'rapid_beams', beamCount: 1, damage });
 
-    // Each beam gets its own short directional telegraph, then fires
-    for (let i = 0; i < beamCount; i++) {
-        const telegraphTime = Math.min(fireRateMs * 0.6, 250); // Brief warning before each beam
-
-        bossAbilities._schedule(i * fireRateMs, () => {
-            if (!player?.active || !boss?.active) return;
-
-            // Directional telegraph — rectangle toward current player position
-            if (vfx?.playDirectionalTelegraph) {
-                vfx.playDirectionalTelegraph(boss.x, boss.y, {
-                    targetX: player.x, targetY: player.y,
-                    length: range, width: beamWidth,
-                    color: 0xDD1111,
-                    duration: telegraphTime,
-                    followSource: boss
-                });
-            }
-
-            // Beam fires after telegraph completes
-            bossAbilities._schedule(telegraphTime, () => {
-                if (!player?.active || !boss?.active) return;
-
-                const dx = player.x - boss.x;
-                const dy = player.y - boss.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                // Beam VFX line
-                if (vfx?.playBeamEffect) {
-                    const dirX = dist > 0 ? dx / dist : 1;
-                    const dirY = dist > 0 ? dy / dist : 0;
-                    vfx.playBeamEffect(
-                        boss.x, boss.y,
-                        boss.x + dirX * range, boss.y + dirY * range,
-                        { color: 0xFF2200, width: 5, duration: 200 }
-                    );
-                }
-
-                if (dist <= range) {
-                    player.takeDamage(damage, bossAbilities.boss);
-                }
-            });
+    // Directional telegraph — tracks player, locks direction at 80%
+    if (vfx?.playDirectionalTelegraph) {
+        vfx.playDirectionalTelegraph(boss.x, boss.y, {
+            targetX: player.x, targetY: player.y,
+            length: range, width: beamWidth,
+            color: 0xDD1111,
+            duration: chargeTime,
+            followSource: boss,
+            lockFraction: 0.80
         });
     }
+
+    // Lock angle independently from VFX handle
+    let lockedAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
+    bossAbilities._schedule(Math.floor(chargeTime * 0.80), () => {
+        if (player?.active && boss?.active) {
+            lockedAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
+        }
+    });
+
+    // Beam fires in LOCKED direction after charge
+    bossAbilities._schedule(chargeTime, () => {
+        if (!boss?.active) return;
+
+        const angle = lockedAngle;
+        const dirX = Math.cos(angle);
+        const dirY = Math.sin(angle);
+
+        // Radioactive green beam (telegraph red → beam green)
+        if (vfx?.playBeamEffect) {
+            vfx.playBeamEffect(
+                boss.x, boss.y,
+                boss.x + dirX * range, boss.y + dirY * range,
+                { color: 0x88CC00, width: 10, duration: 600 }
+            );
+        }
+
+        // Damage check: player within beam line (range + perpendicular width)
+        if (player?.active) {
+            const dx = player.x - boss.x;
+            const dy = player.y - boss.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist <= range) {
+                const cross = Math.abs(dx * dirY - dy * dirX);
+                if (cross <= beamWidth / 2) {
+                    player.takeDamage(damage, bossAbilities.boss);
+                }
+            }
+        }
+    });
 
     return true;
 }
@@ -285,18 +366,25 @@ export function executeMassiveSummon(bossAbilities, abilityData, params) {
  */
 export function executeCoreOverload(bossAbilities, abilityData, params) {
     const damage = abilityData.damage || 50;
-    const chargeTime = abilityData.chargeTime || 1500;
+    const chargeTime = abilityData.chargeTime || 5000;
     const radius = abilityData.radius || 200;
     const boss = bossAbilities.boss;
     const vfx = bossAbilities.scene.vfxSystem;
 
     getSession()?.log('boss', 'ability_execute', { ability: 'core_overload', damage });
 
-    // Long progressive telegraph — fills slowly, bright red, follows boss
+    // Two-layer telegraph: inner red circle + outer red circle for maximum visibility
     if (vfx?.playTelegraph) {
         vfx.playTelegraph(boss.x, boss.y, {
             radius,
-            color: 0xFF2200,
+            color: 0xDD1111,
+            duration: chargeTime,
+            followTarget: boss
+        });
+        // Second smaller inner telegraph for urgency
+        vfx.playTelegraph(boss.x, boss.y, {
+            radius: radius * 0.5,
+            color: 0xFF4444,
             duration: chargeTime,
             followTarget: boss
         });
@@ -306,12 +394,12 @@ export function executeCoreOverload(bossAbilities, abilityData, params) {
         bossAbilities.scene.audioSystem.play('sound/boss_radiation.mp3');
     }
 
-    // Damage + explosion AFTER charge
+    // Damage + nuclear explosion AFTER charge (bright yellow-white — distinct from telegraph)
     bossAbilities._schedule(chargeTime, () => {
         if (!boss?.active) return;
         if (vfx?.playExplosionEffect) {
             vfx.playExplosionEffect(boss.x, boss.y, {
-                color: 0xFF2200, radius, duration: 500
+                color: 0xFFDD44, radius, duration: 600
             });
         }
         if (bossAbilities.scene.audioSystem) {

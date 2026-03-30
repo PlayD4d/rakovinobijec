@@ -115,7 +115,8 @@ export class PlayerCombat {
                 playerMaxHP: player.maxHp,
                 activePowerUps: player.scene.powerUpSystem?.getActivePowerUps?.() || [],
                 enemiesOnScreen: player.scene.enemiesGroup?.countActive?.(true) || 0,
-                projectilesOnScreen: player.scene.projectileSystem?.getActiveCount?.() || 0,
+                projectilesOnScreen: (player.scene.projectileSystem?.playerBullets?.countActive?.() || 0) +
+                    (player.scene.projectileSystem?.enemyBullets?.countActive?.() || 0),
                 wasBossFight: player.scene.bossActive || false
             });
         }

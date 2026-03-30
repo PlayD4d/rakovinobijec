@@ -64,7 +64,7 @@ export class DamageZoneAbilities {
                 const lastHit = this._chemoHitTimes.get(enemy) || 0;
                 if (now - lastHit < 500) return; // 2 ticks/sec per enemy
                 if (Math.random() < 0.1) getSession()?.log('combat', 'chemo_cloud_hit', { enemyId: enemy.blueprintId, damage });
-                enemy.takeDamage(damage, 'chemo_cloud');
+                enemy.takeDamage({ amount: damage, source: 'chemo_cloud' });
                 this._chemoHitTimes.set(enemy, now);
             }
         );
@@ -132,7 +132,7 @@ export class DamageZoneAbilities {
                         const now = this.scene.time?.now || 0;
                         const lastHit = this._auraHitTimes.get(enemy) || 0;
                         if (now - lastHit < 100) return;
-                        enemy.takeDamage(damage * 0.1, 'aura');
+                        enemy.takeDamage({ amount: damage * 0.1, source: 'aura' });
                         this._auraHitTimes.set(enemy, now);
                     }
                 );
@@ -188,6 +188,10 @@ export class DamageZoneAbilities {
         this._immuneHitTimes = new WeakMap();
         const tickMs = (config.tickRate || 0.5) * 1000;
 
+        // Slow config: 10% slow per application, stacks tracked per enemy, auto-recovers
+        const slowFactor = config.slowFactor || 0.10;
+        const slowDurationMs = tickMs * 2; // Slow lasts 2 tick intervals — fades if enemy leaves aura
+
         // Overlap callback — shared for enemies and bosses
         const onOverlap = (zone, enemy) => {
             if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
@@ -195,8 +199,26 @@ export class DamageZoneAbilities {
             const lastHit = this._immuneHitTimes.get(enemy) || 0;
             if (now - lastHit < tickMs) return;
 
-            enemy.takeDamage(config.damage, 'immune_aura');
+            enemy.takeDamage({ amount: config.damage, source: 'immune_aura' });
             this._immuneHitTimes.set(enemy, now);
+
+            // Apply slow — store original speed on first application, restore on timeout
+            if (enemy.speed > 0 && enemy.body) {
+                if (!enemy._auraSlowOrigSpeed) {
+                    enemy._auraSlowOrigSpeed = enemy.speed;
+                }
+                enemy.speed = enemy._auraSlowOrigSpeed * (1 - slowFactor);
+
+                // Clear previous recovery timer, set new one
+                if (enemy._auraSlowTimer) enemy._auraSlowTimer.destroy();
+                enemy._auraSlowTimer = this.scene.time.delayedCall(slowDurationMs, () => {
+                    if (enemy?.active && enemy._auraSlowOrigSpeed) {
+                        enemy.speed = enemy._auraSlowOrigSpeed;
+                        enemy._auraSlowOrigSpeed = null;
+                        enemy._auraSlowTimer = null;
+                    }
+                });
+            }
 
             // Knockback — push enemy away from player
             if (enemy.body && config.knockback > 0) {

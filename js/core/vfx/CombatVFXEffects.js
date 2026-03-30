@@ -6,7 +6,7 @@
  * Methods are mixed into VFXSystem via installCombatVFX().
  */
 
-import { VFXPresets } from './VFXPresets.js';
+import { getPreset as getParticlePreset } from './ParticlePresets.js';
 
 /**
  * Install combat VFX methods on a VFX system instance.
@@ -15,6 +15,7 @@ import { VFXPresets } from './VFXPresets.js';
 export function installCombatVFX(vfxSystem) {
     vfxSystem.playExplosionEffect = playExplosionEffect;
     vfxSystem.playBeamEffect = playBeamEffect;
+    vfxSystem.playRotatingBeams = playRotatingBeams;
     vfxSystem.playLightningBolt = playLightningBolt;
 }
 
@@ -32,7 +33,7 @@ function playExplosionEffect(x, y, opts = {}) {
     const duration = opts.duration || 400;
 
     // Layer 1: Particle burst
-    this.play(VFXPresets.explosion('medium', color), x, y);
+    this.play(getParticlePreset('explosion.medium', color), x, y);
 
     // Layer 2: Expanding shockwave ring
     const gf = this.scene.graphicsFactory;
@@ -96,33 +97,115 @@ function playBeamEffect(x1, y1, x2, y2, opts = {}) {
 
     const color = opts.color || 0xFF4400;
     const width = opts.width || 4;
-    const duration = opts.duration || 200;
+    const duration = opts.duration || 600;
 
     const gf = this.scene.graphicsFactory;
     const g = gf.create();
     g.clear();
     g.setAlpha(1);
     g.setScale(1);
+    // Reset ALL transform state — pooled Graphics may carry stale rotation/position from telegraphs
     g.setPosition(0, 0);
+    g.setRotation(0);
     g.setDepth(this.scene.DEPTH_LAYERS?.VFX || 3000);
 
-    // Main beam line
-    g.lineStyle(width, color, 0.9);
+    // Wide outer glow — dominant visual
+    g.lineStyle(width * 5, color, 0.3);
     g.lineBetween(x1, y1, x2, y2);
 
-    // Glow (wider, more transparent)
-    g.lineStyle(width * 3, color, 0.2);
+    // Main beam line — thick and bright
+    g.lineStyle(width * 2, color, 0.9);
     g.lineBetween(x1, y1, x2, y2);
 
+    // White-hot center core
+    g.lineStyle(Math.max(2, width * 0.6), 0xFFFFFF, 0.8);
+    g.lineBetween(x1, y1, x2, y2);
+
+    // Pulse: flash bright → hold → fade out
     this.scene.tweens.add({
         targets: g,
-        alpha: 0,
+        alpha: { from: 1, to: 0 },
         duration: duration,
-        ease: 'Power2',
+        ease: 'Cubic.easeIn', // Holds bright longer, fades late
         onComplete: () => {
             if (gf) gf.release(g); else g.destroy();
         }
     });
+}
+
+/**
+ * Rotating beam wedges — N sectors rotating around a center point.
+ * Used for radiation storm, boss radiotherapy, etc.
+ * Graphics object is drawn once, then rotated via tween for zero-GC.
+ *
+ * @param {number} x - Center X
+ * @param {number} y - Center Y
+ * @param {object} opts - { radius, beamCount, beamWidth, color, duration, rotations, followTarget }
+ * @returns {{ graphics, tween }} Handle for cleanup
+ */
+function playRotatingBeams(x, y, opts = {}) {
+    if (!this.scene?.sys?.isActive()) return null;
+
+    const radius = opts.radius || 200;
+    const beamCount = opts.beamCount || 3;
+    const beamWidth = opts.beamWidth || 0.4;
+    const color = opts.color || 0x88CC00;
+    const duration = opts.duration || 5000;
+    const rotations = opts.rotations || 1.5;
+    const followTarget = opts.followTarget || null;
+
+    const gf = this.scene.graphicsFactory;
+    const g = gf.create();
+    g.setPosition(x, y);
+    g.setRotation(0);
+    g.setDepth((this.scene.DEPTH_LAYERS?.ENEMIES || 1000) - 2);
+
+    // Draw beam wedges once (static shape — rotation via tween)
+    const angleStep = (Math.PI * 2) / beamCount;
+    const halfW = beamWidth / 2;
+    for (let i = 0; i < beamCount; i++) {
+        const angle = angleStep * i;
+        // Filled wedge
+        g.fillStyle(color, 0.25);
+        g.beginPath();
+        g.moveTo(0, 0);
+        for (let s = 0; s <= 8; s++) {
+            const a = angle - halfW + (beamWidth * s / 8);
+            g.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+        }
+        g.closePath();
+        g.fillPath();
+        // Edge lines
+        g.lineStyle(1.5, color, 0.4);
+        g.beginPath();
+        g.moveTo(0, 0);
+        g.lineTo(Math.cos(angle - halfW) * radius, Math.sin(angle - halfW) * radius);
+        g.moveTo(0, 0);
+        g.lineTo(Math.cos(angle + halfW) * radius, Math.sin(angle + halfW) * radius);
+        g.strokePath();
+    }
+
+    // Rotate via tween
+    const handle = { graphics: g, angle: 0 };
+    handle.tween = this.scene.tweens.add({
+        targets: handle,
+        angle: Math.PI * 2 * rotations,
+        duration: duration,
+        ease: 'Linear',
+        onUpdate: () => {
+            if (!handle.graphics?.scene) return;
+            if (followTarget?.active) g.setPosition(followTarget.x, followTarget.y);
+            g.setRotation(handle.angle);
+        },
+        onComplete: () => {
+            if (handle.graphics) {
+                if (gf) gf.release(g); else g.destroy();
+                handle.graphics = null;
+            }
+        }
+    });
+
+    return handle;
 }
 
 /**
@@ -182,7 +265,7 @@ function playLightningBolt(x1, y1, x2, y2, opts = {}) {
     g.strokePath();
 
     // Impact spark
-    this.play(VFXPresets.smallHit(color, 6), x2, y2);
+    this.play(getParticlePreset('hit.small', color), x2, y2);
 
     this.scene.tweens.add({
         targets: g,

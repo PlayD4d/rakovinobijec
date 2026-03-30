@@ -72,6 +72,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.maxHp = this.baseStats.hp;
         this.hp = this.maxHp;
         this._iFramesMsLeft = 0;
+        this._isDead = false;
         this.activeModifiers = [];
         this._statsDirty = true;
 

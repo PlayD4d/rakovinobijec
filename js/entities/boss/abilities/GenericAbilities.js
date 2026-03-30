@@ -138,10 +138,12 @@ export function executeAreaDamage(bossAbilities, abilityData, params) {
     const chargeTime = abilityData.chargeTime || 800;
     const scene = bossAbilities.scene;
 
-    // Telegraph: progressive fill showing exact damage area, follows boss
+    // Telegraph: progressive fill at impact location, sized to match damage area
+    const isOnBoss = !params.center; // Only follow boss if center is default (boss position)
     if (scene.vfxSystem?.playTelegraph) {
         scene.vfxSystem.playTelegraph(center.x, center.y, {
-            radius, color: 0xDD1111, duration: chargeTime, followTarget: bossAbilities.boss
+            radius, color: 0xDD1111, duration: chargeTime,
+            followTarget: isOnBoss ? bossAbilities.boss : null
         });
     }
 
@@ -295,9 +297,8 @@ export function executeToxicCloud(bossAbilities, abilityData, params) {
                 }
             }
         });
-        // Track for cleanup if boss dies
+        // Track for cleanup if boss dies (scene.time.Clock auto-cleans on shutdown)
         if (bossAbilities._pendingTimers) bossAbilities._pendingTimers.push(timer);
-        else timer.destroy();
     }
 
     bossAbilities.boss.playSfx('sfx.boss.toxic');

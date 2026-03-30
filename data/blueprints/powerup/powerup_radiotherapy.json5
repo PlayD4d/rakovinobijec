@@ -35,11 +35,11 @@
       26,
     ],
     rotationSpeedPerLevel: [
-      1.8,
+      1.6,
+      2.1,
       2.8,
-      3.8,
-      5.0,
-      6.5,
+      3.6,
+      4.8,
     ],
     beamWidthPerLevel: [
       0.45,

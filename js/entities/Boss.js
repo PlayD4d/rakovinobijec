@@ -260,15 +260,23 @@ export class Boss extends BossCore {
     /**
      * Override damage handling pro phase transitions
      */
-    takeDamage(amount, source = null) {
+    takeDamage(amountOrHit, source = null) {
         // Shield ability blocks all damage while active
         if (this._shielded) {
             this.spawnVfx('hit');
             return 0;
         }
 
-        // Parent expects {amount, source} object or plain number
-        const damageDealt = super.takeDamage({ amount, source });
+        // Normalize: accept both plain number and {amount, source} object
+        // (abilities call takeDamage({amount, source}), collisions call takeDamage(number))
+        let hit;
+        if (amountOrHit != null && typeof amountOrHit === 'object') {
+            hit = amountOrHit; // Already in {amount, source} format
+        } else {
+            hit = { amount: amountOrHit, source };
+        }
+
+        const damageDealt = super.takeDamage(hit);
 
         // Log boss damage
         if (damageDealt > 0) {
@@ -327,6 +335,9 @@ export class Boss extends BossCore {
             this.setVisible(false);
             if (this.body) this.body.setEnable(false);
 
+            // Capture phase before cleanup nulls it
+            const finalPhase = this.phases?.getCurrentPhase?.() ?? 0;
+
             // Cleanup subsystems via single cleanup() method (DRY)
             this.cleanup();
 
@@ -334,7 +345,8 @@ export class Boss extends BossCore {
             if (this.scene?.events) {
                 this.scene.events.emit('boss:die', {
                     bossId: this.blueprint?.id,
-                    killer: killer
+                    killer: killer,
+                    phase: finalPhase
                 });
             }
         } finally {

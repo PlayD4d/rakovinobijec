@@ -1,6 +1,6 @@
 import { DebugLogger } from '../../../debug/DebugLogger.js';
 import { getSession } from '../../../debug/SessionLog.js';
-import { VFXPresets } from '../../../vfx/VFXPresets.js';
+import { getPreset as getParticlePreset } from '../../../vfx/ParticlePresets.js';
 
 /**
  * ChainLightningAbility - Handles chain lightning power-up ability
@@ -56,10 +56,13 @@ export class ChainLightningAbility {
         const player = this.scene.player;
         if (!player?.active) return;
 
-        const enemies = this.scene.enemiesGroup?.getChildren() || [];
+        const enemies = [
+            ...(this.scene.enemiesGroup?.getChildren() || []),
+            ...(this.scene.bossGroup?.getChildren() || [])
+        ];
         if (enemies.length === 0) return;
 
-        // Find closest enemy (squared distance avoids Math.sqrt)
+        // Find closest enemy or boss (squared distance avoids Math.sqrt)
         let closest = null;
         let minDistSq = config.range * config.range;
 
@@ -92,13 +95,13 @@ export class ChainLightningAbility {
         // Apply damage
         if (enemy.takeDamage) {
             getSession()?.log('combat', 'chain_lightning_hit', { enemyId: enemy.blueprintId, damage, jumpsLeft });
-            enemy.takeDamage(damage, 'chain_lightning');
+            enemy.takeDamage({ amount: damage, source: 'chain_lightning' });
         }
 
         // Impact spark at strike point
         const vfx = this.scene.vfxSystem;
         if (vfx) {
-            vfx.play(VFXPresets.smallHit(0x4488FF, 8), enemy.x, enemy.y);
+            vfx.play(getParticlePreset('hit.small', 0x4488FF), enemy.x, enemy.y);
         }
 
         // Draw bolt from player (first hit) or previous enemy to this enemy
@@ -111,7 +114,10 @@ export class ChainLightningAbility {
 
         // Find next target and chain
         if (jumpsLeft > 1) {
-            const enemies = this.scene.enemiesGroup?.getChildren() || [];
+            const enemies = [
+                ...(this.scene.enemiesGroup?.getChildren() || []),
+                ...(this.scene.bossGroup?.getChildren() || [])
+            ];
             let next = null;
             let minDistSq = jumpRange * jumpRange;
 

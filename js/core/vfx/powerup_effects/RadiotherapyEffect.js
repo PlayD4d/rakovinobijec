@@ -213,11 +213,11 @@ export class RadiotherapyEffect {
 
     _destroyDamageZone() {
         if (this._overlapCollider) {
-            this.scene.physics.world.removeCollider(this._overlapCollider);
+            this.scene?.physics?.world?.removeCollider(this._overlapCollider);
             this._overlapCollider = null;
         }
         if (this._bossOverlapCollider) {
-            this.scene.physics.world.removeCollider(this._bossOverlapCollider);
+            this.scene?.physics?.world?.removeCollider(this._bossOverlapCollider);
             this._bossOverlapCollider = null;
         }
         if (this._damageZone) {
@@ -275,7 +275,7 @@ export class RadiotherapyEffect {
             if (diff <= halfWidth) {
                 this._hitThisTick.add(enemy);
                 if (Math.random() < 0.1) getSession()?.log('combat', 'radiotherapy_hit', { enemyId: enemy.blueprintId, damage: this.damage });
-                enemy.takeDamage(this.damage, 'radiotherapy');
+                enemy.takeDamage({ amount: this.damage, source: 'radiotherapy' });
 
                 // Throttled VFX
                 if (this.scene.vfxSystem && Math.random() < 0.25) {

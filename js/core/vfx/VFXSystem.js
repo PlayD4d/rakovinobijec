@@ -6,7 +6,7 @@
  * Player powerup effects:  powerup_effects/
  */
 
-import { VFXPresets } from './VFXPresets.js';
+import { getPreset as getParticlePreset } from './ParticlePresets.js';
 import { RadiotherapyEffect } from './powerup_effects/RadiotherapyEffect.js';
 import { FlamethrowerEffect } from './powerup_effects/FlamethrowerEffect.js';
 import { ShieldEffect } from './powerup_effects/ShieldEffect.js';
@@ -82,24 +82,11 @@ export class VFXSystem {
             return null;
         }
         
-        // Handle string references (presets or legacy IDs)
+        // Handle string references — resolve via ParticlePresets
         if (typeof config === 'string') {
-            // Check if it's a preset
-            if (config.includes('.')) {
-                // Extract preset name without first segment (zero-alloc: indexOf+slice instead of split/join)
-                const dotIdx = config.indexOf('.');
-                const presetName = config.slice(dotIdx + 1);
-                const presetConfig = VFXPresets.getPreset(presetName, options.color);
-                if (presetConfig) {
-                    config = presetConfig;
-                } else {
-                    // Legacy fallback - try to extract type from ID
-                    config = this._getLegacyFallback(config);
-                }
-            } else {
-                // Direct preset name
-                config = VFXPresets.getPreset(config, options.color);
-            }
+            // Strip leading 'vfx.' prefix if present (e.g. 'vfx.hit.small' → 'hit.small')
+            const name = config.startsWith('vfx.') ? config.slice(4) : config;
+            config = getParticlePreset(name, options.color);
         }
         
         // If no config resolved, skip silently — no fallback sparks for unknown IDs
@@ -168,16 +155,15 @@ export class VFXSystem {
     _playFlash(config, options = {}) {
         const camera = this.scene.cameras.main;
         const duration = config.duration || 100;
-        const alpha = config.alpha || 0.8;
         const color = config.color || 0xFFFFFF;
-        
-        camera.flash(duration, 
-            (color >> 16) & 0xFF, // R
-            (color >> 8) & 0xFF,  // G
-            color & 0xFF,         // B
-            alpha
+
+        // Phaser Camera.flash(duration, r, g, b, force) — 5th arg is force, NOT alpha
+        camera.flash(duration,
+            (color >> 16) & 0xFF,
+            (color >> 8) & 0xFF,
+            color & 0xFF
         );
-        
+
         return { type: 'flash', duration };
     }
     
@@ -231,7 +217,7 @@ export class VFXSystem {
 
             default:
                 // Generic particle effect that follows entity
-                const particleConfig = config.particles || VFXPresets.aura(config.color);
+                const particleConfig = config.particles || getParticlePreset('aura', config.color);
                 effect = this._createFollowingEffect(entity, particleConfig);
                 break;
         }
@@ -337,46 +323,7 @@ export class VFXSystem {
         return effect;
     }
     
-    /**
-     * Get legacy fallback config based on effect ID pattern
-     */
-    _getLegacyFallback(effectId) {
-        // Map common legacy IDs to presets
-        if (effectId.includes('hit')) {
-            if (effectId.includes('heavy') || effectId.includes('hard')) {
-                return VFXPresets.mediumHit();
-            }
-            return VFXPresets.smallHit();
-        }
-        if (effectId.includes('explosion')) {
-            if (effectId.includes('large')) return VFXPresets.explosion('large');
-            if (effectId.includes('small')) return VFXPresets.explosion('small');
-            return VFXPresets.explosion('medium');
-        }
-        if (effectId.includes('death')) {
-            if (effectId.includes('boss')) return VFXPresets.deathBurst('large');
-            if (effectId.includes('small')) return VFXPresets.deathBurst('small');
-            return VFXPresets.deathBurst('medium');
-        }
-        if (effectId.includes('spawn')) {
-            return VFXPresets.spawn();
-        }
-        if (effectId.includes('trail')) {
-            return VFXPresets.trail();
-        }
-        if (effectId.includes('pickup')) {
-            return VFXPresets.pickup();
-        }
-        if (effectId.includes('shield')) {
-            return VFXPresets.shieldHit();
-        }
-        if (effectId.includes('muzzle')) {
-            return VFXPresets.muzzleFlash();
-        }
-        
-        // Default fallback
-        return VFXPresets.smallHit();
-    }
+    // Legacy fallback removed — ParticlePresets handles all name resolution via aliases
     
     /**
      * Get emitter from pool
@@ -476,6 +423,8 @@ export class VFXSystem {
             if (handle?.graphics?.scene) {
                 if (gf) gf.release(handle.graphics); else handle.graphics.destroy();
             }
+            // Null out to prevent onComplete double-release (Phaser fires onComplete on stop)
+            if (handle) handle.graphics = null;
         }
         this._activeTelegraphs.length = 0;
     }
@@ -513,18 +462,18 @@ export class VFXSystem {
         this.scene = null;
     }
     
-    // Compatibility aliases
+    // Convenience wrappers — delegate to play() with preset names
     playHitSpark(x, y, type = 'default') {
-        const color = type === 'heavy' ? 0xFFDD00 : 0xFFFFFF;
-        return this.play(VFXPresets.smallHit(color), x, y);
+        const color = type === 'heavy' ? 0xFFDD00 : null;
+        return this.play('hit.small', x, y, { color });
     }
-    
+
     playExplosion(x, y, size = 'medium') {
-        return this.play(VFXPresets.explosion(size), x, y);
+        return this.play(`explosion.${size}`, x, y);
     }
-    
+
     playDeathBurst(x, y, color = 0xFF2222) {
-        return this.play(VFXPresets.deathBurst('medium', color), x, y);
+        return this.play('death.medium', x, y, { color });
     }
 
     // Combat VFX methods installed from:

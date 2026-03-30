@@ -127,7 +127,9 @@ export class ProjectileSystem {
       return false;
     }
 
+    // Hide + pre-position to prevent 1-frame blink at old pool location
     bullet.setVisible(false);
+    bullet.setPosition(x, y);
 
     // Get texture for this projectile
     bullet.setTexture(this._textureGen.getTexture(projectileId));
@@ -210,7 +212,9 @@ export class ProjectileSystem {
       return false;
     }
 
+    // Hide immediately + move to spawn position to prevent 1-frame blink at old location
     bullet.setVisible(false);
+    bullet.setPosition(x, y);
 
     // Get texture for enemy projectile
     bullet.setTexture(this._textureGen.getTexture(projectileId));
@@ -258,19 +262,24 @@ export class ProjectileSystem {
       const dirY = speed > 0 ? vel.y / speed : 0;
 
       const projectileId = opts.projectileId || opts.projectileBlueprintId || 'projectile.cytotoxin_enhanced';
-      return this.fireEnemy(
-        opts.x, opts.y, dirX, dirY,
-        speed, opts.range || null, opts.damage || null,
-        opts.homing || false, opts.owner?.type || null,
-        opts.color || 0xff0000, projectileId
-      );
+      return this.fireEnemy(opts.x, opts.y, dirX, dirY, {
+        speed,
+        range: opts.range || null,
+        damage: opts.damage || null,
+        tracking: opts.homing || false,
+        sourceType: opts.owner?.type || null,
+        tint: opts.color || 0xff0000,
+        projectileId
+      });
     }
 
     // Legacy style: separate parameters
     const speed = Math.hypot(velocity.x, velocity.y) || this.config.enemySpeed;
     const dirX = speed > 0 ? velocity.x / speed : 1;
     const dirY = speed > 0 ? velocity.y / speed : 0;
-    return this.fireEnemy(xOrOptions, y, dirX, dirY, speed, null, damage, tracking, sourceType, color);
+    return this.fireEnemy(xOrOptions, y, dirX, dirY, {
+      speed, damage, tracking, sourceType, tint: color
+    });
   }
 
   /**

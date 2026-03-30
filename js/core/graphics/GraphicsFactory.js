@@ -28,6 +28,10 @@ export class GraphicsFactory {
             graphics.clear();
             graphics.setVisible(true);
             graphics.setActive(true);
+            graphics.setRotation(0);
+            graphics.setScale(1);
+            graphics.setAlpha(1);
+            graphics.setPosition(0, 0);
         } else {
             // Create new if pool is empty
             graphics = this.scene.add.graphics();
@@ -50,6 +54,7 @@ export class GraphicsFactory {
         graphics.setAlpha(1);
         graphics.setScale(1);
         graphics.setPosition(0, 0);
+        graphics.setRotation(0);
         graphics.setDepth(0);
         
         this.activeGraphics.delete(graphics);

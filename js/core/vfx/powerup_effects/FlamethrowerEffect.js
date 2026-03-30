@@ -292,7 +292,7 @@ export class FlamethrowerEffect {
         if (Math.abs(angleDiff) <= this.coneAngle) {
             this._hitThisTick.add(enemy);
             if (Math.random() < 0.1) getSession()?.log('combat', 'flamethrower_hit', { enemyId: enemy.blueprintId, damage: this.damage });
-            enemy.takeDamage(this.damage, 'flamethrower');
+            enemy.takeDamage({ amount: this.damage, source: 'flamethrower' });
         }
     }
     

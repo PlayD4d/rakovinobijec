@@ -17,6 +17,7 @@
     damagePerLevel: [6, 10, 15, 22, 30],
     radiusPerLevel: [60, 70, 80, 95, 110],
     knockbackPerLevel: [80, 100, 130, 160, 200],
+    slowFactor: 0.10,  // 10% speed reduction while in aura
     tickRate: 0.5,  // 2 hits/sec per enemy in range
   },
   vfx: {

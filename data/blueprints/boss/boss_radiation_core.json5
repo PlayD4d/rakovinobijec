@@ -129,7 +129,7 @@
     passiveAuras: [
       {
         type: 'radiation_field',
-        radius: 80,
+        radius: 64,
         damage: 1,
         tickInterval: 1500,
         slowEffect: 0.1,

@@ -2,7 +2,7 @@
  * ExplosionHandler - Handles area-of-effect explosion damage and effects
  *
  * Extracted from ProjectileSystem for SoC (< 500 LOC rule).
- * Performs single-pass AABB + circle hit detection against active enemies.
+ * Performs single-pass AABB + circle hit detection against active enemies AND bosses.
  */
 
 export class ExplosionHandler {
@@ -15,7 +15,7 @@ export class ExplosionHandler {
   }
 
   /**
-   * Create an explosion at the given position, damaging all enemies in radius.
+   * Create an explosion at the given position, damaging all enemies and bosses in radius.
    * Uses AABB pre-filter + circle check for optimal performance (single pass).
    *
    * @param {number} x - X centre of explosion
@@ -26,17 +26,19 @@ export class ExplosionHandler {
    * @returns {number} Number of enemies hit
    */
   create(x, y, damage, radius, _level, opts) {
-    const enemiesGroup = this.scene.enemiesGroup;
-    if (!enemiesGroup) return 0;
-
-    const enemies = enemiesGroup.getChildren?.() || [];
     const radiusSquared = radius * radius;
     const explosionId = ++this._explosionCounter;
     let hitCount = 0;
 
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const enemy = enemies[i];
-      if (!enemy.active) continue;
+    // Collect all damageable targets: enemies + bosses
+    const targets = [
+      ...(this.scene.enemiesGroup?.getChildren?.() || []),
+      ...(this.scene.bossGroup?.getChildren?.() || [])
+    ];
+
+    for (let i = 0, len = targets.length; i < len; i++) {
+      const enemy = targets[i];
+      if (!enemy?.active) continue;
       if (enemy._lastExplosionId === explosionId) continue;
 
       // AABB pre-filter
@@ -50,14 +52,13 @@ export class ExplosionHandler {
       enemy._lastExplosionId = explosionId;
       hitCount++;
 
+      // takeDamage handles death internally (EnemyCore.die → handleEnemyDeath)
       if (enemy.takeDamage) {
         enemy.takeDamage(damage);
-        try { this.scene.recordDamageDealt?.(damage, enemy); } catch (_e) { /* noop */ }
-        if (enemy.hp <= 0) this.scene.handleEnemyDeath?.(enemy);
       }
     }
 
-    // VFX — use multi-layer explosion effect with radius matching damage area
+    // VFX — multi-layer explosion effect with radius matching damage area
     if (this.scene.vfxSystem?.playExplosionEffect) {
       this.scene.vfxSystem.playExplosionEffect(x, y, { color: 0x44CCFF, radius: radius * 1.5 });
     }

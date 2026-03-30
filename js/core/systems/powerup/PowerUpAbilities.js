@@ -98,6 +98,7 @@ export class PowerUpAbilities {
                 config.damage = (ability.damagePerLevel || [5])[level - 1] || 5;
                 config.radius = (ability.radiusPerLevel || [60])[level - 1] || 60;
                 config.knockback = (ability.knockbackPerLevel || [100])[level - 1] || 100;
+                config.slowFactor = ability.slowFactor || 0.10;
                 config.tickRate = ability.tickRate || 0.5;
                 break;
 
@@ -170,8 +171,14 @@ export class PowerUpAbilities {
                 player.maxShieldHP = config.shieldHP;
                 player.shieldHP = Math.round(config.shieldHP * hpRatio);
                 player.shieldRechargeTime = config.rechargeTime;
-                player.shieldRecharging = false;
-                player.shieldRechargeAt = 0;
+                // Only reset recharge state if shield has HP; if depleted, keep/restart recharge
+                if (player.shieldHP > 0) {
+                    player.shieldRecharging = false;
+                    player.shieldRechargeAt = 0;
+                } else if (!player.shieldRecharging) {
+                    player.shieldRecharging = true;
+                    player.shieldRechargeAt = (this.scene?.time?.now || 0) + config.rechargeTime;
+                }
 
                 DebugLogger.info('powerup', `[PowerUpAbilities] SHIELD ACTIVATED - Level: ${config.level}, HP: ${config.shieldHP}, Recharge: ${config.rechargeTime}ms`);
 
@@ -184,8 +191,8 @@ export class PowerUpAbilities {
                 if (vfxManager) {
                     DebugLogger.info('powerup', `[PowerUpAbilities] Attaching shield VFX to player`);
                     vfxManager.attachEffect(player, 'shield', {
-                        radius: 40 + (config.level * 5),
-                        color: 0x00ffff,
+                        radius: 28,
+                        color: 0x00ccff,
                         alpha: 0.3
                     });
                 } else if (this.scene.vfxSystem) {
