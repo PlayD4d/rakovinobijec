@@ -126,7 +126,6 @@ async function executeCleanupStep(tm, step) {
 
     // Small delay between steps — setTimeout (scene.time freezes during Phaser pause)
     await new Promise(resolve => setTimeout(resolve, 10));
-    });
 }
 
 /**
