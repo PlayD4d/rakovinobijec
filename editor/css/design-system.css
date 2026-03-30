@@ -380,7 +380,7 @@ body {
 
 #property-form { font-size: 12px; }
 
-.property-group { margin-bottom: var(--sp-4); }
+.property-group { margin-bottom: var(--sp-3); }
 
 .property-group-header {
     display: flex;
@@ -416,24 +416,36 @@ body {
 }
 
 .property-group-content {
-    padding-left: var(--sp-3);
+    padding-left: var(--sp-2);
 }
 
-.property-field { margin-bottom: var(--sp-3); }
+/* Inline layout: label left, input right, single row */
+.property-field {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-bottom: 2px;
+    padding: 2px 0;
+}
 
 .property-label {
-    display: block;
-    margin-bottom: var(--sp-1);
+    flex: 0 0 auto;
+    min-width: 80px;
+    max-width: 140px;
     color: var(--t-muted);
     font-size: 10px;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .property-input {
-    width: 100%;
-    padding: var(--sp-1) var(--sp-2);
+    flex: 1;
+    min-width: 0;
+    padding: 3px var(--sp-2);
     background: var(--s-void);
     border: 1px solid var(--b-default);
     color: var(--t-primary);
@@ -442,6 +454,34 @@ body {
     font-size: 12px;
     outline: none;
     transition: border-color var(--duration);
+}
+
+/* Narrow number inputs — don't need full width */
+.property-input[type="number"] {
+    max-width: 100px;
+    text-align: right;
+}
+
+/* Checkbox fields stay compact */
+.property-input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+}
+
+/* Full-width fields when content needs space (text, select) */
+.property-field--wide {
+    flex-wrap: wrap;
+}
+
+.property-field--wide .property-label {
+    flex: 0 0 100%;
+    max-width: none;
+    margin-bottom: 2px;
+}
+
+.property-field--wide .property-input {
+    flex: 1 1 100%;
 }
 
 .property-input:focus {
