@@ -336,9 +336,9 @@ const deep = structuredClone(original);   // Deep copy
 | **js/entities/Boss.js** | Phaser sprite | Extends Enemy |
 | **js/core/systems/ProjectileSystem.js** | Sprite management | `this.scene.physics.add.sprite()` |
 | **js/core/systems/SimpleLootSystem.js** | Loot sprites | `this.scene.add.sprite()`, tweens |
-| **js/core/factories/GraphicsFactory.js** | Graphics creation | `this.scene.add.graphics()` |
+| **js/core/graphics/GraphicsFactory.js** | Graphics creation | `this.scene.add.graphics()` |
 | **js/core/audio/SimplifiedAudioSystem.js** | Sound API | `this.scene.sound.*` |
-| **js/core/vfx/SimplifiedVFXSystem.js** | Particles, sprites | `this.scene.add.particles()` |
+| **js/core/vfx/VFXSystem.js** | Particles, sprites | `this.scene.add.particles()` |
 | **js/ui/\*.js** | UI komponenty | UI specific Phaser API |
 
 ### ZAKÁZANÉ soubory pro Phaser API

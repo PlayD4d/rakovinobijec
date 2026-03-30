@@ -19,7 +19,7 @@
 | **PowerUpSystem** | `js/core/systems/powerup/PowerUpSystem.js` | Power-up management and abilities |
 | **GraphicsFactory** | `js/core/graphics/GraphicsFactory.js` | Texture generation with Graphics pooling |
 | **SimplifiedAudioSystem** | `js/core/audio/SimplifiedAudioSystem.js` | SFX/music (direct file paths) |
-| **SimplifiedVFXSystem** | `js/core/vfx/SimplifiedVFXSystem.js` | Visual effects with presets |
+| **VFXSystem** | `js/core/vfx/VFXSystem.js` | Visual effects (particles, telegraphs, beams) |
 | **EnemyManager** | `js/managers/EnemyManager.js` | Enemy/boss spawning and lifecycle |
 | **UpdateManager** | `js/managers/UpdateManager.js` | Phased update loop orchestration |
 | **TransitionManager** | `js/managers/TransitionManager.js` | Victory/defeat/level transitions |

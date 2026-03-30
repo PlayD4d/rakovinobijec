@@ -10,6 +10,9 @@ import { BlueprintBrowser } from '../modules/BlueprintBrowser.js';
 import { PropertyEditor } from '../modules/PropertyEditor.js';
 import { SimplePreview } from '../modules/SimplePreview.js';
 import { TestRunner } from '../modules/TestRunner.js';
+import { SpawnTimeline } from '../modules/SpawnTimeline.js';
+import { BossPhaseEditor } from '../modules/BossPhaseEditor.js';
+import { BalanceDashboard } from '../modules/BalanceDashboard.js';
 
 class EditorCore {
     constructor() {
@@ -41,7 +44,10 @@ class EditorCore {
             this.modules.editor = new PropertyEditor(this);
             this.modules.preview = new SimplePreview(this);
             this.modules.testRunner = new TestRunner(this);
-            
+            this.modules.spawnTimeline = new SpawnTimeline(this);
+            this.modules.bossPhaseEditor = new BossPhaseEditor(this);
+            this.modules.balanceDashboard = new BalanceDashboard(this);
+
             // Setup UI event handlers
             this.setupEventHandlers();
             
@@ -267,7 +273,10 @@ class EditorCore {
         let current = obj;
         for (let i = 0; i < parts.length - 1; i++) {
             const key = isNaN(parts[i]) ? parts[i] : parseInt(parts[i]);
-            if (current[key] === undefined) current[key] = {};
+            if (current[key] === undefined) {
+                const nextKey = parts[i + 1];
+                current[key] = (nextKey !== undefined && !isNaN(nextKey)) ? [] : {};
+            }
             current = current[key];
         }
         const lastKey = isNaN(parts[parts.length - 1]) ? parts[parts.length - 1] : parseInt(parts[parts.length - 1]);
@@ -344,7 +353,10 @@ class EditorCore {
     showModal(title, content, callback) {
         const modal = document.getElementById('modal-overlay');
         document.getElementById('modal-title').textContent = title;
-        document.getElementById('modal-body').innerHTML = content;
+        const body = document.getElementById('modal-body');
+        body.textContent = '';
+        if (content instanceof Node) body.appendChild(content);
+        else body.textContent = content;
         
         modal.style.display = 'flex';
         

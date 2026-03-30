@@ -1,30 +1,27 @@
 # Dokumentace Rakovinobijec
 
-> v0.5.86+ | Phaser 3.90.0
+> v0.9.x | Phaser 3.90.0 (local lib/)
 
-## Hlavni dokumenty
+## Dokumenty
 
 | Dokument | Popis |
 |----------|-------|
-| [DEV_GUIDELINES.md](./DEV_GUIDELINES.md) | Pravidla vyvoje, systemy, event architektura, DO/DON'T |
+| [DEV_GUIDELINES.md](./DEV_GUIDELINES.md) | Pravidla vývoje, systémy, event architektura, DO/DON'T |
 | [PHASER_390_REFERENCE.md](./PHASER_390_REFERENCE.md) | Phaser 3.90 API, best practices, gotchas, performance |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | Architektonicke vzory (Capability-based, Thin Composer, DisposableRegistry) |
-| [CODE_STANDARDS.md](./CODE_STANDARDS.md) | Kodove standardy, naming conventions, limity |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Architektonické vzory (Capability-based, Thin Composer, DisposableRegistry) |
+| [CODE_STANDARDS.md](./CODE_STANDARDS.md) | Kódové standardy, naming conventions, limity |
 | [lifecycle.md](./lifecycle.md) | Game lifecycle, bootstrap flow, transition management |
-| [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) | Kompletni pruvodce (blueprinty, content creation, debugging) |
-| [Migration_Plan.md](./Migration_Plan.md) | Plan migrace na Godot 4.4 (budouci) |
+| [VFX_DESIGN.md](./VFX_DESIGN.md) | VFX design pravidla, barvy, telegrafy |
+| [VISUAL_DESIGN.md](./VISUAL_DESIGN.md) | Enemy vizuální design, barevná paleta |
+
+Source of truth pro AI agenty: **CLAUDE.md** (root)
 
 ## Quick Start
 
 ```bash
-npm run dev              # Spustit dev server
-npm run guard:check-all  # Overit architekturu
+npm run dev              # Dev server (port 8000)
+npm run guard:check-all  # Ověřit architekturu
 npm run audit:data       # Validovat blueprinty
 npm run smoke:test       # Smoke test
-```
-
-## Validace pred commitem
-```bash
-npm run ci:quick         # Guards + smoke (rychle)
-npm run ci:full          # Kompletni CI
+npm run ci:quick         # Guards + smoke (rychlé)
 ```

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Rakovinobijec — 2D top-down survival shooter built on **Phaser 3.90.0** (loaded from CDN).
+Rakovinobijec — 2D top-down survival shooter built on **Phaser 3.90.0** (local lib/).
 100% data-driven architecture (PR7). All gameplay values in JSON5 blueprints.
 
 ## Commands
@@ -131,4 +131,5 @@ __framework.healthcheck()     __framework.quickCheck()
 - Phaser 3.90 reference: @docs/PHASER_390_REFERENCE.md
 - Game lifecycle: @docs/lifecycle.md
 - Code standards: @docs/CODE_STANDARDS.md
-- Developer guide: @docs/DEVELOPER_GUIDE.md
+- Visual design: @docs/VISUAL_DESIGN.md
+- VFX design: @docs/VFX_DESIGN.md
