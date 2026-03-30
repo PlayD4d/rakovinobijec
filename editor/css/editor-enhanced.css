@@ -933,3 +933,45 @@ select.property-input {
     color: #555;
     font-style: italic;
 }
+
+/* ============================================
+   Entity Autocomplete
+   ============================================ */
+.ea-dropdown {
+    position: fixed;
+    z-index: 10000;
+    background: #1e1e3a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    max-height: 260px;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.ea-item {
+    padding: 6px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #c0c0e0;
+}
+.ea-item:hover, .ea-item.ea-selected {
+    background: #2a2a5a;
+    color: #fff;
+}
+.ea-icon { font-size: 14px; }
+.ea-label { flex: 1; }
+.ea-valid { border-color: #4CAF50 !important; }
+.ea-invalid { border-color: #f44336 !important; }
+.ea-jump-btn {
+    background: none;
+    border: 1px solid #555;
+    color: #8888cc;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    margin-left: 4px;
+}
+.ea-jump-btn:hover { color: #fff; border-color: #888; }

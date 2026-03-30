@@ -59,7 +59,10 @@ export class Boss extends BossCore {
         
         // Initialize specialized systems - Thin Composer pattern
         this.initializeBossSystems();
-        
+
+        // Spawn SFX — mirrors Enemy.js pattern
+        this.playSfx('spawn');
+
         DebugLogger.info('boss', `[Boss] Thin composer initialized: ${blueprint.id}`);
     }
     

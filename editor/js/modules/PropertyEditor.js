@@ -120,10 +120,14 @@ export class PropertyEditor {
         // Group header
         const header = document.createElement('div');
         header.className = 'property-group-header';
-        header.innerHTML = `
-            <span class="property-group-toggle">▼</span>
-            <span class="property-group-title">${this.formatName(name)}</span>
-        `;
+        const toggle = document.createElement('span');
+        toggle.className = 'property-group-toggle';
+        toggle.textContent = '▼';
+        const title = document.createElement('span');
+        title.className = 'property-group-title';
+        title.textContent = this.formatName(name);
+        header.appendChild(toggle);
+        header.appendChild(title);
         
         // Toggle collapse/expand
         let expanded = true;
@@ -227,8 +231,8 @@ export class PropertyEditor {
         } else if (Array.isArray(value)) {
             return this.createArrayField(name, value, path);
         } else if (typeof value === 'object') {
-            // Check if this is an audio object before treating as generic object
-            if (this._isAudioObject(value)) {
+            // Top-level sfx/vfx objects are handled by their own category group — don't double-render
+            if (this._isAudioObject(value) && !['sfx', 'vfx'].includes(name)) {
                 return this.createNestedAudioField(name, value, path);
             }
             return this.createObjectField(name, value, path);
@@ -1875,11 +1879,18 @@ export class PropertyEditor {
         // Header for the audio group
         const header = document.createElement('div');
         header.className = 'property-group-header';
-        header.innerHTML = `
-            <span class="group-icon">🎵</span>
-            <span class="group-name">${this.formatName(name)}</span>
-            <span class="group-type">Audio Group</span>
-        `;
+        const icon = document.createElement('span');
+        icon.className = 'group-icon';
+        icon.textContent = '🎵';
+        const gName = document.createElement('span');
+        gName.className = 'group-name';
+        gName.textContent = this.formatName(name);
+        const gType = document.createElement('span');
+        gType.className = 'group-type';
+        gType.textContent = 'Audio Group';
+        header.appendChild(icon);
+        header.appendChild(gName);
+        header.appendChild(gType);
         container.appendChild(header);
         
         // Container for audio fields

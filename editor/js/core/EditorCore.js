@@ -13,6 +13,9 @@ import { TestRunner } from '../modules/TestRunner.js';
 import { SpawnTimeline } from '../modules/SpawnTimeline.js';
 import { BossPhaseEditor } from '../modules/BossPhaseEditor.js';
 import { BalanceDashboard } from '../modules/BalanceDashboard.js';
+import { PowerupGraph } from '../modules/PowerupGraph.js';
+import { LootVisualizer } from '../modules/LootVisualizer.js';
+import { EntityAutocomplete } from '../modules/EntityAutocomplete.js';
 
 class EditorCore {
     constructor() {
@@ -47,6 +50,9 @@ class EditorCore {
             this.modules.spawnTimeline = new SpawnTimeline(this);
             this.modules.bossPhaseEditor = new BossPhaseEditor(this);
             this.modules.balanceDashboard = new BalanceDashboard(this);
+            this.modules.powerupGraph = new PowerupGraph(this);
+            this.modules.lootVisualizer = new LootVisualizer(this);
+            this.modules.entityAutocomplete = new EntityAutocomplete(this);
 
             // Setup UI event handlers
             this.setupEventHandlers();
