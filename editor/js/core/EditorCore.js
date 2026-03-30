@@ -17,6 +17,7 @@ import { PowerupGraph } from '../modules/PowerupGraph.js';
 import { LootVisualizer } from '../modules/LootVisualizer.js';
 import { EntityAutocomplete } from '../modules/EntityAutocomplete.js';
 import { VFXPreview } from '../modules/VFXPreview.js';
+import { ContextDashboard } from '../modules/ContextDashboard.js';
 
 class EditorCore {
     constructor() {
@@ -55,6 +56,7 @@ class EditorCore {
             this.modules.lootVisualizer = new LootVisualizer(this);
             this.modules.entityAutocomplete = new EntityAutocomplete(this);
             this.modules.vfxPreview = new VFXPreview(this);
+            this.modules.contextDashboard = new ContextDashboard(this);
 
             // Setup UI event handlers
             this.setupEventHandlers();

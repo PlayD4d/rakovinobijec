@@ -1360,7 +1360,37 @@ body {
    RESPONSIVE
    ═══════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════
+   CONTEXT DASHBOARD
+   ═══════════════════════════════════════════ */
+
+#context-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+#context-dashboard:empty { display: none; }
+
+#context-dashboard > * {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Make preview panel wider to accommodate dashboards */
+#panel-preview { width: 380px; min-width: 300px; max-width: 520px; }
+
+/* Shrink the entity preview canvas when dashboard is active */
+#context-dashboard:not(:empty) ~ #preview-visual .preview-canvas {
+    padding: var(--sp-2);
+}
+
+#context-dashboard:not(:empty) ~ #preview-visual #entity-preview {
+    width: 80px;
+    height: 80px;
+}
+
 @media (max-width: 1200px) {
     #panel-browser { width: 220px; }
-    #panel-preview { width: 280px; }
+    #panel-preview { width: 320px; }
 }

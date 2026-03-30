@@ -76,40 +76,40 @@
                 </div>
             </div>
 
-            <!-- Right Panel: Preview & Test -->
+            <!-- Right Panel: Context Dashboard -->
             <div id="panel-preview" class="panel">
                 <div class="panel-header">
-                    <h2>Preview</h2>
+                    <h2>Dashboard</h2>
                     <div class="panel-controls">
                         <button id="btn-refresh-preview" title="Refresh">&#x21bb;</button>
                         <select id="preview-mode">
-                            <option value="visual">Visual</option>
-                            <option value="stats">Stats</option>
+                            <option value="dashboard">Dashboard</option>
                             <option value="json">JSON</option>
                         </select>
                     </div>
                 </div>
                 <div class="panel-content">
-                    <!-- Visual Preview -->
+                    <!-- Context Dashboard: populated by modules based on blueprint type -->
+                    <div id="context-dashboard">
+                        <!-- Modules insert their visualizations here -->
+                    </div>
+
+                    <!-- Compact entity identity (always visible) -->
                     <div id="preview-visual" class="preview-section">
-                        <div class="preview-canvas">
-                            <canvas id="entity-preview" width="200" height="200"></canvas>
+                        <div class="preview-canvas" style="padding: 8px; text-align: center;">
+                            <canvas id="entity-preview" width="120" height="120"></canvas>
                         </div>
                         <div class="preview-info">
                             <h3 id="preview-name">-</h3>
-                            <div id="preview-stats">
-                                <!-- Stats will be displayed here -->
-                            </div>
+                            <div id="preview-stats"></div>
                         </div>
                     </div>
-                    
-                    <!-- Stats View -->
+
+                    <!-- Stats View (hidden, kept for compat) -->
                     <div id="preview-stats-container" class="preview-section" style="display: none;">
-                        <table id="stats-table">
-                            <!-- Stats table will be populated here -->
-                        </table>
+                        <table id="stats-table"></table>
                     </div>
-                    
+
                     <!-- JSON View -->
                     <div id="preview-json" class="preview-section" style="display: none;">
                         <pre id="json-display"></pre>
@@ -123,9 +123,7 @@
                             <button id="btn-reset">Reset</button>
                             <button id="btn-pause">Pause</button>
                         </div>
-                        <div id="test-output">
-                            <!-- Test output/console will appear here -->
-                        </div>
+                        <div id="test-output"></div>
                     </div>
                 </div>
             </div>
