@@ -19,7 +19,7 @@
   },
   mechanics: {
     attack: {
-      intervalMs: 800,    // 0.8s between volleys (slow but steady)
+      intervalMs: 2000,   // 2s between volleys — slow base, powerups speed it up
       damageBase: 18,
       critChance: 0.05,
       critMultiplier: 2,
@@ -30,8 +30,8 @@
       spreadDeg: 15,
       stats: {
         damage: 18,
-        speed: 250,
-        range: 350,
+        speed: 200,
+        range: 175,
         piercing: false,
       },
     },
