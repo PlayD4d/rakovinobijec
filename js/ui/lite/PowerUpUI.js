@@ -14,7 +14,7 @@ export class PowerUpUI {
       height: 500,
       depth: UI_THEME.depth.modal,
       overlayColor: 0x000000,
-      overlayAlpha: 0.7,
+      overlayAlpha: 0.85,
       panelColor: 0x0a0a1e,
       panelAlpha: 0.95,
       strokeColor: 0x334466,
@@ -115,10 +115,11 @@ export class PowerUpUI {
         align: 'center', wordWrap: { width: cardWidth - 24 }, lineSpacing: 4
       }).setOrigin(0.5);
 
-      // Stats line (bottom)
+      // Stats line (bottom) — word-wrapped to stay inside card
       const stats = new Phaser.GameObjects.Text(s, 0, 60, pu.stats || '', {
-        fontFamily: UI_THEME.fonts.primary, fontSize: '12px', color: '#00ffcc',
-        stroke: '#000000', strokeThickness: 2
+        fontFamily: UI_THEME.fonts.primary, fontSize: '10px', color: '#00ffcc',
+        stroke: '#000000', strokeThickness: 2,
+        wordWrap: { width: cardWidth - 20 }, align: 'center', lineSpacing: 2
       }).setOrigin(0.5);
 
       // Rarity label
