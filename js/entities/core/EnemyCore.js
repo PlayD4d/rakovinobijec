@@ -291,6 +291,9 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         this.hp -= amount;
         getSession()?.damage(source || 'player', this.blueprintId || this.blueprint?.id, amount, 'hit');
 
+        // Floating damage number
+        this._showDamageNumber(amount);
+
         // VFX/SFX (skip hit VFX when dying — death VFX handles it)
         if (this.hp > 0) {
             this.spawnVfx('hit');
@@ -359,7 +362,33 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         }
     }
     
-    // update(dt) removed — empty stub was called every frame from Enemy/Boss for no effect
+    /**
+     * Show floating damage number above enemy
+     */
+    _showDamageNumber(amount) {
+        if (!this.scene?.add || amount <= 0) return;
+        // Throttle — max 1 number per 100ms per enemy
+        const now = this.scene.time?.now || 0;
+        if (now - (this._lastDmgNum || 0) < 100) return;
+        this._lastDmgNum = now;
+
+        const jitterX = (Math.random() - 0.5) * 20;
+        const txt = this.scene.add.text(this.x + jitterX, this.y - 15, `${Math.floor(amount)}`, {
+            fontFamily: 'Public Pixel, monospace',
+            fontSize: amount >= 20 ? '14px' : '11px',
+            color: amount >= 20 ? '#ffaa00' : '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5).setDepth(this.scene.DEPTH_LAYERS?.VFX || 4000).setScrollFactor(0);
+
+        // Drift up and fade out
+        this.scene.tweens.add({
+            targets: txt, y: txt.y - 30, alpha: 0,
+            duration: 600, ease: 'Power2',
+            onComplete: () => txt.destroy()
+        });
+    }
+
     
     /**
      * Clean up

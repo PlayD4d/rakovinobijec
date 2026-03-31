@@ -54,6 +54,13 @@ export class PlayerCombat {
         player._playSfx(player.sfx.hit);
         player.scene.frameworkDebug?.onPlayerHit?.(player, dmg, source);
 
+        // Red flash + shake proportional to damage
+        const cam = player.scene.cameras?.main;
+        if (cam) {
+            cam.flash(150, 120, 0, 0, true);
+            if (dmg >= 15) cam.shake(100, 0.008, true);
+        }
+
         // Update HUD
         const hud = player.scene.scene?.get('GameUIScene')?.hud;
         if (hud?.setPlayerHealth) hud.setPlayerHealth(player.hp, player.maxHp);
