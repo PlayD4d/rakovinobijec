@@ -42,8 +42,8 @@
     { enemyId: 'unique.phage_overlord', weight: 1.5, countRange: [1, 1], cooldown: 60000, startAt: 70000, endAt: 999999, conditions: { playerLevel: { min: 22 }, enemiesKilled: { min: 300 } } },
   ],
   bossTriggers: [
-    { condition: 'time', value: 180000, bossId: 'boss.radiation', spawnDelay: 3000, clearEnemies: false },
-    { condition: 'kills', value: 250, bossId: 'boss.radiation', spawnDelay: 3000, clearEnemies: false },
+    { condition: 'time', value: 180000, bossId: 'boss.resistant_clone', spawnDelay: 3000, clearEnemies: true },
+    { condition: 'kills', value: 250, bossId: 'boss.resistant_clone', spawnDelay: 3000, clearEnemies: true },
   ],
   lootTables: {
     normal: {
@@ -72,8 +72,8 @@
   },
   meta: {
     name: 'level6',
-    displayName: 'Uroven 6 - Radiace',
-    description: 'Extremni obtiznost se zonovou mechanikou bosse a masivnimi vlnami',
+    displayName: 'Uroven 6 - Rezistentni klon',
+    description: 'Extremni obtiznost s adaptivnim bossem ktery sili kazou fazi',
     estimatedDuration: 360000,
     recommendedLevel: 24,
     tags: ['extreme', 'zone-mechanics', 'massive-waves'],

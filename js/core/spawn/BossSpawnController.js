@@ -111,6 +111,9 @@ export function spawnBoss(director) {
     director.scene.bossActive = true;
     director.lastBossSpawn = director.gameTime;
 
+    // Boss fight isolation — stop normal enemy spawns during boss encounter
+    director.pauseNormalSpawns = true;
+
     getSession()?.log('boss', 'spawn', { bossId, clearEnemies, spawnDelay });
     DebugLogger.info('spawn', `Boss spawn triggered: ${bossId}`);
 

@@ -12,9 +12,21 @@
       "desc": "Powerful ruler of cancer cells",
       "name": "Carcinogenic King"
     },
+    "metastatic_emissary": {
+      "desc": "Fast and aggressive — embodying the spread of cancer.",
+      "name": "Metastatic Emissary"
+    },
     "metastaza": {
       "desc": "Dangerous boss capable of spreading cancer",
       "name": "Metastasis"
+    },
+    "immune_saboteur": {
+      "desc": "Sabotages the immune system, creating an immunosuppressive environment.",
+      "name": "Immune Saboteur"
+    },
+    "oncogenic_signal": {
+      "desc": "Mutated genes sending constant growth signals.",
+      "name": "Oncogenic Signal"
     },
     "onkogen": {
       "desc": "Mutagenic boss altering DNA",
@@ -24,6 +36,10 @@
       "desc": "Enhanced oncogene version with advanced mutation abilities",
       "name": "Oncogene Prime"
     },
+    "primary_clone": {
+      "desc": "The first tumor cell that began dividing uncontrollably.",
+      "name": "Primary Clone"
+    },
     "radiation": {
       "desc": "Boss causing radiation damage",
       "name": "Radiation Syndrome"
@@ -31,6 +47,18 @@
     "radiation_core": {
       "desc": "Concentrated radiation source causing massive damage",
       "name": "Radiation Core"
+    },
+    "tumor_core": {
+      "desc": "The ultimate cancer cell — defeating it means a cure.",
+      "name": "Tumor Core"
+    },
+    "angiogenic_heart": {
+      "desc": "The beating core of the tumor's vascular network.",
+      "name": "Angiogenic Heart"
+    },
+    "resistant_clone": {
+      "desc": "Adapts to treatment — the harder you hit, the tougher it gets.",
+      "name": "Resistant Clone"
     }
   },
   "drop": {
@@ -263,7 +291,9 @@
       "genova_mutace": "Genetically mutating boss altering DNA structure during combat",
       "karcinogenni_kral": "Powerful carcinogenic king ruling over cancer cells",
       "onkogen": "Oncogenic mutation causing changes in genetic code",
-      "radiation": "Radiation syndrome causing continuous radiation damage"
+      "radiation": "Radiation syndrome causing continuous radiation damage",
+      "angiogenic_heart": "Beating core of the tumor vascular network wielding beams and blood pulses",
+      "tumor_core": "Ultimate tumor core combining all hallmarks of cancer — 5 phases, radiation aura, beam sweeps, dash attacks, minion summons and core overload"
     },
     "powerup": {
       "damage_boost": "Damage boost enhancing all attacks for more effective combat",

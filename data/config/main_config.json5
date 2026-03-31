@@ -170,13 +170,20 @@
         "unique.necrocyte_sentinel": 30,
         "unique.phage_overlord": 30,
         "unique.radiomorph_titan": 30,
+        "boss.primary_clone": 200,
+        "boss.oncogenic_signal": 300,
         "boss.radiation_core": 300,
         "boss.radiation": 500,
         "boss.onkogen": 380,
         "boss.onkogen_prime": 250,
+        "boss.immune_saboteur": 350,
         "boss.karcinogenni_kral": 350,
         "boss.genova_mutace": 400,
-        "boss.chemorezistence": 500
+        "boss.angiogenic_heart": 400,
+        "boss.metastatic_emissary": 450,
+        "boss.resistant_clone": 500,
+        "boss.chemorezistence": 500,
+        "boss.tumor_core": 1000
       },
       
       timeScaling: { 

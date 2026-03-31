@@ -37,8 +37,8 @@
     { enemyId: 'unique.radiomorph_titan', weight: 1, countRange: [1, 1], cooldown: 90000, startAt: 90000, endAt: 999999, conditions: { playerLevel: { min: 15 }, enemiesKilled: { min: 200 } } },
   ],
   bossTriggers: [
-    { condition: 'time', value: 150000, bossId: 'boss.genova_mutace', spawnDelay: 3000, clearEnemies: false },
-    { condition: 'kills', value: 180, bossId: 'boss.genova_mutace', spawnDelay: 3000, clearEnemies: false },
+    { condition: 'time', value: 150000, bossId: 'boss.angiogenic_heart', spawnDelay: 3000, clearEnemies: true },
+    { condition: 'kills', value: 180, bossId: 'boss.angiogenic_heart', spawnDelay: 3000, clearEnemies: true },
   ],
   lootTables: {
     normal: {

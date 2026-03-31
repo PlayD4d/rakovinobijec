@@ -60,9 +60,9 @@
     {
       condition: 'time',
       value: 90000,
-      bossId: 'boss.radiation_core',
+      bossId: 'boss.primary_clone',
       spawnDelay: 2000,
-      clearEnemies: false,
+      clearEnemies: true,
     },
   ],
   lootTables: {
@@ -130,8 +130,8 @@
           untilMinute: 4,
         },
         boss: {
-          id: 'boss.radiation_core',
-          xp: 350,
+          id: 'boss.primary_clone',
+          xp: 200,
           capLevelsGranted: 1.5,
         },
         enemyXpOverrides: {

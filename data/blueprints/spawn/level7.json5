@@ -46,8 +46,8 @@
     { enemyId: 'unique.necrocyte_sentinel', weight: 1.5, countRange: [1, 1], cooldown: 60000, startAt: 70000, endAt: 999999, conditions: { playerLevel: { min: 28 }, enemiesKilled: { min: 350 } } },
   ],
   bossTriggers: [
-    { condition: 'time', value: 200000, bossId: 'boss.chemorezistence', spawnDelay: 5000, clearEnemies: false },
-    { condition: 'kills', value: 300, bossId: 'boss.chemorezistence', spawnDelay: 5000, clearEnemies: false },
+    { condition: 'time', value: 200000, bossId: 'boss.tumor_core', spawnDelay: 5000, clearEnemies: true },
+    { condition: 'kills', value: 300, bossId: 'boss.tumor_core', spawnDelay: 5000, clearEnemies: true },
   ],
   lootTables: {
     normal: {
@@ -76,8 +76,8 @@
   },
   meta: {
     name: 'level7',
-    displayName: 'Uroven 7 - Chemorezistence',
-    description: 'Finalni uroven. Nejsilnejsi boss ve hre. Prezij.',
+    displayName: 'Uroven 7 - Nadorove jadro',
+    description: 'Finalni uroven. Ultimatni rakovinna bunka. Poraz ji a vylec se.',
     estimatedDuration: 420000,
     recommendedLevel: 30,
     tags: ['final', 'extreme', 'endgame', 'maximum-difficulty'],

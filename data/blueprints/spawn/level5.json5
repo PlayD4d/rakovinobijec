@@ -39,8 +39,8 @@
     { enemyId: 'unique.necrocyte_sentinel', weight: 1, countRange: [1, 1], cooldown: 80000, startAt: 80000, endAt: 999999, conditions: { playerLevel: { min: 18 }, enemiesKilled: { min: 250 } } },
   ],
   bossTriggers: [
-    { condition: 'time', value: 180000, bossId: 'boss.onkogen_prime', spawnDelay: 3000, clearEnemies: false },
-    { condition: 'kills', value: 200, bossId: 'boss.onkogen_prime', spawnDelay: 3000, clearEnemies: false },
+    { condition: 'time', value: 180000, bossId: 'boss.metastatic_emissary', spawnDelay: 3000, clearEnemies: true },
+    { condition: 'kills', value: 200, bossId: 'boss.metastatic_emissary', spawnDelay: 3000, clearEnemies: true },
   ],
   lootTables: {
     normal: {

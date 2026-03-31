@@ -12,9 +12,21 @@
       "desc": "Mocný vládce rakovinových buněk",
       "name": "Karcinogenní král"
     },
+    "metastatic_emissary": {
+      "desc": "Rychlý a agresivní — ztělesňuje šíření rakoviny.",
+      "name": "Metastatický vyslanec"
+    },
     "metastaza": {
       "desc": "Nebezpečný boss schopný šířit rakovinu",
       "name": "Metastáza"
+    },
+    "immune_saboteur": {
+      "desc": "Sabotuje imunitní systém a vytváří imunosupresivní prostředí.",
+      "name": "Imunitní sabotér"
+    },
+    "oncogenic_signal": {
+      "desc": "Mutované geny vysílající neustálé signály k růstu.",
+      "name": "Onkogenní signál"
     },
     "onkogen": {
       "desc": "Mutagenní boss měnící DNA",
@@ -24,6 +36,10 @@
       "desc": "Vylepšená verze onkogenu s pokročilými mutačními schopnostmi",
       "name": "Onkogen Prime"
     },
+    "primary_clone": {
+      "desc": "První nádorová buňka, která se začala nekontrolovaně dělit.",
+      "name": "Primární klon"
+    },
     "radiation": {
       "desc": "Boss způsobující radiační poškození",
       "name": "Radiační syndrom"
@@ -31,6 +47,18 @@
     "radiation_core": {
       "desc": "Koncentrovaný zdroj radiace způsobující masivní poškození",
       "name": "Radiační jádro"
+    },
+    "tumor_core": {
+      "desc": "Ultimátní rakovinná buňka — její porážka znamená vyléčení.",
+      "name": "Nádorové jádro"
+    },
+    "angiogenic_heart": {
+      "desc": "Tepající jádro nádorové cévní sítě.",
+      "name": "Angiogenní srdce"
+    },
+    "resistant_clone": {
+      "desc": "Adaptuje se na léčbu — čím víc ho zasáhneš, tím odolnější se stává.",
+      "name": "Rezistentní klon"
     }
   },
   "drop": {
@@ -291,7 +319,9 @@
       "genova_mutace": "Geneticky mutující boss měnící DNA struktuře během boje",
       "karcinogenni_kral": "Mocný karcinogenní král vládnoucí rakovinovým buňkám",
       "onkogen": "Onkogenní mutace způsobující změny v genetickém kódu",
-      "radiation": "Radiační syndrome způsobující kontinuální poškození zářením"
+      "radiation": "Radiační syndrome způsobující kontinuální poškození zářením",
+      "angiogenic_heart": "Tepající jádro nádorové cévní sítě ovládající paprsky a krevní pulsy",
+      "tumor_core": "Ultimátní nádorové jádro kombinující všechny znaky rakoviny — 5 fází, radiační aura, paprsky, dash útoky, přivolávání posil a přetížení jádra"
     },
     "powerup": {
       "damage_boost": "Zvýšení poškození všech útoků pro efektivnější boj",

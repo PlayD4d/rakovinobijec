@@ -267,16 +267,16 @@
     {
       condition: 'time',
       value: 150000,
-      bossId: 'boss.karcinogenni_kral',
+      bossId: 'boss.immune_saboteur',
       spawnDelay: 3000,
-      clearEnemies: false,
+      clearEnemies: true,
     },
     {
       condition: 'kills',
       value: 150,
-      bossId: 'boss.karcinogenni_kral',
+      bossId: 'boss.immune_saboteur',
       spawnDelay: 3000,
-      clearEnemies: false,
+      clearEnemies: true,
     },
   ],
   lootTables: {
@@ -358,7 +358,7 @@
           185,
         ],
         boss: {
-          id: 'boss.karcinogenni_kral',
+          id: 'boss.immune_saboteur',
           xp: 350,
           capLevelsGranted: 1.5,
         },

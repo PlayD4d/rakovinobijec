@@ -103,6 +103,20 @@ export class BossAbilities {
         this.abilityHandlers.set('rapid_spawns', (data, params) => executeMassiveSummon(this, data, params));
         this.abilityHandlers.set('enrage_mode', (data, params) => executeRageMode(this, data, params));
         this.abilityHandlers.set('summon_minions', (data, params) => executeMinionSpawn(this, data, params));
+
+        // Oncogenic Signal alias
+        this.abilityHandlers.set('fan_burst', (data, params) => executeProjectileBurst(this, data, params));
+
+        // Phase-variant aliases (boss.primary_clone, boss.tumor_core use per-phase ability keys)
+        this.abilityHandlers.set('projectile_burst_p1', (data, params) => executeProjectileBurst(this, data, params));
+        this.abilityHandlers.set('projectile_burst_p2', (data, params) => executeProjectileBurst(this, data, params));
+        this.abilityHandlers.set('projectile_burst_p3', (data, params) => executeProjectileBurst(this, data, params));
+        this.abilityHandlers.set('minion_spawn_p1', (data, params) => executeMinionSpawn(this, data, params));
+        this.abilityHandlers.set('minion_spawn_p2', (data, params) => executeMinionSpawn(this, data, params));
+        this.abilityHandlers.set('minion_spawn_p4', (data, params) => executeMinionSpawn(this, data, params));
+        this.abilityHandlers.set('area_damage_p2', (data, params) => executeAreaDamage(this, data, params));
+        this.abilityHandlers.set('area_damage_p3', (data, params) => executeAreaDamage(this, data, params));
+        this.abilityHandlers.set('massive_summon_p5', (data, params) => executeMassiveSummon(this, data, params));
     }
 
     /**

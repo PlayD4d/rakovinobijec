@@ -1,0 +1,182 @@
+{
+  id: 'boss.primary_clone',
+  type: 'boss',
+  stats: {
+    hp: 800,
+    damage: 8,
+    speed: 35,
+    size: 50,
+    armor: 0,
+    xp: 200,
+  },
+  visuals: {
+    textureKey: 'boss.primary_clone',
+    tint: 0xCC4466,
+    size: {
+      w: 50,
+      h: 50,
+    },
+  },
+  mechanics: {
+    phases: [
+      {
+        thresholdPct: 1.0,
+        abilities: [
+          'projectile_burst_p1',
+          'minion_spawn_p1',
+        ],
+        movePattern: 'seek_player',
+      },
+      {
+        thresholdPct: 0.7,
+        abilities: [
+          'projectile_burst_p2',
+          'minion_spawn_p2',
+          'area_damage_p2',
+        ],
+        movePattern: 'seek_player',
+        movementSpeed: 1.2,
+      },
+      {
+        thresholdPct: 0.35,
+        abilities: [
+          'projectile_burst_p3',
+          'massive_summon',
+          'area_damage_p3',
+        ],
+        movePattern: 'seek_player',
+        movementSpeed: 1.4,
+        damageMultiplier: 1.2,
+      },
+    ],
+    abilities: {
+      projectile_burst_p1: {
+        type: 'projectile_burst',
+        projectileId: 'projectile.boss_circle',
+        count: 4,
+        spreadAngle: 360,
+        interval: 3000,
+        damage: 8,
+      },
+      projectile_burst_p2: {
+        type: 'projectile_burst',
+        projectileId: 'projectile.boss_circle',
+        count: 6,
+        spreadAngle: 360,
+        interval: 2500,
+        damage: 8,
+      },
+      projectile_burst_p3: {
+        type: 'projectile_burst',
+        projectileId: 'projectile.boss_circle',
+        count: 8,
+        spreadAngle: 360,
+        interval: 2000,
+        damage: 8,
+      },
+      minion_spawn_p1: {
+        type: 'minion_spawn',
+        count: 2,
+        enemyTypes: [
+          'enemy.viral_swarm',
+        ],
+        spreadRadius: 120,
+        interval: 12000,
+      },
+      minion_spawn_p2: {
+        type: 'minion_spawn',
+        count: 3,
+        enemyTypes: [
+          'enemy.viral_swarm',
+        ],
+        spreadRadius: 120,
+        interval: 10000,
+      },
+      area_damage_p2: {
+        type: 'area_damage',
+        damage: 8,
+        radius: 100,
+        warningTime: 1500,
+        interval: 8000,
+      },
+      area_damage_p3: {
+        type: 'area_damage',
+        damage: 8,
+        radius: 120,
+        warningTime: 1200,
+        interval: 8000,
+      },
+      massive_summon: {
+        count: 5,
+        enemyTypes: [
+          'enemy.viral_swarm',
+        ],
+        spreadRadius: 160,
+        interval: 15000,
+      },
+    },
+  },
+  vfx: {
+    spawn: 'vfx.boss.special',
+    phase1: 'vfx.boss.special',
+    phase2: 'vfx.boss.special',
+    phase3: 'vfx.boss.special',
+    death: 'vfx.boss.special',
+    projectile_burst: 'vfx.boss.special',
+    minion_spawn: 'vfx.boss.special',
+    area_damage: 'vfx.boss.special',
+    massive_summon: 'vfx.boss.special',
+  },
+  sfx: {
+    spawn: 'sound/boss_spawn.mp3',
+    phase1: 'sound/boss_hit.mp3',
+    phase2: 'sound/boss_hit.mp3',
+    phase3: 'sound/boss_hit.mp3',
+    death: 'sound/boss_hit.mp3',
+    projectile_burst: 'sound/boss_hit.mp3',
+    minion_spawn: 'sound/boss_hit.mp3',
+    area_damage: 'sound/boss_hit.mp3',
+    massive_summon: 'sound/boss_hit.mp3',
+  },
+  drops: [
+    {
+      itemId: 'item.protein_cache',
+      chance: 0.5,
+    },
+    {
+      itemId: 'item.energy_cell',
+      chance: 0.3,
+      quantity: 2,
+    },
+    {
+      itemId: 'item.research_point',
+      chance: 0.15,
+    },
+    {
+      itemId: 'item.metotrexat',
+      chance: 0.05,
+    },
+  ],
+  display: {
+    key: 'boss.primary_clone.name',
+    descKey: 'boss.primary_clone.desc',
+    devNameFallback: 'Primární klon',
+    devDescFallback: 'První nádorová buňka, která se začala nekontrolovaně dělit',
+    templates: {
+      short: '{{stats.hp}} HP • 3 fáze • tutorial boss • dělení buněk',
+      desc: 'Primární klon s {{stats.hp}} HP. Tutorial boss se třemi fázemi — každá představuje novou mechaniku. Nekontrolované dělení buněk.',
+    },
+    color: '#CC4466',
+    rarity: 'boss',
+    icon: 'boss.primary_clone',
+    category: 'boss',
+    sortOrder: 910,
+    tags: [
+      'boss',
+      'tutorial',
+      'proliferation',
+      'summon',
+      'burst',
+    ],
+  },
+}

@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "generated": "2025-08-16T06:21:58.166Z",
-  "totalEntities": 61,
+  "totalEntities": 67,
   "index": {
     "unique.radiomorph_titan": "blueprints/unique/unique_radiomorph_titan.json5",
     "unique.phage_overlord": "blueprints/unique/unique_phage_overlord.json5",
@@ -65,12 +65,19 @@
     "elite.speed_virus": "blueprints/elite/elite_speed_virus.json5",
     "elite.micro_shooter": "blueprints/elite/elite_micro_shooter.json5",
     "elite.artillery_fungus": "blueprints/elite/elite_artillery_fungus.json5",
+    "boss.metastatic_emissary": "blueprints/boss/boss_metastatic_emissary.json5",
+    "boss.angiogenic_heart": "blueprints/boss/boss_angiogenic_heart.json5",
+    "boss.primary_clone": "blueprints/boss/boss_primary_clone.json5",
+    "boss.immune_saboteur": "blueprints/boss/boss_immune_saboteur.json5",
+    "boss.oncogenic_signal": "blueprints/boss/boss_oncogenic_signal.json5",
     "boss.radiation_core": "blueprints/boss/boss_radiation_core.json5",
     "boss.radiation": "blueprints/boss/boss_radiation.json5",
     "boss.onkogen_prime": "blueprints/boss/boss_onkogen_prime.json5",
     "boss.onkogen": "blueprints/boss/boss_onkogen.json5",
     "boss.karcinogenni_kral": "blueprints/boss/boss_karcinogenni_kral.json5",
     "boss.genova_mutace": "blueprints/boss/boss_genova_mutace.json5",
-    "boss.chemorezistence": "blueprints/boss/boss_chemorezistence.json5"
+    "boss.resistant_clone": "blueprints/boss/boss_resistant_clone.json5",
+    "boss.chemorezistence": "blueprints/boss/boss_chemorezistence.json5",
+    "boss.tumor_core": "blueprints/boss/boss_tumor_core.json5"
   }
 }

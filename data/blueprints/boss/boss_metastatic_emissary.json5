@@ -1,0 +1,238 @@
+{
+  id: 'boss.metastatic_emissary',
+  type: 'boss',
+  stats: {
+    hp: 1500,
+    maxHp: 1500,
+    damage: 18,
+    speed: 55,
+    size: 38,
+    armor: 5,
+    xp: 450,
+  },
+  visuals: {
+    textureKey: 'boss.metastatic_emissary',
+    tint: 0xDD7700,
+    size: {
+      w: 38,
+      h: 38,
+    },
+  },
+  mechanics: {
+    phases: [
+      {
+        // Phase 1 — Invasion (100-60% HP)
+        id: 'phase1',
+        thresholdPct: 1.0,
+        fsmState: 'phase1',
+        abilities: [
+          'dash_attack',
+          'projectile_burst',
+        ],
+        movementSpeed: 1.0,
+      },
+      {
+        // Phase 2 — Spread (60-30% HP)
+        id: 'phase2',
+        thresholdPct: 0.60,
+        fsmState: 'phase2',
+        abilities: [
+          'dash_attack',
+          'projectile_burst',
+          'minion_spawn',
+          'toxic_cloud',
+        ],
+        movementSpeed: 1.3,
+      },
+      {
+        // Phase 3 — Dissemination (<30% HP)
+        id: 'phase3',
+        thresholdPct: 0.30,
+        fsmState: 'phase3',
+        abilities: [
+          'dash_attack',
+          'projectile_burst',
+          'massive_summon',
+          'rage_mode',
+        ],
+        movementSpeed: 1.5,
+        damageMultiplier: 1.3,
+      },
+      {
+        // Phase 4 — Last Escape (<15% HP)
+        id: 'phase4',
+        thresholdPct: 0.15,
+        fsmState: 'phase4',
+        abilities: [
+          'dash_attack',
+          'massive_summon',
+          'rage_mode',
+        ],
+        movementSpeed: 2.0,
+        damageMultiplier: 1.5,
+      },
+    ],
+    abilities: {
+      dash_attack: {
+        cooldown: 3500,
+        damage: 20,
+        dashSpeed: 300,
+        dashDuration: 400,
+        phaseOverrides: {
+          phase2: {
+            cooldown: 2500,
+            damage: 25,
+          },
+          phase3: {
+            cooldown: 2000,
+            damage: 30,
+          },
+          phase4: {
+            cooldown: 1500,
+            damage: 30,
+          },
+        },
+      },
+      projectile_burst: {
+        cooldown: 3000,
+        projectileCount: 5,
+        spreadAngle: 45,
+        projectileId: 'projectile.boss_fan',
+        phaseOverrides: {
+          phase2: {
+            cooldown: 2500,
+            projectileCount: 7,
+            spreadAngle: 60,
+          },
+          phase3: {
+            cooldown: 2000,
+            projectileCount: 10,
+            spreadAngle: 120,
+          },
+        },
+      },
+      minion_spawn: {
+        cooldown: 12000,
+        count: 3,
+        enemyTypes: [
+          'enemy.metastasis_runner',
+        ],
+        spreadRadius: 150,
+      },
+      toxic_cloud: {
+        cooldown: 6000,
+        damage: 8,
+        duration: 3000,
+        radius: 50,
+        tickInterval: 500,
+      },
+      massive_summon: {
+        cooldown: 15000,
+        count: 5,
+        enemyTypes: [
+          'enemy.metastasis_runner',
+        ],
+        spreadRadius: 200,
+        phaseOverrides: {
+          phase4: {
+            cooldown: 10000,
+            count: 5,
+          },
+        },
+      },
+      rage_mode: {
+        cooldown: 25000,
+        duration: 10000,
+        speedMultiplier: 1.8,
+        damageMultiplier: 1.5,
+        phaseOverrides: {
+          phase4: {
+            duration: 999999,
+            cooldown: 1000,
+          },
+        },
+      },
+    },
+    movementType: 'boss_aggressive',
+    aggroRange: 500,
+    contactDamage: 18,
+    immuneToKnockback: true,
+    canBeStunned: false,
+  },
+  vfx: {
+    spawn: 'vfx.boss.spawn',
+    hit: 'vfx.boss.special',
+    death: 'vfx.death.medium',
+    phaseChange: 'vfx.boss.special',
+    dash_attack: 'vfx.boss.special',
+    projectile_burst: 'vfx.boss.special',
+    minion_spawn: 'vfx.boss.special',
+    toxic_cloud: 'vfx.boss.special',
+    massive_summon: 'vfx.boss.special',
+    rage_mode: 'vfx.boss.special',
+  },
+  sfx: {
+    spawn: 'sound/boss_spawn.mp3',
+    hit: 'sound/boss_hit.mp3',
+    death: 'sound/boss_death.mp3',
+    phaseChange: 'sound/boss_hit.mp3',
+    dash_attack: 'sound/boss_hit.mp3',
+    projectile_burst: 'sound/boss_hit.mp3',
+    minion_spawn: 'sound/boss_hit.mp3',
+    toxic_cloud: 'sound/boss_hit.mp3',
+    massive_summon: 'sound/boss_hit.mp3',
+    rage_mode: 'sound/boss_hit.mp3',
+  },
+  drops: [
+    {
+      itemId: 'item.xp_large',
+      chance: 1,
+      quantity: 3,
+    },
+    {
+      itemId: 'item.heal_orb',
+      chance: 0.6,
+    },
+    {
+      itemId: 'item.protein_cache',
+      chance: 0.4,
+    },
+    {
+      itemId: 'item.energy_cell',
+      chance: 0.3,
+      quantity: 2,
+    },
+    {
+      itemId: 'item.research_point',
+      chance: 0.15,
+    },
+    {
+      itemId: 'item.metotrexat',
+      chance: 0.05,
+    },
+  ],
+  display: {
+    key: 'boss.metastatic_emissary.name',
+    descKey: 'boss.metastatic_emissary.desc',
+    devNameFallback: 'Metastaticky vyslanec',
+    devDescFallback: 'Rychly a agresivni boss ztelesnujici sireni rakoviny',
+    icon: 'boss_metastatic_emissary',
+    color: '#DD7700',
+    rarity: 'boss',
+    category: 'boss',
+    sortOrder: 650,
+    tags: [
+      'boss',
+      'metastasis',
+      'dash',
+      'aggressive',
+      'summon',
+      'fast',
+    ],
+    templates: {
+      short: '{{stats.hp}} HP • 4 fáze • rychlý dash boss',
+      desc: 'Metastatický vyslanec s {{stats.hp}} HP a {{stats.speed}} rychlostí. Extrémně mobilní boss se 4 fázemi. Útočí nájezdy, projektily a vyvoláváním posil.',
+    },
+    srKey: 'sr.boss.metastatic_emissary',
+  },
+}

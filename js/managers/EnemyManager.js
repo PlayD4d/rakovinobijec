@@ -337,6 +337,10 @@ export class EnemyManager {
                 scene.gameStats.bossesDefeated++;
                 scene.currentBoss = null;
                 scene.bossActive = false;
+                // Resume normal enemy spawns after boss fight
+                if (scene.spawnDirector) {
+                    scene.spawnDirector.pauseNormalSpawns = false;
+                }
             }
 
         } catch (error) {

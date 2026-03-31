@@ -355,16 +355,16 @@
     {
       condition: 'time',
       value: 220000,
-      bossId: 'boss.onkogen',
+      bossId: 'boss.oncogenic_signal',
       spawnDelay: 3000,
-      clearEnemies: false,
+      clearEnemies: true,
     },
     {
       condition: 'kills',
       value: 120,
-      bossId: 'boss.onkogen',
+      bossId: 'boss.oncogenic_signal',
       spawnDelay: 3000,
-      clearEnemies: false,
+      clearEnemies: true,
     },
   ],
   lootTables: {
@@ -443,7 +443,7 @@
           245,
         ],
         boss: {
-          id: 'boss.onkogen',
+          id: 'boss.oncogenic_signal',
           xp: 300,
           capLevelsGranted: 1.5,
         },
