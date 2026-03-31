@@ -192,18 +192,6 @@ export class MainMenu extends Phaser.Scene {
         }
     }
 
-    /**
-     * Try to play intro sound
-     */
-    tryPlayIntro() {
-        // Delay to ensure audio is loaded
-        this.time.delayedCall(500, () => {
-            try {
-                this.musicManager?.play('sound/ready_fight.mp3', { volume: 0.5 });
-            } catch (_) { }
-        });
-    }
-
     // LiteUI doesn't need resize handlers
 
     /** Start menu audio after first user gesture (Chrome autoplay policy compliance) */
@@ -216,12 +204,11 @@ export class MainMenu extends Phaser.Scene {
             try { await this.sound.context.resume(); } catch (_) {}
         }
 
-        // Menu music + intro sound via AudioSystem (no direct this.sound.play)
+        // Menu music only — no intro sound (no intro screen to justify it)
         try {
             const { SimplifiedAudioSystem } = await import('../core/audio/SimplifiedAudioSystem.js');
             this.musicManager = new SimplifiedAudioSystem(this);
             await this.musicManager.initialize();
-            this.musicManager.play('sound/intro.mp3', { volume: 0.5 });
             this.musicManager.playMusic('music/8bit_main_menu.mp3');
         } catch (_) {}
     }

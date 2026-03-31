@@ -17,9 +17,6 @@ export class MainMenuUI {
     const cx = w / 2;
     const cy = h / 2;
 
-    // Ambient floating cells (background particle effect)
-    this._createAmbientCells(scene, w, h);
-
     // Title
     this.title = scene.add.text(cx, cy - 140, 'RAKOVINOBIJEC', {
       fontFamily: UI_THEME.fonts.primary,
@@ -94,39 +91,6 @@ export class MainMenuUI {
 
     // Tutorial overlay (hidden by default)
     this._tutorialOverlay = null;
-  }
-
-  /**
-   * Create ambient floating cells as background decoration
-   */
-  _createAmbientCells(scene, w, h) {
-    this._cells = [];
-    const cellCount = 15;
-    const colors = [0xCC3366, 0x336644, 0x2244AA, 0x9966CC, 0x881122, 0xDD7700];
-
-    for (let i = 0; i < cellCount; i++) {
-      const x = Math.random() * w;
-      const y = Math.random() * h;
-      const size = 4 + Math.random() * 8;
-      const color = colors[Math.floor(Math.random() * colors.length)];
-
-      const cell = scene.add.circle(x, y, size, color, 0.15);
-      cell.setDepth(0);
-
-      // Slow drift
-      scene.tweens.add({
-        targets: cell,
-        x: x + (Math.random() - 0.5) * 200,
-        y: y + (Math.random() - 0.5) * 150,
-        alpha: { from: 0.08, to: 0.2 },
-        duration: 4000 + Math.random() * 4000,
-        yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
-        delay: Math.random() * 2000
-      });
-
-      this._cells.push(cell);
-      this.elements.push(cell);
-    }
   }
 
   /**
@@ -222,6 +186,5 @@ export class MainMenuUI {
       if (el && typeof el.destroy === 'function') el.destroy();
     });
     this.elements = [];
-    this._cells = [];
   }
 }
