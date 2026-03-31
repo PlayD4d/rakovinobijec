@@ -2,7 +2,7 @@
   id: 'elite.artillery_fungus',
   type: 'enemy',
   meta: { category: 'elite' },
-  baseEnemyId: 'enemy.fungal_parasite',
+  baseEnemyId: 'enemy.acidic_blob',
   multipliers: {
     hp: 4,
     damage: 2.5,

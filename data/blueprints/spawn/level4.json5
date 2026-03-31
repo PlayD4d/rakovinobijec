@@ -34,7 +34,6 @@
   ],
   uniqueSpawns: [
     { enemyId: 'unique.golden_cell', weight: 2, countRange: [1, 1], cooldown: 50000, startAt: 30000, endAt: 999999, conditions: { playerLevel: { min: 10 }, enemiesKilled: { min: 100 } } },
-    { enemyId: 'unique.chromoblast', weight: 1.5, countRange: [1, 1], cooldown: 70000, startAt: 60000, endAt: 999999, conditions: { playerLevel: { min: 12 }, enemiesKilled: { min: 150 } } },
     { enemyId: 'unique.radiomorph_titan', weight: 1, countRange: [1, 1], cooldown: 90000, startAt: 90000, endAt: 999999, conditions: { playerLevel: { min: 15 }, enemiesKilled: { min: 200 } } },
   ],
   bossTriggers: [

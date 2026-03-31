@@ -61,13 +61,12 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         this.setVisible(true).setActive(true);
         this.setAlpha(1.0);
         
-        // Apply tint
-        if (blueprint.color && typeof blueprint.color === 'number') {
-            this.setTint(blueprint.color);
+        // Apply tint — blueprint-specified tint takes priority over tier defaults
+        const bpTint = blueprint.graphics?.tint ?? blueprint.visuals?.tint ?? blueprint.color;
+        if (bpTint && typeof bpTint === 'number') {
+            this.setTint(bpTint);
         } else if (this.isElite) {
-            this.setTint(0xffdd00); // Elite gold tint
-        } else if (this.isUnique && blueprint.visuals?.tint) {
-            this.setTint(blueprint.visuals.tint);
+            this.setTint(0xffdd00); // Elite gold fallback
         }
         
         // Add to display list only — physics body created by group.add() in EnemyManager

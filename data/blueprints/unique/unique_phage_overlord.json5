@@ -8,7 +8,7 @@
   },
   baseType: 'enemy.viral_swarm',
   stats: {
-    hp: 80,
+    hp: 150,
     damage: 18,
     speed: 100,
     size: 25,
@@ -106,7 +106,7 @@
     spread: 'sound/powerup.mp3',
     dash: 'sound/powerup.mp3',
   },
-  ai: { layers: { movement: 'orbit', combat: 'shoot' }, layerConfig: { movement: { speed: 100, orbitRadius: 160, orbitSpeed: 1.5, fleeDistance: 50 }, combat: { cooldown: 2000, burstCount: 3, burstDelay: 150, speed: 230 } } },
+  ai: { layers: { movement: 'orbit', combat: 'shoot' }, layerConfig: { movement: { speed: 100, orbitRadius: 140, orbitSpeed: 1.5, fleeDistance: 50 }, combat: { cooldown: 1800, burstCount: 5, burstDelay: 80, speed: 180 } } },
   display: {
     key: 'unique.phage_overlord.name',
     descKey: 'unique.phage_overlord.desc',

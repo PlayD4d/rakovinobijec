@@ -262,25 +262,6 @@
         },
       },
     },
-    {
-      enemyId: 'unique.rainbow_virus',
-      weight: 1,
-      countRange: [
-        1,
-        1,
-      ],
-      cooldown: 90000,
-      startAt: 60000,
-      endAt: 999999,
-      conditions: {
-        playerLevel: {
-          min: 8,
-        },
-        enemiesKilled: {
-          min: 250,
-        },
-      },
-    },
   ],
   bossTriggers: [
     {

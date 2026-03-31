@@ -17,7 +17,7 @@
     speed: 110,
     size: 16,
     armor: 2,
-    xp: 5,
+    xp: 15,
   },
   mechanics: {
     movementType: 'kite_player',

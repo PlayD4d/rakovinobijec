@@ -332,44 +332,6 @@
   ],
   uniqueSpawns: [
     {
-      enemyId: 'unique.mutagen_splicer',
-      weight: 3,
-      countRange: [
-        1,
-        1,
-      ],
-      startAt: 45000,
-      endAt: 200000,
-      cooldown: 80000,
-      conditions: {
-        playerLevel: {
-          min: 5,
-        },
-        enemiesKilled: {
-          min: 30,
-        },
-      },
-    },
-    {
-      enemyId: 'unique.chromoblast',
-      weight: 2.5,
-      countRange: [
-        1,
-        1,
-      ],
-      startAt: 80000,
-      endAt: 200000,
-      cooldown: 100000,
-      conditions: {
-        playerLevel: {
-          min: 6,
-        },
-        enemiesKilled: {
-          min: 50,
-        },
-      },
-    },
-    {
       enemyId: 'unique.necrocyte_sentinel',
       weight: 2,
       countRange: [

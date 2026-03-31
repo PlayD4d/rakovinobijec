@@ -3,13 +3,10 @@
   "generated": "2025-08-16T06:21:58.166Z",
   "totalEntities": 57,
   "index": {
-    "unique.rainbow_virus": "blueprints/unique/unique_rainbow_virus.json5",
     "unique.radiomorph_titan": "blueprints/unique/unique_radiomorph_titan.json5",
     "unique.phage_overlord": "blueprints/unique/unique_phage_overlord.json5",
     "unique.necrocyte_sentinel": "blueprints/unique/unique_necrocyte_sentinel.json5",
-    "unique.mutagen_splicer": "blueprints/unique/unique_mutagen_splicer.json5",
     "unique.golden_cell": "blueprints/unique/unique_golden_cell.json5",
-    "unique.chromoblast": "blueprints/unique/unique_chromoblast.json5",
     "powerup.template_powerup": "blueprints/templates/powerup.json5",
     "boss.template_boss": "blueprints/templates/boss.json5",
     "system.pity": "blueprints/system/pity_system.json5",
