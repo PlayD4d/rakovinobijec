@@ -90,10 +90,11 @@ export class PowerUpUI {
       const accentLine = new Phaser.GameObjects.Rectangle(s, 0, -cardHeight / 2 + 3, cardWidth - 4, 3, rarityColor, 0.9);
 
       // Level badge (top-right)
+      const isOverflow = pu._overflow || pu.maxLevel === 0;
       const nextLevel = (pu.level || 0) + 1;
       const maxLevel = pu.maxLevel || 5;
-      const lvlLabel = nextLevel > 1 ? `Lv.${nextLevel}/${maxLevel}` : 'NEW';
-      const lvlColor = nextLevel > 1 ? '#ffcc00' : '#44ff44';
+      const lvlLabel = isOverflow ? 'BOOST' : (nextLevel > 1 ? `Lv.${nextLevel}/${maxLevel}` : 'NEW');
+      const lvlColor = isOverflow ? '#ff8844' : (nextLevel > 1 ? '#ffcc00' : '#44ff44');
       const lvlBadge = new Phaser.GameObjects.Text(s, cardWidth / 2 - 10, -cardHeight / 2 + 10, lvlLabel, {
         fontFamily: UI_THEME.fonts.primary, fontSize: '10px', color: lvlColor,
         stroke: '#000000', strokeThickness: 2

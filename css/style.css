@@ -47,8 +47,8 @@ body {
 }
 
 #game-container {
-    border: 2px solid #444;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    border: 1px solid #222;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     /* Flex kontejner pro centrování canvas */
     display: flex;
     justify-content: center;

@@ -485,7 +485,7 @@ export class GameScene extends Phaser.Scene {
  * Applied as direct stat modifiers (no max level cap).
  */
 GameScene.OVERFLOW_BOOSTS = [
-    { id: 'overflow.damage', name: 'Posílená cytotoxicita', description: 'Permanentně zvyšuje poškození všech útoků.', stats: '+5 DMG', rarity: 'common', icon: 'damage', level: 99, _overflow: { stat: 'projectileDamage', type: 'add', value: 5 } },
-    { id: 'overflow.hp', name: 'Buněčná regenerace', description: 'Permanentně zvyšuje maximální zdraví.', stats: '+15 HP', rarity: 'common', icon: 'health', level: 99, _overflow: { stat: 'maxHp', type: 'add', value: 15 } },
-    { id: 'overflow.speed', name: 'Metabolický impuls', description: 'Permanentně zrychluje pohyb a útok.', stats: '+5% rychlost', rarity: 'common', icon: 'speed', level: 99, _overflow: { stat: 'moveSpeed', type: 'mul', value: 0.05 } },
+    { id: 'overflow.damage', name: 'Posílená cytotoxicita', description: 'Permanentně zvyšuje poškození všech útoků.', stats: '+5 DMG', rarity: 'common', icon: 'damage', level: 0, maxLevel: 0, _overflow: { stat: 'projectileDamage', type: 'add', value: 5 } },
+    { id: 'overflow.hp', name: 'Buněčná regenerace', description: 'Permanentně zvyšuje maximální zdraví.', stats: '+15 HP', rarity: 'common', icon: 'health', level: 0, maxLevel: 0, _overflow: { stat: 'maxHp', type: 'add', value: 15 } },
+    { id: 'overflow.speed', name: 'Metabolický impuls', description: 'Permanentně zrychluje pohyb a útok.', stats: '+5% rychlost', rarity: 'common', icon: 'speed', level: 0, maxLevel: 0, _overflow: { stat: 'moveSpeed', type: 'mul', value: 0.05 } },
 ];
