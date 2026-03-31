@@ -23,6 +23,10 @@ async function initializeGame() {
     height: GameConfig.height,
     backgroundColor: GameConfig.backgroundColor,
     parent: 'game',
+    fps: {
+        target: 60,
+        forceSetTimeOut: false  // Use rAF but cap at 60fps (prevents 120/144Hz overhead)
+    },
     scale: {
         mode: Phaser.Scale.NONE,
         fullscreenTarget: 'game-container',
