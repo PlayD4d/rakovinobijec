@@ -13,12 +13,12 @@
   },
   ability: {
     type: 'flamethrower',
-    // Arc of fire projectiles aimed at random enemy (Fire Wand style)
-    // pierceCount = number of fireballs in arc (more at higher levels)
-    damagePerLevel: [8, 12, 18, 25, 35],
-    intervalMsPerLevel: [900, 800, 700, 600, 500],
-    pierceCountPerLevel: [1, 2, 2, 3, 4],
-    speedPerLevel: [220, 250, 280, 310, 350],
+    // Slow-moving AoE flame cloud toward random enemy
+    // Damages all enemies in a line from player to target
+    damagePerLevel: [6, 10, 15, 22, 30],
+    intervalMsPerLevel: [1000, 900, 800, 700, 600],
+    // speed = range of the flame line (px)
+    speedPerLevel: [140, 160, 180, 200, 230],
   },
   vfx: {
     pickup: 'vfx.pickup',

@@ -153,14 +153,13 @@ export class PowerUpAbilities {
                 break;
 
             case 'flamethrower': {
-                // Oxidative Burst (Fire Wand style) — arc of fire projectiles at random enemy
+                // Oxidative Burst — slow-moving AoE flame cloud toward random enemy
+                // Deals area damage to all enemies along the path (not projectile-based)
                 const burstDamage = config.damage || 10;
                 const burstInterval = config.intervalMs || 800;
-                const burstCount = config.pierceCount || 2; // reuse as projectile count in arc
-                const burstSpeed = config.speed || 250;
-                const arcSpread = 0.35; // ~20° total arc
+                const burstRange = config.speed || 220; // reuse as range
+                const burstRadius = 40; // AoE hit radius
 
-                // Remove old timer on upgrade
                 if (this._oxidativeBurstTimer) {
                     this._oxidativeBurstTimer.remove();
                     this._oxidativeBurstTimer = null;
@@ -172,7 +171,6 @@ export class PowerUpAbilities {
                     callback: () => {
                         const p = this.scene?.player;
                         if (!p?.active) return;
-                        // Include both regular enemies AND bosses as targets
                         const eg = this.scene.enemiesGroup?.getChildren() || [];
                         const bg = this.scene.bossGroup?.getChildren() || [];
                         const active = [];
@@ -181,28 +179,44 @@ export class PowerUpAbilities {
                         if (active.length === 0) return;
                         const target = active[Math.floor(Math.random() * active.length)];
 
-                        const baseAngle = Math.atan2(target.y - p.y, target.x - p.x);
-                        const ps = this.scene.projectileSystem;
-                        if (!ps) return;
+                        // Direction toward target
+                        const dx = target.x - p.x;
+                        const dy = target.y - p.y;
+                        const dist = Math.hypot(dx, dy) || 1;
+                        const nx = dx / dist;
+                        const ny = dy / dist;
 
-                        // Fire arc of fireballs centered on target direction
-                        for (let i = 0; i < burstCount; i++) {
-                            const offset = burstCount > 1
-                                ? (i - (burstCount - 1) / 2) * (arcSpread / Math.max(1, burstCount - 1))
-                                : 0;
-                            const angle = baseAngle + offset;
-                            ps.firePlayer(p.x, p.y, Math.cos(angle), Math.sin(angle), {
-                                speedMul: burstSpeed / (ps.config.speed || 200),
-                                rangeMul: 1.5,
-                                damageMul: burstDamage / (ps.config.damage || 10),
-                                tint: 0xff6600,
-                                projectileId: 'projectile.player_basic'
-                            });
+                        // Deal AoE damage to all enemies in a line from player toward target
+                        const hitRange = Math.min(burstRange, dist + 50);
+                        const rSq = burstRadius * burstRadius;
+                        const allEnemies = [...eg, ...bg];
+                        for (let i = 0; i < allEnemies.length; i++) {
+                            const e = allEnemies[i];
+                            if (!e?.active || typeof e.takeDamage !== 'function') continue;
+                            // Project enemy onto the fire line
+                            const ex = e.x - p.x;
+                            const ey = e.y - p.y;
+                            const proj = ex * nx + ey * ny; // distance along line
+                            if (proj < 0 || proj > hitRange) continue;
+                            // Perpendicular distance from line
+                            const perpSq = (ex * ex + ey * ey) - proj * proj;
+                            if (perpSq <= rSq) {
+                                e.takeDamage(burstDamage);
+                            }
+                        }
+
+                        // VFX: orange explosion effect along the line
+                        if (this.scene.vfxSystem?.playExplosionEffect) {
+                            const vfxDist = Math.min(hitRange * 0.6, 120);
+                            this.scene.vfxSystem.playExplosionEffect(
+                                p.x + nx * vfxDist, p.y + ny * vfxDist,
+                                { color: 0xff6600, radius: burstRadius, duration: 250 }
+                            );
                         }
                     }
                 });
 
-                DebugLogger.info('powerup', `[PowerUpAbilities] Oxidative Burst: ${burstCount}x ${burstDamage}dmg arc, ${burstInterval}ms`);
+                DebugLogger.info('powerup', `[PowerUpAbilities] Oxidative Burst: ${burstDamage}dmg AoE, ${burstRadius}px radius, ${burstInterval}ms`);
                 break;
             }
 
