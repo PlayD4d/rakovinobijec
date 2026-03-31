@@ -116,6 +116,10 @@
     }
   },
   "elite": {
+    "armored_cell": {
+      "desc": "Těžce pancéřovaná elitní buňka.",
+      "name": "Obrněná buňka"
+    },
     "artillery_fungus": {
       "desc": "Elitní houba střílející explozivní spory na velkou vzdálenost",
       "name": "Elitní dělostřelecká houba"
@@ -124,6 +128,14 @@
       "desc": "Elitní verze mikro střelce s vylepšenou rychlostí střelby",
       "name": "Elitní mikro střelec"
     },
+    "rapid_divider": {
+      "desc": "Extrémně rychlá elitní varianta nádorové buňky.",
+      "name": "Rychlý dělič"
+    },
+    "signal_amplifier": {
+      "desc": "Elitní signální buňka se zesílenou palbou.",
+      "name": "Signální zesilovač"
+    },
     "speed_virus": {
       "desc": "Extrémně rychlý elitní virus se schopností přeskakování",
       "name": "Elitní rychlý virus"
@@ -131,6 +143,10 @@
     "tank_cell": {
       "desc": "Silně opancéřovaná elitní buňka s regenerujícím štítem",
       "name": "Elitní tanková buňka"
+    },
+    "toxic_mortar": {
+      "desc": "Elitní explodující buňka s masivním dosahem.",
+      "name": "Toxický moždíř"
     }
   },
   "enemy": {
@@ -142,6 +158,14 @@
       "desc": "Korozivní masa způsobující chemické poškození",
       "name": "Kyselý útvar"
     },
+    "angio_sprout": {
+      "desc": "Buduje cévní síť zásobující nádor.",
+      "name": "Angiogenní výhonek"
+    },
+    "apoptosis_bomb": {
+      "desc": "Nádorová buňka zneužívající programovanou buněčnou smrt k poškození okolí.",
+      "name": "Apoptotická bomba"
+    },
     "basic_cell": {
       "desc": "Nejjednodušší typ rakovinové buňky",
       "name": "Základní buňka"
@@ -149,6 +173,10 @@
     "brown_shooter": {
       "desc": "Střílí projektily na vzdálené cíle",
       "name": "Nekrotická tkáň"
+    },
+    "efflux_pump": {
+      "desc": "Vyhazuje léky ven z buňky — rychlá a těžko zasažitelná.",
+      "name": "Efluxní pumpa"
     },
     "fungal_parasite": {
       "desc": "Vysává zdraví a při smrti vypouští spory",
@@ -170,6 +198,10 @@
       "desc": "Vylepšený mikro střelec s duálním projektilním útokem",
       "name": "Mikro střelec vylepšený"
     },
+    "mutant_cell": {
+      "desc": "Geneticky nestabilní buňka, která se vyhýbá a v ohrožení zuří.",
+      "name": "Mutantní buňka"
+    },
     "necrotic_cell": {
       "desc": "Odumírající buňka s toxickým dotykem",
       "name": "Nekrotická buňka"
@@ -182,13 +214,25 @@
       "desc": "Podporuje okolní buňky svými schopnostmi",
       "name": "Onkogen"
     },
+    "regulatory_cell": {
+      "desc": "Potlačuje imunitní odpověď a chrání okolní nádorové buňky.",
+      "name": "Regulační buňka"
+    },
     "shielding_helper": {
       "desc": "Podpůrná buňka poskytující štíty okolním nepřátelům",
       "name": "Ochranný pomocník"
     },
+    "signal_cell": {
+      "desc": "Buňka vysílající růstové signály okolním nádorovým buňkám.",
+      "name": "Signální buňka"
+    },
     "support_bacteria": {
       "desc": "Léčí okolní nepřátele v dosahu",
       "name": "Podpůrná bakterie"
+    },
+    "tumor_cell": {
+      "desc": "Základní nádorová buňka, která se nekontrolovaně množí.",
+      "name": "Nádorová buňka"
     },
     "viral_swarm": {
       "desc": "Rychlý virový organismus útočící ve skupinách",
@@ -358,6 +402,10 @@
     "xp": "XP"
   },
   "unique": {
+    "cancer_stem_cell": {
+      "desc": "Vzácná buňka klíčová pro přežití nádoru.",
+      "name": "Kmenová nádorová buňka"
+    },
     "chromoblast": {
       "desc": "Časově manipulativní entita s leukemickými výbuchy",
       "name": "Chromoblast"
@@ -374,6 +422,10 @@
       "desc": "Nekrotický strážce s aurou rozkladu a vyvolávačské schopnosti",
       "name": "Nekrocyt strážce"
     },
+    "onco_commander": {
+      "desc": "Velí ostatním nádorovým buňkám.",
+      "name": "Onkogenní velitel"
+    },
     "phage_overlord": {
       "desc": "Dominantní entita šířící virové infekce projektily",
       "name": "Fágový overlord"
@@ -385,6 +437,14 @@
     "rainbow_virus": {
       "desc": "Mystický virus měnící barvy s jedinečnými schopnostmi",
       "name": "Duhový virus"
+    },
+    "resistant_titan": {
+      "desc": "Masivní buňka odolná vůči léčbě.",
+      "name": "Rezistentní titán"
+    },
+    "tumor_sentinel": {
+      "desc": "Strážce nádoru spawnující miniony a chránící okolí.",
+      "name": "Nádorový strážce"
     }
   }
 }

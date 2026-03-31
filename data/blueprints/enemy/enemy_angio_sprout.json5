@@ -1,0 +1,76 @@
+{
+  id: 'enemy.angio_sprout',
+  type: 'enemy',
+  stats: {
+    hp: 35,
+    damage: 5,
+    speed: 40,
+    size: 16,
+    armor: 0,
+    xp: 5,
+  },
+  mechanics: {
+    movementType: 'patrol',
+    contactDamage: 5,
+    aggroRange: 200,
+    wanderRadius: 80,
+    dropChance: 0.8,
+    healthDropChance: 0.06,
+  },
+  graphics: {
+    sprite: 'enemy_angio_sprout',
+    tint: 0x881122,
+    scale: 1,
+    animation: {
+      idle: 'angio_idle',
+      move: 'angio_move',
+    },
+  },
+  ai: {
+    behavior: 'patrol',
+    params: {
+      speed: 40,
+      radius: 80,
+      detectRange: 200,
+      pattern: 'random',
+    },
+  },
+  drops: [
+    {
+      itemId: 'item.health_small',
+      chance: 0.02,
+    },
+  ],
+  vfx: {
+    spawn: 'vfx.spawn',
+    hit: 'vfx.enemy.hit',
+    death: 'vfx.death.small',
+  },
+  sfx: {
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/npc_death.mp3',
+  },
+  display: {
+    key: 'enemy.angio_sprout.name',
+    descKey: 'enemy.angio_sprout.desc',
+    templates: {
+      short: '{{stats.hp}} HP • hlídka • pomalý',
+      desc: 'Angiogenní výhonek s {{stats.hp}} HP. Buduje cévy pro nádor, pomalu hlídkuje oblast.',
+    },
+    color: '#881122',
+    rarity: 'common',
+    icon: 'enemy.angio_sprout',
+    category: 'enemy',
+    sortOrder: 120,
+    tags: [
+      'enemy',
+      'patrol',
+      'slow',
+      'angiogenesis',
+      'vessel',
+    ],
+    devNameFallback: 'Angio Sprout',
+    devDescFallback: 'Endoteliální buňka budující cévy pro nádor',
+  },
+}

@@ -1,8 +1,8 @@
 {
-  id: 'elite.micro_shooter',
+  id: 'elite.signal_amplifier',
   type: 'enemy',
   meta: { category: 'elite' },
-  baseEnemyId: 'enemy.micro_shooter',
+  baseEnemyId: 'enemy.signal_cell',
   multipliers: {
     hp: 2,
     damage: 1.6,
@@ -88,17 +88,17 @@
     shoot: 'sound/elite_shoot.mp3',
   },
   display: {
-    key: 'elite.micro_shooter.name',
-    descKey: 'elite.micro_shooter.desc',
+    key: 'elite.signal_amplifier.name',
+    descKey: 'elite.signal_amplifier.desc',
     templates: {
       short: 'Elite • {{stats.hp}} HP • {{stats.armor}} armor • dvojitá střelba',
-      desc: 'Elitní mikro střelec s {{stats.hp}} HP a {{stats.armor}} pancířem. Střílí dvojité vylepšené cytotoxické projektily ({{mechanics.projectileDamage}} DMG každý).',
+      desc: 'Elitní signální zesilovač s {{stats.hp}} HP a {{stats.armor}} pancířem. Střílí dvojité vylepšené cytotoxické projektily ({{mechanics.projectileDamage}} DMG každý).',
     },
     namePrefix: 'Elitní',
     nameSuffix: '',
     color: '#FF9800',
     rarity: 'elite',
-    icon: 'elite.micro_shooter',
+    icon: 'elite.signal_amplifier',
     category: 'elite',
     sortOrder: 500,
     tags: [
@@ -109,8 +109,8 @@
       'burst-fire',
       'dual-shot',
     ],
-    devNameFallback: 'Elitní mikro střelec',
-    devDescFallback: 'Elitní verze mikro střelce s dvojitou střelbou a pancířem',
+    devNameFallback: 'Signal Amplifier',
+    devDescFallback: 'Elitní verze signální buňky s dvojitou střelbou a pancířem',
   },
   spawnConditions: {
     minLevel: 2,

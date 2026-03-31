@@ -142,7 +142,7 @@
       minion_spawn: {
         count: 3,
         enemyTypes: [
-          'enemy.viral_swarm',
+          'enemy.tumor_cell',
         ],
         spreadRadius: 150,
         interval: 15000,
@@ -171,7 +171,7 @@
       toxic_pools: {
         count: 2,
         enemyTypes: [
-          'enemy.acidic_blob',
+          'enemy.apoptosis_bomb',
         ],
         spreadRadius: 130,
         interval: 10000,
@@ -238,7 +238,7 @@
       minion_spawn_p4: {
         count: 4,
         enemyTypes: [
-          'enemy.shielding_helper',
+          'enemy.regulatory_cell',
         ],
         spreadRadius: 170,
         interval: 14000,
@@ -270,7 +270,7 @@
         enemyTypes: [
           'enemy.metastasis_runner',
           'enemy.necrotic_cell',
-          'enemy.viral_swarm',
+          'enemy.tumor_cell',
         ],
         spreadRadius: 240,
         interval: 14000,

@@ -78,7 +78,7 @@
         type: 'minion_spawn',
         count: 2,
         enemyTypes: [
-          'enemy.viral_swarm',
+          'enemy.tumor_cell',
         ],
         spreadRadius: 120,
         interval: 12000,
@@ -87,7 +87,7 @@
         type: 'minion_spawn',
         count: 3,
         enemyTypes: [
-          'enemy.viral_swarm',
+          'enemy.tumor_cell',
         ],
         spreadRadius: 120,
         interval: 10000,
@@ -109,7 +109,7 @@
       massive_summon: {
         count: 5,
         enemyTypes: [
-          'enemy.viral_swarm',
+          'enemy.tumor_cell',
         ],
         spreadRadius: 160,
         interval: 15000,

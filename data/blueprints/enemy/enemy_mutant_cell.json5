@@ -1,5 +1,5 @@
 {
-  id: 'enemy.aberrant_cell',
+  id: 'enemy.mutant_cell',
   type: 'enemy',
   stats: {
     hp: 20,
@@ -64,7 +64,7 @@
     },
   ],
   graphics: {
-    sprite: 'enemy_aberrant_cell',
+    sprite: 'enemy_mutant_cell',
     tint: 0x9966CC,
     scale: 1.2,
     animation: {
@@ -84,15 +84,15 @@
     },
   },
   display: {
-    key: 'enemy.aberrant_cell.name',
-    descKey: 'enemy.aberrant_cell.desc',
+    key: 'enemy.mutant_cell.name',
+    descKey: 'enemy.mutant_cell.desc',
     templates: {
       short: 'ELITE • {{stats.hp}} HP • {{stats.armor}} pancíř • enrage',
-      desc: 'Aberrantní elitní buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Upadá do zběsilosti při nízkém zdraví.',
+      desc: 'Mutantní elitní buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Upadá do zběsilosti při nízkém zdraví.',
     },
     color: '#FF5722',
     rarity: 'elite',
-    icon: 'enemy.aberrant_cell',
+    icon: 'enemy.mutant_cell',
     category: 'enemy',
     sortOrder: 200,
     tags: [
@@ -102,8 +102,9 @@
       'enrage',
       'resistant',
       'dangerous',
+      'mutant',
     ],
-    devNameFallback: 'Aberantní buňka',
-    devDescFallback: 'Elitní buňka s narušenou strukturou',
+    devNameFallback: 'Mutant Cell',
+    devDescFallback: 'Elitní mutantní buňka s narušenou strukturou',
   },
 }

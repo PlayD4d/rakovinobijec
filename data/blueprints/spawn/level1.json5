@@ -20,7 +20,7 @@
       endAt: 40000,
     },
     {
-      enemyId: 'enemy.viral_swarm',
+      enemyId: 'enemy.tumor_cell',
       weight: 80,
       countRange: [
         1,
@@ -31,7 +31,7 @@
       endAt: 70000,
     },
     {
-      enemyId: 'enemy.aberrant_cell',
+      enemyId: 'enemy.mutant_cell',
       weight: 50,
       countRange: [
         1,
@@ -44,7 +44,7 @@
   ],
   eliteWindows: [
     {
-      enemyId: 'enemy.viral_swarm_alpha',
+      enemyId: 'elite.rapid_divider',
       weight: 30,
       countRange: [
         1,
@@ -135,8 +135,8 @@
           capLevelsGranted: 1.5,
         },
         enemyXpOverrides: {
-          'enemy.micro_shooter': 5,
-          'enemy.viral_swarm': 3,
+          'enemy.signal_cell': 5,
+          'enemy.tumor_cell': 3,
           'enemy.necrotic_cell': 6,
         },
       },

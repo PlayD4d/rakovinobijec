@@ -60,7 +60,7 @@
       toxic_pools: {
         count: 2,
         enemyTypes: [
-          'enemy.acidic_blob',
+          'enemy.apoptosis_bomb',
         ],
         spreadRadius: 120,
         interval: 10000,
@@ -78,8 +78,8 @@
       summon_irradiated: {
         count: 2,
         enemyTypes: [
-          'enemy.viral_swarm_alpha',
-          'enemy.acidic_blob',
+          'enemy.tumor_cell',
+          'enemy.apoptosis_bomb',
         ],
         spreadRadius: 180,
         interval: 15000,
@@ -106,8 +106,8 @@
         count: 3,
         enemyTypes: [
           'enemy.necrotic_cell',
-          'enemy.viral_swarm',
-          'enemy.acidic_blob',
+          'enemy.tumor_cell',
+          'enemy.apoptosis_bomb',
         ],
         spreadRadius: 220,
         interval: 18000,

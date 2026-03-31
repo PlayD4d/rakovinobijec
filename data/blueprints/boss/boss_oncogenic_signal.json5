@@ -106,7 +106,7 @@
         cooldown: 15000,
         count: 2,
         enemyTypes: [
-          'enemy.micro_shooter',
+          'enemy.signal_cell',
         ],
         spreadRadius: 120,
       },

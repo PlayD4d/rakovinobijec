@@ -1,5 +1,5 @@
 {
-  id: 'unique.necrocyte_sentinel',
+  id: 'unique.tumor_sentinel',
   type: 'enemy',
   meta: {
     category: 'unique',
@@ -16,7 +16,7 @@
     xp: 45,
   },
   visuals: {
-    textureKey: 'unique.necrocyte_sentinel',
+    textureKey: 'unique.tumor_sentinel',
     tint: 4915330,
     size: {
       w: 35,
@@ -104,16 +104,16 @@
   },
   ai: { behavior: 'shield_ally', params: { speed: 45, orbitRadius: 60, orbitSpeed: 1.2, buffInterval: 2500, buffRange: 100 } },
   display: {
-    key: 'unique.necrocyte_sentinel.name',
-    descKey: 'unique.necrocyte_sentinel.desc',
-    name: 'Necrocyte Sentinel',
+    key: 'unique.tumor_sentinel.name',
+    descKey: 'unique.tumor_sentinel.desc',
+    devNameFallback: 'Tumor Sentinel',
     templates: {
       short: 'UNIQUE • {{stats.hp}} HP • Necrotic aura • Summoner',
-      desc: 'Strážce nekrotických buněk s {{stats.hp}} HP. Vyvolává spojence a šíří nekrotickou auru snižující regeneraci.',
+      desc: 'Strazce nadorovych bunek s {{stats.hp}} HP. Vyvolava spojence a siri nekroticku auru snizujici regeneraci.',
     },
     color: '#4A148C',
     rarity: 'legendary',
-    icon: 'unique.necrocyte_sentinel',
+    icon: 'unique.tumor_sentinel',
     category: 'unique',
     sortOrder: 350,
     tags: [

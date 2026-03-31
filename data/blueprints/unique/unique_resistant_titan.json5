@@ -1,5 +1,5 @@
 {
-  id: 'unique.radiomorph_titan',
+  id: 'unique.resistant_titan',
   type: 'enemy',
   meta: {
     category: 'unique',
@@ -16,7 +16,7 @@
     xp: 55,
   },
   visuals: {
-    textureKey: 'unique.radiomorph_titan',
+    textureKey: 'unique.resistant_titan',
     tint: 3046706,
     size: {
       w: 40,
@@ -122,16 +122,16 @@
   },
   ai: { behavior: 'evasion', params: { speed: 35, dodgeInterval: 5000, dodgeDuration: 200, dodgeSpeedMul: 1.5, enrageThreshold: 0.25, enrageSpeedMul: 2.0 } },
   display: {
-    key: 'unique.radiomorph_titan.name',
-    descKey: 'unique.radiomorph_titan.desc',
-    name: 'Radiomorph Titan',
+    key: 'unique.resistant_titan.name',
+    descKey: 'unique.resistant_titan.desc',
+    devNameFallback: 'Resistant Titan',
     templates: {
       short: 'UNIQUE • {{stats.hp}} HP • Radiation pulses • Phase shift',
-      desc: 'Masivní radiomorfní titan s {{stats.hp}} HP. Vysílá devastující radiační pulsy a teleportuje se při ohrožení.',
+      desc: 'Masivni rezistentni titan s {{stats.hp}} HP. Vysila devastujici radiacni pulsy a teleportuje se pri ohrozeni.',
     },
     color: '#2E7D32',
     rarity: 'legendary',
-    icon: 'unique.radiomorph_titan',
+    icon: 'unique.resistant_titan',
     category: 'unique',
     sortOrder: 370,
     tags: [

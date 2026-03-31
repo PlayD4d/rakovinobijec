@@ -85,7 +85,7 @@
       },
       summon_minions: {
         enemyTypes: [
-          'enemy.viral_swarm',
+          'enemy.tumor_cell',
         ],
         count: 4,
         spreadRadius: 120,

@@ -82,7 +82,7 @@
       toxic_pools: {
         count: 2,
         enemyTypes: [
-          'enemy.acidic_blob',
+          'enemy.apoptosis_bomb',
         ],
         spreadRadius: 120,
         interval: 10000,

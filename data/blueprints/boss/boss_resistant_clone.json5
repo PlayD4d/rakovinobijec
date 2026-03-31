@@ -109,7 +109,7 @@
         cooldown: 14000,
         count: 2,
         enemyTypes: [
-          'enemy.viral_swarm',
+          'enemy.tumor_cell',
         ],
         spreadRadius: 120,
         phaseOverrides: {
@@ -117,7 +117,7 @@
             cooldown: 12000,
             count: 3,
             enemyTypes: [
-              'enemy.aberrant_cell',
+              'enemy.mutant_cell',
             ],
           },
         },

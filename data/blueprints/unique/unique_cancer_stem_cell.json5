@@ -1,5 +1,5 @@
 {
-  id: 'unique.golden_cell',
+  id: 'unique.cancer_stem_cell',
   type: 'enemy',
   meta: {
     category: 'unique',
@@ -15,7 +15,7 @@
     xp: 100,
   },
   visuals: {
-    textureKey: 'unique.golden_cell',
+    textureKey: 'unique.cancer_stem_cell',
     tint: 16766720,
     size: {
       w: 28,
@@ -35,22 +35,6 @@
       'drop.xp_large',
       'drop.heal_orb',
     ],
-    // NOTE: uniqueAbilities are planned features — no runtime handlers yet
-    uniqueAbilities: {
-      _status: 'planned',
-      goldenPulse: {
-        interval: 5000,
-        damage: 25,
-        radius: 200,
-        knockback: 150,
-      },
-      summonGoldenMinions: {
-        interval: 8000,
-        count: 3,
-        minionType: 'enemy.aberrant_cell',
-        goldenBuff: true,
-      },
-    },
   },
   vfx: {
     spawn: 'vfx.spawn',
@@ -67,17 +51,17 @@
   },
   ai: { behavior: 'evasion', params: { speed: 50, dodgeInterval: 1000, dodgeDuration: 400, dodgeSpeedMul: 3.0 } },
   display: {
-    key: 'unique.golden_cell.name',
-    descKey: 'unique.golden_cell.desc',
-    devNameFallback: 'Zlatá buňka',
-    devDescFallback: 'Vzácná zlatá buňka poskytující velké odměny',
+    key: 'unique.cancer_stem_cell.name',
+    descKey: 'unique.cancer_stem_cell.desc',
+    devNameFallback: 'Cancer Stem Cell',
+    devDescFallback: 'Vzacna kmenova rakotinna bunka poskytujici velke odmeny',
     templates: {
-      short: '{{stats.hp}} HP • {{stats.armor}} pancíř • zlatá aura',
-      desc: 'Vzácná zlatá buňka s {{stats.hp}} HP a {{stats.armor}} pancířem. Má zlatou auru zvyšující odměny {{mechanics.goldAuraBonus}}x a garantuje cenné dropy.',
+      short: '{{stats.hp}} HP • {{stats.armor}} pancir • zlata aura',
+      desc: 'Vzacna kmenova rakotinna bunka s {{stats.hp}} HP a {{stats.armor}} pancirem. Ma zlatou auru zvysujici odmeny {{mechanics.goldAuraBonus}}x a garantuje cenne dropy.',
     },
     color: '#FFD700',
     rarity: 'legendary',
-    icon: 'unique.golden_cell',
+    icon: 'unique.cancer_stem_cell',
     category: 'unique',
     sortOrder: 710,
     tags: [

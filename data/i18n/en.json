@@ -88,6 +88,10 @@
     }
   },
   "elite": {
+    "armored_cell": {
+      "desc": "Heavily armored elite cell.",
+      "name": "Armored Cell"
+    },
     "artillery_fungus": {
       "desc": "Elite fungus shooting explosive spores at long range",
       "name": "Elite Artillery Fungus"
@@ -96,6 +100,14 @@
       "desc": "Elite version of micro shooter with enhanced fire rate",
       "name": "Elite Micro Shooter"
     },
+    "rapid_divider": {
+      "desc": "Extremely fast elite tumor cell variant.",
+      "name": "Rapid Divider"
+    },
+    "signal_amplifier": {
+      "desc": "Elite signal cell with enhanced firepower.",
+      "name": "Signal Amplifier"
+    },
     "speed_virus": {
       "desc": "Extremely fast elite virus with dash abilities",
       "name": "Elite Speed Virus"
@@ -103,6 +115,10 @@
     "tank_cell": {
       "desc": "Heavily armored elite cell with regenerating shield",
       "name": "Elite Tank Cell"
+    },
+    "toxic_mortar": {
+      "desc": "Elite exploding cell with massive range.",
+      "name": "Toxic Mortar"
     }
   },
   "enemy": {
@@ -114,6 +130,14 @@
       "desc": "Corrosive mass dealing chemical damage",
       "name": "Acidic Blob"
     },
+    "angio_sprout": {
+      "desc": "Builds the vascular network feeding the tumor.",
+      "name": "Angio Sprout"
+    },
+    "apoptosis_bomb": {
+      "desc": "Tumor cell weaponizing programmed cell death.",
+      "name": "Apoptosis Bomb"
+    },
     "basic_cell": {
       "desc": "The simplest type of cancer cell",
       "name": "Basic Cell"
@@ -121,6 +145,10 @@
     "brown_shooter": {
       "desc": "Shoots projectiles at distant targets",
       "name": "Necrotic Tissue"
+    },
+    "efflux_pump": {
+      "desc": "Expels drugs from the cell — fast and hard to hit.",
+      "name": "Efflux Pump"
     },
     "fungal_parasite": {
       "desc": "Drains health and releases spores on death",
@@ -142,6 +170,10 @@
       "desc": "Enhanced micro shooter with dual projectile attack",
       "name": "Micro Shooter Enhanced"
     },
+    "mutant_cell": {
+      "desc": "Genetically unstable cell that evades and enrages when threatened.",
+      "name": "Mutant Cell"
+    },
     "necrotic_cell": {
       "desc": "Dying cell with toxic touch",
       "name": "Necrotic Cell"
@@ -154,13 +186,25 @@
       "desc": "Supports nearby cells with its abilities",
       "name": "Oncogene"
     },
+    "regulatory_cell": {
+      "desc": "Suppresses immune response and shields nearby tumor cells.",
+      "name": "Regulatory Cell"
+    },
     "shielding_helper": {
       "desc": "Support cell providing shields to nearby enemies",
       "name": "Shielding Helper"
     },
+    "signal_cell": {
+      "desc": "Cell sending growth signals to nearby tumor cells.",
+      "name": "Signal Cell"
+    },
     "support_bacteria": {
       "desc": "Heals nearby enemies within range",
       "name": "Support Bacteria"
+    },
+    "tumor_cell": {
+      "desc": "Basic tumor cell dividing uncontrollably.",
+      "name": "Tumor Cell"
     },
     "viral_swarm": {
       "desc": "Fast viral organism attacking in groups",
@@ -330,6 +374,10 @@
     "xp": "XP"
   },
   "unique": {
+    "cancer_stem_cell": {
+      "desc": "Rare cell crucial for tumor survival.",
+      "name": "Cancer Stem Cell"
+    },
     "chromoblast": {
       "desc": "Time-manipulating entity with leukemic bursts",
       "name": "Chromoblast"
@@ -346,6 +394,10 @@
       "desc": "Necrotic guardian with decay aura and summoning abilities",
       "name": "Necrocyte Sentinel"
     },
+    "onco_commander": {
+      "desc": "Commands other tumor cells.",
+      "name": "Onco Commander"
+    },
     "phage_overlord": {
       "desc": "Dominant entity spreading viral infections through projectiles",
       "name": "Phage Overlord"
@@ -357,6 +409,14 @@
     "rainbow_virus": {
       "desc": "Mystical virus changing colors with unique abilities",
       "name": "Rainbow Virus"
+    },
+    "resistant_titan": {
+      "desc": "Massive cell resistant to treatment.",
+      "name": "Resistant Titan"
+    },
+    "tumor_sentinel": {
+      "desc": "Tumor guardian spawning minions and protecting allies.",
+      "name": "Tumor Sentinel"
     }
   }
 }

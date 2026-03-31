@@ -1,8 +1,8 @@
 {
-  id: 'elite.artillery_fungus',
+  id: 'elite.toxic_mortar',
   type: 'enemy',
   meta: { category: 'elite' },
-  baseEnemyId: 'enemy.acidic_blob',
+  baseEnemyId: 'enemy.apoptosis_bomb',
   multipliers: {
     hp: 4,
     damage: 2.5,
@@ -117,17 +117,17 @@
     shoot: 'sound/elite_shoot.mp3',
   },
   display: {
-    key: 'elite.artillery_fungus.name',
-    descKey: 'elite.artillery_fungus.desc',
+    key: 'elite.toxic_mortar.name',
+    descKey: 'elite.toxic_mortar.desc',
     templates: {
       short: 'Elite Artillery • {{stats.hp}} HP • dosah {{mechanics.artillery.attackRange}} • AOE {{mechanics.artillery.aoeRadius}}',
-      desc: 'Elitní dělostřelecká houba s {{stats.hp}} HP. Střílí {{mechanics.artillery.projectileCount}} výbušné spory na vzdálenost {{mechanics.artillery.attackRange}} s AOE {{mechanics.artillery.aoeRadius}} a DoT efektem.',
+      desc: 'Elitní toxický minomet s {{stats.hp}} HP. Střílí {{mechanics.artillery.projectileCount}} výbušné spory na vzdálenost {{mechanics.artillery.attackRange}} s AOE {{mechanics.artillery.aoeRadius}} a DoT efektem.',
     },
     namePrefix: 'Elitní',
     nameSuffix: 'Dělostřelec',
     color: '#795548',
     rarity: 'elite',
-    icon: 'elite.artillery_fungus',
+    icon: 'elite.toxic_mortar',
     category: 'elite',
     sortOrder: 530,
     tags: [
@@ -135,13 +135,12 @@
       'artillery',
       'ranged',
       'aoe',
-      'fungus',
       'explosive',
       'siege',
       'dot',
     ],
-    devNameFallback: 'Elitní dělostřelecká houba',
-    devDescFallback: 'Elitní houba střílející výbušné spory s AOE a DoT efektem',
+    devNameFallback: 'Toxic Mortar',
+    devDescFallback: 'Elitní minomet střílející výbušné spory s AOE a DoT efektem',
   },
   spawnConditions: {
     minLevel: 3,

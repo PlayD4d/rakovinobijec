@@ -1,5 +1,5 @@
 {
-  id: 'enemy.acidic_blob',
+  id: 'enemy.apoptosis_bomb',
   type: 'enemy',
   stats: {
     hp: 28,
@@ -23,8 +23,8 @@
     trail: 'vfx.trail.small',
   },
   graphics: {
-    sprite: 'enemy_acidic_blob',
-    tint: 0x88CC00,
+    sprite: 'enemy_apoptosis_bomb',
+    tint: 0xDDAA00,
     scale: 1.1,
     animation: {
       idle: 'blob_idle',
@@ -53,25 +53,25 @@
     death: 'sound/npc_death.mp3',
   },
   display: {
-    key: 'enemy.acidic_blob.name',
-    descKey: 'enemy.acidic_blob.desc',
+    key: 'enemy.apoptosis_bomb.name',
+    descKey: 'enemy.apoptosis_bomb.desc',
     templates: {
-      short: '{{stats.hp}} HP • kyselá stopa • {{mechanics.trailDamage}} DoT',
-      desc: 'Kyselý blob s {{stats.hp}} HP zanechává za sebou poškozující stopu ({{mechanics.trailDamage}} DMG).',
+      short: '{{stats.hp}} HP • exploze • {{ai.params.explosionDamage}} DMG',
+      desc: 'Apoptotická bomba s {{stats.hp}} HP. Přiblíží se a exploduje s {{ai.params.explosionDamage}} DMG v okruhu {{ai.params.explosionRadius}} px.',
     },
-    color: '#8BC34A',
+    color: '#DDAA00',
     rarity: 'common',
-    icon: 'enemy.acidic_blob',
+    icon: 'enemy.apoptosis_bomb',
     category: 'enemy',
     sortOrder: 130,
     tags: [
       'enemy',
-      'dot',
-      'trail',
-      'acid',
+      'explode',
+      'suicide',
+      'apoptosis',
       'hazard',
     ],
-    devNameFallback: 'Kyselý blob',
-    devDescFallback: 'Nebezpečná kyselá hmota',
+    devNameFallback: 'Apoptosis Bomb',
+    devDescFallback: 'Sebevražedná buňka spouštějící apoptózu',
   },
 }

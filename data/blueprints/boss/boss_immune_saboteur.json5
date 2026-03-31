@@ -77,14 +77,14 @@
         // Phase 2: 4x support_bacteria every 12s
         count: 3,
         enemyTypes: [
-          'enemy.shielding_helper',
+          'enemy.regulatory_cell',
         ],
         spreadRadius: 150,
         interval: 15000,
         phaseScaling: {
           phase2: {
             count: 4,
-            enemyTypes: ['enemy.support_bacteria'],
+            enemyTypes: ['enemy.regulatory_cell'],
             interval: 12000,
           },
         },
@@ -104,9 +104,9 @@
         // Phase 3: 6x enemies, 18s
         count: 6,
         enemyTypes: [
-          'enemy.shielding_helper',
-          'enemy.support_bacteria',
-          'enemy.viral_swarm',
+          'enemy.regulatory_cell',
+          'enemy.regulatory_cell',
+          'enemy.tumor_cell',
         ],
         spreadRadius: 200,
         interval: 18000,

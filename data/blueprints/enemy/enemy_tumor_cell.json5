@@ -1,5 +1,5 @@
 {
-  id: 'enemy.viral_swarm',
+  id: 'enemy.tumor_cell',
   type: 'enemy',
   stats: {
     hp: 12,
@@ -36,7 +36,7 @@
     },
   ],
   graphics: {
-    sprite: 'enemy_viral_swarm',
+    sprite: 'enemy_tumor_cell',
     tint: 0xCC3366,
     scale: 0.8,
     animation: {
@@ -54,25 +54,25 @@
     },
   },
   display: {
-    key: 'enemy.viral_swarm.name',
-    descKey: 'enemy.viral_swarm.desc',
+    key: 'enemy.tumor_cell.name',
+    descKey: 'enemy.tumor_cell.desc',
     templates: {
       short: '{{stats.hp}} HP • rychlá • roj',
-      desc: 'Virová rojnice s {{stats.hp}} HP. Rychlá a pohyblivá, útočí ve skupinách.',
+      desc: 'Nádorová buňka s {{stats.hp}} HP. Rychlá a pohyblivá, útočí ve skupinách.',
     },
     color: '#9C27B0',
     rarity: 'common',
-    icon: 'enemy.viral_swarm',
+    icon: 'enemy.tumor_cell',
     category: 'enemy',
     sortOrder: 110,
     tags: [
       'enemy',
       'swarm',
       'fast',
-      'viral',
+      'tumor',
       'weak',
     ],
-    devNameFallback: 'Virový roj',
-    devDescFallback: 'Rychlý roj virových částic',
+    devNameFallback: 'Tumor Cell',
+    devDescFallback: 'Rychlý roj nádorových buněk',
   },
 }

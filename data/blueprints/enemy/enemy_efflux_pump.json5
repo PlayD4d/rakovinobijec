@@ -1,0 +1,75 @@
+{
+  id: 'enemy.efflux_pump',
+  type: 'enemy',
+  stats: {
+    hp: 15,
+    damage: 3,
+    speed: 80,
+    size: 14,
+    armor: 0,
+    xp: 10,
+  },
+  mechanics: {
+    movementType: 'flee',
+    contactDamage: 3,
+    aggroRange: 300,
+    dropChance: 1,
+    healthDropChance: 0.1,
+  },
+  graphics: {
+    sprite: 'enemy_efflux_pump',
+    tint: 0x889999,
+    scale: 0.9,
+    animation: {
+      idle: 'efflux_idle',
+      move: 'efflux_move',
+    },
+  },
+  ai: {
+    behavior: 'flee',
+    params: {
+      speed: 80,
+      safeDistance: 200,
+      panicDistance: 80,
+    },
+  },
+  drops: [
+    {
+      itemId: 'item.health_small',
+      chance: 0.03,
+    },
+  ],
+  vfx: {
+    spawn: 'vfx.spawn',
+    hit: 'vfx.enemy.hit',
+    death: 'vfx.death.small',
+  },
+  sfx: {
+    spawn: 'sound/npc_spawn.mp3',
+    hit: 'sound/npc_hit.mp3',
+    death: 'sound/npc_death.mp3',
+  },
+  display: {
+    key: 'enemy.efflux_pump.name',
+    descKey: 'enemy.efflux_pump.desc',
+    templates: {
+      short: '{{stats.hp}} HP • útěk • křehký • {{stats.xp}} XP',
+      desc: 'Efluxní pumpa s {{stats.hp}} HP. Vytlačuje chemoterapii z buněk — těžko chytitelná, ale křehká.',
+    },
+    color: '#889999',
+    rarity: 'common',
+    icon: 'enemy.efflux_pump',
+    category: 'enemy',
+    sortOrder: 125,
+    tags: [
+      'enemy',
+      'flee',
+      'fast',
+      'fragile',
+      'resistance',
+      'highxp',
+    ],
+    devNameFallback: 'Efflux Pump',
+    devDescFallback: 'Nádorová buňka vytlačující léky — rychlá a křehká',
+  },
+}

@@ -1,5 +1,5 @@
 {
-  id: 'enemy.micro_shooter',
+  id: 'enemy.signal_cell',
   type: 'enemy',
   stats: {
     hp: 20,
@@ -22,7 +22,7 @@
   },
   projectileRef: 'projectile.cytotoxin_small',
   graphics: {
-    sprite: 'enemy_micro_shooter',
+    sprite: 'enemy_signal_cell',
     tint: 0x2244AA,
     scale: 1,
     animation: {
@@ -57,15 +57,15 @@
     shoot: 'sound/npc_shoot.mp3',
   },
   display: {
-    key: 'enemy.micro_shooter.name',
-    descKey: 'enemy.micro_shooter.desc',
+    key: 'enemy.signal_cell.name',
+    descKey: 'enemy.signal_cell.desc',
     templates: {
       short: '{{stats.hp}} HP • střelba • {{mechanics.projectileDamage}} proj DMG',
-      desc: 'Mikro střelec s {{stats.hp}} HP. Udržuje odstup a střílí cytotoxické projektily ({{mechanics.projectileDamage}} DMG).',
+      desc: 'Signální buňka s {{stats.hp}} HP. Udržuje odstup a střílí cytotoxické projektily ({{mechanics.projectileDamage}} DMG).',
     },
     color: '#00BCD4',
     rarity: 'common',
-    icon: 'enemy.micro_shooter',
+    icon: 'enemy.signal_cell',
     category: 'enemy',
     sortOrder: 140,
     tags: [
@@ -75,7 +75,7 @@
       'shooter',
       'fast',
     ],
-    devNameFallback: 'Mikro střelec',
-    devDescFallback: 'Malý ale přesný střelec',
+    devNameFallback: 'Signal Cell',
+    devDescFallback: 'Signální buňka vysílající cytotoxické projektily',
   },
 }
