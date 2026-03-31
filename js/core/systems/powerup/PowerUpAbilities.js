@@ -112,6 +112,18 @@ export class PowerUpAbilities {
                 config.damageReduction = ability.damageReduction || 0.1;
                 break;
 
+            case 'passive_regen':
+                config.hpPerTick = (ability.hpPerTickPerLevel || [1,2,3,4,5])[level - 1] || 1;
+                config.tickMs = (ability.tickMsPerLevel || [3000,3000,2500,2000,1500])[level - 1] || 3000;
+                break;
+
+            case 'slow_aura':
+                config.radius = ability.radius || 80;
+                config.radiusPerLevel = ability.radiusPerLevel || 15;
+                config.slowPercent = ability.slowPercent || 10;
+                config.slowPercentPerLevel = ability.slowPercentPerLevel || 5;
+                break;
+
             default:
                 DebugLogger.warn('powerup', `[PowerUpAbilities] Unknown ability type: ${ability.type}`);
                 return [];
