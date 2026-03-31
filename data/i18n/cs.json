@@ -187,7 +187,8 @@
       "name": "Toxické pole"
     },
     "chain_lightning": {
-      "name": "Řetězový blesk"
+      "name": "Řetězový blesk",
+      "desc": "Blesk přeskakuje mezi nepřáteli a zasahuje více cílů."
     },
     "chemo_reservoir": {
       "desc": "Zásobník léčivých chemikálií pro trvalé účinky",

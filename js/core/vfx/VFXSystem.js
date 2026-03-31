@@ -433,6 +433,9 @@ export class VFXSystem {
      * Shutdown the system
      */
     shutdown() {
+        // Clear active telegraphs first — stops tweens before Graphics are destroyed
+        if (this.clearTelegraphs) this.clearTelegraphs();
+
         // Stop all effects — guard against already-destroyed emitters
         for (const [id, emitter] of this.activeEmitters) {
             if (!emitter.active || !emitter.scene) continue;

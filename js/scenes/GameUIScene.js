@@ -179,6 +179,7 @@ export class GameUIScene extends Phaser.Scene {
         this.scene.bringToTop();
         this.input.setTopOnly(true);
         if (gameScene?.scene?.isActive()) {
+            gameScene.isPaused = true;
             gameScene.scene.pause();
         }
         this.gameOverUI.show(stats);
@@ -189,10 +190,11 @@ export class GameUIScene extends Phaser.Scene {
         this.scene.bringToTop();
         this.input.setTopOnly(true);
         if (gameScene?.scene?.isActive()) {
+            gameScene.isPaused = true;
             gameScene.scene.pause();
         }
-        // Reuse game over UI for victory with victory flag
-        this.gameOverUI.show({ ...data, isVictory: true });
+        // Reuse game over UI for victory — flatten nested stats to top level
+        this.gameOverUI.show({ ...data, ...(data.stats || {}), isVictory: true });
     }
 
     showLevelTransition(data) {

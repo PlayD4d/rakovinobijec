@@ -41,12 +41,13 @@ export const GameConfig = {
         spawnLogging: false      // Disable spawn position logging
     },
     
-    // Layer depths — must match GameScene.DEPTH_LAYERS
+    // Layer depths — must match BootstrapManager.DEPTH_LAYERS
     layers: {
         enemies: 1000,          // Enemy sprite depth
-        projectiles: 2000,      // Projectile depth
-        loot: 100,              // Loot drop depth
-        ui: 4000                // UI elements depth
+        projectiles: 3000,      // Projectile depth
+        loot: 500,              // Loot drop depth
+        vfx: 4000,              // VFX depth
+        ui: 10000               // UI elements depth
     },
     
     // Feature flags

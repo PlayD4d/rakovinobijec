@@ -20,8 +20,6 @@ export function orbit(cap, cfg, dt, mem, setState) {
             speed: cfg?.speed || 100,
             orbitRadius: cfg?.orbitRadius || 150,
             orbitSpeed: cfg?.orbitSpeed || 1.5,
-            shootChance: cfg?.shootChance || 0.02,
-            shootCooldownMs: cfg?.shootCooldownMs || 1000,
             fleeDistance: cfg?.fleeDistance || 50
         };
     }

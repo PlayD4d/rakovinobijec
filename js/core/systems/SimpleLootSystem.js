@@ -23,9 +23,10 @@ export class SimpleLootSystem {
         this.scene = scene;
         this.blueprintLoader = scene.blueprintLoader;
 
-        // Depth values from scene constants (fallback to legacy defaults)
-        this._depthXP = scene.DEPTH_LAYERS?.LOOT_XP ?? scene.DEPTH_LAYERS?.LOOT ?? 500;
-        this._depthItems = scene.DEPTH_LAYERS?.LOOT_ITEMS ?? scene.DEPTH_LAYERS?.LOOT ?? 600;
+        // Depth values: XP orbs at LOOT layer, items slightly above to prevent z-fighting
+        const lootDepth = scene.DEPTH_LAYERS?.LOOT ?? 500;
+        this._depthXP = lootDepth;
+        this._depthItems = lootDepth + 100;
 
         // Phaser physics group with maxSize — native pool: get() reuses inactive, disableBody() returns
         this.lootGroup = scene.physics.add.group({ maxSize: POOL_MAX_SIZE });

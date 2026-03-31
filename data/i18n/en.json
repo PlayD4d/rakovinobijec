@@ -159,7 +159,8 @@
       "name": "Toxic Field"
     },
     "chain_lightning": {
-      "name": "Chain Lightning"
+      "name": "Chain Lightning",
+      "desc": "Lightning chains between enemies, hitting multiple targets."
     },
     "chemo_reservoir": {
       "desc": "Chemical reservoir providing sustained treatment effects",
