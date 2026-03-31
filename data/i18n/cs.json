@@ -262,6 +262,10 @@
       "name": "Řetězový blesk",
       "desc": "Blesk přeskakuje mezi nepřáteli a zasahuje více cílů."
     },
+    "ion_therapy": {
+      "name": "Iontová terapie",
+      "desc": "Nabitý paprsek přeskakuje mezi blízkými nepřáteli."
+    },
     "chemo_reservoir": {
       "desc": "Zásobník léčivých chemikálií pro trvalé účinky",
       "name": "Chemoterapeutický rezervoár"
@@ -285,6 +289,10 @@
     "flamethrower": {
       "desc": "Kónický proud ohně před hráčem",
       "name": "Plamenomet"
+    },
+    "oxidative_burst": {
+      "name": "Oxidativní výbuch",
+      "desc": "Neutrofilní oxidativní poškození v kuželu před vámi."
     },
     "lightning_chain": {
       "desc": "Řetězové blesky mezi nepřáteli",
@@ -329,6 +337,18 @@
     "xp_magnet": {
       "desc": "Automaticky sbírá XP z větší vzdálenosti",
       "name": "XP Magnet"
+    },
+    "regenerative_therapy": {
+      "desc": "Postupně regeneruje zdraví.",
+      "name": "Regenerativní terapie"
+    },
+    "cytoprotection": {
+      "desc": "Snižuje příchozí poškození.",
+      "name": "Cytoprotekce"
+    },
+    "angiogenesis_inhibitor": {
+      "desc": "Zpomaluje blízké nepřátele omezením krevního zásobení.",
+      "name": "Inhibitor angiogeneze"
     }
   },
   "projectile": {

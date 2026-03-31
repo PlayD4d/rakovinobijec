@@ -51,7 +51,7 @@ const fallbackMap = {
   // Powerup blueprints
   'powerup.chemo_reservoir': { name: 'Chemoterapeutický rezervoár', desc: 'Zásobník chemikálií' },
   'powerup.metabolic_haste': { name: 'Metabolický spěch', desc: 'Zrychluje metabolismus' },
-  'powerup.flamethrower': { name: 'Radioterapie', desc: 'Ohnivé paprsky' },
+  'powerup.oxidative_burst': { name: 'Oxidativní výbuch', desc: 'Neutrofilní oxidativní poškození v kuželu' },
   'powerup.piercing_arrows': { name: 'Cisplatina', desc: 'Průrazné projektily' },
   'powerup.shield': { name: 'Imunitní štít', desc: 'Regenerující se štít' },
   'powerup.damage_boost': { name: 'Posílení poškození', desc: 'Zvyšuje útočnou sílu' },

@@ -1,0 +1,64 @@
+{
+  id: 'powerup.regenerative_therapy',
+  type: 'powerup',
+  stats: {
+    maxLevel: 5,
+  },
+  mechanics: {
+    modifiersPerLevel: [
+      {
+        path: 'hpRegenPerSec',
+        type: 'add',
+        value: 0.33,
+        description: 'HP regeneration per second per level',
+        valuesPerLevel: [0.33, 0.67, 1.2, 2.0, 3.33],
+      },
+    ],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'passive_regen',
+  },
+  ability: {
+    type: 'passive_regen',
+  },
+  vfx: {
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
+  },
+  display: {
+    key: 'powerup.regenerative_therapy.name',
+    descKey: 'powerup.regenerative_therapy.desc',
+    devNameFallback: 'Regenerative Therapy',
+    devDescFallback: 'Slowly regenerates health over time.',
+    levelDescriptions: [
+      '+1 HP per 3 seconds',
+      '+2 HP per 3 seconds',
+      '+3 HP per 2.5 seconds',
+      '+4 HP per 2 seconds',
+      '+5 HP per 1.5 seconds',
+    ],
+    icon: 'powerup_regenerative_therapy',
+    color: '#33AA66',
+    rarity: 'uncommon',
+    category: 'defense',
+    sortOrder: 285,
+    tags: [
+      'powerup',
+      'heal',
+      'regen',
+      'defense',
+      'passive',
+      'sustain',
+    ],
+    templates: {
+      short: '+{{mechanics.modifiersPerLevel.0.valuesPerLevel.{{level-1}}}} HP/s regenerace',
+      long: 'Postupne regeneruje zdravi rychlosti {{mechanics.modifiersPerLevel.0.valuesPerLevel.{{level-1}}}} HP/s. Maximum level {{stats.maxLevel}}.',
+    },
+  },
+}

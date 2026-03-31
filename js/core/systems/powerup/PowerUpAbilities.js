@@ -147,6 +147,8 @@ export class PowerUpAbilities {
                 DebugLogger.info('powerup', `[PowerUpAbilities] Applying radiotherapy config:`, config);
                 if (vfxManager) {
                     vfxManager.attachEffect(player, 'radiotherapy', config);
+                } else {
+                    DebugLogger.warn('powerup', '[PowerUpAbilities] Radiotherapy: vfxManager not available');
                 }
                 break;
 
@@ -159,6 +161,8 @@ export class PowerUpAbilities {
                         tickRate: config.tickRate,
                         color: 0xff6600
                     });
+                } else {
+                    DebugLogger.warn('powerup', '[PowerUpAbilities] Flamethrower: vfxManager not available');
                 }
                 break;
 
@@ -218,19 +222,22 @@ export class PowerUpAbilities {
                 });
                 break;
 
-            case 'aura':
-                if (this.scene.vfxSystem && !this._abilityConfigs.has('aura')) {
+            case 'aura': {
+                const computedRadius = config.radius + (config.radiusPerLevel * (config.level - 1));
+                // Play/update aura VFX on every level (not just first activation)
+                if (this.scene.vfxSystem) {
                     this.scene.vfxSystem.play('vfx.aura.damage', player.x, player.y, {
-                        radius: config.radius + (config.radiusPerLevel * (config.level - 1)),
+                        radius: computedRadius,
                         color: 0x00ff00,
                         alpha: 0.1,
                         persistent: true
                     });
                 }
-                // Store computed values in config for DamageZoneAbilities to read
+                // Store computed values for DamageZoneAbilities
                 config.computedDamage = config.damage * config.level;
-                config.computedRadius = config.radius + (config.radiusPerLevel * (config.level - 1));
+                config.computedRadius = computedRadius;
                 break;
+            }
 
             case 'chemo_aura':
                 // Explosive projectiles enabled via config.enableExplosions (processed by onBulletHit)
@@ -244,7 +251,9 @@ export class PowerUpAbilities {
 
             case 'homing_shot':
                 player.homingLevel = config.level;
-                DebugLogger.info('powerup', `[PowerUpAbilities] Homing shot level ${config.level} — auto-tracking enabled`);
+                player.homingSpeedBonus = (config.speedBonusPerLevel || 20) * config.level;
+                player.homingRangeBonus = (config.rangeBonusPerLevel || 50) * config.level;
+                DebugLogger.info('powerup', `[PowerUpAbilities] Homing shot level ${config.level} — speed+${player.homingSpeedBonus}, range+${player.homingRangeBonus}`);
                 break;
 
             case 'piercing':

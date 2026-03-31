@@ -234,6 +234,10 @@
       "name": "Chain Lightning",
       "desc": "Lightning chains between enemies, hitting multiple targets."
     },
+    "ion_therapy": {
+      "name": "Ion Therapy",
+      "desc": "Charged particle beam chains between nearby enemies."
+    },
     "chemo_reservoir": {
       "desc": "Chemical reservoir providing sustained treatment effects",
       "name": "Chemo Reservoir"
@@ -257,6 +261,10 @@
     "flamethrower": {
       "desc": "Cone of fire in front of player",
       "name": "Flamethrower"
+    },
+    "oxidative_burst": {
+      "name": "Oxidative Burst",
+      "desc": "Neutrophil-like oxidative damage in a cone ahead."
     },
     "lightning_chain": {
       "desc": "Chain lightning between enemies",
@@ -301,6 +309,18 @@
     "xp_magnet": {
       "desc": "Automatically collects XP from greater distance",
       "name": "XP Magnet"
+    },
+    "regenerative_therapy": {
+      "desc": "Slowly regenerates health over time.",
+      "name": "Regenerative Therapy"
+    },
+    "cytoprotection": {
+      "desc": "Reduces incoming damage.",
+      "name": "Cytoprotection"
+    },
+    "angiogenesis_inhibitor": {
+      "desc": "Slows nearby enemies by cutting their blood supply.",
+      "name": "Angiogenesis Inhibitor"
     }
   },
   "projectile": {

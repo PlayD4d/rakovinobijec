@@ -119,7 +119,17 @@ export class PowerUpUI {
         fontStyle: 'bold', stroke: '#000000', strokeThickness: 2
       }).setOrigin(0.5);
 
-      card.add([border, bgDark, bgGradient, iconBg, icon, name, desc, stats]);
+      // Level badge (top-right corner) — shows "Lv.N" for upgrades, "NEW" for first pick
+      const nextLevel = (pu.level || 0) + 1;
+      const maxLevel = pu.maxLevel || 5;
+      const lvlLabel = nextLevel > 1 ? `Lv.${nextLevel}/${maxLevel}` : 'NEW';
+      const lvlColor = nextLevel > 1 ? '#ffcc00' : '#44ff44';
+      const lvlBadge = new Phaser.GameObjects.Text(s, cardWidth/2 - 8, -cardHeight/2 + 8, lvlLabel, {
+        fontFamily: UI_THEME.fonts.primary, fontSize: '10px', color: lvlColor,
+        stroke: '#000000', strokeThickness: 2
+      }).setOrigin(1, 0);
+
+      card.add([border, bgDark, bgGradient, iconBg, icon, name, desc, stats, lvlBadge]);
       card._bg = bgDark;
       
       // Make interactive with improved hover effects

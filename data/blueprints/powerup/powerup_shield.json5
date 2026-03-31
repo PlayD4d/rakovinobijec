@@ -44,8 +44,8 @@
       'ability',
     ],
     templates: {
-      short: '{{mechanics.modifiersPerLevel.{{level-1}}.value}} HP štít ({{ability.rechargeTimePerLevel.{{level-1}}}}ms regenerace)',
-      long: 'Poskytuje regenerující se štít s {{mechanics.modifiersPerLevel.{{level-1}}.value}} HP. Regenerace po {{ability.rechargeTimePerLevel.{{level-1}}}}ms. Maximum level {{stats.maxLevel}}.',
+      short: '{{15 * level}} HP štít ({{ability.rechargeTimePerLevel.{{level-1}}}}ms regenerace)',
+      long: 'Poskytuje regenerující se štít s {{15 * level}} HP. Regenerace po {{ability.rechargeTimePerLevel.{{level-1}}}}ms. Maximum level {{stats.maxLevel}}.',
     },
     srKey: 'sr.powerup.shield',
   },

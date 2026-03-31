@@ -1,0 +1,60 @@
+{
+  id: 'powerup.cytoprotection',
+  type: 'powerup',
+  stats: {
+    maxLevel: 5,
+  },
+  mechanics: {
+    modifiersPerLevel: [
+      {
+        path: 'damageReduction',
+        type: 'add',
+        value: 1,
+        description: 'Flat damage reduction per level',
+        valuesPerLevel: [1, 2, 3, 5, 7],
+      },
+    ],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'damage_reduction',
+  },
+  vfx: {
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
+  },
+  display: {
+    key: 'powerup.cytoprotection.name',
+    descKey: 'powerup.cytoprotection.desc',
+    devNameFallback: 'Cytoprotection',
+    devDescFallback: 'Reduces incoming damage.',
+    levelDescriptions: [
+      '-1 flat damage reduction',
+      '-2 flat damage reduction',
+      '-3 flat damage reduction',
+      '-5 flat damage reduction',
+      '-7 flat damage reduction',
+    ],
+    icon: 'powerup_cytoprotection',
+    color: '#607D8B',
+    rarity: 'uncommon',
+    category: 'defense',
+    sortOrder: 290,
+    tags: [
+      'powerup',
+      'armor',
+      'defense',
+      'damage_reduction',
+      'passive',
+    ],
+    templates: {
+      short: '-{{mechanics.modifiersPerLevel.0.valuesPerLevel.{{level-1}}}} prijate poskozeni',
+      long: 'Snizuje prijate poskozeni o {{mechanics.modifiersPerLevel.0.valuesPerLevel.{{level-1}}}} bodu. Maximum level {{stats.maxLevel}}.',
+    },
+  },
+}

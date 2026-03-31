@@ -2,7 +2,7 @@
   id: 'powerup.multi_shot',
   type: 'powerup',
   stats: {
-    maxLevel: 8,
+    maxLevel: 5,
   },
   mechanics: {
     modifiersPerLevel: [

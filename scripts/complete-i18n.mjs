@@ -72,7 +72,7 @@ const translations = {
     'sr.boss.onkogen': 'Onkogenní mutace způsobující změny v genetickém kódu',
     'sr.boss.radiation': 'Radiační syndrome způsobující kontinuální poškození zářením',
     'sr.powerup.damage_boost': 'Zvýšení poškození všech útoků pro efektivnější boj',
-    'sr.powerup.flamethrower': 'Radioterapeutické paprsky cílené na nejbližší nepřátele',
+    'sr.powerup.oxidative_burst': 'Neutrofilní oxidativní poškození v kuželu před hráčem',
     'sr.powerup.piercing_arrows': 'Cisplatinové projektily pronikající skrz více nepřátel',
     'sr.powerup.shield': 'Imunitní systémový štít absorbující příchozí poškození',
     'sr.projectile.basic': 'Základní projektil pro standardní útočné manévry'
@@ -140,7 +140,7 @@ const translations = {
     'sr.boss.onkogen': 'Oncogenic mutation causing changes in genetic code',
     'sr.boss.radiation': 'Radiation syndrome causing continuous radiation damage',
     'sr.powerup.damage_boost': 'Damage boost enhancing all attacks for more effective combat',
-    'sr.powerup.flamethrower': 'Radiotherapy beams targeting closest enemies',
+    'sr.powerup.oxidative_burst': 'Neutrophil-like oxidative damage in a cone ahead of the player',
     'sr.powerup.piercing_arrows': 'Cisplatin projectiles piercing through multiple enemies',
     'sr.powerup.shield': 'Immune system shield absorbing incoming damage',
     'sr.projectile.basic': 'Basic projectile for standard attack maneuvers'

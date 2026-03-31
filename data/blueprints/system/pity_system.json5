@@ -53,7 +53,7 @@
           category: 'special',
           weight: 25,
           items: [
-            'powerup.flamethrower',
+            'powerup.oxidative_burst',
             'powerup.chemo_reservoir',
           ],
         },

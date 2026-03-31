@@ -162,7 +162,7 @@ export class DataManager {
                 { id: 'powerup.metabolic_haste', type: 'powerup' },
                 { id: 'powerup.shield', type: 'powerup' },
                 { id: 'powerup.damage_boost', type: 'powerup' },
-                { id: 'powerup.flamethrower', type: 'powerup' },
+                { id: 'powerup.oxidative_burst', type: 'powerup' },
                 { id: 'powerup.piercing_arrows', type: 'powerup' },
                 { id: 'powerup.chemo_reservoir', type: 'powerup' },
                 { id: 'powerup.radiotherapy', type: 'powerup' },

@@ -91,6 +91,12 @@ export class PlayerAttackController {
         const opts = this._fireOpts;
         opts.projectileId = stats.projectileRef || 'projectile.player_basic';
 
+        // Apply homing speed/range bonuses from power-up
+        const homingBonus = player.homingSpeedBonus || 0;
+        const homingRange = player.homingRangeBonus || 0;
+        opts.speedMul = 1 + (homingBonus / (stats.projectileSpeed || 200));
+        opts.rangeMul = 1 + (homingRange / (stats.projectileRange || 175));
+
         if (homingCount > 1) {
             const spreadRad = 0.3; // ~17° tight spread
             for (let i = 0; i < homingCount; i++) {

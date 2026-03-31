@@ -1,5 +1,5 @@
 {
-  id: 'powerup.flamethrower',
+  id: 'powerup.oxidative_burst',
   type: 'powerup',
   stats: {
     maxLevel: 5,
@@ -49,10 +49,10 @@
     ignite: 'sound/powerup.mp3',
   },
   display: {
-    key: 'powerup.flamethrower.name',
-    descKey: 'powerup.flamethrower.desc',
-    devNameFallback: '🔥 Plamenomet',
-    devDescFallback: 'Kónický proud ohně před hráčem',
+    key: 'powerup.oxidative_burst.name',
+    descKey: 'powerup.oxidative_burst.desc',
+    devNameFallback: 'Oxidative Burst',
+    devDescFallback: 'Neutrophil-like oxidative damage in a cone ahead.',
     levelDescriptions: [
       'Základní plamenomet (dosah 80px)',
       'Větší dosah plamenů (100px)',
@@ -76,6 +76,6 @@
       short: 'Plamenomet (dosah {{ability.rangePerLevel[level]}}px)',
       long: 'Vytváří kónický proud ohně před hráčem. Dosah roste z 80px na 160px. Poškození roste s úrovní.',
     },
-    srKey: 'sr.powerup.flamethrower',
+    srKey: 'sr.powerup.oxidative_burst',
   },
 }
