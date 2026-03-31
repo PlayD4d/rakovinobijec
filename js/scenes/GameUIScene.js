@@ -178,10 +178,8 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         this.scene.bringToTop();
         this.input.setTopOnly(true);
-        if (gameScene?.scene?.isActive()) {
-            gameScene.isPaused = true;
-            gameScene.scene.pause();
-        }
+        // TransitionManager.pauseGameSystems() already stopped everything —
+        // skip Phaser scene.pause() to avoid resume-triggered side effects
         this.gameOverUI.show(stats);
     }
 
@@ -189,7 +187,8 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         this.scene.bringToTop();
         this.input.setTopOnly(true);
-        if (gameScene?.scene?.isActive()) {
+        // TransitionManager.pauseGameSystems() already stopped everything
+        if (gameScene?.scene?.isActive() && !gameScene.isGameOver) {
             gameScene.isPaused = true;
             gameScene.scene.pause();
         }

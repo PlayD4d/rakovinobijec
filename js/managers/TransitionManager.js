@@ -295,11 +295,18 @@ export class TransitionManager {
     flushAnalytics() {
         if (this.pendingAnalytics.length === 0) return;
 
-        for (const { event, data } of this.pendingAnalytics) {
-            this.logAnalytics(event, data);
-        }
-
+        // Drain into local copy first — logAnalytics() would re-push into
+        // pendingAnalytics while isTransitioning is still true, causing OOM.
+        const batch = this.pendingAnalytics;
         this.pendingAnalytics = [];
+
+        for (const { event, data } of batch) {
+            // Bypass the isTransitioning guard — we ARE flushing deliberately
+            if (this.scene?.analyticsManager) {
+                this.scene.analyticsManager.trackEvent(event, data);
+            }
+            DebugLogger.info('transition', `[Analytics] ${event}:`, data);
+        }
     }
 
     // ─── State management ────────────────────────────────────────

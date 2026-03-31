@@ -119,6 +119,8 @@ export class BootstrapManager {
             });
         };
         this._onResume = () => {
+            // Do nothing after game over — prevents resume from re-triggering levelup/XP loops
+            if (this.scene.isGameOver) return;
             DebugLogger.info('bootstrap', '[GameScene] Scene resumed');
             this.ensurePlayerActive();
             this.scene.isPaused = false;
