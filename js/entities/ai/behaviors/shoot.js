@@ -30,13 +30,6 @@ export function shoot(cap, cfg, dt, mem, setState) {
         const burstDelay = cfg?.burstDelay || 100;
         const chargeTime = cfg?.chargeTime || 200;
 
-        // Brief telegraph before shooting (orange flash at shooter)
-        if (burstCount > 1) {
-            cap.playTelegraph?.(pos.x, pos.y, {
-                radius: 15, color: 0xFF6600, duration: chargeTime, pulses: 1, fillAlpha: 0.2
-            });
-        }
-
         for (let i = 0; i < burstCount; i++) {
             cap.schedule(() => {
                 // Fresh angle at fire time (player moves during charge)

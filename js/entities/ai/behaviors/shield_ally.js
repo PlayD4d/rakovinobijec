@@ -91,9 +91,6 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
                     ally.hp = Math.min(ally.maxHp, ally.hp + healAmount);
                 }
             }
-            cap.playTelegraph(pos.x, pos.y, {
-                radius: buffRange * 0.5, color: 0x44FF44, duration: 400
-            });
         } else {
             // Shield: grant temporary armor boost (cyan pulse VFX)
             const armorBoost = cfg.armorBoost || 3;
@@ -111,9 +108,6 @@ export function shield_ally(cap, cfg, dt, mem, setState) {
                     }, boostDuration);
                 }
             }
-            cap.playTelegraph(pos.x, pos.y, {
-                radius: buffRange * 0.5, color: 0x00CCFF, duration: 400
-            });
         }
     }
 }

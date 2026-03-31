@@ -33,12 +33,7 @@ export function explode(cap, cfg, dt, mem) {
             s.detonating = true;
             cap.setVelocity(0, 0);
 
-            // Telegraph at current position (red circle, brief)
-            cap.playTelegraph(pos.x, pos.y, {
-                radius: explosionRadius, color: 0xDD1111, duration: telegraphMs
-            });
-
-            // Explode after telegraph
+            // Explode after brief windup
             cap.schedule(() => {
                 if (s.detonated) return;
                 s.detonated = true;
