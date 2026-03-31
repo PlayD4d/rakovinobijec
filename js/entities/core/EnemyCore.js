@@ -367,6 +367,8 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
      */
     _showDamageNumber(amount) {
         if (!this.scene?.add || amount <= 0) return;
+        // Respect settings toggle
+        if (window.settingsManager?.get?.('ui.damageNumbers') === false) return;
         // Throttle — max 1 number per 100ms per enemy
         const now = this.scene.time?.now || 0;
         if (now - (this._lastDmgNum || 0) < 100) return;

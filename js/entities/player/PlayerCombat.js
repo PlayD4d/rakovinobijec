@@ -54,6 +54,9 @@ export class PlayerCombat {
         player._playSfx(player.sfx.hit);
         player.scene.frameworkDebug?.onPlayerHit?.(player, dmg, source);
 
+        // Floating red damage number on player
+        this._showPlayerDamageNumber(player, dmg);
+
         // Red flash + shake proportional to damage
         const cam = player.scene.cameras?.main;
         if (cam) {
@@ -133,6 +136,27 @@ export class PlayerCombat {
         player.setActive(false);
         player.setVisible(false);
         if (player.body) player.body.setEnable(false);
+    }
+
+    _showPlayerDamageNumber(player, amount) {
+        if (!player.scene?.add || amount <= 0) return;
+        // Respect settings toggle
+        if (window.settingsManager?.get?.('ui.damageNumbers') === false) return;
+
+        const jitterX = (Math.random() - 0.5) * 16;
+        const txt = player.scene.add.text(player.x + jitterX, player.y - 20, `-${Math.floor(amount)}`, {
+            fontFamily: 'Public Pixel, monospace',
+            fontSize: amount >= 20 ? '14px' : '11px',
+            color: '#ff3333',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5).setDepth(player.scene.DEPTH_LAYERS?.VFX || 4000).setScrollFactor(0);
+
+        player.scene.tweens.add({
+            targets: txt, y: txt.y - 25, alpha: 0,
+            duration: 700, ease: 'Power2',
+            onComplete: () => txt.destroy()
+        });
     }
 }
 

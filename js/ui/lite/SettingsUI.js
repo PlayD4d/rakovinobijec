@@ -13,7 +13,7 @@ export class SettingsUI {
 
     this.modal = new SimpleModal(scene, {
       width: 440,
-      height: 380,
+      height: 480,
       depth: UI_THEME.depth.modal
     });
 
@@ -74,8 +74,23 @@ export class SettingsUI {
     this._joyToggle = new SimpleButton(scene, cx + 60, cy + 80, 'Toggle', () => this._toggleJoystick(), 120, 36, { fontSize: '14px' });
     this.modal.addChild(this._joyToggle);
 
+    // --- Damage Numbers Toggle ---
+    this._dmgNumEnabled = true;
+    const dmgLabel = new Phaser.GameObjects.Text(scene, cx - 160, cy + 120, 'Dmg Numbers', {
+      fontFamily: UI_THEME.fonts.primary, fontSize: '16px', color: '#cccccc'
+    }).setOrigin(0, 0.5);
+    this.modal.addChild(dmgLabel);
+
+    this._dmgStatus = new Phaser.GameObjects.Text(scene, cx + 60, cy + 120, 'ON', {
+      fontFamily: UI_THEME.fonts.primary, fontSize: '16px', color: '#44ff44'
+    }).setOrigin(0.5);
+    this.modal.addChild(this._dmgStatus);
+
+    this._dmgToggle = new SimpleButton(scene, cx + 60, cy + 155, 'Toggle', () => this._toggleDamageNumbers(), 120, 36, { fontSize: '14px' });
+    this.modal.addChild(this._dmgToggle);
+
     // --- Back button ---
-    this._backBtn = new SimpleButton(scene, cx, cy + 140, 'Back', () => {
+    this._backBtn = new SimpleButton(scene, cx, cy + 210, 'Back', () => {
       this.hide();
       if (this.onBack) this.onBack();
     }, 160, 44);
@@ -95,9 +110,11 @@ export class SettingsUI {
     const sm = window.settingsManager;
     if (sm?.get) {
       this._joystickEnabled = sm.get('controls.joystickEnabled') || false;
+      this._dmgNumEnabled = sm.get('ui.damageNumbers') !== false; // default ON
     }
     this._updateVolumeDisplay();
     this._updateJoystickDisplay();
+    this._updateDamageNumbersDisplay();
   }
 
   _adjustVolume(delta) {
@@ -142,6 +159,26 @@ export class SettingsUI {
       this._joyStatus.setText('ON').setColor('#44ff44');
     } else {
       this._joyStatus.setText('OFF').setColor('#ff4444');
+    }
+  }
+
+  _toggleDamageNumbers() {
+    this._dmgNumEnabled = !this._dmgNumEnabled;
+    this._updateDamageNumbersDisplay();
+
+    const sm = window.settingsManager;
+    if (sm?.set) {
+      sm.set('ui.damageNumbers', this._dmgNumEnabled);
+    }
+
+    try { this.scene.sound?.play('sound/bleep.mp3', { volume: 0.3 }); } catch (_) {}
+  }
+
+  _updateDamageNumbersDisplay() {
+    if (this._dmgNumEnabled) {
+      this._dmgStatus?.setText('ON').setColor('#44ff44');
+    } else {
+      this._dmgStatus?.setText('OFF').setColor('#ff4444');
     }
   }
 
