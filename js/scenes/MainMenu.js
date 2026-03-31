@@ -22,10 +22,12 @@ export class MainMenu extends Phaser.Scene {
     }
 
     preload() {
-        // Menu click sound
-        const key = 'sound_pickup_mp3';
-        if (!this.cache.audio.has(key)) {
-            this.load.audio(key, 'sound/pickup.mp3');
+        const sounds = ['sound/pickup.mp3', 'music/8bit_main_menu.mp3'];
+        for (const path of sounds) {
+            const key = path.replace(/[^a-zA-Z0-9]/g, '_');
+            if (!this.cache.audio.has(key)) {
+                this.load.audio(key, path);
+            }
         }
     }
 
