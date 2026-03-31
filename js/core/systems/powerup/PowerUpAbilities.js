@@ -263,6 +263,36 @@ export class PowerUpAbilities {
                 DebugLogger.info('powerup', `[PowerUpAbilities] Activated piercing: ${config.maxPierces} pierces, ${(config.damageReduction * 100)}% damage reduction`);
                 break;
 
+            case 'passive_regen': {
+                // HP regeneration — timer ticks based on level scaling
+                const hpPerTick = config.hpPerTick || [1, 2, 3, 4, 5][config.level - 1] || 1;
+                const tickMs = config.tickMs || [3000, 3000, 2500, 2000, 1500][config.level - 1] || 3000;
+
+                // Remove old regen timer if upgrading
+                if (this._regenTimer) { this._regenTimer.remove(); this._regenTimer = null; }
+
+                this._regenTimer = this.scene.time.addEvent({
+                    delay: tickMs,
+                    loop: true,
+                    callback: () => {
+                        const p = this.scene?.player;
+                        if (!p?.active || p.hp >= p.maxHp) return;
+                        p.heal(hpPerTick);
+                    }
+                });
+                DebugLogger.info('powerup', `[PowerUpAbilities] Passive regen: +${hpPerTick} HP every ${tickMs}ms`);
+                break;
+            }
+
+            case 'slow_aura': {
+                // Store config for per-frame enemy slow application in update()
+                const slowRadius = (config.radius || 80) + ((config.radiusPerLevel || 15) * (config.level - 1));
+                const slowPercent = (config.slowPercent || 10) + ((config.slowPercentPerLevel || 5) * (config.level - 1));
+                this._slowAuraConfig = { radius: slowRadius, slowFactor: 1 - (slowPercent / 100) };
+                DebugLogger.info('powerup', `[PowerUpAbilities] Slow aura: ${slowPercent}% in ${slowRadius}px radius`);
+                break;
+            }
+
             default:
                 DebugLogger.warn('powerup', `[PowerUpAbilities] Unhandled ability type: ${config.type}`);
         }
@@ -293,8 +323,35 @@ export class PowerUpAbilities {
             this._damageZones.updateImmuneAura(player);
         }
 
+        // Slow aura — reduce nearby enemy speed each frame
+        if (this._slowAuraConfig && player?.active) {
+            this._applySlowAura(player);
+        }
+
         // Delegate shield regeneration
         this._shieldRegen.update(player, time);
+    }
+
+    /**
+     * Apply slow aura to nearby enemies
+     */
+    _applySlowAura(player) {
+        const cfg = this._slowAuraConfig;
+        if (!cfg) return;
+        const enemies = this.scene.enemiesGroup?.getChildren();
+        if (!enemies) return;
+        const rSq = cfg.radius * cfg.radius;
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const e = enemies[i];
+            if (!e?.active || !e.body) continue;
+            const dx = e.x - player.x;
+            const dy = e.y - player.y;
+            if (dx * dx + dy * dy <= rSq) {
+                // Reduce velocity by slow factor (applied per frame — resets naturally when enemy exits radius)
+                e.body.velocity.x *= cfg.slowFactor;
+                e.body.velocity.y *= cfg.slowFactor;
+            }
+        }
     }
 
     /**
@@ -305,6 +362,11 @@ export class PowerUpAbilities {
      * @returns {number} Remaining damage after shield absorption
      */
     processDamageWithShield(player, amount, time) {
+        // Cytoprotection: flat damage reduction from modifier
+        const dr = player.damageReduction || 0;
+        if (dr > 0) {
+            amount = Math.max(1, amount - dr);
+        }
         return this._shieldRegen.processDamageWithShield(player, amount, time);
     }
 
@@ -364,6 +426,8 @@ export class PowerUpAbilities {
         this._damageZones.destroy();
         this._chainLightning.destroy();
         this._shieldRegen.destroy();
+        if (this._regenTimer) { this._regenTimer.remove(); this._regenTimer = null; }
+        this._slowAuraConfig = null;
         this.activeAbilities.clear();
         this._abilityConfigs.clear();
         this.scene = null;
