@@ -9,6 +9,7 @@ import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { SystemsInitializer } from './SystemsInitializer.js';
 import { centralEventBus } from '../core/events/CentralEventBus.js';
 import { getSession } from '../core/debug/SessionLog.js';
+import { DisplayResolver } from '../core/utils/DisplayResolver.js';
 
 export class BootstrapManager {
     constructor(scene) {
@@ -374,6 +375,14 @@ export class BootstrapManager {
         // Phase 2: Input (must be before player)
         this.scene.setupInput();
         
+        // Phase 2.5: Load i18n display resolver
+        try {
+            this.scene.displayResolver = new DisplayResolver();
+            await this.scene.displayResolver.load('cs');
+        } catch (_) {
+            DebugLogger.warn('bootstrap', 'DisplayResolver load failed — using fallback names');
+        }
+
         // Phase 3: Data systems (must be before player)
         try {
             await this.initializeDataDrivenSystems();

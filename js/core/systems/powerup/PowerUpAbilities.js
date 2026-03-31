@@ -61,10 +61,10 @@ export class PowerUpAbilities {
                 break;
 
             case 'flamethrower':
-                config.range = ability.rangePerLevel?.[level - 1] || 80;
-                config.damage = ability.damagePerLevel?.[level - 1] || 3;
-                config.coneAngle = ability.coneAnglePerLevel?.[level - 1] || 0.4;
-                config.tickRate = ability.tickRate || 0.1;
+                config.damage = ability.damagePerLevel?.[level - 1] || 10;
+                config.intervalMs = ability.intervalMsPerLevel?.[level - 1] || 800;
+                config.pierceCount = ability.pierceCountPerLevel?.[level - 1] || 2;
+                config.speed = ability.speedPerLevel?.[level - 1] || 220;
                 break;
 
             case 'shield':
@@ -152,19 +152,59 @@ export class PowerUpAbilities {
                 }
                 break;
 
-            case 'flamethrower':
-                if (vfxManager) {
-                    vfxManager.attachEffect(player, 'flamethrower', {
-                        length: config.range,
-                        angle: config.coneAngle,
-                        damage: config.damage,
-                        tickRate: config.tickRate,
-                        color: 0xff6600
-                    });
-                } else {
-                    DebugLogger.warn('powerup', '[PowerUpAbilities] Flamethrower: vfxManager not available');
+            case 'flamethrower': {
+                // Oxidative Burst (Fire Wand style) — arc of fire projectiles at random enemy
+                const burstDamage = config.damage || 10;
+                const burstInterval = config.intervalMs || 800;
+                const burstCount = config.pierceCount || 2; // reuse as projectile count in arc
+                const burstSpeed = config.speed || 250;
+                const arcSpread = 0.35; // ~20° total arc
+
+                // Remove old timer on upgrade
+                if (this._oxidativeBurstTimer) {
+                    this._oxidativeBurstTimer.remove();
+                    this._oxidativeBurstTimer = null;
                 }
+
+                this._oxidativeBurstTimer = this.scene.time.addEvent({
+                    delay: burstInterval,
+                    loop: true,
+                    callback: () => {
+                        const p = this.scene?.player;
+                        if (!p?.active) return;
+                        const enemies = this.scene.enemiesGroup?.getChildren();
+                        if (!enemies?.length) return;
+                        const active = [];
+                        for (let i = 0; i < enemies.length; i++) {
+                            if (enemies[i]?.active) active.push(enemies[i]);
+                        }
+                        if (active.length === 0) return;
+                        const target = active[Math.floor(Math.random() * active.length)];
+
+                        const baseAngle = Math.atan2(target.y - p.y, target.x - p.x);
+                        const ps = this.scene.projectileSystem;
+                        if (!ps) return;
+
+                        // Fire arc of fireballs centered on target direction
+                        for (let i = 0; i < burstCount; i++) {
+                            const offset = burstCount > 1
+                                ? (i - (burstCount - 1) / 2) * (arcSpread / Math.max(1, burstCount - 1))
+                                : 0;
+                            const angle = baseAngle + offset;
+                            ps.firePlayer(p.x, p.y, Math.cos(angle), Math.sin(angle), {
+                                speedMul: burstSpeed / (ps.config.speed || 200),
+                                rangeMul: 1.5,
+                                damageMul: burstDamage / (ps.config.damage || 10),
+                                tint: 0xff6600,
+                                projectileId: 'projectile.player_basic'
+                            });
+                        }
+                    }
+                });
+
+                DebugLogger.info('powerup', `[PowerUpAbilities] Oxidative Burst: ${burstCount}x ${burstDamage}dmg arc, ${burstInterval}ms`);
                 break;
+            }
 
             case 'shield':
                 player.shieldActive = true;
@@ -430,6 +470,7 @@ export class PowerUpAbilities {
         this._chainLightning.destroy();
         this._shieldRegen.destroy();
         if (this._regenTimer) { this._regenTimer.remove(); this._regenTimer = null; }
+        if (this._oxidativeBurstTimer) { this._oxidativeBurstTimer.remove(); this._oxidativeBurstTimer = null; }
         this._slowAuraConfig = null;
         this.activeAbilities.clear();
         this._abilityConfigs.clear();
