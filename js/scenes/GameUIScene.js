@@ -139,9 +139,15 @@ export class GameUIScene extends Phaser.Scene {
 
     handleQuit() {
         this.pauseUI.hide();
-        this.scene.stop('GameScene');
-        this.scene.stop('GameUIScene');
-        this.scene.start('MainMenu');
+        // End session explicitly — scene.stop is deferred and may not trigger endSession reliably
+        const gameScene = this.scene.get('GameScene');
+        if (gameScene?.returnToMenu) {
+            gameScene.returnToMenu();
+        } else {
+            this.scene.stop('GameScene');
+            this.scene.stop('GameUIScene');
+            this.scene.start('MainMenu');
+        }
     }
 
     showPowerUpSelection(options) {
