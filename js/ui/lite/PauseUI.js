@@ -14,15 +14,15 @@ export class PauseUI {
 
     this.modal = new SimpleModal(scene, {
       width: 400,
-      height: 380,
+      height: 300,
       depth: UI_THEME.depth.modal
     });
 
     const cx = scene.cameras.main.width / 2;
     const cy = scene.cameras.main.height / 2;
 
-    // Title (constructor — Container owns rendering, no scene.add)
-    this.title = new Phaser.GameObjects.Text(scene, cx, cy - 120, '⏸️ PAUSED', {
+    // Title
+    this.title = new Phaser.GameObjects.Text(scene, cx, cy - 100, 'PAUSED', {
       fontFamily: UI_THEME.fonts.primary,
       fontSize: '32px',
       color: '#ffffff',
@@ -31,44 +31,33 @@ export class PauseUI {
     }).setOrigin(0.5);
     this.modal.addChild(this.title);
 
-    // Resume button (modal.addChild handles display-list — no scene.add needed)
+    // Resume button
     this.resumeBtn = new SimpleButton(
-      scene, cx, cy - 20,
-      '▶️ Pokračovat',
+      scene, cx, cy - 10,
+      'Pokracovat',
       () => {
         this.hide();
         if (this.onResume) this.onResume();
       },
-      200, 50
+      220, 50
     );
     this.modal.addChild(this.resumeBtn);
 
-    // Settings button (placeholder for now)
-    this.settingsBtn = new SimpleButton(
-      scene, cx, cy + 40,
-      '⚙️ Nastavení',
-      () => {
-        // Settings not yet implemented
-      },
-      200, 50
-    );
-    this.modal.addChild(this.settingsBtn);
-
-    // Quit button
+    // Quit button — red tint for destructive action
     this.quitBtn = new SimpleButton(
-      scene, cx, cy + 100,
-      '🏠 Hlavní menu',
+      scene, cx, cy + 55,
+      'Hlavni menu',
       () => {
         this.hide();
         if (this.onQuit) this.onQuit();
       },
-      200, 50,
-      { bgColor: 0x662222 } // Red tint for destructive action
+      220, 50,
+      { bgColor: 0x662222 }
     );
     this.modal.addChild(this.quitBtn);
 
-    // Instructions (constructor — Container owns rendering, no scene.add)
-    this.instructions = new Phaser.GameObjects.Text(scene, cx, cy + 160, 'ESC pro pokračování', {
+    // Hint
+    this.instructions = new Phaser.GameObjects.Text(scene, cx, cy + 120, 'ESC', {
       fontFamily: UI_THEME.fonts.primary,
       fontSize: '12px',
       color: '#666666'
@@ -112,7 +101,6 @@ export class PauseUI {
     this.title = null;
     this.instructions = null;
     this.resumeBtn = null;
-    this.settingsBtn = null;
     this.quitBtn = null;
     this.onResume = null;
     this.onQuit = null;

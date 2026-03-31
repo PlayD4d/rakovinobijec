@@ -89,6 +89,9 @@ export class MainMenu extends Phaser.Scene {
         // Use shared CentralEventBus (Phaser recommended: standalone EventEmitter singleton)
         this.eventBus = centralEventBus;
 
+        // Fade in (from GameScene return or fresh load)
+        this.cameras.main.fadeIn(400, 0, 0, 0);
+
         // Create main menu UI (LiteUI)
         this.mainMenuUI = new MainMenuUI(this, this.gameVersion);
 
@@ -155,8 +158,11 @@ export class MainMenu extends Phaser.Scene {
             this.musicManager?.play('sound/pickup.mp3', { volume: 0.5 });
         } catch (_) { }
 
-        // Transition to game — Phaser auto-triggers SHUTDOWN on this scene
-        this.scene.start('GameScene');
+        // Fade out then transition to game
+        this.cameras.main.fadeOut(400, 0, 0, 0);
+        this.cameras.main.once('camerafadeoutcomplete', () => {
+            this.scene.start('GameScene');
+        });
     }
 
     // High scores functionality temporarily disabled - will be added to LiteUI later

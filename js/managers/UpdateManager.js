@@ -145,8 +145,8 @@ export class UpdateManager {
             const hud = scene.scene.get('GameUIScene')?.hud;
             if (!hud) return;
 
-            // Refresh HP/XP/score/kills at 2Hz (not 60fps)
-            if (time - _lastHudRefresh > 500) {
+            // Refresh HP/XP/score/kills at 10Hz
+            if (time - _lastHudRefresh > 100) {
                 _lastHudRefresh = time;
                 hud.refresh();
             }

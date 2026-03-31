@@ -94,15 +94,21 @@ export class GameOverUI {
    * Show game over screen with stats
    */
   show(stats = {}) {
-    // Victory vs defeat — update title and subtitle accordingly
-    if (stats.isVictory) {
-      this.title.setText('🎉 VICTORY!');
-      this.title.setColor(`#${UI_THEME.colors.text.success.toString(16).padStart(6, '0')}`);
-      this.subtitle.setText('Rakovina byla poražena!');
+    const isVictory = stats.isVictory;
+
+    // Victory vs defeat — different title, color, subtitle, and modal border
+    if (isVictory) {
+      this.title.setText('VICTORY!');
+      this.title.setColor('#00ff88');
+      this.subtitle.setText('Rakovina byla porazena!');
+      this.modal.panel?.setStrokeStyle(3, 0x00ff88, 0.8);
+      this.retryBtn.setText('Pokracovat');
     } else {
-      this.title.setText('💀 GAME OVER');
+      this.title.setText('GAME OVER');
       this.title.setColor(`#${UI_THEME.colors.text.danger.toString(16).padStart(6, '0')}`);
-      this.subtitle.setText('Mard podlehl rakovině...');
+      this.subtitle.setText('Mard podlehl rakovine...');
+      this.modal.panel?.setStrokeStyle(2, UI_THEME.colors.borders.default, 0.5);
+      this.retryBtn.setText('Zkusit znovu');
     }
 
     // Format stats
@@ -112,16 +118,27 @@ export class GameOverUI {
     const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
     const text = [
-      `⏱️ Čas přežití: ${timeStr}`,
-      `📊 Level: ${stats.level || 1}`,
-      `💀 Zabito nepřátel: ${stats.kills ?? stats.enemiesKilled ?? 0}`,
-      `⭐ Skóre: ${stats.score || 0}`
+      `Cas preziti: ${timeStr}`,
+      `Level: ${stats.level || 1}`,
+      `Zabito nepratel: ${stats.kills ?? stats.enemiesKilled ?? 0}`,
+      `Skore: ${stats.score || 0}`
     ].join('\n');
 
     this.statsText.setText(text);
 
-    // Show modal
-    this.modal.show(false);
+    // Camera effect for emotional impact
+    const cam = this.scene.scene.get('GameScene')?.cameras?.main;
+    if (cam) {
+      if (isVictory) {
+        cam.flash(600, 255, 255, 255);
+      } else {
+        cam.shake(300, 0.015);
+        cam.flash(200, 80, 0, 0);
+      }
+    }
+
+    // Show modal with fade-in animation
+    this.modal.show(true, 400);
   }
 
   /**

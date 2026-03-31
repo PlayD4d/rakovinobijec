@@ -201,6 +201,8 @@ export class GameScene extends Phaser.Scene {
     killAllEnemies() { SceneFlow.killAllEnemies(this); }
     
     async startGame() {
+        // Fade in from black (menu faded out)
+        this.cameras.main.fadeIn(500, 0, 0, 0);
         this.levelStartTime = this.time?.now || 0;
         
         // Start spawn director with first level spawn table

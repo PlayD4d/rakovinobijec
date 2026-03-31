@@ -365,10 +365,14 @@ export class UnifiedHUD {
         if (this._destroyed) return;
         const padding = RESPONSIVE.getSpacing(this.isMobileDevice);
 
+        // Left panel — recreate at correct position (bars are multiple sub-objects)
+        // The container holds all children, so we just need to rebuild
+        // For simplicity, left panel uses fixed padding from top-left — unchanged on resize
+
         if (this.levelText) {
             const x = gameSize.width - padding.large;
             this.levelText.x = x;
-            this.scoreText.x = x;
+            if (this.scoreText) this.scoreText.x = x;
         }
 
         if (this.enemiesText) {
