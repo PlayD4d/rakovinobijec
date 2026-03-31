@@ -43,8 +43,8 @@ export class BossPhases {
         const thresholds = [];
         
         this.phaseData.forEach((phase, index) => {
-            // BUGFIX: Blueprint uses thresholdPct instead of hpThreshold
-            const threshold = phase.hpThreshold || phase.thresholdPct;
+            // Support all threshold field name variants used across blueprints
+            const threshold = phase.hpThreshold ?? phase.thresholdPct ?? phase.threshold;
             if (threshold !== undefined) {
                 thresholds.push({
                     phase: index,
@@ -207,22 +207,26 @@ export class BossPhases {
      * Apply modifiers for the given phase
      */
     applyPhaseModifiers(phaseData) {
-        if (phaseData.modifiers) {
-            const { speedMultiplier, damageMultiplier, attackRateMultiplier } = phaseData.modifiers;
-            
-            if (speedMultiplier) {
-                this.boss.moveSpeed = this.boss.originalSpeed * speedMultiplier;
-            }
-            
-            if (damageMultiplier) {
-                this.boss.damageMultiplier = damageMultiplier;
-            }
-            
-            if (attackRateMultiplier) {
-                this.boss.attackRateMultiplier = attackRateMultiplier;
-            }
-            
-            DebugLogger.info('boss', `[BossPhases] Applied phase modifiers:`, phaseData.modifiers);
+        // Support both nested `modifiers: { speedMultiplier }` and flat `movementSpeed` fields
+        const mods = phaseData.modifiers || {};
+        const speedMul = mods.speedMultiplier || phaseData.movementSpeed || null;
+        const damageMul = mods.damageMultiplier || phaseData.damageMultiplier || null;
+        const attackRateMul = mods.attackRateMultiplier || phaseData.attackRateMultiplier || null;
+
+        if (speedMul) {
+            this.boss.moveSpeed = this.boss.originalSpeed * speedMul;
+        }
+
+        if (damageMul) {
+            this.boss.damageMultiplier = damageMul;
+        }
+
+        if (attackRateMul) {
+            this.boss.attackRateMultiplier = attackRateMul;
+        }
+
+        if (speedMul || damageMul || attackRateMul) {
+            DebugLogger.info('boss', `[BossPhases] Applied phase modifiers: speed=${speedMul}, damage=${damageMul}, attackRate=${attackRateMul}`);
         }
     }
     

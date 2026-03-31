@@ -36,10 +36,13 @@ export function executeBasicAttack(bossAbilities, abilityData, params) {
  */
 export function executeProjectileBurst(bossAbilities, abilityData, params) {
     getSession()?.log('boss', 'ability_execute', { ability: 'projectile_burst', count: abilityData.count || 8, damage: abilityData.damage || 15 });
-    const count = abilityData.count || 8;
+    const count = abilityData.count || abilityData.projectileCount || 8;
     const damage = abilityData.damage || 15;
     const spread = abilityData.spreadAngle || 360;
-    const chargeTime = abilityData.chargeTime || 600; // telegraph duration before firing
+    const chargeTime = abilityData.chargeTime || 600;
+    const burstDelay = abilityData.burstDelay || 100;
+    const speed = abilityData.speed || undefined;
+    const projectileId = abilityData.projectileId || 'projectile.boss_burst';
 
     // Telegraph: progressive fill at boss position warns player of incoming burst
     const vfx = bossAbilities.scene.vfxSystem;
@@ -49,18 +52,20 @@ export function executeProjectileBurst(bossAbilities, abilityData, params) {
         });
     }
 
-    // Fire projectiles AFTER telegraph completes
+    // Fire projectiles AFTER telegraph completes, staggered by burstDelay
     for (let i = 0; i < count; i++) {
         const angle = (i / count) * spread * (Math.PI / 180);
-        bossAbilities._schedule(chargeTime + i * 100, () => {
+        bossAbilities._schedule(chargeTime + i * burstDelay, () => {
             bossAbilities.boss.shoot('directional', {
-                damage, angle, cooldown: 0,
-                projectileId: abilityData.projectileId || 'projectile.boss_burst'
+                damage, angle, cooldown: 0, speed,
+                projectileId
             });
         });
     }
 
-    bossAbilities.boss.playSfx('sfx.boss.burst');
+    // Play SFX from blueprint or fallback
+    const sfx = abilityData.sfx || 'sfx.boss.burst';
+    bossAbilities.boss.playSfx(sfx);
 
     return true;
 }

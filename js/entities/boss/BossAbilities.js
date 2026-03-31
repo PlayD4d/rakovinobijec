@@ -93,6 +93,9 @@ export class BossAbilities {
         this.abilityHandlers.set('shoot_circle', (data, params) => executeProjectileBurst(this, data, params));
         this.abilityHandlers.set('tracking_burst', (data, params) => executeProjectileBurst(this, data, params));
 
+        // Radiation (L6) abilities
+        this.abilityHandlers.set('place_zone', (data, params) => executeToxicPools(this, data, params));
+
         // Onkogen Prime abilities
         this.abilityHandlers.set('shoot_fans', (data, params) => executeProjectileBurst(this, data, params));
         this.abilityHandlers.set('circle_burst', (data, params) => executeProjectileBurst(this, data, params));
@@ -160,6 +163,11 @@ export class BossAbilities {
 
         DebugLogger.info('boss', `[BossAbilities] Executing ability: ${abilityId}`);
         getSession()?.log('boss', 'ability_used', { bossId: this.boss?.blueprintId, abilityId, cooldown: abilityData.cooldown || 3000 });
+
+        // Map projectileRef → projectileId so handlers can read a single field name
+        if (abilityData.projectileRef && !abilityData.projectileId) {
+            abilityData.projectileId = abilityData.projectileRef;
+        }
 
         this.isExecutingAbility = true;
         this.activeAbilities.add(abilityId);
