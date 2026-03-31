@@ -300,28 +300,26 @@ export class BossPhases {
 
             this._activeAuras.push({ type, sprite, pulseTween, radius });
 
-                // Damage tick timer
-                const timer = scene.time.addEvent({
-                    delay: tickInterval,
-                    loop: true,
-                    callback: () => {
-                        if (!this.boss?.active || !this.scene) {
-                            // Boss deactivated or scene gone — stop ticking
-                            const auraEntry = this._activeAuras?.find(a => a.type === type);
-                            auraEntry?.timer?.remove();
-                            return;
-                        }
-                        const player = scene.player;
-                        if (!player?.active) return;
-                        const dx = player.x - boss.x;
-                        const dy = player.y - boss.y;
-                        if (dx * dx + dy * dy <= radius * radius) {
-                            player.takeDamage(damage, 'radiation_field');
-                        }
+            // Damage tick timer
+            const timer = scene.time.addEvent({
+                delay: tickInterval,
+                loop: true,
+                callback: () => {
+                    if (!this.boss?.active || !this.scene) {
+                        const auraEntry = this._activeAuras?.find(a => a.type === type);
+                        auraEntry?.timer?.remove();
+                        return;
                     }
-                });
-                this._activeAuras[this._activeAuras.length - 1].timer = timer;
-            }
+                    const player = scene.player;
+                    if (!player?.active) return;
+                    const dx = player.x - boss.x;
+                    const dy = player.y - boss.y;
+                    if (dx * dx + dy * dy <= radius * radius) {
+                        player.takeDamage(damage, 'radiation_field');
+                    }
+                }
+            });
+            this._activeAuras[this._activeAuras.length - 1].timer = timer;
         } else if (type === 'damage_boost') {
             if (boss.setTint) boss.setTint(0xFF4444);
         }
