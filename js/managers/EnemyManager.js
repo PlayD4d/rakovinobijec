@@ -187,11 +187,13 @@ export class EnemyManager {
     /**
      * Clear all enemies
      */
-    clearAll() {
+    clearAll({ resetBossState = true } = {}) {
         this.scene.enemiesGroup?.clear?.(true, true);
         this.scene.bossGroup?.clear?.(true, true);
-        this.scene.currentBoss = null;
-        this.scene.bossActive = false;
+        if (resetBossState) {
+            this.scene.currentBoss = null;
+            this.scene.bossActive = false;
+        }
     }
     
     /**

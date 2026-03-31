@@ -117,10 +117,10 @@ export function spawnBoss(director) {
     getSession()?.log('boss', 'spawn', { bossId, clearEnemies, spawnDelay });
     DebugLogger.info('spawn', `Boss spawn triggered: ${bossId}`);
 
-    // Clear existing enemies if requested (use EnemyManager for proper flag reset)
+    // Clear existing enemies if requested — but preserve bossActive flag (already set above)
     if (clearEnemies) {
         if (director.scene.enemyManager) {
-            director.scene.enemyManager.clearAll();
+            director.scene.enemyManager.clearAll({ resetBossState: false });
         } else if (director.scene.enemiesGroup) {
             director.scene.enemiesGroup.clear(true, true);
         }
