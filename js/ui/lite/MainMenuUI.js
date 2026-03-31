@@ -140,15 +140,28 @@ export class MainMenuUI {
     const cx = w / 2;
     const cy = h / 2;
 
-    // Overlay background
-    const bg = this.scene.add.rectangle(cx, cy, w, h, 0x000000, 0.85)
+    // Dim overlay
+    const overlay = this.scene.add.rectangle(cx, cy, w, h, 0x000000, 0.7)
       .setDepth(10).setInteractive()
       .on('pointerdown', (p, lx, ly, e) => e.stopPropagation());
 
-    // Tutorial content
+    // Panel background
+    const panelW = 420;
+    const panelH = 340;
+    const panel = this.scene.add.rectangle(cx, cy, panelW, panelH, 0x0a0a1e, 0.95)
+      .setStrokeStyle(2, 0x334466, 0.8).setDepth(11);
+
+    // Title
+    const titleLine = this.scene.add.text(cx, cy - panelH / 2 + 30, 'HOW TO PLAY', {
+      fontFamily: UI_THEME.fonts.primary,
+      fontSize: '22px',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5).setDepth(12);
+
+    // Content
     const lines = [
-      'HOW TO PLAY',
-      '',
       'WASD — Move your cell',
       'Auto-attack — Shoots nearest enemy',
       '',
@@ -158,38 +171,35 @@ export class MainMenuUI {
       '',
       '7 levels, each a stage of cancer',
       'Your goal: destroy the Tumor Core',
-      '',
-      'Click anywhere to close'
     ];
 
-    const text = this.scene.add.text(cx, cy, lines.join('\n'), {
+    const text = this.scene.add.text(cx, cy + 10, lines.join('\n'), {
       fontFamily: UI_THEME.fonts.primary,
-      fontSize: '14px',
+      fontSize: '13px',
       color: '#cccccc',
       align: 'center',
-      lineSpacing: 6
-    }).setOrigin(0.5).setDepth(11);
+      lineSpacing: 8
+    }).setOrigin(0.5).setDepth(12);
 
-    // Title highlight
-    const titleLine = this.scene.add.text(cx, cy - 120, 'HOW TO PLAY', {
+    // Close hint
+    const hint = this.scene.add.text(cx, cy + panelH / 2 - 20, 'Click anywhere to close', {
       fontFamily: UI_THEME.fonts.primary,
-      fontSize: '24px',
-      color: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 3
-    }).setOrigin(0.5).setDepth(11);
+      fontSize: '11px',
+      color: '#666666'
+    }).setOrigin(0.5).setDepth(12);
 
-    this._tutorialOverlay = [bg, text, titleLine];
-    this.elements.push(bg, text, titleLine);
+    this._tutorialOverlay = [overlay, panel, titleLine, text, hint];
+    this.elements.push(overlay, panel, titleLine, text, hint);
 
     // Fade in
-    [bg, text, titleLine].forEach(o => {
+    [overlay, panel, titleLine, text, hint].forEach(o => {
+      const targetAlpha = o === overlay ? 0.7 : (o === panel ? 0.95 : 1);
       o.setAlpha(0);
-      this.scene.tweens.add({ targets: o, alpha: o === bg ? 0.85 : 1, duration: 200 });
+      this.scene.tweens.add({ targets: o, alpha: targetAlpha, duration: 200 });
     });
 
     // Close on click
-    bg.once('pointerdown', () => this._closeTutorial());
+    overlay.once('pointerdown', () => this._closeTutorial());
   }
 
   _closeTutorial() {
