@@ -107,6 +107,73 @@ export class UnifiedHUD {
         );
         this.xpBar = xpContainer.bar;
         this.xpText = xpContainer.text;
+
+        // Power-up icon tray (below XP bar)
+        this._powerUpTrayY = y + (this.BAR_HEIGHT + padding.small) * 2 + 4;
+        this._powerUpTrayX = x + 30;
+        this._powerUpIcons = [];
+    }
+
+    /**
+     * Add a power-up icon to the HUD tray when player collects one
+     */
+    addPowerUpIcon(powerUp) {
+        if (this._destroyed || !powerUp) return;
+
+        const ICON_SIZE = 20;
+        const ICON_GAP = 4;
+        const idx = this._powerUpIcons.length;
+        const x = this._powerUpTrayX + idx * (ICON_SIZE + ICON_GAP);
+        const y = this._powerUpTrayY;
+
+        // Rarity → border color
+        const rarityColors = {
+            common: 0x888888, uncommon: 0x44aa44, rare: 0x4488ff,
+            epic: 0x9944cc, legendary: 0xffaa00
+        };
+        const borderColor = rarityColors[powerUp.rarity] || 0x888888;
+
+        // Icon background
+        const bg = this._rect(x, y, ICON_SIZE, ICON_SIZE, 0x1a1a2e);
+        bg.setOrigin(0, 0);
+        bg.setStrokeStyle(1.5, borderColor, 0.9);
+        this.container.add(bg);
+
+        // Level indicator (small text)
+        const lvl = this._text(
+            x + ICON_SIZE / 2, y + ICON_SIZE / 2,
+            `${powerUp.level || 1}`,
+            { fontFamily: UI_THEME.fonts.primary, fontSize: '10px', color: '#ffffff',
+              stroke: '#000000', strokeThickness: 2 }
+        );
+        lvl.setOrigin(0.5);
+        this.container.add(lvl);
+
+        this._powerUpIcons.push({ bg, lvl, id: powerUp.id });
+
+        // Pop-in animation
+        bg.setScale(0);
+        lvl.setScale(0);
+        if (this.scene?.tweens) {
+            this.scene.tweens.add({ targets: [bg, lvl], scale: 1, duration: 200, ease: 'Back.easeOut' });
+        }
+    }
+
+    /**
+     * Update level text on existing power-up icon (on upgrade)
+     */
+    updatePowerUpIcon(powerUpId, newLevel) {
+        if (this._destroyed) return;
+        const icon = this._powerUpIcons.find(i => i.id === powerUpId);
+        if (icon) {
+            icon.lvl.setText(`${newLevel}`);
+            // Brief scale pulse on upgrade
+            if (this.scene?.tweens) {
+                this.scene.tweens.add({
+                    targets: [icon.bg, icon.lvl], scale: 1.3, duration: 100, yoyo: true
+                });
+            }
+        }
     }
 
     createBar(x, y, label, color, value, maxValue) {
@@ -246,7 +313,7 @@ export class UnifiedHUD {
     updateHP(current, max) {
         if (this._destroyed) return;
         const percentage = Math.max(0, current / max);
-        this.hpBar.width = (this.BAR_WIDTH - 4) * percentage;
+        const targetWidth = (this.BAR_WIDTH - 4) * percentage;
         this.hpText.setText(`${Math.floor(current)}/${Math.floor(max)}`);
 
         if (percentage > 0.6) {
@@ -255,6 +322,14 @@ export class UnifiedHUD {
             this.hpBar.setFillStyle(UI_THEME.colors.warning);
         } else {
             this.hpBar.setFillStyle(UI_THEME.colors.secondary);
+        }
+
+        // Smooth tween to target width
+        if (this.scene?.tweens && Math.abs(this.hpBar.width - targetWidth) > 1) {
+            this.scene.tweens.killTweensOf(this.hpBar);
+            this.scene.tweens.add({ targets: this.hpBar, width: targetWidth, duration: 150, ease: 'Sine.easeOut' });
+        } else {
+            this.hpBar.width = targetWidth;
         }
     }
 
@@ -266,8 +341,16 @@ export class UnifiedHUD {
         if (this._destroyed) return;
         if (!max || max <= 0) return;
         const percentage = Math.min(1, current / max);
-        this.xpBar.width = (this.BAR_WIDTH - 4) * percentage;
+        const targetWidth = (this.BAR_WIDTH - 4) * percentage;
         this.xpText.setText(`${Math.floor(current)}/${max}`);
+
+        // Smooth tween to target width
+        if (this.scene?.tweens && Math.abs(this.xpBar.width - targetWidth) > 1) {
+            this.scene.tweens.killTweensOf(this.xpBar);
+            this.scene.tweens.add({ targets: this.xpBar, width: targetWidth, duration: 200, ease: 'Sine.easeOut' });
+        } else {
+            this.xpBar.width = targetWidth;
+        }
     }
 
     setPlayerXP(current, max) {
@@ -303,6 +386,33 @@ export class UnifiedHUD {
         this.bossContainer.setVisible(true);
         this.bossContainer.alpha = 0;
         this.scene.tweens.add({ targets: this.bossContainer, alpha: 1, duration: 500 });
+
+        // Boss intro banner — large centered name that fades out
+        this._showBossIntroBanner(name);
+    }
+
+    _showBossIntroBanner(name) {
+        const cx = this.scene.cameras.main.width / 2;
+        const cy = this.scene.cameras.main.height * 0.35;
+
+        const banner = this.scene.add.text(cx, cy, name, {
+            fontFamily: UI_THEME.fonts.primary,
+            fontSize: this.isMobileDevice ? '28px' : '36px',
+            color: '#ff4444',
+            stroke: '#000000',
+            strokeThickness: 5
+        }).setOrigin(0.5).setDepth(UI_THEME.depth.modal - 1).setScrollFactor(0).setAlpha(0);
+
+        // Animate in, hold, fade out
+        this.scene.tweens.add({
+            targets: banner, alpha: 1, y: cy - 10,
+            duration: 400, ease: 'Power2'
+        });
+        this.scene.tweens.add({
+            targets: banner, alpha: 0, y: cy - 30,
+            duration: 600, delay: 1500, ease: 'Power2',
+            onComplete: () => banner.destroy()
+        });
     }
 
     setBossHealth(hp, maxHp) {

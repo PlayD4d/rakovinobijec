@@ -205,6 +205,17 @@ export class BootstrapManager {
         } else if (selection && this.scene.powerUpSystem) {
             this.scene.powerUpSystem.applyPowerUp(selection.id, (selection.level || 0) + 1);
         }
+
+        // Notify HUD to show/update power-up icon
+        const hud = this.scene.scene.get('GameUIScene')?.hud;
+        if (hud && selection) {
+            const newLevel = (selection.level || 0) + 1;
+            if (newLevel > 1) {
+                hud.updatePowerUpIcon(selection.id, newLevel);
+            } else {
+                hud.addPowerUpIcon(selection);
+            }
+        }
         
         // Ensure player is still active
         this.ensurePlayerActive();
