@@ -202,6 +202,11 @@ function playRotatingBeams(x, y, opts = {}) {
                 if (gf) gf.release(g); else g.destroy();
                 handle.graphics = null;
             }
+            // Remove stale handle from tracking array
+            if (this._activeTelegraphs) {
+                const idx = this._activeTelegraphs.indexOf(handle);
+                if (idx !== -1) this._activeTelegraphs.splice(idx, 1);
+            }
         }
     });
 

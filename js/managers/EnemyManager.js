@@ -91,7 +91,7 @@ export class EnemyManager {
         }
 
         // Set depth
-        boss.setDepth(this.scene.DEPTH_LAYERS?.BOSSES || 1100);
+        boss.setDepth(this.scene.DEPTH_LAYERS?.BOSSES ?? 1100);
 
         // Ensure texture
         boss.setTexture(textureKey);

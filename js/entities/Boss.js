@@ -53,9 +53,7 @@ export class Boss extends BossCore {
         // BossCore extends EnemyCore which handles Phaser integration
         super(scene, blueprint, { x, y, ...enemyConfig, ...opts });
         
-        // Boss depth slightly above regular enemies
-        const bossDepth = scene.DEPTH_LAYERS?.ENEMIES || 1000;
-        this.setDepth(bossDepth + 100);
+        // Boss depth — EnemyManager.spawnBoss() sets final depth via DEPTH_LAYERS.BOSSES
         
         // Initialize specialized systems - Thin Composer pattern
         this.initializeBossSystems();

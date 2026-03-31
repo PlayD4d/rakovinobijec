@@ -289,6 +289,7 @@ export function executeToxicCloud(bossAbilities, abilityData, params) {
             delay: tickInterval,
             repeat: maxTicks - 1,
             callback: () => {
+                const player = bossAbilities.scene?.player;
                 if (!player?.active) return;
                 const dx = player.x - cloudX;
                 const dy = player.y - cloudY;

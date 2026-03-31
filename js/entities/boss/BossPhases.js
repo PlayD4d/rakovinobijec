@@ -255,6 +255,10 @@ export class BossPhases {
      */
     _activatePassiveAura(auraConfig) {
         const type = auraConfig.type || auraConfig;
+
+        // Prevent duplicate auras of the same type
+        if (this._activeAuras.some(a => a.type === type)) return;
+
         const radius = auraConfig.radius || 64;
         const damage = auraConfig.damage || 1;
         const tickInterval = auraConfig.tickInterval || 1500;
@@ -264,17 +268,37 @@ export class BossPhases {
         DebugLogger.info('boss', `[BossPhases] Activating passive aura: ${type}, radius=${radius}`);
 
         if (type === 'radiation_field') {
-            // Persistent radioactive green/yellow circle — Chernobyl style
-            const gf = scene.graphicsFactory;
-            if (gf) {
+            // Bake aura circle into a texture once, then use a Sprite for per-frame updates
+            // (avoids expensive Graphics.clear()+redraw every frame)
+            const textureKey = `_aura_radiation_${radius}`;
+            if (!scene.textures.exists(textureKey)) {
+                const gf = scene.graphicsFactory;
+                if (!gf) return;
                 const g = gf.create();
                 g.clear();
-                g.setAlpha(1);
-                g.setScale(1);
-                g.setPosition(boss.x, boss.y);
-                g.setDepth((scene.DEPTH_LAYERS?.ENEMIES || 1000) - 2);
+                g.fillStyle(0x88CC00, 0.08);
+                g.fillCircle(radius, radius, radius);
+                g.lineStyle(1.5, 0xAADD00, 0.35);
+                g.strokeCircle(radius, radius, radius);
+                g.generateTexture(textureKey, radius * 2, radius * 2);
+                gf.release(g);
+            }
 
-                this._activeAuras.push({ type, graphics: g, radius });
+            const sprite = scene.add.sprite(boss.x, boss.y, textureKey);
+            sprite.setDepth((scene.DEPTH_LAYERS?.ENEMIES || 1000) - 2);
+            sprite.setOrigin(0.5);
+
+            // Pulse alpha via tween (zero-GC per frame)
+            const pulseTween = scene.tweens.add({
+                targets: sprite,
+                alpha: { from: 0.5, to: 1 },
+                duration: 1000,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+
+            this._activeAuras.push({ type, sprite, pulseTween, radius });
 
                 // Damage tick timer
                 const timer = scene.time.addEvent({
@@ -308,21 +332,10 @@ export class BossPhases {
      */
     _updatePassiveAuras(time) {
         for (const aura of this._activeAuras) {
-            if (!aura.graphics?.scene) continue;
-            const g = aura.graphics;
-            g.setPosition(this.boss.x, this.boss.y);
-
-            g.clear();
-            // Slow pulse (~1 per second)
-            const pulse = 0.5 + 0.5 * Math.sin(time * 0.003);
-
-            // Radioactive glow — yellow-green fill
-            g.fillStyle(0x88CC00, 0.04 + pulse * 0.06);
-            g.fillCircle(0, 0, aura.radius);
-
-            // Border ring
-            g.lineStyle(1.5, 0xAADD00, 0.2 + pulse * 0.2);
-            g.strokeCircle(0, 0, aura.radius);
+            // Sprite-based aura: just follow boss position (pulse via tween, no redraw)
+            if (aura.sprite?.scene) {
+                aura.sprite.setPosition(this.boss.x, this.boss.y);
+            }
         }
     }
 
@@ -330,10 +343,13 @@ export class BossPhases {
      * Clean up passive auras on boss death
      */
     _destroyPassiveAuras() {
-        const gf = this.scene?.graphicsFactory;
         for (const aura of this._activeAuras) {
-            if (aura.timer) aura.timer.destroy();
+            if (aura.timer) aura.timer.remove();
+            if (aura.pulseTween) aura.pulseTween.stop();
+            if (aura.sprite?.scene) aura.sprite.destroy();
+            // Legacy Graphics-based aura cleanup
             if (aura.graphics?.scene) {
+                const gf = this.scene?.graphicsFactory;
                 if (gf) gf.release(aura.graphics); else aura.graphics.destroy();
             }
         }
@@ -346,18 +362,16 @@ export class BossPhases {
     activateSpecialBehavior(behavior) {
         DebugLogger.info('boss', `[BossPhases] Activating special behavior: ${behavior}`);
 
-        // Save original speed on first activation to prevent double-multiply
-        if (this._originalMoveSpeed == null) {
-            this._originalMoveSpeed = this.boss.moveSpeed;
-        }
+        // Use BossCore's originalSpeed as the canonical baseline
+        const baseSpeed = this.boss.originalSpeed ?? this.boss.moveSpeed;
 
         switch (behavior) {
             case 'berserker':
-                this.boss.moveSpeed = this._originalMoveSpeed * 1.5;
+                this.boss.moveSpeed = baseSpeed * 1.5;
                 this.boss.setTint(0xFF0000);
                 break;
             case 'defensive':
-                this.boss.moveSpeed = this._originalMoveSpeed * 0.7;
+                this.boss.moveSpeed = baseSpeed * 0.7;
                 this.boss.setTint(0x4444FF);
                 break;
         }
@@ -454,7 +468,7 @@ export class BossPhases {
         this._destroyPassiveAuras();
         // Cancel any pending transition timer
         if (this._transitionTimer) {
-            this._transitionTimer.destroy();
+            this._transitionTimer.remove();
             this._transitionTimer = null;
         }
         this.transitionCallbacks.clear();
