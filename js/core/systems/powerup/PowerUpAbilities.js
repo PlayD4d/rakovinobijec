@@ -323,9 +323,12 @@ export class PowerUpAbilities {
             this._damageZones.updateImmuneAura(player);
         }
 
-        // Slow aura — reduce nearby enemy speed each frame
+        // Slow aura — reduce nearby enemy speed at 4Hz (not per-frame)
         if (this._slowAuraConfig && player?.active) {
-            this._applySlowAura(player);
+            if (!this._lastSlowTick || time - this._lastSlowTick >= 250) {
+                this._lastSlowTick = time;
+                this._applySlowAura(player);
+            }
         }
 
         // Delegate shield regeneration
