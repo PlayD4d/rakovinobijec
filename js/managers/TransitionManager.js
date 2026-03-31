@@ -1,7 +1,7 @@
 import { DebugLogger } from '../core/debug/DebugLogger.js';
 import { executeVictory } from './transitions/VictorySequence.js';
 import { executeGameOver } from './transitions/GameOverSequence.js';
-import { executeLevelTransition, cleanupLevel, initializeLevel } from './transitions/LevelTransition.js';
+import { executeLevelTransition } from './transitions/LevelTransition.js';
 
 /**
  * TransitionManager - Handles all game flow transitions
@@ -190,7 +190,11 @@ export class TransitionManager {
         try {
             DebugLogger.info('transition', '[TransitionManager] Resetting current level');
 
-            await cleanupLevel(this);
+            // Inline cleanup — clear enemies, projectiles, stop spawns
+            this.scene.spawnDirector?.stop();
+            this.scene.projectileSystem?.clearAll();
+            if (this.scene.enemyManager) this.scene.enemyManager.clearAll();
+            if (this.scene.vfxSystem?.stopAllEffects) this.scene.vfxSystem.stopAllEffects();
 
             if (this.scene.player) {
                 this.scene.player.resetTimersAfterPause();
@@ -203,7 +207,11 @@ export class TransitionManager {
             this.scene.gameStats.enemiesKilled = 0;
             this.scene.gameStats.kills = 0;
 
-            await initializeLevel(this, this.scene.currentLevel);
+            // Inline re-initialize — reload current spawn table
+            if (this.scene.spawnDirector) {
+                await this.scene.spawnDirector.loadSpawnTable(`spawnTable.level${this.scene.currentLevel}`);
+                this.scene.spawnDirector.start();
+            }
 
             this.resumeGameSystems();
             this.isResetting = false;
