@@ -205,6 +205,9 @@ function playRotatingBeams(x, y, opts = {}) {
         }
     });
 
+    // Track for cleanup on boss death / level transition
+    if (this._activeTelegraphs) this._activeTelegraphs.push(handle);
+
     return handle;
 }
 

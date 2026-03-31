@@ -118,7 +118,6 @@ export class MainMenu extends Phaser.Scene {
         // Ensure cleanup runs when the scene shuts down (unregister listeners)
         try {
             this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this);
-            this.events.once(Phaser.Scenes.Events.DESTROY, this.shutdown, this);
         } catch (_) { }
 
         // Remove blur/focus sleep/wake - it causes input issues in menu
@@ -153,12 +152,7 @@ export class MainMenu extends Phaser.Scene {
         try { this.game.loop.targetFps = 60; } catch (_) { }
         // Play pickup sound for menu confirm (before scene transition tears down audio)
         try {
-            if (this.sound && this.sound.add) {
-                const pickupKey = 'sound_pickup_mp3';
-                if (this.cache.audio.exists(pickupKey)) {
-                    this.sound.play(pickupKey, { volume: 0.5 });
-                }
-            }
+            this.musicManager?.play('sound/pickup.mp3', { volume: 0.5 });
         } catch (_) { }
 
         // Transition to game — Phaser auto-triggers SHUTDOWN on this scene
@@ -199,12 +193,7 @@ export class MainMenu extends Phaser.Scene {
         // Delay to ensure audio is loaded
         this.time.delayedCall(500, () => {
             try {
-                if (this.sound && this.sound.add) {
-                    const introKey = 'sound_ready_fight_mp3';
-                    if (this.cache.audio.exists(introKey)) {
-                        this.sound.play(introKey, { volume: 0.5 });
-                    }
-                }
+                this.musicManager?.play('sound/ready_fight.mp3', { volume: 0.5 });
             } catch (_) { }
         });
     }
@@ -221,19 +210,12 @@ export class MainMenu extends Phaser.Scene {
             try { await this.sound.context.resume(); } catch (_) {}
         }
 
-        // Intro sound
-        try {
-            const introKey = 'sound_ready_fight_mp3';
-            if (this.cache?.audio?.exists(introKey)) {
-                this.sound.play(introKey, { volume: 0.5 });
-            }
-        } catch (_) {}
-
-        // Menu music
+        // Menu music + intro sound via AudioSystem (no direct this.sound.play)
         try {
             const { SimplifiedAudioSystem } = await import('../core/audio/SimplifiedAudioSystem.js');
             this.musicManager = new SimplifiedAudioSystem(this);
             await this.musicManager.initialize();
+            this.musicManager.play('sound/intro.mp3', { volume: 0.5 });
             this.musicManager.playMusic('music/8bit_main_menu.mp3');
         } catch (_) {}
     }
@@ -273,10 +255,13 @@ export class MainMenu extends Phaser.Scene {
         try { this.game.loop.targetFps = 60; } catch (_) { }
 
         // No blur/focus listeners to clean up
-        try { this.sfxRouter && this.sfxRouter.destroy(); } catch (_) { }
+        try { this.sfxRouter?.destroy(); } catch (_) { }
+        try { this.vfxSystem?.shutdown?.(); } catch (_) { }
+        try { this.graphicsFactory?.shutdown?.(); } catch (_) { }
         this.sfxRouter = null;
         this.sfxSystem = null;
         this.vfxSystem = null;
+        this.graphicsFactory = null;
         // CentralEventBus is a singleton — don't null it, just remove our listeners
         centralEventBus.removeAllListeners(this);
     }

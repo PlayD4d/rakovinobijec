@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "generated": "2025-08-16T06:21:58.166Z",
-  "totalEntities": 57,
+  "totalEntities": 61,
   "index": {
     "unique.radiomorph_titan": "blueprints/unique/unique_radiomorph_titan.json5",
     "unique.phage_overlord": "blueprints/unique/unique_phage_overlord.json5",
@@ -22,6 +22,10 @@
     "projectile.cytotoxin_small": "blueprints/projectile/projectile_cytotoxin_small.json5",
     "projectile.cytotoxin_enhanced": "blueprints/projectile/projectile_cytotoxin_enhanced.json5",
     "projectile.cytotoxin": "blueprints/projectile/projectile_cytotoxin.json5",
+    "projectile.boss_circle": "blueprints/projectile/projectile_boss_circle.json5",
+    "projectile.boss_tracking": "blueprints/projectile/projectile_boss_tracking.json5",
+    "projectile.boss_fan": "blueprints/projectile/projectile_boss_fan.json5",
+    "projectile.onkogen_shot": "blueprints/projectile/projectile_onkogen_shot.json5",
     "powerup.xp_magnet": "blueprints/powerup/powerup_xp_magnet.json5",
     "powerup.shield": "blueprints/powerup/powerup_shield.json5",
     "powerup.radiotherapy": "blueprints/powerup/powerup_radiotherapy.json5",

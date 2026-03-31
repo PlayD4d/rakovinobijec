@@ -62,10 +62,8 @@ export class ProjectileSystem {
     // World-bounds cleanup (prevents invisible projectile buildup)
     this._setupWorldBoundsCleanup();
 
-    // Scene shutdown cleanup
-    scene.events.once('shutdown', () => {
-      this._cleanupSystem();
-    });
+    // Note: shutdown cleanup is handled by GameScene's explicit shutdown loop
+    // calling clearAll() — no self-registered listener needed.
   }
 
   /**

@@ -1,0 +1,44 @@
+{
+  id: 'projectile.onkogen_shot',
+  type: 'projectile',
+  stats: {
+    damage: 14,
+    speed: 160,
+    range: 650,
+    size: 6,
+    pierce: 0,
+    lifetime: 4.0,
+  },
+  graphics: {
+    shape: 'circle',
+    tint: 0xCC33FF,
+    size: 9,
+    scale: 1,
+  },
+  mechanics: {
+    onHit: 'none',
+    pierceDecay: 0,
+    trail: { enabled: true, vfx: 'trail.small', fadeTime: 200 },
+    homing: false,
+    bounce: false,
+  },
+  vfx: {
+    spawn: 'vfx.effect',
+    trail: 'vfx.trail.small',
+    hit: 'vfx.hit.small',
+    expire: 'vfx.hit.small',
+  },
+  sfx: {
+    spawn: 'sound/laser.mp3',
+    hit: 'sound/projectile_hit.mp3',
+  },
+  display: {
+    key: 'projectile.onkogen_shot.name',
+    descKey: 'projectile.onkogen_shot.desc',
+    devNameFallback: 'Onkogen Shot',
+    devDescFallback: 'Projektil onkogenu',
+    color: '#CC33FF',
+    rarity: 'uncommon',
+    category: 'projectile',
+  },
+}

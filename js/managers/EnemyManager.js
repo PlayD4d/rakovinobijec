@@ -17,14 +17,10 @@ export class EnemyManager {
     constructor(scene) {
         this.scene = scene;
         this.blueprintLoader = scene.blueprintLoader;
-        
-        // Groups should be created by SystemsInitializer before EnemyManager is constructed
-        // Defensive guard: create if missing (backward compat)
-        if (!scene.enemiesGroup) {
-            scene.enemiesGroup = scene.physics.add.group({ runChildUpdate: false });
-        }
-        if (!scene.bossGroup) {
-            scene.bossGroup = scene.physics.add.group();
+
+        // Groups are created by SystemsInitializer which always runs before EnemyManager
+        if (!scene.enemiesGroup || !scene.bossGroup) {
+            DebugLogger.error('enemy', '[EnemyManager] enemiesGroup or bossGroup missing — SystemsInitializer must run first');
         }
     }
     
@@ -136,8 +132,8 @@ export class EnemyManager {
         }
         
         // Visual indicators
-        if (blueprint.type === 'unique') {
-            enemy.setTint(0xFF00FF); // Purple for unique
+        if (blueprint.type === 'unique' && !blueprint.visuals?.tint) {
+            enemy.setTint(0xC0C0C0); // Silver for unique (only if no blueprint tint)
         } else if (blueprint.type === 'miniboss') {
             enemy.setTint(0xFF8800); // Orange for miniboss
         }

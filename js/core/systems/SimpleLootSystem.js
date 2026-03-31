@@ -12,8 +12,6 @@ import { getSession } from '../debug/SessionLog.js';
 import { generateLootTextures } from './loot/LootTextureGenerator.js';
 
 const POOL_MAX_SIZE = 120;
-const DEPTH_XP = 500;
-const DEPTH_ITEMS = 600;
 const PICKUP_RADIUS_SQ = 625; // 25²
 const MERGE_RADIUS_SQ = 3600; // 60² — wider merge radius to catch scattered orbs
 const MERGE_INTERVAL = 1500; // ms — merge more frequently
@@ -24,6 +22,10 @@ export class SimpleLootSystem {
     constructor(scene) {
         this.scene = scene;
         this.blueprintLoader = scene.blueprintLoader;
+
+        // Depth values from scene constants (fallback to legacy defaults)
+        this._depthXP = scene.DEPTH_LAYERS?.LOOT_XP ?? scene.DEPTH_LAYERS?.LOOT ?? 500;
+        this._depthItems = scene.DEPTH_LAYERS?.LOOT_ITEMS ?? scene.DEPTH_LAYERS?.LOOT ?? 600;
 
         // Phaser physics group with maxSize — native pool: get() reuses inactive, disableBody() returns
         this.lootGroup = scene.physics.add.group({ maxSize: POOL_MAX_SIZE });
@@ -41,7 +43,8 @@ export class SimpleLootSystem {
         // Generate item textures on initialization
         generateLootTextures(this.scene);
 
-        scene.events.once('shutdown', this.clearAll, this);
+        // Note: shutdown cleanup is handled by GameScene's explicit shutdown loop
+        // calling clearAll()/shutdown() — no self-registered listener needed.
     }
 
     // ==================== Drop Creation ====================
@@ -83,11 +86,11 @@ export class SimpleLootSystem {
             const xpScale = (blueprint.graphics?.scale || 1.0) * 0.7;
             drop.setScale(xpScale);
             drop.setAlpha(0.5);
-            drop.setDepth(DEPTH_XP);
+            drop.setDepth(this._depthXP);
         } else {
             drop.setScale(blueprint.graphics?.scale || 1.0);
             drop.setAlpha(0.85);
-            drop.setDepth(DEPTH_ITEMS);
+            drop.setDepth(this._depthItems);
         }
 
         // Stamp loot data on sprite
@@ -182,7 +185,7 @@ export class SimpleLootSystem {
      * Called by physics.add.overlap (setupCollisions.js) when player overlaps loot sprite.
      */
     handlePickup(player, loot) {
-        if (!loot.active) return;
+        if (!loot.active || !player.active) return;
 
         const blueprint = loot.blueprint;
         const effectType = blueprint.effect?.type || loot.dropType;
@@ -301,6 +304,13 @@ export class SimpleLootSystem {
 
             // Magnet pickup pull — gradual acceleration (beautiful vacuum effect)
             if (loot._magnetPull) {
+                // Out-of-bounds cleanup — prevent ghost orbs from persisting indefinitely
+                const wb = this.scene.physics?.world?.bounds;
+                if (wb && (loot.x < wb.x - 200 || loot.x > wb.right + 200 ||
+                           loot.y < wb.y - 200 || loot.y > wb.bottom + 200)) {
+                    this._returnToPool(loot);
+                    continue;
+                }
                 if (distSq > 1) {
                     // Accelerate toward player: starts slow, gets faster as orb approaches
                     const distance = Math.sqrt(distSq);

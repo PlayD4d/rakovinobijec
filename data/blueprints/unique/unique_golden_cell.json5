@@ -35,7 +35,9 @@
       'drop.xp_large',
       'drop.heal_orb',
     ],
+    // NOTE: uniqueAbilities are planned features — no runtime handlers yet
     uniqueAbilities: {
+      _status: 'planned',
       goldenPulse: {
         interval: 5000,
         damage: 25,

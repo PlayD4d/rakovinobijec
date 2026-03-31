@@ -153,7 +153,7 @@ export class TransitionManager {
         }
 
         this._log('level_transition_start', {
-            fromLevel: this.scene.gameStats?.currentLevel || 1,
+            fromLevel: this.scene.currentLevel || 1,
             toLevel: nextLevel,
             score: this.scene.gameStats?.score || 0
         });

@@ -31,7 +31,7 @@ export class BootstrapManager {
             BOSSES: 1100,
             PLAYER: 2000,
             PROJECTILES: 3000,
-            EFFECTS: 4000,
+            VFX: 4000,
             UI_BASE: 10000,
             UI_MODAL: 20000
         };
@@ -309,14 +309,17 @@ export class BootstrapManager {
         const hp = CR?.get('player.stats.hp', { defaultValue: 100 }) || 100;
         const speed = CR?.get('player.stats.speed', { defaultValue: 135 }) || 135;
         const damage = CR?.get('player.attack.damage', { defaultValue: 10 }) || 10;
+        const projSpeed = CR?.get('mechanics.projectile.stats.speed', { defaultValue: 300 }) || 300;
+        const projRange = CR?.get('mechanics.projectile.stats.range', { defaultValue: 600 }) || 600;
+        const intervalMs = CR?.get('mechanics.attack.intervalMs', { defaultValue: 1000 }) || 1000;
         return {
             id: 'player_emergency', type: 'player',
             display: { texture: 'player', frame: 0, tint: 0x4169E1 },
             stats: { hp, speed, size: 24 },
             mechanics: {
-                attack: { intervalMs: 1000 },
+                attack: { intervalMs },
                 projectile: { ref: 'projectile.player_basic', count: 1, spreadDeg: 15,
-                    stats: { damage, speed: 300, range: 600 } },
+                    stats: { damage, speed: projSpeed, range: projRange } },
                 crit: { chance: 0.05, multiplier: 2 },
                 iFrames: { ms: 1000 }
             },
@@ -383,7 +386,7 @@ export class BootstrapManager {
         );
 
         // Set proper depth layer
-        this.scene.player.setDepth(this.scene.DEPTH_LAYERS?.PLAYER ?? 1500);
+        this.scene.player.setDepth(this.scene.DEPTH_LAYERS?.PLAYER ?? 2000);
 
         // Wire input
         this.scene.player.setInputKeys(this.scene.inputKeys);

@@ -74,15 +74,9 @@ export class MobileControlsSystem {
     const baseDepth = CR?.get('mobile.joystick.baseDepth', { defaultValue: 4000 }) || 4000;
     const knobDepth = CR?.get('mobile.joystick.knobDepth', { defaultValue: 4001 }) || 4001;
     
-    // PR7 compliant: Use GraphicsFactory if available
-    if (s.graphicsFactory) {
-      this.base = s.graphicsFactory.create();
-      this.knob = s.graphicsFactory.create();
-    } else {
-      // Fallback for scenes without GraphicsFactory
-      this.base = s.add.graphics();
-      this.knob = s.add.graphics();
-    }
+    // PR7 compliant: Use GraphicsFactory (required)
+    this.base = s.graphicsFactory.create();
+    this.knob = s.graphicsFactory.create();
     
     this.base.setScrollFactor(0).setDepth(baseDepth);
     this.knob.setScrollFactor(0).setDepth(knobDepth);
@@ -97,15 +91,9 @@ export class MobileControlsSystem {
   }
 
   _destroyVisuals() {
-    // PR7 compliant: Release to GraphicsFactory if available
-    if (this.scene.graphicsFactory) {
-      if (this.base) this.scene.graphicsFactory.release(this.base);
-      if (this.knob) this.scene.graphicsFactory.release(this.knob);
-    } else {
-      // Fallback destroy
-      if (this.base) this.base.destroy();
-      if (this.knob) this.knob.destroy();
-    }
+    // PR7 compliant: Release to GraphicsFactory (required)
+    if (this.base) this.scene.graphicsFactory.release(this.base);
+    if (this.knob) this.scene.graphicsFactory.release(this.knob);
     this.base = null;
     this.knob = null;
   }

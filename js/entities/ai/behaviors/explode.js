@@ -50,7 +50,7 @@ export function explode(cap, cfg, dt, mem) {
                 const px = player.x - p.x;
                 const py = player.y - p.y;
                 if (player.active && px * px + py * py <= explosionRadius * explosionRadius) {
-                    player.takeDamage(explosionDamage, 'acidic_explosion');
+                    cap.damagePlayer(explosionDamage, 'acidic_explosion');
                 }
 
                 cap.die();

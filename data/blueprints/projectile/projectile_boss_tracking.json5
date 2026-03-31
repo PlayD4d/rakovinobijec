@@ -1,0 +1,44 @@
+{
+  id: 'projectile.boss_tracking',
+  type: 'projectile',
+  stats: {
+    damage: 12,
+    speed: 140,
+    range: 700,
+    size: 5,
+    pierce: 0,
+    lifetime: 5.0,
+  },
+  graphics: {
+    shape: 'triangle',
+    tint: 0xFF4444,
+    size: 8,
+    scale: 1,
+  },
+  mechanics: {
+    onHit: 'none',
+    pierceDecay: 0,
+    trail: { enabled: true, vfx: 'trail.small', fadeTime: 300 },
+    homing: true,
+    bounce: false,
+  },
+  vfx: {
+    spawn: 'vfx.effect',
+    trail: 'vfx.trail.small',
+    hit: 'vfx.hit.small',
+    expire: 'vfx.hit.small',
+  },
+  sfx: {
+    spawn: 'sound/laser.mp3',
+    hit: 'sound/projectile_hit.mp3',
+  },
+  display: {
+    key: 'projectile.boss_tracking.name',
+    descKey: 'projectile.boss_tracking.desc',
+    devNameFallback: 'Boss Tracking Shot',
+    devDescFallback: 'Naváděný boss projektil',
+    color: '#FF4444',
+    rarity: 'uncommon',
+    category: 'projectile',
+  },
+}

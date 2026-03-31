@@ -32,7 +32,9 @@ export class SimpleModal extends Phaser.GameObjects.Container {
     // Overlay — blocks clicks. Created without scene.add to avoid double display-list entry.
     this.overlay = new Phaser.GameObjects.Rectangle(
       scene, w/2, h/2, w, h, this.config.overlayColor, this.config.overlayAlpha
-    ).setInteractive().on('pointerdown', () => {});
+    ).setInteractive().on('pointerdown', (pointer, lx, ly, event) => {
+      event.stopPropagation();
+    });
 
     // Panel background
     const panelW = this.config.width;

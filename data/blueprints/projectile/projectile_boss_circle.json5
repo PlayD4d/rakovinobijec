@@ -1,0 +1,43 @@
+{
+  id: 'projectile.boss_circle',
+  type: 'projectile',
+  stats: {
+    damage: 15,
+    speed: 180,
+    range: 600,
+    size: 6,
+    pierce: 0,
+    lifetime: 3.33,
+  },
+  graphics: {
+    shape: 'circle',
+    tint: 0xFF2222,
+    size: 10,
+    scale: 1,
+  },
+  mechanics: {
+    onHit: 'none',
+    pierceDecay: 0,
+    trail: { enabled: false },
+    homing: false,
+    bounce: false,
+  },
+  vfx: {
+    spawn: 'vfx.effect',
+    hit: 'vfx.hit.small',
+    expire: 'vfx.hit.small',
+  },
+  sfx: {
+    spawn: 'sound/laser.mp3',
+    hit: 'sound/projectile_hit.mp3',
+  },
+  display: {
+    key: 'projectile.boss_circle.name',
+    descKey: 'projectile.boss_circle.desc',
+    devNameFallback: 'Boss Circle Shot',
+    devDescFallback: 'Kruhový boss projektil',
+    color: '#FF2222',
+    rarity: 'common',
+    category: 'projectile',
+  },
+}

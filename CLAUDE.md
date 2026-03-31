@@ -121,9 +121,9 @@ __framework.healthcheck()     __framework.quickCheck()
 | 2 | onkogen | 1050 |
 | 3 | karcinogenni_kral | 1050 |
 | 4 | genova_mutace | 1200 |
-| 5 | onkogen_prime | 2100 |
-| 6 | radiation | 1800 |
-| 7 | chemorezistence (FINAL) | 2700 |
+| 5 | onkogen_prime | 1800 |
+| 6 | radiation | 1350 |
+| 7 | chemorezistence (FINAL) | 1800 |
 
 ## Documentation
 - Architecture: @docs/ARCHITECTURE.md

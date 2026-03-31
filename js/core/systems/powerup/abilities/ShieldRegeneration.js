@@ -1,6 +1,6 @@
 import { DebugLogger } from '../../../debug/DebugLogger.js';
 import { getSession } from '../../../debug/SessionLog.js';
-import { registerDynamicOverlap } from '../../../../handlers/setupCollisions.js';
+import { registerDynamicOverlap, registerDynamicCollider } from '../../../../handlers/setupCollisions.js';
 
 /**
  * ShieldRegeneration - Handles shield HP regeneration and damage absorption
@@ -162,11 +162,10 @@ export class ShieldRegeneration {
 
         // Collider: shield vs enemies — physically stops them + contact damage to shield
         if (scene.enemiesGroup) {
-            player._shieldEnemyCollider = scene.physics.add.collider(
-                hitbox, scene.enemiesGroup,
+            player._shieldEnemyCollider = registerDynamicCollider(
+                scene, hitbox, scene.enemiesGroup,
                 (shield, enemy) => this._onEnemyContactShield(player, enemy),
-                () => player.shieldActive && player.shieldHP > 0,
-                this
+                () => player.shieldActive && player.shieldHP > 0
             );
         }
         // Boss: overlap only (contact damage to shield, but NO physical knockback)

@@ -56,7 +56,11 @@ export class EnemyBehaviors {
             this.layers = { ...aiConfig.layers };
         } else {
             // Backwards compat: derive layers from legacy ai.behavior
-            const behavior = aiConfig.behavior || 'chase';
+            let behavior = aiConfig.behavior || 'chase';
+            if (!BEHAVIORS[behavior] && behavior !== 'shoot') {
+                DebugLogger.warn('ai', `[EnemyBehaviors] Unknown behavior '${behavior}' — falling back to 'chase'`);
+                behavior = 'chase';
+            }
             this.layers = { movement: (behavior === 'shoot') ? 'chase' : behavior };
 
             // Auto-add combat layer if enemy can shoot
@@ -117,6 +121,7 @@ export class EnemyBehaviors {
         for (const [layer] of this._layerEntries) {
             this._setLayerFns[layer] = (newBehavior, opts) => {
                 if (newBehavior && BEHAVIORS[newBehavior]) {
+                    if (this.layers[layer] === newBehavior) return;
                     if (opts?.stickyMs) {
                         const now = this.enemy.scene?.time?.now || 0;
                         const stickKey = `_stickyUntil_${layer}`;
@@ -200,6 +205,10 @@ export class EnemyBehaviors {
             spawnVfx: (id, at, opts) => enemy.spawnVfx(id, at, opts),
             playTelegraph: (x, y, opts) => enemy.scene?.vfxSystem?.playTelegraph?.(x, y, opts),
             playExplosion: (x, y, opts) => enemy.scene?.vfxSystem?.playExplosionEffect?.(x, y, opts),
+            damagePlayer: (amount, source) => {
+                const p = enemy.scene?.player;
+                if (p?.active) p.takeDamage(amount, source);
+            },
             die: () => enemy.die('self_destruct'),
             getHpRatio: () => enemy.maxHp > 0 ? enemy.hp / enemy.maxHp : 1,
             setTint: (color) => enemy.setTint?.(color),

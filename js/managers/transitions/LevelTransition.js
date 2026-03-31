@@ -42,8 +42,7 @@ export async function executeLevelTransition(tm, nextLevel) {
     scene.currentLevel = nextLevel;
     await initializeLevel(tm, nextLevel);
 
-    // 7. Hide transition UI
-    scene.events.emit('ui:level-transition:hide');
+    // 7. Transition text auto-destroys via tween in GameUIScene — no hide event needed
 
     // 8. Resume remaining game systems (spawns, enemies update, projectiles)
     tm.resumeGameSystems();

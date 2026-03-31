@@ -26,8 +26,10 @@
     wanderRadius: 80,
     dropChance: 1,
     healthDropChance: 0.2,
+    // NOTE: dash, evasion, afterimage are planned features — no runtime handlers yet
     dash: {
-      enabled: true,
+      _status: 'planned',
+      enabled: false,
       speed: 180,
       distance: 120,
       cooldown: 2000,
@@ -35,12 +37,14 @@
       invulnerable: true,
     },
     evasion: {
-      chance: 0.3,
+      _status: 'planned',
+      chance: 0,
       visualEffect: true,
       counterAttack: true,
     },
     afterimage: {
-      enabled: true,
+      _status: 'planned',
+      enabled: false,
       count: 3,
       duration: 1000,
       confuse: true,

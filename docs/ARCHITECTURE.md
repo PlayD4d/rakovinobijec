@@ -57,16 +57,17 @@ Blueprint-driven data layer:
 
 ### Konstanty pro depth layering
 ```javascript
-// js/scenes/GameScene.js
+// js/managers/BootstrapManager.js
 this.DEPTH_LAYERS = {
     BACKGROUND: 0,
-    LOOT: 100,
+    LOOT: 500,
     ENEMIES: 1000,
-    PLAYER: 1500,
-    PROJECTILES: 2000,
-    VFX: 3000,
-    UI_GAME: 4000,      // In-game UI (health bars)
-    UI_OVERLAY: 5000    // Modal overlays
+    BOSSES: 1100,
+    PLAYER: 2000,
+    PROJECTILES: 3000,
+    VFX: 4000,
+    UI_BASE: 10000,
+    UI_MODAL: 20000
 };
 ```
 

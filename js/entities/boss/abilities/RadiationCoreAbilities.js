@@ -90,18 +90,33 @@ export function executeToxicPools(bossAbilities, abilityData, params) {
         }
     }
 
-    // Explosion after telegraph — green (toxic)
+    // Explosion after telegraph — green (toxic) + damage check
+    const poolRadius = 50;
+    const poolDamage = abilityData.damage || 15;
+
     bossAbilities._schedule(warningTime, () => {
         if (!boss?.active) return;
         for (const pool of pools) {
             if (vfx?.playExplosionEffect) {
                 vfx.playExplosionEffect(pool.x, pool.y, {
-                    color: 0x44BB00, radius: 50, duration: 300
+                    color: 0x44BB00, radius: poolRadius, duration: 300
                 });
             }
         }
         if (bossAbilities.scene.audioSystem) {
             bossAbilities.scene.audioSystem.play('sound/toxic_pools.mp3');
+        }
+        // Damage player if within any pool radius
+        const player = bossAbilities.scene?.player;
+        if (player?.active) {
+            for (const pool of pools) {
+                const dx = pool.x - player.x;
+                const dy = pool.y - player.y;
+                if (dx * dx + dy * dy <= poolRadius * poolRadius) {
+                    player.takeDamage(poolDamage, 'toxic');
+                    break;
+                }
+            }
         }
     });
 

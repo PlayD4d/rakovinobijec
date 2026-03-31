@@ -322,3 +322,20 @@ export function registerDynamicOverlap(scene, a, b, callback, processCallback = 
     return scene.physics.add.overlap(a, b, callback, processCallback, scene);
 }
 
+/**
+ * Register a dynamic collider at runtime (e.g., shield vs enemies — physical separation).
+ * Centralizes physics.add.collider calls per architectural contract.
+ * Caller must store the returned collider and destroy it on cleanup.
+ *
+ * @param {Phaser.Scene} scene
+ * @param {Phaser.GameObjects.GameObject} a
+ * @param {Phaser.GameObjects.Group|Phaser.GameObjects.GameObject} b
+ * @param {Function} callback
+ * @param {Function} [processCallback]
+ * @returns {Phaser.Physics.Arcade.Collider|null}
+ */
+export function registerDynamicCollider(scene, a, b, callback, processCallback = null) {
+    if (!scene?.physics) return null;
+    return scene.physics.add.collider(a, b, callback, processCallback, scene);
+}
+

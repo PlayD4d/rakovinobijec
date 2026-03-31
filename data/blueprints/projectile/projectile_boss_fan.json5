@@ -1,0 +1,43 @@
+{
+  id: 'projectile.boss_fan',
+  type: 'projectile',
+  stats: {
+    damage: 10,
+    speed: 200,
+    range: 500,
+    size: 5,
+    pierce: 0,
+    lifetime: 2.5,
+  },
+  graphics: {
+    shape: 'diamond',
+    tint: 0xFF6600,
+    size: 8,
+    scale: 1,
+  },
+  mechanics: {
+    onHit: 'none',
+    pierceDecay: 0,
+    trail: { enabled: false },
+    homing: false,
+    bounce: false,
+  },
+  vfx: {
+    spawn: 'vfx.effect',
+    hit: 'vfx.hit.small',
+    expire: 'vfx.hit.small',
+  },
+  sfx: {
+    spawn: 'sound/laser.mp3',
+    hit: 'sound/projectile_hit.mp3',
+  },
+  display: {
+    key: 'projectile.boss_fan.name',
+    descKey: 'projectile.boss_fan.desc',
+    devNameFallback: 'Boss Fan Shot',
+    devDescFallback: 'Vějířový boss projektil',
+    color: '#FF6600',
+    rarity: 'common',
+    category: 'projectile',
+  },
+}

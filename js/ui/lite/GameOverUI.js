@@ -114,7 +114,7 @@ export class GameOverUI {
     const text = [
       `⏱️ Čas přežití: ${timeStr}`,
       `📊 Level: ${stats.level || 1}`,
-      `💀 Zabito nepřátel: ${stats.kills || 0}`,
+      `💀 Zabito nepřátel: ${stats.kills ?? stats.enemiesKilled ?? 0}`,
       `⭐ Skóre: ${stats.score || 0}`
     ].join('\n');
 

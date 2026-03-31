@@ -54,7 +54,7 @@ export function executeProjectileBurst(bossAbilities, abilityData, params) {
         const angle = (i / count) * spread * (Math.PI / 180);
         bossAbilities._schedule(chargeTime + i * 100, () => {
             bossAbilities.boss.shoot('directional', {
-                damage, angle,
+                damage, angle, cooldown: 0,
                 projectileId: abilityData.projectileId || 'projectile.boss_burst'
             });
         });

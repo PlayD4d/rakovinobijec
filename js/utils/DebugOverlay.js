@@ -25,19 +25,19 @@ export class DebugOverlay {
     this.text = scene.add.text(margin, h - 140, '', {
       fontFamily: 'monospace', fontSize: '11px', color: '#00ff88',
       backgroundColor: 'rgba(0,0,0,0.8)', padding: { x: 6, y: 4 }
-    }).setScrollFactor(0).setDepth(99999).setVisible(this.visible);
+    }).setScrollFactor(0).setDepth(scene.DEPTH_LAYERS?.UI_MODAL ? scene.DEPTH_LAYERS.UI_MODAL + 1000 : 99999).setVisible(this.visible);
 
     // Flash messages — above main overlay
     this._flashMessages = [];
     this._flashText = scene.add.text(margin, h - 170, '', {
       fontFamily: 'monospace', fontSize: '11px', color: '#ffaa00'
-    }).setScrollFactor(0).setDepth(99999).setVisible(this.visible);
+    }).setScrollFactor(0).setDepth(scene.DEPTH_LAYERS?.UI_MODAL ? scene.DEPTH_LAYERS.UI_MODAL + 1000 : 99999).setVisible(this.visible);
 
     // Missing assets panel — top-right
     this.missingAssetsText = scene.add.text(w - margin, margin, '', {
       fontFamily: 'monospace', fontSize: '11px', color: '#ff6666',
       backgroundColor: 'rgba(0,0,0,0.8)', padding: { x: 6, y: 4 }
-    }).setScrollFactor(0).setOrigin(1, 0).setDepth(99999).setVisible(false);
+    }).setScrollFactor(0).setOrigin(1, 0).setDepth(scene.DEPTH_LAYERS?.UI_MODAL ? scene.DEPTH_LAYERS.UI_MODAL + 1000 : 99999).setVisible(false);
 
     // Add to UI layer if available
     if (scene.uiLayer) {

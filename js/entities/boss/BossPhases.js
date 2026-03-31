@@ -178,7 +178,13 @@ export class BossPhases {
         if (this.boss.setInvulnerable) {
             this.boss.setInvulnerable(false);
         }
-        
+
+        // If boss reached 0 HP during invulnerability, kill it now
+        if (this.boss?.hp <= 0 && this.boss?.active) {
+            this.boss.die('phase_transition_death');
+            return;
+        }
+
         // Update boss stats based on phase
         this.applyPhaseModifiers(phaseData);
         
@@ -271,7 +277,12 @@ export class BossPhases {
                     delay: tickInterval,
                     loop: true,
                     callback: () => {
-                        if (!boss?.active) return;
+                        if (!this.boss?.active || !this.scene) {
+                            // Boss deactivated or scene gone — stop ticking
+                            const auraEntry = this._activeAuras?.find(a => a.type === type);
+                            auraEntry?.timer?.remove();
+                            return;
+                        }
                         const player = scene.player;
                         if (!player?.active) return;
                         const dx = player.x - boss.x;

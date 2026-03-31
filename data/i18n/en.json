@@ -158,6 +158,9 @@
       "desc": "Continuous damage around player",
       "name": "Toxic Field"
     },
+    "chain_lightning": {
+      "name": "Chain Lightning"
+    },
     "chemo_reservoir": {
       "desc": "Chemical reservoir providing sustained treatment effects",
       "name": "Chemo Reservoir"
@@ -169,6 +172,14 @@
     "explosive_bullets": {
       "desc": "Projectiles explode on impact",
       "name": "Proton Cannon"
+    },
+    "homing_shot": {
+      "desc": "Projectiles automatically home in on the nearest enemy.",
+      "name": "Homing Shot"
+    },
+    "immune_aura": {
+      "desc": "Aura damages nearby enemies.",
+      "name": "Immune Aura"
     },
     "flamethrower": {
       "desc": "Cone of fire in front of player",
@@ -185,6 +196,10 @@
     "metabolic_haste": {
       "desc": "Accelerates metabolic processes for increased speed",
       "name": "Metabolic Haste"
+    },
+    "multi_shot": {
+      "desc": "Fires multiple projectiles at once.",
+      "name": "Multi Shot"
     },
     "piercing_arrows": {
       "desc": "Projectiles pierce through enemies",
@@ -255,6 +270,7 @@
       "flamethrower": "Cone of fire damaging enemies in front of player",
       "piercing_arrows": "Cisplatin projectiles piercing through multiple enemies",
       "radiotherapy": "Rotating radiation beams around player",
+      "multi_shot": "Multi Shot",
       "shield": "Immune system shield absorbing incoming damage"
     },
     "projectile": {

@@ -19,6 +19,18 @@ export class GameUIScene extends Phaser.Scene {
         this.hud = null;
     }
 
+    init() {
+        // Reset instance state on restart — variables outside init() persist across restarts
+        this._onBossHpUpdate = null;
+        this._onBossHideHp = null;
+        this._onBossShowHp = null;
+        this._onPauseRequest = null;
+        this._onLevelUp = null;
+        this._onGameOver = null;
+        this._onVictoryShow = null;
+        this._onLevelTransitionShow = null;
+    }
+
     create() {
         // Initialize HUD (lives in UI scene, reads from GameScene via connect)
         this.hud = new UnifiedHUD(this);
@@ -109,6 +121,7 @@ export class GameUIScene extends Phaser.Scene {
         this.input.setTopOnly(true);
 
         if (gameScene.scene.isActive()) {
+            gameScene.isPaused = true;
             gameScene.scene.pause();
             this.pauseUI.show();
         }
@@ -120,6 +133,7 @@ export class GameUIScene extends Phaser.Scene {
 
         this.pauseUI.hide();
         this.input.setTopOnly(false);
+        gameScene.isPaused = false;
         gameScene.scene.resume();
     }
 
@@ -161,14 +175,22 @@ export class GameUIScene extends Phaser.Scene {
 
 
     showGameOver(stats) {
+        const gameScene = this.scene.get('GameScene');
         this.scene.bringToTop();
         this.input.setTopOnly(true);
+        if (gameScene?.scene?.isActive()) {
+            gameScene.scene.pause();
+        }
         this.gameOverUI.show(stats);
     }
 
     showVictory(data) {
+        const gameScene = this.scene.get('GameScene');
         this.scene.bringToTop();
         this.input.setTopOnly(true);
+        if (gameScene?.scene?.isActive()) {
+            gameScene.scene.pause();
+        }
         // Reuse game over UI for victory with victory flag
         this.gameOverUI.show({ ...data, isVictory: true });
     }
@@ -216,7 +238,7 @@ export class GameUIScene extends Phaser.Scene {
 
         this._removeEventListeners();
 
-        // Phaser base scene cleanup — input handlers, event emitter clear
-        super.shutdown();
+        // NOTE: Do NOT call super.shutdown() — same as GameScene, calling it from
+        // within the SHUTDOWN event handler corrupts Phaser's listener dispatch.
     }
 }

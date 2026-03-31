@@ -111,10 +111,13 @@ export class DisposableRegistry {
         
         for (const item of this._items) {
             try {
-                // Standard disposal interfaces
+                // Standard disposal interfaces — use shutdown OR destroy, not both
                 if (item?.removeAllListeners) item.removeAllListeners();
-                if (item?.shutdown) item.shutdown();
-                if (item?.destroy) item.destroy(true);
+                if (item?.shutdown) {
+                    item.shutdown();
+                } else if (item?.destroy) {
+                    item.destroy(true);
+                }
                 // For Phaser TimerEvents
                 if (item?.remove) item.remove(false);
                 disposed++;

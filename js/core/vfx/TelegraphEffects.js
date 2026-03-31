@@ -45,7 +45,7 @@ function playTelegraph(x, y, opts = {}) {
     g.setAlpha(1);
     g.setScale(1);
     g.setPosition(x, y);
-    g.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 100) + 50);
+    g.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 500) + 50);
 
     const handle = { graphics: g, tween: null, progress: 0 };
     this._activeTelegraphs.push(handle);
@@ -123,7 +123,7 @@ function playDirectionalTelegraph(x, y, opts = {}) {
     g.setScale(1);
     g.setPosition(x, y);
     g.setRotation(0);
-    g.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 100) + 50);
+    g.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 500) + 50);
 
     // Initial rotation toward target
     const initAngle = Math.atan2(targetY - y, targetX - x);
@@ -216,7 +216,7 @@ function playWedgeTelegraph(x, y, opts = {}) {
     g.clear();
     g.setPosition(x, y);
     g.setRotation(0);
-    g.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 100) + 50);
+    g.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 500) + 50);
 
     const handle = { graphics: g, tween: null, progress: 0 };
     this._activeTelegraphs.push(handle);
@@ -298,7 +298,7 @@ function playDangerZone(x, y, opts = {}) {
     g.setAlpha(1);
     g.setScale(1);
     g.setPosition(x, y);
-    g.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 100) + 50);
+    g.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 500) + 50);
 
     const handle = { graphics: g, tween: null, elapsed: 0 };
     this._activeTelegraphs.push(handle);
