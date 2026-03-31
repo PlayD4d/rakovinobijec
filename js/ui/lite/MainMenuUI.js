@@ -81,13 +81,15 @@ export class MainMenuUI {
   }
 
   _spawnCell(scene, w, h) {
-    if (!scene?.add) return;
+    if (!scene?.add) { console.warn('[MainMenuUI] _spawnCell: scene.add missing'); return; }
+    console.log(`[MainMenuUI] Spawning cell at ${Math.round(w/2)}x${Math.round(h/2)}, scene active: ${scene.sys?.isActive()}, timer exists: ${!!this._cellTimer}`);
     const x = Math.random() * w;
     const y = Math.random() * h;
     const size = 3 + Math.random() * 6;
     const color = this._cellColors[Math.floor(Math.random() * this._cellColors.length)];
 
     const cell = scene.add.circle(x, y, size, color, 0).setDepth(0);
+    console.log(`[MainMenuUI] Cell created: x=${Math.round(x)}, y=${Math.round(y)}, size=${size.toFixed(1)}, color=${color.toString(16)}, alpha=${cell.alpha}, visible=${cell.visible}`);
 
     // Fade in, pulse, drift, fade out, destroy
     scene.tweens.add({
