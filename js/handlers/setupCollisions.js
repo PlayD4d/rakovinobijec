@@ -288,13 +288,16 @@ function handleEnemyBulletPlayerCollision(bullet, player) {
     // Shield already intercepted this bullet in same physics step
     if (bullet._shieldIntercepted) { killBullet(bullet); return; }
 
-    // Shield absorbs bullets — handles case where shield overlap fires after player overlap
+    // Shield absorbs bullets — catches bullets that reach player overlap before shield overlap
     if (player.shieldActive && player.shieldHP > 0) {
         const dmg = bullet.damage || 5;
         player.shieldHP = Math.max(0, player.shieldHP - dmg);
         if (player.shieldHP <= 0) {
             player.shieldActive = false;
         }
+        // Shield intercept VFX at bullet position (not player position)
+        const vfx = player.scene?.vfxSystem;
+        if (vfx) vfx.play('hit.small', bullet.x, bullet.y, { color: 0x00CCFF });
         killBullet(bullet);
         return;
     }

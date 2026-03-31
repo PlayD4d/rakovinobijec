@@ -131,16 +131,16 @@ export class ShieldRegeneration {
         const scene = this.scene;
         if (!scene || player._shieldHitbox) return; // Already exists
 
-        const shieldRadius = 28; // Fixed — tight around player, doesn't grow with level
+        const shieldRadius = 40; // Larger than player — visually clear shield bubble
 
-        // Invisible sprite with circular body at shield radius
-        const hitbox = scene.physics.add.sprite(player.x, player.y, '__DEFAULT');
-        hitbox.setVisible(false);
-        hitbox.setAlpha(0);
-        hitbox.body.setCircle(shieldRadius, 0, 0);
+        // Invisible zone with circular body
+        const hitbox = scene.add.zone(player.x, player.y, shieldRadius * 2, shieldRadius * 2);
+        scene.physics.add.existing(hitbox, false); // dynamic body
+        hitbox.body.setCircle(shieldRadius);
         hitbox.body.setImmovable(true);
         hitbox.body.moves = false;
-        hitbox.setDepth(-1); // Below everything
+        hitbox.body.setAllowGravity(false);
+        hitbox.setDepth(-1);
 
         player._shieldHitbox = hitbox;
 
