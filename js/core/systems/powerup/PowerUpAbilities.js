@@ -351,11 +351,37 @@ export class PowerUpAbilities {
             }
 
             case 'slow_aura': {
-                // Store config for per-frame enemy slow application in update()
                 const slowRadius = (config.radius || 80) + ((config.radiusPerLevel || 15) * (config.level - 1));
                 const slowPercent = (config.slowPercent || 10) + ((config.slowPercentPerLevel || 5) * (config.level - 1));
                 this._slowAuraConfig = { radius: slowRadius, slowFactor: 1 - (slowPercent / 100) };
-                DebugLogger.info('powerup', `[PowerUpAbilities] Slow aura: ${slowPercent}% in ${slowRadius}px radius`);
+
+                // Visual: subtle pulsing circle around player
+                if (this._slowAuraSprite) this._slowAuraSprite.destroy();
+                const texKey = `_slow_aura_${slowRadius}`;
+                if (!this.scene.textures.exists(texKey)) {
+                    const gf = this.scene.graphicsFactory;
+                    if (gf) {
+                        const g = gf.create();
+                        g.clear();
+                        g.lineStyle(1.5, 0x4488ff, 0.3);
+                        g.strokeCircle(slowRadius, slowRadius, slowRadius);
+                        g.fillStyle(0x4488ff, 0.04);
+                        g.fillCircle(slowRadius, slowRadius, slowRadius);
+                        g.generateTexture(texKey, slowRadius * 2, slowRadius * 2);
+                        gf.release(g);
+                    }
+                }
+                if (this.scene.textures.exists(texKey)) {
+                    this._slowAuraSprite = this.scene.add.sprite(player.x, player.y, texKey);
+                    this._slowAuraSprite.setOrigin(0.5).setDepth((this.scene.DEPTH_LAYERS?.PLAYER || 2000) - 1);
+                    this.scene.tweens.add({
+                        targets: this._slowAuraSprite,
+                        alpha: { from: 0.4, to: 0.7 },
+                        duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
+                    });
+                }
+
+                DebugLogger.info('powerup', `[PowerUpAbilities] Slow aura: ${slowPercent}% in ${slowRadius}px`);
                 break;
             }
 
@@ -389,8 +415,11 @@ export class PowerUpAbilities {
             this._damageZones.updateImmuneAura(player);
         }
 
-        // Slow aura — reduce nearby enemy speed at 4Hz (not per-frame)
+        // Slow aura visual follows player + throttled enemy slow at 4Hz
         if (this._slowAuraConfig && player?.active) {
+            if (this._slowAuraSprite?.scene) {
+                this._slowAuraSprite.setPosition(player.x, player.y);
+            }
             if (!this._lastSlowTick || time - this._lastSlowTick >= 250) {
                 this._lastSlowTick = time;
                 this._applySlowAura(player);
@@ -499,6 +528,7 @@ export class PowerUpAbilities {
         this._shieldRegen.destroy();
         if (this._regenTimer) { this._regenTimer.remove(); this._regenTimer = null; }
         if (this._oxidativeBurstTimer) { this._oxidativeBurstTimer.remove(); this._oxidativeBurstTimer = null; }
+        if (this._slowAuraSprite) { this._slowAuraSprite.destroy(); this._slowAuraSprite = null; }
         this._slowAuraConfig = null;
         this.activeAbilities.clear();
         this._abilityConfigs.clear();
