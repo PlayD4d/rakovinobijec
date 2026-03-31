@@ -172,12 +172,12 @@ export class PowerUpAbilities {
                     callback: () => {
                         const p = this.scene?.player;
                         if (!p?.active) return;
-                        const enemies = this.scene.enemiesGroup?.getChildren();
-                        if (!enemies?.length) return;
+                        // Include both regular enemies AND bosses as targets
+                        const eg = this.scene.enemiesGroup?.getChildren() || [];
+                        const bg = this.scene.bossGroup?.getChildren() || [];
                         const active = [];
-                        for (let i = 0; i < enemies.length; i++) {
-                            if (enemies[i]?.active) active.push(enemies[i]);
-                        }
+                        for (let i = 0; i < eg.length; i++) { if (eg[i]?.active) active.push(eg[i]); }
+                        for (let i = 0; i < bg.length; i++) { if (bg[i]?.active) active.push(bg[i]); }
                         if (active.length === 0) return;
                         const target = active[Math.floor(Math.random() * active.length)];
 
@@ -381,9 +381,11 @@ export class PowerUpAbilities {
     _applySlowAura(player) {
         const cfg = this._slowAuraConfig;
         if (!cfg) return;
-        const enemies = this.scene.enemiesGroup?.getChildren();
-        if (!enemies) return;
+        // Include both regular enemies AND bosses
+        const eg = this.scene.enemiesGroup?.getChildren() || [];
+        const bg = this.scene.bossGroup?.getChildren() || [];
         const rSq = cfg.radius * cfg.radius;
+        const enemies = eg.length > 0 && bg.length > 0 ? [...eg, ...bg] : (eg.length > 0 ? eg : bg);
         for (let i = enemies.length - 1; i >= 0; i--) {
             const e = enemies[i];
             if (!e?.active || !e.body) continue;

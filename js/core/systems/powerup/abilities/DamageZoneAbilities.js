@@ -70,6 +70,22 @@ export class DamageZoneAbilities {
         );
 
         // Store for cleanup and position update
+        // Also overlap with bosses
+        const bossGroup = this.scene.bossGroup;
+        if (bossGroup) {
+            this._chemoBossOverlap = registerDynamicOverlap(
+                this.scene, this._chemoZone, bossGroup,
+                (zone, enemy) => {
+                    const now = this.scene.time?.now || 0;
+                    if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
+                    const lastHit = this._chemoHitTimes.get(enemy) || 0;
+                    if (now - lastHit < 500) return;
+                    this._chemoHitTimes.set(enemy, now);
+                    enemy.takeDamage(config.chemoCloudDamage || 8);
+                }
+            );
+        }
+
         this._chemoPlayer = player;
     }
 
@@ -77,6 +93,10 @@ export class DamageZoneAbilities {
      * Destroy chemo cloud physics zone and overlap
      */
     destroyChemoCloud() {
+        if (this._chemoBossOverlap) {
+            this.scene?.physics?.world?.removeCollider(this._chemoBossOverlap);
+            this._chemoBossOverlap = null;
+        }
         if (this._chemoOverlap) {
             this.scene?.physics?.world?.removeCollider(this._chemoOverlap);
             this._chemoOverlap = null;
