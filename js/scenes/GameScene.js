@@ -400,8 +400,6 @@ export class GameScene extends Phaser.Scene {
 
     shutdown() {
         if (this._shutdownDone) return;
-        // Ensure session is ended if not already (e.g. browser tab close)
-        try { endSession('quit'); } catch (_) {}
         this._shutdownDone = true;
         DebugLogger.info('game', '[GameScene] Starting shutdown sequence...');
 
