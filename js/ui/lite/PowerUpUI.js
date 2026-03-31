@@ -1,7 +1,6 @@
 /**
  * PowerUpUI - Level-up power-up selection modal
- * Displays 3 power-up cards for selection
- * UITheme integration for consistent styling
+ * Clean card-based design, no emoji, consistent with game UI theme
  */
 import { SimpleModal } from './SimpleModal.js';
 import { UI_THEME } from '../UITheme.js';
@@ -9,196 +8,164 @@ import { UI_THEME } from '../UITheme.js';
 export class PowerUpUI {
   constructor(scene, onSelection) {
     this.scene = scene;
-    this.onSelection = onSelection; // Store callback for later use
-    this.modal = new SimpleModal(scene, { 
-      width: 1000, 
-      height: 600, 
+    this.onSelection = onSelection;
+    this.modal = new SimpleModal(scene, {
+      width: 960,
+      height: 500,
       depth: UI_THEME.depth.modal,
-      bgColor: UI_THEME.colors.background.modal,
-      bgAlpha: 0.98
+      overlayColor: 0x000000,
+      overlayAlpha: 0.7,
+      panelColor: 0x0a0a1e,
+      panelAlpha: 0.95,
+      strokeColor: 0x334466,
+      strokeAlpha: 0.8
     });
-    
+
     const cx = scene.cameras.main.width / 2;
     const cy = scene.cameras.main.height / 2;
-    
-    // Title with glow effect (constructor — Container owns rendering, no scene.add)
-    this.title = new Phaser.GameObjects.Text(scene, cx, cy - 220, '🎉 LEVEL UP! 🎉', {
+
+    // Title — clean, no emoji
+    this.title = new Phaser.GameObjects.Text(scene, cx, cy - 190, 'LEVEL UP', {
       fontFamily: UI_THEME.fonts.primary,
-      fontSize: '42px',
-      color: `#${UI_THEME.colors.text.accent.toString(16).padStart(6, '0')}`,
-      stroke: '#004444',
+      fontSize: '28px',
+      color: '#00ffcc',
+      stroke: '#000000',
       strokeThickness: 4
     }).setOrigin(0.5);
     this.modal.addChild(this.title);
 
-    // Subtitle with better styling (constructor — no scene.add)
-    this.subtitle = new Phaser.GameObjects.Text(scene, cx, cy - 160, '🔬 Vyber vylepšení pro Marda:', {
+    // Subtitle
+    this.subtitle = new Phaser.GameObjects.Text(scene, cx, cy - 150, 'Choose an upgrade:', {
       fontFamily: UI_THEME.fonts.primary,
-      fontSize: '22px',
-      color: '#cccccc',
-      stroke: '#000000',
-      strokeThickness: 2
+      fontSize: '14px',
+      color: '#999999'
     }).setOrigin(0.5);
     this.modal.addChild(this.subtitle);
 
-    // Cards array for cleanup
     this.cards = [];
 
-    // Hint text with animation (constructor — no scene.add)
-    this.hint = new Phaser.GameObjects.Text(scene, cx, cy + 200, '👆 Klikni na kartu pro výběr', {
+    // Hint text
+    this.hint = new Phaser.GameObjects.Text(scene, cx, cy + 190, 'Click a card to select', {
       fontFamily: UI_THEME.fonts.primary,
-      fontSize: '16px',
-      color: '#888888',
-      stroke: '#000000',
-      strokeThickness: 1
+      fontSize: '11px',
+      color: '#666666'
     }).setOrigin(0.5);
-    
-    // Blinking animation — created paused, started only on show()
+
     this.hintTween = scene.tweens.add({
       targets: this.hint,
-      alpha: 0.5,
-      duration: 800,
-      yoyo: true,
-      repeat: -1,
-      paused: true
+      alpha: 0.4, duration: 800,
+      yoyo: true, repeat: -1, paused: true
     });
 
     this.modal.addChild(this.hint);
   }
-  
-  /**
-   * Show power-up selection with 3 options
-   */
+
   show(powerUps, onPick) {
-    this._selecting = false; // Reset guard from previous cycle
+    this._selecting = false;
     const callback = onPick || this.onSelection;
 
     // Clear old cards
     this.cards.forEach(card => card.destroy());
     this.cards = [];
-    
+
     const cx = this.scene.cameras.main.width / 2;
     const cy = this.scene.cameras.main.height / 2;
-    const spacing = 320;
+    const cardWidth = 260;
+    const cardHeight = 280;
+    const spacing = cardWidth + 30;
     const startX = cx - ((powerUps.length - 1) * spacing) / 2;
-    
-    // Create cards for each power-up
+
     powerUps.forEach((pu, index) => {
       const x = startX + index * spacing;
-      const y = cy + 20;
-      
-      // Card container (constructor — no scene.add to avoid double display-list)
+      const y = cy + 15;
       const s = this.scene;
       const card = new Phaser.GameObjects.Container(s, x, y);
-
-      const cardWidth = 280;
-      const cardHeight = 220;
       const rarityColor = this.getRarityColor(pu.rarity || 'common');
 
-      // All children via constructors (Container owns rendering exclusively)
-      const bgDark = new Phaser.GameObjects.Rectangle(s, 0, 0, cardWidth, cardHeight, UI_THEME.colors.background.modal, 0.95)
-        .setStrokeStyle(2, 0x16213e, 0.8);
-      const bgGradient = new Phaser.GameObjects.Rectangle(s, 0, -cardHeight/4, cardWidth-4, cardHeight/2, 0x0f3460, 0.3);
-      const border = new Phaser.GameObjects.Rectangle(s, 0, 0, cardWidth+4, cardHeight+4, rarityColor, 0.0)
-        .setStrokeStyle(3, rarityColor, 0.8);
-      const iconBg = new Phaser.GameObjects.Arc(s, 0, -70, 32, 0, 360, false, rarityColor, 0.2)
-        .setStrokeStyle(2, rarityColor, 0.6);
-      const icon = new Phaser.GameObjects.Text(s, 0, -70, pu.icon || '⚡', { fontSize: '42px' }).setOrigin(0.5);
-      const cPrimary = `#${UI_THEME.colors.text.primary.toString(16).padStart(6, '0')}`;
-      const cSecondary = `#${UI_THEME.colors.text.secondary.toString(16).padStart(6, '0')}`;
-      const name = new Phaser.GameObjects.Text(s, 0, -20, pu.name || 'Power-up', {
-        fontFamily: UI_THEME.fonts.primary, fontSize: '18px', color: cPrimary,
-        stroke: '#000000', strokeThickness: 2, wordWrap: { width: 260 }, align: 'center'
-      }).setOrigin(0.5);
-      const desc = new Phaser.GameObjects.Text(s, 0, 25, pu.description || '', {
-        fontFamily: UI_THEME.fonts.primary, fontSize: '13px', color: cSecondary,
-        align: 'center', wordWrap: { width: 250 }, lineSpacing: 2
-      }).setOrigin(0.5);
-      const stats = new Phaser.GameObjects.Text(s, 0, 80, pu.stats || '', {
-        fontFamily: UI_THEME.fonts.primary, fontSize: '14px', color: cPrimary,
-        fontStyle: 'bold', stroke: '#000000', strokeThickness: 2
-      }).setOrigin(0.5);
+      // Card background
+      const bg = new Phaser.GameObjects.Rectangle(s, 0, 0, cardWidth, cardHeight, 0x0f0f2a, 0.95)
+        .setStrokeStyle(2, 0x222244, 0.8);
 
-      // Level badge (top-right corner) — shows "Lv.N" for upgrades, "NEW" for first pick
+      // Rarity accent line at top
+      const accentLine = new Phaser.GameObjects.Rectangle(s, 0, -cardHeight / 2 + 3, cardWidth - 4, 3, rarityColor, 0.9);
+
+      // Level badge (top-right)
       const nextLevel = (pu.level || 0) + 1;
       const maxLevel = pu.maxLevel || 5;
       const lvlLabel = nextLevel > 1 ? `Lv.${nextLevel}/${maxLevel}` : 'NEW';
       const lvlColor = nextLevel > 1 ? '#ffcc00' : '#44ff44';
-      const lvlBadge = new Phaser.GameObjects.Text(s, cardWidth/2 - 8, -cardHeight/2 + 8, lvlLabel, {
+      const lvlBadge = new Phaser.GameObjects.Text(s, cardWidth / 2 - 10, -cardHeight / 2 + 10, lvlLabel, {
         fontFamily: UI_THEME.fonts.primary, fontSize: '10px', color: lvlColor,
         stroke: '#000000', strokeThickness: 2
       }).setOrigin(1, 0);
 
-      card.add([border, bgDark, bgGradient, iconBg, icon, name, desc, stats, lvlBadge]);
-      card._bg = bgDark;
-      
-      // Make interactive with improved hover effects
-      bgDark.setInteractive()
+      // Power-up name
+      const name = new Phaser.GameObjects.Text(s, 0, -80, pu.name || 'Power-up', {
+        fontFamily: UI_THEME.fonts.primary, fontSize: '16px', color: '#ffffff',
+        stroke: '#000000', strokeThickness: 2,
+        wordWrap: { width: cardWidth - 20 }, align: 'center'
+      }).setOrigin(0.5);
+
+      // Separator line
+      const sep = new Phaser.GameObjects.Rectangle(s, 0, -50, cardWidth - 40, 1, 0x334466, 0.5);
+
+      // Description
+      const desc = new Phaser.GameObjects.Text(s, 0, -10, pu.description || '', {
+        fontFamily: UI_THEME.fonts.primary, fontSize: '11px', color: '#aaaaaa',
+        align: 'center', wordWrap: { width: cardWidth - 24 }, lineSpacing: 4
+      }).setOrigin(0.5);
+
+      // Stats line (bottom)
+      const stats = new Phaser.GameObjects.Text(s, 0, 60, pu.stats || '', {
+        fontFamily: UI_THEME.fonts.primary, fontSize: '12px', color: '#00ffcc',
+        stroke: '#000000', strokeThickness: 2
+      }).setOrigin(0.5);
+
+      // Rarity label
+      const rarityLabel = new Phaser.GameObjects.Text(s, 0, 100, (pu.rarity || 'common').toUpperCase(), {
+        fontFamily: UI_THEME.fonts.primary, fontSize: '9px',
+        color: `#${rarityColor.toString(16).padStart(6, '0')}`
+      }).setOrigin(0.5);
+
+      card.add([bg, accentLine, lvlBadge, name, sep, desc, stats, rarityLabel]);
+      card._bg = bg;
+      card._accentLine = accentLine;
+
+      // Interaction
+      bg.setInteractive()
         .on('pointerover', () => {
-          // Hover effects
-          card.setScale(1.08);
-          border.setStrokeStyle(4, rarityColor, 1.0);
-          bgGradient.setAlpha(0.5);
-          iconBg.setAlpha(0.4);
-          
-          // Cursor
-          if (this.scene.input?.setDefaultCursor) {
-            this.scene.input.setDefaultCursor('pointer');
-          }
-          
-          // Hover sound
-          try { this.scene.sound?.play('sound/bleep.mp3', { volume: 0.2 }); } catch (_) {}
+          card.setScale(1.05);
+          bg.setStrokeStyle(2, rarityColor, 0.9);
+          if (s.input?.setDefaultCursor) s.input.setDefaultCursor('pointer');
+          try { s.sound?.play('sound/bleep.mp3', { volume: 0.2 }); } catch (_) {}
         })
         .on('pointerout', () => {
-          // Reset hover effects
           card.setScale(1.0);
-          border.setStrokeStyle(3, rarityColor, 0.8);
-          bgGradient.setAlpha(0.3);
-          iconBg.setAlpha(0.2);
-          
-          // Cursor
-          if (this.scene.input?.setDefaultCursor) {
-            this.scene.input.setDefaultCursor('default');
-          }
+          bg.setStrokeStyle(2, 0x222244, 0.8);
+          if (s.input?.setDefaultCursor) s.input.setDefaultCursor('default');
         })
         .on('pointerdown', () => {
-          // Click down effect
-          card.setScale(1.02);
-          bgDark.setFillStyle(0xdddddd, 0.8);
+          card.setScale(0.98);
         })
         .on('pointerup', () => {
-          // Guard against double-click (callback fires twice otherwise)
           if (this._selecting) return;
           this._selecting = true;
+          card.setScale(1.05);
+          bg.setFillStyle(0x1a1a3e, 1);
+          try { s.sound?.play('sound/pickup.mp3', { volume: 0.4 }); } catch (_) {}
 
-          card.setScale(1.08);
-          bgDark.setFillStyle(0xffffff, 0.9);
-          
-          // Selection sound
-          try { this.scene.sound?.play('sound/pickup.mp3', { volume: 0.4 }); } catch (_) {}
-          
-          // Flash effect
-          this.scene.tweens.add({
-            targets: border,
-            alpha: 1,
-            duration: 100,
-            yoyo: true,
-            repeat: 1,
+          s.tweens.add({
+            targets: accentLine, alpha: 0, duration: 80, yoyo: true, repeat: 1,
             onComplete: () => {
-              // Select this power-up after animation
-              this.hide(() => {
-                if (callback) callback(pu);
-              });
+              this.hide(() => { if (callback) callback(pu); });
             }
           });
         });
-      
-      // Add card to modal
+
       this.modal.addChild(card);
       this.cards.push(card);
     });
-    
-    // Resume hint animation
+
     if (this.hintTween) {
       this.hint.alpha = 1;
       this.hintTween.resume();
@@ -206,43 +173,32 @@ export class PowerUpUI {
 
     this.modal.show(true, 250);
   }
-  
-  /**
-   * Hide modal
-   */
+
   hide(onComplete) {
     if (this.hintTween) this.hintTween.pause();
     if (this.cards) this.cards.forEach(c => { if (c._bg?.disableInteractive) c._bg.disableInteractive(); });
     this.modal.hide(false, 0, () => {
-        this._selecting = false;
-        if (onComplete) onComplete();
+      this._selecting = false;
+      if (onComplete) onComplete();
     });
   }
-  
-  /**
-   * Get color based on power-up rarity
-   */
+
   getRarityColor(rarity) {
     switch (rarity?.toLowerCase()) {
-      case 'legendary': return 0xff6b35; // Orange
-      case 'epic': return 0x9c27b0;      // Purple
-      case 'rare': return 0x2196f3;      // Blue
-      case 'uncommon': return 0x4caf50;  // Green
+      case 'legendary': return 0xff6b35;
+      case 'epic': return 0x9c27b0;
+      case 'rare': return 0x2196f3;
+      case 'uncommon': return 0x4caf50;
       case 'common':
-      default: return 0x9e9e9e;          // Gray
+      default: return 0x9e9e9e;
     }
   }
-  
-  /**
-   * Clean destroy
-   */
+
   destroy() {
-    // Stop the infinite tween first (try/catch: scene may be mid-teardown)
     if (this.hintTween) {
       try { this.hintTween.stop(); } catch (_) {}
       this.hintTween = null;
     }
-    
     this.cards.forEach(card => card?.destroy());
     this.cards = [];
     this.modal?.destroy();
