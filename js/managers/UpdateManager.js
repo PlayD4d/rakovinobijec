@@ -234,11 +234,13 @@ export class UpdateManager {
             this._lastPerfLog = time;
             const fps = Math.round(this.scene.game?.loop?.actualFps || 0);
             const frameMs = Math.round(delta);
-            const enemies = this.scene.enemiesGroup?.children?.size || 0;
-            const enemiesActive = this.scene.enemiesGroup?.countActive?.() || 0;
-            const projectiles = (this.scene.projectileSystem?.playerBullets?.countActive?.() || 0) +
-                                (this.scene.projectileSystem?.enemyBullets?.countActive?.() || 0);
-            const loot = this.scene.lootSystem?.lootGroup?.children?.size || 0;
+            const eg = this.scene.enemiesGroup;
+            const enemies = eg?.children?.size ?? 0;
+            const enemiesActive = eg?.children ? eg.countActive() : 0;
+            const pb = this.scene.projectileSystem?.playerBullets;
+            const eb = this.scene.projectileSystem?.enemyBullets;
+            const projectiles = (pb?.children ? pb.countActive() : 0) + (eb?.children ? eb.countActive() : 0);
+            const loot = this.scene.lootSystem?.lootGroup?.children?.size ?? 0;
             const vfxEffects = this.scene.vfxSystem?.activeEmitters?.size || 0;
             const vfxPowerUp = this.scene.vfxSystem?.powerUpEffects?.size || 0;
             // Chrome-only JS heap (MB), 0 if unavailable
