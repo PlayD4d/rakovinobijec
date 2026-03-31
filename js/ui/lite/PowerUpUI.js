@@ -136,10 +136,8 @@ export class PowerUpUI {
             this.scene.input.setDefaultCursor('pointer');
           }
           
-          // Hover sound effect
-          if (this.scene.sound) {
-            // this.scene.sound.play('ui_hover', { volume: 0.3 });
-          }
+          // Hover sound
+          try { this.scene.sound?.play('sound/bleep.mp3', { volume: 0.2 }); } catch (_) {}
         })
         .on('pointerout', () => {
           // Reset hover effects
@@ -167,9 +165,7 @@ export class PowerUpUI {
           bgDark.setFillStyle(0xffffff, 0.9);
           
           // Selection sound
-          if (this.scene.sound) {
-            // this.scene.sound.play('ui_select', { volume: 0.5 });
-          }
+          try { this.scene.sound?.play('sound/pickup.mp3', { volume: 0.4 }); } catch (_) {}
           
           // Flash effect
           this.scene.tweens.add({
@@ -198,7 +194,7 @@ export class PowerUpUI {
       this.hintTween.resume();
     }
 
-    this.modal.show(false);
+    this.modal.show(true, 250);
   }
   
   /**
