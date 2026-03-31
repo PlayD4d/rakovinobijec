@@ -288,8 +288,13 @@ function handleEnemyBulletPlayerCollision(bullet, player) {
     // Shield already intercepted this bullet in same physics step
     if (bullet._shieldIntercepted) { killBullet(bullet); return; }
 
-    // Shield absorbs bullets — safety net for overlap registration order
+    // Shield absorbs bullets — handles case where shield overlap fires after player overlap
     if (player.shieldActive && player.shieldHP > 0) {
+        const dmg = bullet.damage || 5;
+        player.shieldHP = Math.max(0, player.shieldHP - dmg);
+        if (player.shieldHP <= 0) {
+            player.shieldActive = false;
+        }
         killBullet(bullet);
         return;
     }

@@ -25,6 +25,8 @@ export class ShieldRegeneration {
         // Update shield hitbox position (follows player)
         if (player._shieldHitbox?.active) {
             player._shieldHitbox.setPosition(player.x, player.y);
+            // Sync physics body immediately — moves:false body doesn't auto-follow setPosition
+            player._shieldHitbox.body?.reset(player.x, player.y);
         }
 
         // Shield auto-regeneration logic
@@ -135,10 +137,7 @@ export class ShieldRegeneration {
         const hitbox = scene.physics.add.sprite(player.x, player.y, '__DEFAULT');
         hitbox.setVisible(false);
         hitbox.setAlpha(0);
-        hitbox.body.setCircle(shieldRadius);
-        // Center circular body on sprite
-        const offset = (hitbox.width / 2) - shieldRadius;
-        hitbox.body.setOffset(offset, offset);
+        hitbox.body.setCircle(shieldRadius, 0, 0);
         hitbox.body.setImmovable(true);
         hitbox.body.moves = false;
         hitbox.setDepth(-1); // Below everything
