@@ -1,6 +1,6 @@
 /**
  * UnifiedHUD - Main HUD component (LiteUI pattern)
- * Plain JS class that owns a Phaser Container - does NOT extend any Phaser class.
+ * Plain JS class that owns a Phaser Container — does NOT extend any Phaser class.
  * Lives in GameUIScene, reads data from GameScene via connect().
  */
 import { UI_THEME, UIThemeUtils } from './UITheme.js';
@@ -56,9 +56,6 @@ export class UnifiedHUD {
         scene.scale.on('resize', this.onResize, this);
     }
 
-    /**
-     * Connect to the GameScene so the HUD can read player/gameStats
-     */
     connect(gameScene) {
         this.gameScene = gameScene;
     }
@@ -73,22 +70,14 @@ export class UnifiedHUD {
         this.createBossHUD();
     }
 
-    /**
-     * Create a text object via constructor (avoids double display-list add)
-     */
+    /** Create a text object via constructor (avoids double display-list add) */
     _text(x, y, str, fontCfg) {
-        const t = new Phaser.GameObjects.Text(this.scene, x, y, str, fontCfg);
-        t.setScrollFactor(0);
-        return t;
+        return new Phaser.GameObjects.Text(this.scene, x, y, str, fontCfg).setScrollFactor(0);
     }
 
-    /**
-     * Create a rectangle via constructor
-     */
+    /** Create a rectangle via constructor */
     _rect(x, y, w, h, color) {
-        const r = new Phaser.GameObjects.Rectangle(this.scene, x, y, w, h, color);
-        r.setScrollFactor(0);
-        return r;
+        return new Phaser.GameObjects.Rectangle(this.scene, x, y, w, h, color).setScrollFactor(0);
     }
 
     createLeftPanel(padding) {
@@ -115,14 +104,8 @@ export class UnifiedHUD {
         this._passiveTrayX = x + 30;
         this._weaponIcons = [];
         this._passiveIcons = [];
-        // Legacy compat
-        this._powerUpIcons = this._weaponIcons;
     }
 
-    /**
-     * Add a power-up icon to the HUD tray when player collects one.
-     * Routes to weapon tray (top) or passive tray (bottom) based on powerUp.slot.
-     */
     addPowerUpIcon(powerUp) {
         if (this._destroyed || !powerUp) return;
 
@@ -168,9 +151,6 @@ export class UnifiedHUD {
         }
     }
 
-    /**
-     * Update level text on existing power-up icon (on upgrade)
-     */
     updatePowerUpIcon(powerUpId, newLevel) {
         if (this._destroyed) return;
         const icon = this._weaponIcons.find(i => i.id === powerUpId)
@@ -320,21 +300,16 @@ export class UnifiedHUD {
 
     // ─── Runtime API ─────────────────────────────────────────
 
-    updateHP(current, max) {
+    setPlayerHealth(current, max) {
         if (this._destroyed) return;
         const percentage = Math.max(0, current / max);
         const targetWidth = (this.BAR_WIDTH - 4) * percentage;
         this.hpText.setText(`${Math.floor(current)}/${Math.floor(max)}`);
 
-        if (percentage > 0.6) {
-            this.hpBar.setFillStyle(UI_THEME.colors.success);
-        } else if (percentage > 0.3) {
-            this.hpBar.setFillStyle(UI_THEME.colors.warning);
-        } else {
-            this.hpBar.setFillStyle(UI_THEME.colors.secondary);
-        }
+        if (percentage > 0.6) this.hpBar.setFillStyle(UI_THEME.colors.success);
+        else if (percentage > 0.3) this.hpBar.setFillStyle(UI_THEME.colors.warning);
+        else this.hpBar.setFillStyle(UI_THEME.colors.secondary);
 
-        // Smooth tween to target width
         if (this.scene?.tweens && Math.abs(this.hpBar.width - targetWidth) > 1) {
             this.scene.tweens.killTweensOf(this.hpBar);
             this.scene.tweens.add({ targets: this.hpBar, width: targetWidth, duration: 150, ease: 'Sine.easeOut' });
@@ -343,28 +318,19 @@ export class UnifiedHUD {
         }
     }
 
-    setPlayerHealth(current, max) {
-        this.updateHP(current, max);
-    }
-
-    updateXP(current, max) {
+    setPlayerXP(current, max) {
         if (this._destroyed) return;
         if (!max || max <= 0) return;
         const percentage = Math.min(1, current / max);
         const targetWidth = (this.BAR_WIDTH - 4) * percentage;
         this.xpText.setText(`${Math.floor(current)}/${max}`);
 
-        // Smooth tween to target width
         if (this.scene?.tweens && Math.abs(this.xpBar.width - targetWidth) > 1) {
             this.scene.tweens.killTweensOf(this.xpBar);
             this.scene.tweens.add({ targets: this.xpBar, width: targetWidth, duration: 200, ease: 'Sine.easeOut' });
         } else {
             this.xpBar.width = targetWidth;
         }
-    }
-
-    setPlayerXP(current, max) {
-        this.updateXP(current, max);
     }
 
     updateStats(stats) {
@@ -444,9 +410,7 @@ export class UnifiedHUD {
         });
     }
 
-    /**
-     * Per-frame update: only time display needs polling
-     */
+    /** Per-frame update: only time display needs polling */
     update() {
         if (!this.gameScene?.gameStats) return;
         const t = this.gameScene.gameStats.time;
@@ -458,9 +422,7 @@ export class UnifiedHUD {
         this.timeText?.setText(`Čas: ${minutes}:${seconds.toString().padStart(2, '0')}`);
     }
 
-    /**
-     * Refresh all HUD values — call on discrete events (damage, XP, kill, level-up)
-     */
+    /** Refresh all HUD values — call on discrete events (damage, XP, kill, level-up) */
     refresh() {
         if (this._destroyed || !this.gameScene) return;
 
@@ -470,17 +432,12 @@ export class UnifiedHUD {
         if (this.gameScene.gameStats) {
             this.setPlayerXP(this.gameScene.gameStats.xp, this.gameScene.gameStats.xpToNext);
             this.updateStats({
-                level: this.gameScene.gameStats.level,
                 score: this.gameScene.gameStats.score,
-                time: this.gameScene.gameStats.time,
                 enemies: this.gameScene.gameStats.kills || 0
             });
         }
     }
 
-    /**
-     * Handle resize
-     */
     onResize(gameSize) {
         if (this._destroyed) return;
         const padding = RESPONSIVE.getSpacing(this.isMobileDevice);
@@ -511,9 +468,6 @@ export class UnifiedHUD {
         }
     }
 
-    /**
-     * Cleanup
-     */
     destroy() {
         if (this._destroyed) return;
         this._destroyed = true;
