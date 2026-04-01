@@ -80,11 +80,12 @@ export class SimpleLootSystem {
             drop.setDepth(this._depthItems);
         }
 
-        // Stamp loot data on sprite
+        // Stamp loot data on sprite (reset pool-recycled state)
         drop.dropId = dropId;
         drop.blueprint = blueprint;
         drop.dropType = dropType;
         drop.value = blueprint.effect?.value || blueprint.stats?.value || 1;
+        drop._magnetPull = false; // Reset magnet flag from previous pool life
 
         // Physics body config — persists across recycles but texture/size may change
         if (drop.body) {
