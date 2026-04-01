@@ -43,8 +43,8 @@
     { enemyId: 'unique.onco_commander', weight: 1.5, countRange: [1, 1], cooldown: 60000, startAt: 70000, endAt: 999999, conditions: { playerLevel: { min: 22 }, enemiesKilled: { min: 300 } } },
   ],
   bossTriggers: [
-    { condition: 'time', value: 180000, bossId: 'boss.resistant_clone', spawnDelay: 3000, clearEnemies: true },
-    { condition: 'kills', value: 250, bossId: 'boss.resistant_clone', spawnDelay: 3000, clearEnemies: true },
+    { condition: 'time', value: 180000, bossId: 'boss.resistant_clone', spawnDelay: 3000, clearEnemies: false },
+    { condition: 'kills', value: 250, bossId: 'boss.resistant_clone', spawnDelay: 3000, clearEnemies: false },
   ],
   lootTables: {
     normal: {

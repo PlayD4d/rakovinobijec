@@ -49,8 +49,8 @@
     { enemyId: 'unique.tumor_sentinel', weight: 1.5, countRange: [1, 1], cooldown: 60000, startAt: 70000, endAt: 999999, conditions: { playerLevel: { min: 28 }, enemiesKilled: { min: 350 } } },
   ],
   bossTriggers: [
-    { condition: 'time', value: 200000, bossId: 'boss.tumor_core', spawnDelay: 5000, clearEnemies: true },
-    { condition: 'kills', value: 300, bossId: 'boss.tumor_core', spawnDelay: 5000, clearEnemies: true },
+    { condition: 'time', value: 200000, bossId: 'boss.tumor_core', spawnDelay: 5000, clearEnemies: false },
+    { condition: 'kills', value: 300, bossId: 'boss.tumor_core', spawnDelay: 5000, clearEnemies: false },
   ],
   lootTables: {
     normal: {

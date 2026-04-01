@@ -269,14 +269,14 @@
       value: 150000,
       bossId: 'boss.immune_saboteur',
       spawnDelay: 3000,
-      clearEnemies: true,
+      clearEnemies: false,
     },
     {
       condition: 'kills',
       value: 150,
       bossId: 'boss.immune_saboteur',
       spawnDelay: 3000,
-      clearEnemies: true,
+      clearEnemies: false,
     },
   ],
   lootTables: {

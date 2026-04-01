@@ -357,14 +357,14 @@
       value: 220000,
       bossId: 'boss.oncogenic_signal',
       spawnDelay: 3000,
-      clearEnemies: true,
+      clearEnemies: false,
     },
     {
       condition: 'kills',
       value: 120,
       bossId: 'boss.oncogenic_signal',
       spawnDelay: 3000,
-      clearEnemies: true,
+      clearEnemies: false,
     },
   ],
   lootTables: {

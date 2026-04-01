@@ -62,7 +62,7 @@
       value: 90000,
       bossId: 'boss.primary_clone',
       spawnDelay: 2000,
-      clearEnemies: true,
+      clearEnemies: false,
     },
   ],
   lootTables: {
