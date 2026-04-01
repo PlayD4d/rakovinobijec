@@ -372,7 +372,7 @@ export class PowerUpAbilities {
                     callback: () => {
                         const p = this.scene?.player;
                         if (!p?.active || p.hp >= p.maxHp) return;
-                        p.heal(hpPerTick);
+                        p.heal(hpPerTick, { silent: true });
                     }
                 });
                 DebugLogger.info('powerup', `[PowerUpAbilities] Passive regen: +${hpPerTick} HP every ${tickMs}ms`);

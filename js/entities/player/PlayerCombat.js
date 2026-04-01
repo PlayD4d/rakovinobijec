@@ -78,7 +78,7 @@ export class PlayerCombat {
         return this.player.active && this.player._iFramesMsLeft <= 0;
     }
 
-    heal(amount) {
+    heal(amount, { silent = false } = {}) {
         const player = this.player;
         const a = Math.max(0, amount | 0);
         if (a <= 0) return 0;
@@ -88,8 +88,10 @@ export class PlayerCombat {
 
         if (player.hp > before) {
             getSession()?.log('player', 'heal', { amount: player.hp - before, newHP: player.hp });
-            player._playVfx(player.vfx.heal, player.x, player.y);
-            player._playSfx(player.sfx.heal);
+            if (!silent) {
+                player._playVfx(player.vfx.heal, player.x, player.y);
+                player._playSfx(player.sfx.heal);
+            }
             player.scene.frameworkDebug?.onPlayerHeal?.(player, player.hp - before);
 
             const hud = player.scene.scene?.get('GameUIScene')?.hud;

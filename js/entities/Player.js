@@ -173,7 +173,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     takeDamage(amount, source) { return this.combat.takeDamage(amount, source); }
     canTakeDamage() { return this.combat.canTakeDamage(); }
-    heal(amount) { return this.combat.heal(amount); }
+    heal(amount, opts) { return this.combat.heal(amount, opts); }
     die(source) { this.combat.die(source); }
 
     // ================ Stats (delegates to PlayerStats) ================
