@@ -415,15 +415,14 @@ export class PowerUpAbilities {
             }
 
             case 'orbital_antibodies': {
-                // Projectiles orbit around player, damage on contact
+                // Projectiles orbit around player — smooth per-frame position, throttled hit detection
                 if (this._orbitalTimer) { this._orbitalTimer.remove(); this._orbitalTimer = null; }
                 const orbCount = config.count;
                 const orbDmg = config.damage;
                 const orbRadius = config.orbitRadius;
                 const orbSpeed = config.speed; // rad/s
-                let orbAngle = 0;
 
-                // Bake orbital texture once
+                // Bake texture once
                 const orbTexKey = '_orbital_ab';
                 if (!this.scene.textures.exists(orbTexKey)) {
                     const gf = this.scene.graphicsFactory;
@@ -437,7 +436,7 @@ export class PowerUpAbilities {
                     }
                 }
 
-                // Create orbital sprites
+                // Create sprites
                 if (this._orbitalSprites) this._orbitalSprites.forEach(s => s.destroy());
                 this._orbitalSprites = [];
                 for (let i = 0; i < orbCount; i++) {
@@ -447,28 +446,42 @@ export class PowerUpAbilities {
                     this._orbitalSprites.push(s);
                 }
 
-                // Throttled update at 10Hz — move orbitals + check hits
+                // Store config for per-frame update
+                this._orbitalConfig = { count: orbCount, damage: orbDmg, radius: orbRadius, speed: orbSpeed, angle: 0 };
                 this._orbitalHitTimes = new WeakMap();
-                this._orbitalTimer = this.scene.time.addEvent({
-                    delay: 100,
-                    loop: true,
-                    callback: () => {
-                        const p = this.scene?.player;
-                        if (!p?.active) return;
-                        orbAngle += orbSpeed * 0.1; // 0.1s per tick
-                        const now = this.scene.time?.now || 0;
-                        const hitRadius = 18; // contact distance
-                        const hitRSq = hitRadius * hitRadius;
+                this._orbitalLastHitCheck = 0;
 
+                // Register per-frame position update via activeAbilities
+                this.activeAbilities.set('orbital_antibodies', {
+                    config,
+                    updateFn: (time, delta) => {
+                        const p = this.scene?.player;
+                        if (!p?.active || !this._orbitalConfig) return;
+                        const cfg = this._orbitalConfig;
+
+                        // Smooth angle update per frame
+                        cfg.angle += cfg.speed * (delta / 1000);
+
+                        // Update sprite positions every frame (smooth orbit)
                         for (let i = 0; i < this._orbitalSprites.length; i++) {
                             const spr = this._orbitalSprites[i];
                             if (!spr?.scene) continue;
-                            const a = orbAngle + (i / orbCount) * Math.PI * 2;
-                            const ox = p.x + Math.cos(a) * orbRadius;
-                            const oy = p.y + Math.sin(a) * orbRadius;
-                            spr.setPosition(ox, oy);
+                            const a = cfg.angle + (i / cfg.count) * Math.PI * 2;
+                            spr.setPosition(
+                                p.x + Math.cos(a) * cfg.radius,
+                                p.y + Math.sin(a) * cfg.radius
+                            );
+                        }
 
-                            // Check hits (both groups)
+                        // Hit detection throttled at 10Hz
+                        if (time - this._orbitalLastHitCheck < 100) return;
+                        this._orbitalLastHitCheck = time;
+
+                        const hitRSq = 18 * 18;
+                        for (let i = 0; i < this._orbitalSprites.length; i++) {
+                            const spr = this._orbitalSprites[i];
+                            if (!spr?.scene) continue;
+                            const ox = spr.x, oy = spr.y;
                             const eg = this.scene.enemiesGroup?.getChildren() || [];
                             const bg = this.scene.bossGroup?.getChildren() || [];
                             for (const list of [eg, bg]) {
@@ -478,15 +491,16 @@ export class PowerUpAbilities {
                                     const dx = e.x - ox, dy = e.y - oy;
                                     if (dx * dx + dy * dy <= hitRSq) {
                                         const lastHit = this._orbitalHitTimes.get(e) || 0;
-                                        if (now - lastHit < 500) continue; // 500ms per-enemy cooldown
-                                        this._orbitalHitTimes.set(e, now);
-                                        e.takeDamage(orbDmg);
+                                        if (time - lastHit < 500) continue;
+                                        this._orbitalHitTimes.set(e, time);
+                                        e.takeDamage(cfg.damage);
                                     }
                                 }
                             }
                         }
                     }
                 });
+
                 DebugLogger.info('powerup', `[PowerUpAbilities] Orbital Antibodies: ${orbCount}x ${orbDmg}dmg, r=${orbRadius}px`);
                 break;
             }
@@ -869,8 +883,8 @@ export class PowerUpAbilities {
         if (this._regenTimer) { this._regenTimer.remove(); this._regenTimer = null; }
         if (this._oxidativeBurstTimer) { this._oxidativeBurstTimer.remove(); this._oxidativeBurstTimer = null; }
         if (this._synapticTimer) { this._synapticTimer.remove(); this._synapticTimer = null; }
-        if (this._orbitalTimer) { this._orbitalTimer.remove(); this._orbitalTimer = null; }
         if (this._orbitalSprites) { this._orbitalSprites.forEach(s => s?.destroy()); this._orbitalSprites = null; }
+        this._orbitalConfig = null;
         if (this._chemoPoolTimer) { this._chemoPoolTimer.remove(); this._chemoPoolTimer = null; }
         if (this._boomerangTimer) { this._boomerangTimer.remove(); this._boomerangTimer = null; }
         if (this._ricochetTimer) { this._ricochetTimer.remove(); this._ricochetTimer = null; }
