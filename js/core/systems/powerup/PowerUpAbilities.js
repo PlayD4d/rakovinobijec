@@ -137,6 +137,22 @@ export class PowerUpAbilities {
                 config.interval = (ability.intervalPerLevel || [4000,3500,3000,2500,2000])[level - 1] || 4000;
                 break;
 
+            case 'antibody_boomerang':
+                config.damage = (ability.damagePerLevel || [12,16,20,25,32])[level - 1] || 12;
+                config.speed = (ability.speedPerLevel || [200,210,220,230,240])[level - 1] || 200;
+                config.range = (ability.rangePerLevel || [150,170,190,200,220])[level - 1] || 150;
+                config.count = (ability.countPerLevel || [1,1,1,2,2])[level - 1] || 1;
+                config.interval = ability.interval || 2000;
+                break;
+
+            case 'ricochet_cell':
+                config.damage = (ability.damagePerLevel || [10,14,18,22,28])[level - 1] || 10;
+                config.speed = (ability.speedPerLevel || [180,190,200,210,220])[level - 1] || 180;
+                config.bounces = (ability.bouncesPerLevel || [3,4,5,5,6])[level - 1] || 3;
+                config.count = (ability.countPerLevel || [1,1,1,2,2])[level - 1] || 1;
+                config.interval = ability.interval || 2500;
+                break;
+
             default:
                 DebugLogger.warn('powerup', `[PowerUpAbilities] Unknown ability type: ${ability.type}`);
                 return [];
@@ -548,6 +564,198 @@ export class PowerUpAbilities {
                 break;
             }
 
+            case 'antibody_boomerang': {
+                // Boomerang projectile — flies toward nearest enemy, returns to player
+                if (this._boomerangTimer) { this._boomerangTimer.remove(); this._boomerangTimer = null; }
+                const boomDmg = config.damage;
+                const boomSpeed = config.speed;
+                const boomRange = config.range;
+                const boomCount = config.count;
+
+                // Bake texture
+                const boomTexKey = '_antibody_boom';
+                if (!this.scene.textures.exists(boomTexKey)) {
+                    const gf = this.scene.graphicsFactory;
+                    if (gf) {
+                        const g = gf.create();
+                        g.clear();
+                        g.fillStyle(0xffcc00, 1);
+                        g.fillCircle(5, 5, 5);
+                        g.lineStyle(1, 0xffffff, 0.6);
+                        g.strokeCircle(5, 5, 5);
+                        g.generateTexture(boomTexKey, 10, 10);
+                        gf.release(g);
+                    }
+                }
+
+                this._boomerangTimer = this.scene.time.addEvent({
+                    delay: config.interval,
+                    loop: true,
+                    callback: () => {
+                        const p = this.scene?.player;
+                        if (!p?.active) return;
+
+                        // Find target
+                        const target = this.scene.findNearestEnemy?.();
+                        if (!target?.active) return;
+
+                        for (let n = 0; n < boomCount; n++) {
+                            const dx = target.x - p.x;
+                            const dy = target.y - p.y;
+                            const dist = Math.hypot(dx, dy) || 1;
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+                            // Slight spread for multi-boomerangs
+                            const spread = boomCount > 1 ? (n - (boomCount - 1) / 2) * 0.2 : 0;
+                            const angle = Math.atan2(ny, nx) + spread;
+
+                            const spr = this.scene.add.sprite(p.x, p.y, boomTexKey);
+                            spr.setDepth((this.scene.DEPTH_LAYERS?.PROJECTILES || 3000) + 2);
+                            spr.setOrigin(0.5);
+
+                            // Phase 1: fly out
+                            const flyDist = Math.min(boomRange, dist + 30);
+                            const destX = p.x + Math.cos(angle) * flyDist;
+                            const destY = p.y + Math.sin(angle) * flyDist;
+                            const flyTime = (flyDist / boomSpeed) * 1000;
+
+                            const hitEnemies = new Set();
+
+                            // Hit check at 10Hz during flight
+                            const hitTimer = this.scene.time.addEvent({
+                                delay: 100, loop: true,
+                                callback: () => {
+                                    if (!spr?.scene) { hitTimer.remove(); return; }
+                                    const eg = this.scene.enemiesGroup?.getChildren() || [];
+                                    const bg = this.scene.bossGroup?.getChildren() || [];
+                                    for (const list of [eg, bg]) {
+                                        for (let i = list.length - 1; i >= 0; i--) {
+                                            const e = list[i];
+                                            if (!e?.active || hitEnemies.has(e)) continue;
+                                            const ex = e.x - spr.x, ey = e.y - spr.y;
+                                            if (ex * ex + ey * ey <= 400) { // 20px hit radius
+                                                hitEnemies.add(e);
+                                                e.takeDamage(boomDmg);
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+
+                            // Fly out
+                            this.scene.tweens.add({
+                                targets: spr, x: destX, y: destY,
+                                duration: flyTime, ease: 'Sine.easeOut',
+                                onComplete: () => {
+                                    // Phase 2: return — clear hit set so enemies get hit again
+                                    hitEnemies.clear();
+                                    this.scene.tweens.add({
+                                        targets: spr, x: p.x, y: p.y,
+                                        duration: flyTime * 0.8, ease: 'Sine.easeIn',
+                                        onComplete: () => {
+                                            hitTimer.remove();
+                                            spr.destroy();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
+                });
+                DebugLogger.info('powerup', `[PowerUpAbilities] Antibody Boomerang: ${boomCount}x ${boomDmg}dmg, range=${boomRange}px`);
+                break;
+            }
+
+            case 'ricochet_cell': {
+                // Bouncing projectile — ricochets off screen edges
+                if (this._ricochetTimer) { this._ricochetTimer.remove(); this._ricochetTimer = null; }
+                const ricDmg = config.damage;
+                const ricSpeed = config.speed;
+                const ricBounces = config.bounces;
+                const ricCount = config.count;
+
+                // Bake texture
+                const ricTexKey = '_ricochet_cell';
+                if (!this.scene.textures.exists(ricTexKey)) {
+                    const gf = this.scene.graphicsFactory;
+                    if (gf) {
+                        const g = gf.create();
+                        g.clear();
+                        g.fillStyle(0x44ddff, 1);
+                        g.fillCircle(4, 4, 4);
+                        g.generateTexture(ricTexKey, 8, 8);
+                        gf.release(g);
+                    }
+                }
+
+                this._ricochetTimer = this.scene.time.addEvent({
+                    delay: config.interval,
+                    loop: true,
+                    callback: () => {
+                        const p = this.scene?.player;
+                        if (!p?.active) return;
+
+                        for (let n = 0; n < ricCount; n++) {
+                            // Random direction
+                            const angle = Math.random() * Math.PI * 2;
+
+                            const spr = this.scene.physics.add.sprite(p.x, p.y, ricTexKey);
+                            spr.setDepth((this.scene.DEPTH_LAYERS?.PROJECTILES || 3000) + 2);
+                            spr.setOrigin(0.5);
+                            spr.body.setVelocity(Math.cos(angle) * ricSpeed, Math.sin(angle) * ricSpeed);
+                            spr.body.setCollideWorldBounds(true);
+                            spr.body.setBounce(1, 1);
+                            spr.body.onWorldBounds = true;
+                            spr.body.setAllowGravity(false);
+
+                            let bouncesLeft = ricBounces;
+                            const hitCooldowns = new WeakMap();
+
+                            // Listen for world bounds bounce
+                            this.scene.physics.world.on('worldbounds', (body) => {
+                                if (body.gameObject !== spr) return;
+                                bouncesLeft--;
+                                if (bouncesLeft <= 0) {
+                                    spr.destroy();
+                                }
+                            });
+
+                            // Hit check at 10Hz
+                            const hitTimer = this.scene.time.addEvent({
+                                delay: 100, loop: true,
+                                callback: () => {
+                                    if (!spr?.scene || !spr.active) { hitTimer.remove(); return; }
+                                    const now = this.scene.time?.now || 0;
+                                    const eg = this.scene.enemiesGroup?.getChildren() || [];
+                                    const bg = this.scene.bossGroup?.getChildren() || [];
+                                    for (const list of [eg, bg]) {
+                                        for (let i = list.length - 1; i >= 0; i--) {
+                                            const e = list[i];
+                                            if (!e?.active || typeof e.takeDamage !== 'function') continue;
+                                            const ex = e.x - spr.x, ey = e.y - spr.y;
+                                            if (ex * ex + ey * ey <= 256) { // 16px hit radius
+                                                const lastHit = hitCooldowns.get(e) || 0;
+                                                if (now - lastHit < 300) continue;
+                                                hitCooldowns.set(e, now);
+                                                e.takeDamage(ricDmg);
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+
+                            // Safety: kill after 8 seconds max
+                            this.scene.time.delayedCall(8000, () => {
+                                hitTimer.remove();
+                                if (spr?.scene) spr.destroy();
+                            });
+                        }
+                    }
+                });
+                DebugLogger.info('powerup', `[PowerUpAbilities] Ricochet Cell: ${ricCount}x ${ricDmg}dmg, ${ricBounces} bounces`);
+                break;
+            }
+
             default:
                 DebugLogger.warn('powerup', `[PowerUpAbilities] Unhandled ability type: ${config.type}`);
         }
@@ -664,6 +872,8 @@ export class PowerUpAbilities {
         if (this._orbitalTimer) { this._orbitalTimer.remove(); this._orbitalTimer = null; }
         if (this._orbitalSprites) { this._orbitalSprites.forEach(s => s?.destroy()); this._orbitalSprites = null; }
         if (this._chemoPoolTimer) { this._chemoPoolTimer.remove(); this._chemoPoolTimer = null; }
+        if (this._boomerangTimer) { this._boomerangTimer.remove(); this._boomerangTimer = null; }
+        if (this._ricochetTimer) { this._ricochetTimer.remove(); this._ricochetTimer = null; }
         this.activeAbilities.clear();
         this._abilityConfigs.clear();
         this.scene = null;

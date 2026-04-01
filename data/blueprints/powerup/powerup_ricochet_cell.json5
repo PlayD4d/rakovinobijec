@@ -1,0 +1,50 @@
+{
+  id: 'powerup.ricochet_cell',
+  type: 'powerup',
+  stats: {
+    maxLevel: 5,
+  },
+  mechanics: {
+    modifiersPerLevel: [],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'ricochet_cell',
+  },
+  ability: {
+    type: 'ricochet_cell',
+    damagePerLevel: [10, 14, 18, 22, 28],
+    speedPerLevel: [180, 190, 200, 210, 220],
+    bouncesPerLevel: [3, 4, 5, 5, 6],
+    countPerLevel: [1, 1, 1, 2, 2],
+    interval: 2500,
+  },
+  vfx: {
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
+  },
+  display: {
+    key: 'powerup.ricochet_cell.name',
+    descKey: 'powerup.ricochet_cell.desc',
+    devNameFallback: 'Ricochet Cell',
+    devDescFallback: 'Immune cell that bounces off walls, hitting enemies along the way.',
+    levelDescriptions: [
+      '1 cell, 10 DMG, 3 bounces',
+      '1 cell, 14 DMG, 4 bounces',
+      '1 cell, 18 DMG, 5 bounces',
+      '2 cells, 22 DMG, 5 bounces',
+      '2 cells, 28 DMG, 6 bounces',
+    ],
+    icon: 'powerup_ricochet_cell',
+    color: '#33AA66',
+    rarity: 'rare',
+    category: 'special',
+    sortOrder: 307,
+    tags: ['powerup', 'ricochet', 'damage', 'bouncing'],
+  },
+}

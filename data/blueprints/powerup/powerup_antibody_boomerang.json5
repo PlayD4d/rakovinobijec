@@ -1,0 +1,50 @@
+{
+  id: 'powerup.antibody_boomerang',
+  type: 'powerup',
+  stats: {
+    maxLevel: 5,
+  },
+  mechanics: {
+    modifiersPerLevel: [],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'antibody_boomerang',
+  },
+  ability: {
+    type: 'antibody_boomerang',
+    damagePerLevel: [12, 16, 20, 25, 32],
+    speedPerLevel: [200, 210, 220, 230, 240],
+    rangePerLevel: [150, 170, 190, 200, 220],
+    countPerLevel: [1, 1, 1, 2, 2],
+    interval: 2000,
+  },
+  vfx: {
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
+  },
+  display: {
+    key: 'powerup.antibody_boomerang.name',
+    descKey: 'powerup.antibody_boomerang.desc',
+    devNameFallback: 'Antibody Boomerang',
+    devDescFallback: 'Y-shaped antibody that flies out and returns, hitting enemies both ways.',
+    levelDescriptions: [
+      '1 boomerang, 12 DMG, 150px range',
+      '1 boomerang, 16 DMG, 170px range',
+      '1 boomerang, 20 DMG, 190px range',
+      '2 boomerangs, 25 DMG, 200px range',
+      '2 boomerangs, 32 DMG, 220px range',
+    ],
+    icon: 'powerup_antibody_boomerang',
+    color: '#3366CC',
+    rarity: 'rare',
+    category: 'special',
+    sortOrder: 306,
+    tags: ['powerup', 'boomerang', 'damage', 'returning'],
+  },
+}

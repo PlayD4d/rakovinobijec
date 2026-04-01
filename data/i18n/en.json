@@ -329,6 +329,14 @@
     "chemo_pool": {
       "desc": "Creates a damage zone on the ground that hurts enemies.",
       "name": "Chemo Pool"
+    },
+    "antibody_boomerang": {
+      "name": "Antibody Boomerang",
+      "desc": "Y-shaped antibody that flies out and returns, hitting enemies both ways."
+    },
+    "ricochet_cell": {
+      "name": "Ricochet Cell",
+      "desc": "Immune cell that bounces off walls, hitting enemies along the way."
     }
   },
   "projectile": {

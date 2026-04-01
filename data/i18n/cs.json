@@ -357,6 +357,14 @@
     "chemo_pool": {
       "desc": "Vytváří zónu poškození na zemi.",
       "name": "Chemoterapeutická zóna"
+    },
+    "antibody_boomerang": {
+      "name": "Bumerangová protilátka",
+      "desc": "Protilátka letí k nepříteli a vrací se, zasáhne obousměrně."
+    },
+    "ricochet_cell": {
+      "name": "Odrazová buňka",
+      "desc": "Imunitní buňka odskakující od stěn a zasahující nepřátele."
     }
   },
   "projectile": {
