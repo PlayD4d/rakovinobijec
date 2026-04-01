@@ -202,25 +202,56 @@ export class PowerUpOptionGenerator {
         }
 
         // Ability-based descriptions
-        const ability = blueprint.ability;
-        if (ability?.type === 'shield') {
-            parts.push(`${(ability.baseShieldHP || 50) * level} HP štít`);
-        } else if (ability?.type === 'radiotherapy') {
-            const beams = ability.beamsPerLevel?.[level - 1] || 1;
-            const dmg = ability.damagePerLevel?.[level - 1] || 5;
-            parts.push(`${beams} paprsek${beams > 1 ? 'y' : ''} • ${dmg} DMG`);
-        } else if (ability?.type === 'flamethrower') {
-            const range = ability.rangePerLevel?.[level - 1] || 80;
-            const dmg = ability.damagePerLevel?.[level - 1] || 3;
-            parts.push(`dosah ${range}px • ${dmg} DMG`);
-        } else if (ability?.type === 'chemo_aura') {
-            parts.push(`${ability.chemoCloudDamage || 4} DMG/s oblak`);
-        } else if (ability?.type === 'chain_lightning') {
-            const dmg = (ability.baseDamage || 15) + (ability.damagePerLevel || 10) * (level - 1);
-            parts.push(`${dmg} DMG • ${level} přeskok${level > 1 ? 'y' : ''}`);
-        } else if (ability?.type === 'piercing') {
-            const pierces = ability.maxPierces?.[level - 1] || level;
-            parts.push(`průstřel ${pierces} nepřátel`);
+        const a = blueprint.ability;
+        if (a) {
+            switch (a.type) {
+                case 'shield':
+                    parts.push(`${(a.baseShieldHP || 50) * level} HP štít`);
+                    break;
+                case 'radiotherapy': {
+                    const beams = a.beamsPerLevel?.[level - 1] || 1;
+                    parts.push(`${beams} paprsek${beams > 1 ? 'y' : ''} • ${a.damagePerLevel?.[level - 1] || 5} DMG`);
+                    break;
+                }
+                case 'flamethrower':
+                    parts.push(`${a.damagePerLevel?.[level - 1] || 10} DMG • ${a.intervalMsPerLevel?.[level - 1] || 800}ms`);
+                    break;
+                case 'chemo_aura':
+                    parts.push(`explozivní projektily`);
+                    break;
+                case 'chain_lightning': {
+                    const dmg = (a.baseDamage || 15) + (a.damagePerLevel || 10) * level;
+                    parts.push(`${dmg} DMG • ${level + 1} zásahů`);
+                    break;
+                }
+                case 'piercing':
+                    parts.push(`průstřel ${a.maxPierces?.[level - 1] || level} nepřátel`);
+                    break;
+                case 'homing_shot':
+                    parts.push(`+${a.speedBonusPerLevel?.[level - 1] || 20} rychlost • +${a.rangeBonusPerLevel?.[level - 1] || 50} dosah`);
+                    break;
+                case 'passive_regen':
+                    parts.push(`+${a.hpPerTickPerLevel?.[level - 1] || 1} HP / ${((a.tickMsPerLevel?.[level - 1] || 3000) / 1000).toFixed(1)}s`);
+                    break;
+                case 'synaptic_pulse':
+                    parts.push(`${a.damagePerLevel?.[level - 1] || 8} DMG • ${a.radiusPerLevel?.[level - 1] || 80}px`);
+                    break;
+                case 'orbital_antibodies':
+                    parts.push(`${a.countPerLevel?.[level - 1] || 2}× ${a.damagePerLevel?.[level - 1] || 8} DMG`);
+                    break;
+                case 'chemo_pool':
+                    parts.push(`${a.countPerLevel?.[level - 1] || 1}× ${a.damagePerLevel?.[level - 1] || 5} DMG pool`);
+                    break;
+                case 'antibody_boomerang':
+                    parts.push(`${a.countPerLevel?.[level - 1] || 1}× ${a.damagePerLevel?.[level - 1] || 12} DMG`);
+                    break;
+                case 'ricochet_cell':
+                    parts.push(`${a.countPerLevel?.[level - 1] || 1}× ${a.damagePerLevel?.[level - 1] || 10} DMG • ${a.bouncesPerLevel?.[level - 1] || 3} odrazů`);
+                    break;
+                case 'immune_aura':
+                    parts.push(`${a.damagePerLevel?.[level - 1] || 5} DMG • ${a.radiusPerLevel?.[level - 1] || 60}px`);
+                    break;
+            }
         }
 
         return parts.length > 0 ? parts.join(' • ') : `Level ${level}`;

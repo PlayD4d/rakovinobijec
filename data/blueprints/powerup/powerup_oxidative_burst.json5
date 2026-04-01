@@ -35,8 +35,8 @@
     key: 'powerup.oxidative_burst.name',
     descKey: 'powerup.oxidative_burst.desc',
     templates: {
-      short: '{{ability.damage}} DMG • {{ability.intervalMs}}ms • pierce {{ability.pierceCount}}',
-      desc: 'Periodicky vysila ohnive projektily na nejblizsiho nepritele. Projektily prochazi neprateli.',
+      short: '{{ability.damagePerLevel}} DMG • {{ability.intervalMsPerLevel}}ms',
+      desc: 'Periodicky vysílá ohnivý oblak na nejbližšího nepřítele.',
     },
     color: '#FF6600',
     rarity: 'rare',

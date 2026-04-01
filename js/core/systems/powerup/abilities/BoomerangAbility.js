@@ -10,6 +10,7 @@ export class BoomerangAbility {
         this.scene = scene;
         this._timer = null;
         this._hitTimers = new Set(); // Track in-flight hit timers for cleanup
+        this._sprites = new Set(); // Track in-flight sprites for cleanup
     }
 
     activate(config) {
@@ -53,6 +54,7 @@ export class BoomerangAbility {
         const spr = this.scene.add.sprite(player.x, player.y, '_antibody_boom');
         spr.setDepth((this.scene.DEPTH_LAYERS?.PROJECTILES || 3000) + 2);
         spr.setOrigin(0.5);
+        this._sprites.add(spr);
 
         const flyDist = Math.min(range, dist + 30);
         const destX = player.x + Math.cos(angle) * flyDist;
@@ -89,6 +91,7 @@ export class BoomerangAbility {
                     onComplete: () => {
                         hitTimer.remove();
                         this._hitTimers.delete(hitTimer);
+                        this._sprites.delete(spr);
                         if (spr?.scene) spr.destroy();
                     }
                 });
@@ -102,5 +105,12 @@ export class BoomerangAbility {
             try { t.remove(); } catch (_) {}
         }
         this._hitTimers = new Set();
+        for (const s of this._sprites) {
+            if (s?.scene) {
+                this.scene?.tweens?.killTweensOf(s);
+                s.destroy();
+            }
+        }
+        this._sprites = new Set();
     }
 }

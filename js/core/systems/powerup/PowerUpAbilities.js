@@ -52,11 +52,17 @@ export class PowerUpAbilities {
                 config.tickRate = a.tickRate || 0.1;
                 config.beamColor = a.beamColor || 0x00ff00;
                 config.beamAlpha = a.beamAlpha || 0.7;
+                // Forward visual shape fields to RadiotherapyEffect
+                if (a.innerRadius) config.innerRadius = a.innerRadius;
+                if (a.innerWidthRatio) config.innerWidthRatio = a.innerWidthRatio;
+                if (a.outerWidthRatio) config.outerWidthRatio = a.outerWidthRatio;
+                if (a.glowWidthRatio) config.glowWidthRatio = a.glowWidthRatio;
+                if (a.strokeWidth) config.strokeWidth = a.strokeWidth;
+                if (a.fillAlpha) config.fillAlpha = a.fillAlpha;
                 break;
             case 'flamethrower':
                 config.damage = lvl(a.damagePerLevel, level, 10);
                 config.intervalMs = lvl(a.intervalMsPerLevel, level, 800);
-                config.pierceCount = lvl(a.pierceCountPerLevel, level, 2);
                 config.speed = lvl(a.speedPerLevel, level, 220);
                 break;
             case 'shield':
