@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "generated": "2025-08-16T06:21:58.166Z",
-  "totalEntities": 79,
+  "totalEntities": 81,
   "index": {
     "unique.resistant_titan": "blueprints/unique/unique_resistant_titan.json5",
     "unique.onco_commander": "blueprints/unique/unique_onco_commander.json5",
@@ -40,7 +40,9 @@
     "powerup.ion_therapy": "blueprints/powerup/powerup_ion_therapy.json5",
     "powerup.regenerative_therapy": "blueprints/powerup/powerup_regenerative_therapy.json5",
     "powerup.cytoprotection": "blueprints/powerup/powerup_cytoprotection.json5",
-    "powerup.angiogenesis_inhibitor": "blueprints/powerup/powerup_angiogenesis_inhibitor.json5",
+    "powerup.synaptic_pulse": "blueprints/powerup/powerup_synaptic_pulse.json5",
+    "powerup.orbital_antibodies": "blueprints/powerup/powerup_orbital_antibodies.json5",
+    "powerup.chemo_pool": "blueprints/powerup/powerup_chemo_pool.json5",
     "player": "blueprints/player/player.json5",
     "item.xp_small": "blueprints/items/xp/item_xp_small.json5",
     "item.xp_tiny": "blueprints/items/xp/item_xp_tiny.json5",

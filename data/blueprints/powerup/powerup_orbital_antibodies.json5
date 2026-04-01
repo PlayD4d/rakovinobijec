@@ -1,0 +1,49 @@
+{
+  id: 'powerup.orbital_antibodies',
+  type: 'powerup',
+  stats: {
+    maxLevel: 5,
+  },
+  mechanics: {
+    modifiersPerLevel: [],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'orbital_antibodies',
+  },
+  ability: {
+    type: 'orbital_antibodies',
+    countPerLevel: [2, 3, 3, 4, 5],
+    damagePerLevel: [8, 10, 14, 18, 22],
+    radiusPerLevel: [50, 55, 60, 65, 70],
+    speedPerLevel: [2, 2.2, 2.5, 2.8, 3],
+  },
+  vfx: {
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
+  },
+  display: {
+    key: 'powerup.orbital_antibodies.name',
+    descKey: 'powerup.orbital_antibodies.desc',
+    devNameFallback: 'Orbital Antibodies',
+    devDescFallback: 'Projectiles orbit around you, damaging enemies on contact.',
+    levelDescriptions: [
+      '2 orbitals, 8 DMG, 50px orbit',
+      '3 orbitals, 10 DMG, 55px orbit',
+      '3 orbitals, 14 DMG, 60px orbit',
+      '4 orbitals, 18 DMG, 65px orbit',
+      '5 orbitals, 22 DMG, 70px orbit',
+    ],
+    icon: 'powerup_orbital_antibodies',
+    color: '#3366CC',
+    rarity: 'rare',
+    category: 'special',
+    sortOrder: 305,
+    tags: ['powerup', 'orbital', 'damage', 'passive'],
+  },
+}

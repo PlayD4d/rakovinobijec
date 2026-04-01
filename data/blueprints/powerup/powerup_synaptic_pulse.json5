@@ -1,0 +1,48 @@
+{
+  id: 'powerup.synaptic_pulse',
+  type: 'powerup',
+  stats: {
+    maxLevel: 5,
+  },
+  mechanics: {
+    modifiersPerLevel: [],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'synaptic_pulse',
+  },
+  ability: {
+    type: 'synaptic_pulse',
+    damagePerLevel: [8, 12, 16, 22, 30],
+    radiusPerLevel: [80, 90, 100, 110, 120],
+    intervalPerLevel: [2500, 2200, 2000, 1800, 1500],
+  },
+  vfx: {
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
+  },
+  display: {
+    key: 'powerup.synaptic_pulse.name',
+    descKey: 'powerup.synaptic_pulse.desc',
+    devNameFallback: 'Synaptic Pulse',
+    devDescFallback: 'Periodic AoE damage pulse from your position.',
+    levelDescriptions: [
+      '8 DMG, 80px radius, 2.5s interval',
+      '12 DMG, 90px radius, 2.2s interval',
+      '16 DMG, 100px radius, 2.0s interval',
+      '22 DMG, 110px radius, 1.8s interval',
+      '30 DMG, 120px radius, 1.5s interval',
+    ],
+    icon: 'powerup_synaptic_pulse',
+    color: '#9966CC',
+    rarity: 'uncommon',
+    category: 'special',
+    sortOrder: 300,
+    tags: ['powerup', 'aoe', 'damage', 'passive', 'pulse'],
+  },
+}

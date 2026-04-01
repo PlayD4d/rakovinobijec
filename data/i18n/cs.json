@@ -346,9 +346,17 @@
       "desc": "Snižuje příchozí poškození.",
       "name": "Cytoprotekce"
     },
-    "angiogenesis_inhibitor": {
-      "desc": "Zpomaluje blízké nepřátele omezením krevního zásobení.",
-      "name": "Inhibitor angiogeneze"
+    "synaptic_pulse": {
+      "desc": "Periodický AoE pulz poškození z pozice hráče.",
+      "name": "Synaptický pulz"
+    },
+    "orbital_antibodies": {
+      "desc": "Projektily obíhají kolem hráče a poškozují nepřátele při kontaktu.",
+      "name": "Orbitální protilátky"
+    },
+    "chemo_pool": {
+      "desc": "Vytváří zónu poškození na zemi.",
+      "name": "Chemoterapeutická zóna"
     }
   },
   "projectile": {

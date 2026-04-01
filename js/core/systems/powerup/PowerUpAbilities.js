@@ -117,11 +117,24 @@ export class PowerUpAbilities {
                 config.tickMs = (ability.tickMsPerLevel || [3000,3000,2500,2000,1500])[level - 1] || 3000;
                 break;
 
-            case 'slow_aura':
-                config.radius = ability.radius || 80;
-                config.radiusPerLevel = ability.radiusPerLevel || 15;
-                config.slowPercent = ability.slowPercent || 10;
-                config.slowPercentPerLevel = ability.slowPercentPerLevel || 5;
+            case 'synaptic_pulse':
+                config.damage = (ability.damagePerLevel || [8,12,16,22,30])[level - 1] || 8;
+                config.radius = (ability.radiusPerLevel || [80,90,100,110,120])[level - 1] || 80;
+                config.interval = (ability.intervalPerLevel || [2500,2200,2000,1800,1500])[level - 1] || 2500;
+                break;
+
+            case 'orbital_antibodies':
+                config.count = (ability.countPerLevel || [2,3,3,4,5])[level - 1] || 2;
+                config.damage = (ability.damagePerLevel || [8,10,14,18,22])[level - 1] || 8;
+                config.orbitRadius = (ability.radiusPerLevel || [50,55,60,65,70])[level - 1] || 50;
+                config.speed = (ability.speedPerLevel || [2,2.2,2.5,2.8,3])[level - 1] || 2;
+                break;
+
+            case 'chemo_pool':
+                config.damage = (ability.damagePerLevel || [5,8,12,16,20])[level - 1] || 5;
+                config.poolRadius = (ability.radiusPerLevel || [40,50,55,60,70])[level - 1] || 40;
+                config.duration = (ability.durationPerLevel || [3000,3500,4000,4500,5000])[level - 1] || 3000;
+                config.interval = (ability.intervalPerLevel || [4000,3500,3000,2500,2000])[level - 1] || 4000;
                 break;
 
             default:
@@ -350,38 +363,188 @@ export class PowerUpAbilities {
                 break;
             }
 
-            case 'slow_aura': {
-                const slowRadius = (config.radius || 80) + ((config.radiusPerLevel || 15) * (config.level - 1));
-                const slowPercent = (config.slowPercent || 10) + ((config.slowPercentPerLevel || 5) * (config.level - 1));
-                this._slowAuraConfig = { radius: slowRadius, slowFactor: 1 - (slowPercent / 100) };
+            case 'synaptic_pulse': {
+                // Periodic AoE damage pulse from player position
+                if (this._synapticTimer) { this._synapticTimer.remove(); this._synapticTimer = null; }
+                const pulseDmg = config.damage;
+                const pulseRadius = config.radius;
 
-                // Visual: subtle pulsing circle around player
-                if (this._slowAuraSprite) this._slowAuraSprite.destroy();
-                const texKey = `_slow_aura_${slowRadius}`;
-                if (!this.scene.textures.exists(texKey)) {
+                this._synapticTimer = this.scene.time.addEvent({
+                    delay: config.interval,
+                    loop: true,
+                    callback: () => {
+                        const p = this.scene?.player;
+                        if (!p?.active) return;
+                        const rSq = pulseRadius * pulseRadius;
+                        const eg = this.scene.enemiesGroup?.getChildren() || [];
+                        const bg = this.scene.bossGroup?.getChildren() || [];
+                        for (const list of [eg, bg]) {
+                            for (let i = list.length - 1; i >= 0; i--) {
+                                const e = list[i];
+                                if (!e?.active || typeof e.takeDamage !== 'function') continue;
+                                const dx = e.x - p.x, dy = e.y - p.y;
+                                if (dx * dx + dy * dy <= rSq) e.takeDamage(pulseDmg);
+                            }
+                        }
+                        // VFX: expanding ring
+                        if (this.scene.vfxSystem?.playExplosionEffect) {
+                            this.scene.vfxSystem.playExplosionEffect(p.x, p.y, {
+                                color: 0x8844ff, radius: pulseRadius, duration: 300
+                            });
+                        }
+                    }
+                });
+                DebugLogger.info('powerup', `[PowerUpAbilities] Synaptic Pulse: ${pulseDmg}dmg, ${pulseRadius}px, ${config.interval}ms`);
+                break;
+            }
+
+            case 'orbital_antibodies': {
+                // Projectiles orbit around player, damage on contact
+                if (this._orbitalTimer) { this._orbitalTimer.remove(); this._orbitalTimer = null; }
+                const orbCount = config.count;
+                const orbDmg = config.damage;
+                const orbRadius = config.orbitRadius;
+                const orbSpeed = config.speed; // rad/s
+                let orbAngle = 0;
+
+                // Bake orbital texture once
+                const orbTexKey = '_orbital_ab';
+                if (!this.scene.textures.exists(orbTexKey)) {
                     const gf = this.scene.graphicsFactory;
                     if (gf) {
                         const g = gf.create();
                         g.clear();
-                        g.lineStyle(1.5, 0x4488ff, 0.3);
-                        g.strokeCircle(slowRadius, slowRadius, slowRadius);
-                        g.fillStyle(0x4488ff, 0.04);
-                        g.fillCircle(slowRadius, slowRadius, slowRadius);
-                        g.generateTexture(texKey, slowRadius * 2, slowRadius * 2);
+                        g.fillStyle(0x00ccff, 1);
+                        g.fillCircle(6, 6, 6);
+                        g.generateTexture(orbTexKey, 12, 12);
                         gf.release(g);
                     }
                 }
-                if (this.scene.textures.exists(texKey)) {
-                    this._slowAuraSprite = this.scene.add.sprite(player.x, player.y, texKey);
-                    this._slowAuraSprite.setOrigin(0.5).setDepth((this.scene.DEPTH_LAYERS?.PLAYER || 2000) - 1);
-                    this.scene.tweens.add({
-                        targets: this._slowAuraSprite,
-                        alpha: { from: 0.4, to: 0.7 },
-                        duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
-                    });
+
+                // Create orbital sprites
+                if (this._orbitalSprites) this._orbitalSprites.forEach(s => s.destroy());
+                this._orbitalSprites = [];
+                for (let i = 0; i < orbCount; i++) {
+                    const s = this.scene.add.sprite(player.x, player.y, orbTexKey);
+                    s.setDepth((this.scene.DEPTH_LAYERS?.PROJECTILES || 3000) + 1);
+                    s.setOrigin(0.5);
+                    this._orbitalSprites.push(s);
                 }
 
-                DebugLogger.info('powerup', `[PowerUpAbilities] Slow aura: ${slowPercent}% in ${slowRadius}px`);
+                // Throttled update at 10Hz — move orbitals + check hits
+                this._orbitalHitTimes = new WeakMap();
+                this._orbitalTimer = this.scene.time.addEvent({
+                    delay: 100,
+                    loop: true,
+                    callback: () => {
+                        const p = this.scene?.player;
+                        if (!p?.active) return;
+                        orbAngle += orbSpeed * 0.1; // 0.1s per tick
+                        const now = this.scene.time?.now || 0;
+                        const hitRadius = 18; // contact distance
+                        const hitRSq = hitRadius * hitRadius;
+
+                        for (let i = 0; i < this._orbitalSprites.length; i++) {
+                            const spr = this._orbitalSprites[i];
+                            if (!spr?.scene) continue;
+                            const a = orbAngle + (i / orbCount) * Math.PI * 2;
+                            const ox = p.x + Math.cos(a) * orbRadius;
+                            const oy = p.y + Math.sin(a) * orbRadius;
+                            spr.setPosition(ox, oy);
+
+                            // Check hits (both groups)
+                            const eg = this.scene.enemiesGroup?.getChildren() || [];
+                            const bg = this.scene.bossGroup?.getChildren() || [];
+                            for (const list of [eg, bg]) {
+                                for (let j = list.length - 1; j >= 0; j--) {
+                                    const e = list[j];
+                                    if (!e?.active || typeof e.takeDamage !== 'function') continue;
+                                    const dx = e.x - ox, dy = e.y - oy;
+                                    if (dx * dx + dy * dy <= hitRSq) {
+                                        const lastHit = this._orbitalHitTimes.get(e) || 0;
+                                        if (now - lastHit < 500) continue; // 500ms per-enemy cooldown
+                                        this._orbitalHitTimes.set(e, now);
+                                        e.takeDamage(orbDmg);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                DebugLogger.info('powerup', `[PowerUpAbilities] Orbital Antibodies: ${orbCount}x ${orbDmg}dmg, r=${orbRadius}px`);
+                break;
+            }
+
+            case 'chemo_pool': {
+                // Periodic damage zone on ground at player position
+                if (this._chemoPoolTimer) { this._chemoPoolTimer.remove(); this._chemoPoolTimer = null; }
+                const poolDmg = config.damage;
+                const poolRadius = config.poolRadius;
+                const poolDuration = config.duration;
+
+                this._chemoPoolTimer = this.scene.time.addEvent({
+                    delay: config.interval,
+                    loop: true,
+                    callback: () => {
+                        const p = this.scene?.player;
+                        if (!p?.active) return;
+                        const px = p.x, py = p.y;
+                        const rSq = poolRadius * poolRadius;
+
+                        // VFX: green pool on ground
+                        const texKey = `_cpool_${poolRadius}`;
+                        if (!this.scene.textures.exists(texKey)) {
+                            const gf = this.scene.graphicsFactory;
+                            if (gf) {
+                                const g = gf.create();
+                                g.clear();
+                                g.fillStyle(0x22aa66, 0.15);
+                                g.fillCircle(poolRadius, poolRadius, poolRadius);
+                                g.lineStyle(1, 0x22aa66, 0.3);
+                                g.strokeCircle(poolRadius, poolRadius, poolRadius);
+                                g.generateTexture(texKey, poolRadius * 2, poolRadius * 2);
+                                gf.release(g);
+                            }
+                        }
+
+                        const poolSprite = this.scene.add.sprite(px, py, texKey);
+                        poolSprite.setOrigin(0.5).setAlpha(0);
+                        poolSprite.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 500) + 50);
+
+                        // Fade in
+                        this.scene.tweens.add({
+                            targets: poolSprite, alpha: 0.8, duration: 300
+                        });
+
+                        // Damage tick every 500ms
+                        const tickTimer = this.scene.time.addEvent({
+                            delay: 500,
+                            repeat: Math.floor(poolDuration / 500) - 1,
+                            callback: () => {
+                                const eg = this.scene.enemiesGroup?.getChildren() || [];
+                                const bg = this.scene.bossGroup?.getChildren() || [];
+                                for (const list of [eg, bg]) {
+                                    for (let i = list.length - 1; i >= 0; i--) {
+                                        const e = list[i];
+                                        if (!e?.active || typeof e.takeDamage !== 'function') continue;
+                                        const dx = e.x - px, dy = e.y - py;
+                                        if (dx * dx + dy * dy <= rSq) e.takeDamage(poolDmg);
+                                    }
+                                }
+                            }
+                        });
+
+                        // Expire: fade out + destroy
+                        this.scene.time.delayedCall(poolDuration, () => {
+                            tickTimer.remove();
+                            this.scene.tweens.add({
+                                targets: poolSprite, alpha: 0, duration: 400,
+                                onComplete: () => poolSprite.destroy()
+                            });
+                        });
+                    }
+                });
+                DebugLogger.info('powerup', `[PowerUpAbilities] Chemo Pool: ${poolDmg}dmg, r=${poolRadius}px, ${poolDuration}ms, every ${config.interval}ms`);
                 break;
             }
 
@@ -415,44 +578,13 @@ export class PowerUpAbilities {
             this._damageZones.updateImmuneAura(player);
         }
 
-        // Slow aura visual follows player + throttled enemy slow at 4Hz
-        if (this._slowAuraConfig && player?.active) {
-            if (this._slowAuraSprite?.scene) {
-                this._slowAuraSprite.setPosition(player.x, player.y);
-            }
-            if (!this._lastSlowTick || time - this._lastSlowTick >= 250) {
-                this._lastSlowTick = time;
-                this._applySlowAura(player);
-            }
-        }
+        // Orbital antibodies sprites follow player — position is set in the orbital timer callback
 
         // Delegate shield regeneration
         this._shieldRegen.update(player, time);
     }
 
-    /**
-     * Apply slow aura to nearby enemies
-     */
-    _applySlowAura(player) {
-        const cfg = this._slowAuraConfig;
-        if (!cfg) return;
-        // Include both regular enemies AND bosses
-        const eg = this.scene.enemiesGroup?.getChildren() || [];
-        const bg = this.scene.bossGroup?.getChildren() || [];
-        const rSq = cfg.radius * cfg.radius;
-        const enemies = eg.length > 0 && bg.length > 0 ? [...eg, ...bg] : (eg.length > 0 ? eg : bg);
-        for (let i = enemies.length - 1; i >= 0; i--) {
-            const e = enemies[i];
-            if (!e?.active || !e.body) continue;
-            const dx = e.x - player.x;
-            const dy = e.y - player.y;
-            if (dx * dx + dy * dy <= rSq) {
-                // Reduce velocity by slow factor (applied per frame — resets naturally when enemy exits radius)
-                e.body.velocity.x *= cfg.slowFactor;
-                e.body.velocity.y *= cfg.slowFactor;
-            }
-        }
-    }
+
 
     /**
      * Process damage through shield system (PR7: Moved from Player.js)
@@ -528,8 +660,10 @@ export class PowerUpAbilities {
         this._shieldRegen.destroy();
         if (this._regenTimer) { this._regenTimer.remove(); this._regenTimer = null; }
         if (this._oxidativeBurstTimer) { this._oxidativeBurstTimer.remove(); this._oxidativeBurstTimer = null; }
-        if (this._slowAuraSprite) { this._slowAuraSprite.destroy(); this._slowAuraSprite = null; }
-        this._slowAuraConfig = null;
+        if (this._synapticTimer) { this._synapticTimer.remove(); this._synapticTimer = null; }
+        if (this._orbitalTimer) { this._orbitalTimer.remove(); this._orbitalTimer = null; }
+        if (this._orbitalSprites) { this._orbitalSprites.forEach(s => s?.destroy()); this._orbitalSprites = null; }
+        if (this._chemoPoolTimer) { this._chemoPoolTimer.remove(); this._chemoPoolTimer = null; }
         this.activeAbilities.clear();
         this._abilityConfigs.clear();
         this.scene = null;

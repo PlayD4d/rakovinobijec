@@ -318,9 +318,17 @@
       "desc": "Reduces incoming damage.",
       "name": "Cytoprotection"
     },
-    "angiogenesis_inhibitor": {
-      "desc": "Slows nearby enemies by cutting their blood supply.",
-      "name": "Angiogenesis Inhibitor"
+    "synaptic_pulse": {
+      "desc": "Periodic AoE damage pulse from your position.",
+      "name": "Synaptic Pulse"
+    },
+    "orbital_antibodies": {
+      "desc": "Projectiles orbit around you, damaging enemies on contact.",
+      "name": "Orbital Antibodies"
+    },
+    "chemo_pool": {
+      "desc": "Creates a damage zone on the ground that hurts enemies.",
+      "name": "Chemo Pool"
     }
   },
   "projectile": {

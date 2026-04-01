@@ -1,0 +1,49 @@
+{
+  id: 'powerup.chemo_pool',
+  type: 'powerup',
+  stats: {
+    maxLevel: 5,
+  },
+  mechanics: {
+    modifiersPerLevel: [],
+    stackable: true,
+    persistent: true,
+    applyOnPickup: true,
+    effectType: 'chemo_pool',
+  },
+  ability: {
+    type: 'chemo_pool',
+    damagePerLevel: [5, 8, 12, 16, 20],
+    radiusPerLevel: [40, 50, 55, 60, 70],
+    durationPerLevel: [3000, 3500, 4000, 4500, 5000],
+    intervalPerLevel: [4000, 3500, 3000, 2500, 2000],
+  },
+  vfx: {
+    pickup: 'vfx.pickup',
+    levelUp: 'vfx.powerup',
+  },
+  sfx: {
+    pickup: 'sound/pickup.mp3',
+    apply: 'sound/powerup.mp3',
+    levelUp: 'sound/powerup.mp3',
+  },
+  display: {
+    key: 'powerup.chemo_pool.name',
+    descKey: 'powerup.chemo_pool.desc',
+    devNameFallback: 'Chemo Pool',
+    devDescFallback: 'Creates a damage zone on the ground that hurts enemies.',
+    levelDescriptions: [
+      '5 DMG, 40px radius, 3s duration, 4s cooldown',
+      '8 DMG, 50px radius, 3.5s duration, 3.5s cooldown',
+      '12 DMG, 55px radius, 4s duration, 3s cooldown',
+      '16 DMG, 60px radius, 4.5s duration, 2.5s cooldown',
+      '20 DMG, 70px radius, 5s duration, 2s cooldown',
+    ],
+    icon: 'powerup_chemo_pool',
+    color: '#33CC66',
+    rarity: 'uncommon',
+    category: 'special',
+    sortOrder: 310,
+    tags: ['powerup', 'zone', 'damage', 'dot', 'ground'],
+  },
+}
