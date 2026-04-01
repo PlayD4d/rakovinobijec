@@ -131,10 +131,12 @@ export class PowerUpAbilities {
                 break;
 
             case 'chemo_pool':
-                config.damage = (ability.damagePerLevel || [5,8,12,16,20])[level - 1] || 5;
-                config.poolRadius = (ability.radiusPerLevel || [40,50,55,60,70])[level - 1] || 40;
+                config.damage = (ability.damagePerLevel || [5,7,9,12,15])[level - 1] || 5;
+                config.poolRadius = (ability.radiusPerLevel || [35,37,39,41,44])[level - 1] || 35;
                 config.duration = (ability.durationPerLevel || [3000,3500,4000,4500,5000])[level - 1] || 3000;
                 config.interval = (ability.intervalPerLevel || [4000,3500,3000,2500,2000])[level - 1] || 4000;
+                config.poolCount = (ability.countPerLevel || [1,2,2,3,4])[level - 1] || 1;
+                config.orbitRadius = ability.orbitRadius || 80;
                 break;
 
             case 'antibody_boomerang':
@@ -506,11 +508,29 @@ export class PowerUpAbilities {
             }
 
             case 'chemo_pool': {
-                // Periodic damage zone on ground at player position
+                // Santa Water style: multiple damage zones on random orbit positions around player
                 if (this._chemoPoolTimer) { this._chemoPoolTimer.remove(); this._chemoPoolTimer = null; }
                 const poolDmg = config.damage;
                 const poolRadius = config.poolRadius;
                 const poolDuration = config.duration;
+                const poolCount = config.poolCount;
+                const orbitR = config.orbitRadius;
+
+                // Bake pool texture once
+                const texKey = `_cpool_${poolRadius}`;
+                if (!this.scene.textures.exists(texKey)) {
+                    const gf = this.scene.graphicsFactory;
+                    if (gf) {
+                        const g = gf.create();
+                        g.clear();
+                        g.fillStyle(0x22aa66, 0.15);
+                        g.fillCircle(poolRadius, poolRadius, poolRadius);
+                        g.lineStyle(1, 0x22aa66, 0.3);
+                        g.strokeCircle(poolRadius, poolRadius, poolRadius);
+                        g.generateTexture(texKey, poolRadius * 2, poolRadius * 2);
+                        gf.release(g);
+                    }
+                }
 
                 this._chemoPoolTimer = this.scene.time.addEvent({
                     delay: config.interval,
@@ -518,63 +538,54 @@ export class PowerUpAbilities {
                     callback: () => {
                         const p = this.scene?.player;
                         if (!p?.active) return;
-                        const px = p.x, py = p.y;
-                        const rSq = poolRadius * poolRadius;
 
-                        // VFX: green pool on ground
-                        const texKey = `_cpool_${poolRadius}`;
-                        if (!this.scene.textures.exists(texKey)) {
-                            const gf = this.scene.graphicsFactory;
-                            if (gf) {
-                                const g = gf.create();
-                                g.clear();
-                                g.fillStyle(0x22aa66, 0.15);
-                                g.fillCircle(poolRadius, poolRadius, poolRadius);
-                                g.lineStyle(1, 0x22aa66, 0.3);
-                                g.strokeCircle(poolRadius, poolRadius, poolRadius);
-                                g.generateTexture(texKey, poolRadius * 2, poolRadius * 2);
-                                gf.release(g);
-                            }
-                        }
+                        // Spawn N pools at random positions on orbit around player
+                        for (let n = 0; n < poolCount; n++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const dist = orbitR * (0.4 + Math.random() * 0.6); // 40-100% of orbit radius
+                            const px = p.x + Math.cos(angle) * dist;
+                            const py = p.y + Math.sin(angle) * dist;
+                            const rSq = poolRadius * poolRadius;
 
-                        const poolSprite = this.scene.add.sprite(px, py, texKey);
-                        poolSprite.setOrigin(0.5).setAlpha(0);
-                        poolSprite.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 500) + 50);
+                            const poolSprite = this.scene.add.sprite(px, py, texKey);
+                            poolSprite.setOrigin(0.5).setAlpha(0);
+                            poolSprite.setDepth((this.scene.DEPTH_LAYERS?.LOOT || 500) + 50);
 
-                        // Fade in
-                        this.scene.tweens.add({
-                            targets: poolSprite, alpha: 0.8, duration: 300
-                        });
+                            // Fade in
+                            this.scene.tweens.add({
+                                targets: poolSprite, alpha: 0.8, duration: 300
+                            });
 
-                        // Damage tick every 500ms
-                        const tickTimer = this.scene.time.addEvent({
-                            delay: 500,
-                            repeat: Math.floor(poolDuration / 500) - 1,
-                            callback: () => {
-                                const eg = this.scene.enemiesGroup?.getChildren() || [];
-                                const bg = this.scene.bossGroup?.getChildren() || [];
-                                for (const list of [eg, bg]) {
-                                    for (let i = list.length - 1; i >= 0; i--) {
-                                        const e = list[i];
-                                        if (!e?.active || typeof e.takeDamage !== 'function') continue;
-                                        const dx = e.x - px, dy = e.y - py;
-                                        if (dx * dx + dy * dy <= rSq) e.takeDamage(poolDmg);
+                            // Damage tick every 500ms
+                            const tickTimer = this.scene.time.addEvent({
+                                delay: 500,
+                                repeat: Math.floor(poolDuration / 500) - 1,
+                                callback: () => {
+                                    const eg = this.scene.enemiesGroup?.getChildren() || [];
+                                    const bg = this.scene.bossGroup?.getChildren() || [];
+                                    for (const list of [eg, bg]) {
+                                        for (let i = list.length - 1; i >= 0; i--) {
+                                            const e = list[i];
+                                            if (!e?.active || typeof e.takeDamage !== 'function') continue;
+                                            const dx = e.x - px, dy = e.y - py;
+                                            if (dx * dx + dy * dy <= rSq) e.takeDamage(poolDmg);
+                                        }
                                     }
                                 }
-                            }
-                        });
-
-                        // Expire: fade out + destroy
-                        this.scene.time.delayedCall(poolDuration, () => {
-                            tickTimer.remove();
-                            this.scene.tweens.add({
-                                targets: poolSprite, alpha: 0, duration: 400,
-                                onComplete: () => poolSprite.destroy()
                             });
-                        });
+
+                            // Expire
+                            this.scene.time.delayedCall(poolDuration, () => {
+                                tickTimer.remove();
+                                this.scene.tweens.add({
+                                    targets: poolSprite, alpha: 0, duration: 400,
+                                    onComplete: () => poolSprite.destroy()
+                                });
+                            });
+                        }
                     }
                 });
-                DebugLogger.info('powerup', `[PowerUpAbilities] Chemo Pool: ${poolDmg}dmg, r=${poolRadius}px, ${poolDuration}ms, every ${config.interval}ms`);
+                DebugLogger.info('powerup', `[PowerUpAbilities] Chemo Pool: ${poolCount}x ${poolDmg}dmg, r=${poolRadius}px, orbit=${orbitR}px, every ${config.interval}ms`);
                 break;
             }
 
