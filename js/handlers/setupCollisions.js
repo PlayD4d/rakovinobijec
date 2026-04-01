@@ -277,29 +277,25 @@ function handlePlayerBulletBossCollision(bullet, boss) {
 }
 
 /**
- * Handle enemy bullet hitting player
- * Note: Shield intercept is handled by a separate overlap on the shield hitbox
- * (registered in ShieldRegeneration.createShieldHitbox). Bullets that reach
- * this handler have either bypassed the shield or shield is inactive.
+ * Handle enemy bullet hitting player body.
+ * Primary shield interception happens on the shield hitbox overlap (40px radius,
+ * registered in ShieldRegeneration.createShieldHitbox). This handler is a FALLBACK
+ * for any bullet that reaches the smaller player body despite the shield.
+ * Both paths call interceptBullet() — coordination via bullet.active check.
  */
 function handleEnemyBulletPlayerCollision(bullet, player) {
     if (!bullet.active || !player.active) return;
 
-    // Shield already intercepted this bullet in same physics step
-    if (bullet._shieldIntercepted) { killBullet(bullet); return; }
-
-    // Shield absorbs bullets — catches bullets that reach player overlap before shield overlap
+    // Fallback shield intercept — bullet reached player body despite shield overlap
     if (player.shieldActive && player.shieldHP > 0) {
-        const dmg = bullet.damage || 5;
-        player.shieldHP = Math.max(0, player.shieldHP - dmg);
-        if (player.shieldHP <= 0) {
-            player.shieldActive = false;
+        const shieldRegen = player.scene?.powerUpSystem?.abilities?._shieldRegen;
+        if (shieldRegen) {
+            const overflow = shieldRegen.interceptBullet(player, bullet);
+            if (overflow > 0 && player.canTakeDamage?.()) {
+                player.takeDamage(overflow);
+            }
+            return; // bullet killed inside interceptBullet
         }
-        // Shield intercept VFX at bullet position (not player position)
-        const vfx = player.scene?.vfxSystem;
-        if (vfx) vfx.play('hit.small', bullet.x, bullet.y, { color: 0x00CCFF });
-        killBullet(bullet);
-        return;
     }
 
     if (player.canTakeDamage?.()) {
@@ -310,8 +306,6 @@ function handleEnemyBulletPlayerCollision(bullet, player) {
     }
     killBullet(bullet);
 }
-
-// Shield knockback is handled per-frame in ShieldRegeneration._pushEnemiesAtBoundary()
 
 /**
  * Register a dynamic overlap at runtime (e.g., power-up abilities, VFX effects).

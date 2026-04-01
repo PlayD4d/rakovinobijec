@@ -51,28 +51,8 @@ export class BootstrapManager {
      * Initialize analytics and score managers
      */
     initializeManagers() {
-        // High score managers
-        const { HighScoreManager } = window;
-        const { GlobalHighScoreManager } = window;
-        
-        if (HighScoreManager) {
-            this.scene.highScoreManager = new HighScoreManager();
-        }
-        
-        if (GlobalHighScoreManager) {
-            this.scene.globalHighScoreManager = new GlobalHighScoreManager();
-        }
-        
-        // Analytics manager
-        try {
-            const { AnalyticsManager } = window;
-            if (AnalyticsManager) {
-                this.scene.analyticsManager = new AnalyticsManager();
-            }
-        } catch (error) {
-            DebugLogger.warn('bootstrap', '⚠️ Analytics manager init failed (silenced):', error.message);
-            this.scene.analyticsManager = null;
-        }
+        // High scores: will be implemented via SQLite telemetry DB in a later phase
+        // Analytics: handled by SessionLog + TelemetryLogger
     }
 
     /**

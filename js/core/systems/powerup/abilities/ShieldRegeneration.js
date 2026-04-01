@@ -124,8 +124,14 @@ export class ShieldRegeneration {
     }
 
     /**
-     * Create invisible physics hitbox for shield bullet interception
-     * Uses Phaser overlap system instead of per-frame distance checks
+     * Create invisible physics hitbox for shield.
+     * Two roles:
+     *   1. Bullet interception at shield radius (40px) — PRIMARY entry point
+     *   2. Enemy/boss contact blocking + damage absorption
+     *
+     * The player-vs-bullet overlap in setupCollisions.js acts as FALLBACK
+     * for any bullet that reaches the player body despite the shield overlap.
+     * Both call interceptBullet() — coordination via bullet.active check.
      */
     createShieldHitbox(player) {
         const scene = this.scene;
@@ -145,22 +151,27 @@ export class ShieldRegeneration {
 
         player._shieldHitbox = hitbox;
 
-        // Register overlap: shield hitbox vs enemy bullets
+        // --- Bullet interception: shield hitbox (40px) vs enemy bullets ---
         const enemyBullets = scene.projectileSystem?.enemyBullets;
         if (enemyBullets) {
-            player._shieldOverlap = registerDynamicOverlap(
+            player._shieldBulletOverlap = registerDynamicOverlap(
                 scene, hitbox, enemyBullets,
-                (shieldBody, bullet) => this._onBulletHitShield(player, bullet),
+                (shieldZone, bullet) => {
+                    if (!bullet?.active) return;
+                    const overflow = this.interceptBullet(player, bullet);
+                    // Overflow damage: bullet killed inside interceptBullet,
+                    // apply remaining damage to player directly
+                    if (overflow > 0 && player.active) {
+                        player.takeDamage(overflow);
+                    }
+                },
                 () => player.shieldActive && player.shieldHP > 0
             );
         }
 
-        // Shield body — physically blocks enemies (collider, not overlap)
-        // Using the same hitbox for both bullet interception and enemy blocking
-        // Enemies that touch the shield take no player damage — shield absorbs it
-        this._shieldContactTicks = new WeakMap(); // Track per-enemy contact tick time
+        // --- Enemy/boss contact ---
+        this._shieldContactTicks = new WeakMap();
 
-        // Collider: shield vs enemies — physically stops them + contact damage to shield
         if (scene.enemiesGroup) {
             player._shieldEnemyCollider = registerDynamicCollider(
                 scene, hitbox, scene.enemiesGroup,
@@ -168,7 +179,6 @@ export class ShieldRegeneration {
                 () => player.shieldActive && player.shieldHP > 0
             );
         }
-        // Boss: overlap only (contact damage to shield, but NO physical knockback)
         if (scene.bossGroup) {
             player._shieldBossCollider = registerDynamicOverlap(
                 scene, hitbox, scene.bossGroup,
@@ -179,32 +189,29 @@ export class ShieldRegeneration {
     }
 
     /**
-     * Callback: enemy bullet hit shield hitbox
+     * Intercept enemy bullet with shield.
+     * Called from: (1) shield hitbox overlap (primary, 40px radius)
+     *              (2) player body overlap in setupCollisions.js (fallback)
+     * Always kills the bullet. Caller handles overflow damage.
+     * @returns {number} Overflow damage not absorbed by shield (0 = fully absorbed)
      */
-    _onBulletHitShield(player, bullet) {
-        if (!bullet?.active || bullet._shieldIntercepted) return;
-        if (!player.shieldActive || player.shieldHP <= 0) return;
-
-        // Flag bullet BEFORE processing — prevents same-frame double-hit via player overlap
-        bullet._shieldIntercepted = true;
+    interceptBullet(player, bullet) {
+        if (!bullet?.active) return 0;
+        if (!player.shieldActive || player.shieldHP <= 0) return bullet.damage || 5;
 
         const damage = bullet.damage || 5;
         const time = this.scene?.time?.now || 0;
-        this.processDamageWithShield(player, damage, time);
+        const overflow = this.processDamageWithShield(player, damage, time);
 
-        // Spark VFX
-        if (this.scene?.vfxSystem) {
-            this.scene.vfxSystem.play('hit.small', bullet.x, bullet.y, { color: 0x00CCFF });
-        }
+        // Cyan spark VFX at bullet position
+        this.scene?.vfxSystem?.play('hit.small', bullet.x, bullet.y, { color: 0x00CCFF });
 
-        // Kill bullet
+        // Kill bullet — shield processed it
         if (bullet.kill) bullet.kill();
         else { bullet.setActive(false).setVisible(false); if (bullet.body) bullet.body.enable = false; }
 
-        // No player iFrames for shield interceptions — shield absorbed it, not the player.
-        // _shieldIntercepted flag on bullet prevents same-frame double-hit.
-
-        getSession()?.log('shield', 'bullet_intercepted', { damage, shieldHP: player.shieldHP });
+        getSession()?.log('shield', 'bullet_intercepted', { damage, absorbed: damage - overflow, overflow, shieldHP: player.shieldHP });
+        return overflow;
     }
 
     /**
@@ -212,8 +219,8 @@ export class ShieldRegeneration {
      */
     destroyShieldHitbox(player) {
         const world = this.scene?.physics?.world;
-        // Remove all shield colliders and overlaps
-        for (const key of ['_shieldOverlap', '_shieldEnemyCollider', '_shieldBossCollider']) {
+        // Remove all shield overlaps and colliders
+        for (const key of ['_shieldBulletOverlap', '_shieldEnemyCollider', '_shieldBossCollider']) {
             if (player[key]) {
                 world?.removeCollider(player[key]);
                 player[key] = null;

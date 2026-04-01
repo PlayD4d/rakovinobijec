@@ -133,16 +133,6 @@ export function getPreset(name, colorOverride) {
     return { type: 'particles', config };
 }
 
-/**
- * Check if a preset name exists (including aliases).
- * @param {string} name
- * @returns {boolean}
- */
-export function hasPreset(name) {
-    const key = ALIASES[name] ?? name;
-    return key !== null && key in P;
-}
-
 // Flash is a special non-particle effect type
 function _flashPreset() {
     return { type: 'flash', config: { alpha: 0.8, duration: 100, color: 0xFFFFFF } };

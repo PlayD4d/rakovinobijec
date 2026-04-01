@@ -336,11 +336,6 @@ export class SmokeTest {
         const testName = 'Telemetry';
         
         try {
-            // Check analytics manager
-            if (!this.scene.analyticsManager) {
-                console.warn('[SmokeTest] AnalyticsManager not found');
-            }
-            
             // Check telemetry in __framework
             if (window.__framework?.getTelemetry) {
                 const telemetry = window.__framework.getTelemetry();

@@ -37,7 +37,6 @@ export class GameScene extends Phaser.Scene {
         this.mobileControls = null;
 
         // Systems (assigned in create/bootstrap)
-        this.analyticsManager = null;
         this.musicManager = null;
         this.blueprintLoader = null;
         this.spawnDirector = null;
@@ -51,7 +50,6 @@ export class GameScene extends Phaser.Scene {
         // Mutable game state is reset in init() (runs on every start/restart)
         this._lastTimeUi = 0;
         this.levelStartTime = 0;
-        this.highScoreModal = null;
 
         this.configResolver = window.ConfigResolver;
         this.eventBus = centralEventBus;
@@ -299,10 +297,6 @@ export class GameScene extends Phaser.Scene {
         DebugLogger.info('game', '[GameScene] Emitting game:levelup event');
         centralEventBus.emit('game:levelup', options);
         this.flashCamera();
-        if (this.analyticsManager?.trackEvent) {
-            const elapsed = this.time?.now ? Math.floor((this.time.now - this.levelStartTime) / 1000) : 0;
-            this.analyticsManager.trackEvent('level_up', { level: this.gameStats.level, time: elapsed });
-        }
     }
 
     async gameOver() {
@@ -380,9 +374,6 @@ export class GameScene extends Phaser.Scene {
         // Mark shutdown done to prevent double cleanup (shutdown() will also fire via SHUTDOWN event)
         this._shutdownDone = true;
         this._cleanupForTransition();
-        if (this.analyticsManager) {
-            try { this.analyticsManager.shutdown(); } catch (_) {}
-        }
         this.scene.stop('GameUIScene');
         this.scene.restart();
     }
@@ -430,7 +421,6 @@ export class GameScene extends Phaser.Scene {
                 { name: 'vfxSystem', ref: this.vfxSystem },
                 { name: 'audioSystem', ref: this.audioSystem },
                 { name: 'keyboardManager', ref: this.keyboardManager },
-                { name: 'analyticsManager', ref: this.analyticsManager },
                 { name: 'armorShieldEffect', ref: this.armorShieldEffect },
                 { name: 'playerShieldEffect', ref: this.playerShieldEffect },
                 { name: 'debugOverlay', ref: this.debugOverlay },
@@ -462,7 +452,7 @@ export class GameScene extends Phaser.Scene {
 
             // Nullify references
             const refs = ['player','spawnDirector','projectileSystem','lootSystem','powerUpSystem',
-                'vfxSystem','audioSystem','keyboardManager','analyticsManager','updateManager',
+                'vfxSystem','audioSystem','keyboardManager','updateManager',
                 'transitionManager','enemiesGroup','bossGroup','debugOverlay','telemetryLogger',
                 'graphicsFactory','targetingSystem','mobileControls','frameworkDebug',
                 'blueprintLoader','uiLayer','enemyManager'];

@@ -119,20 +119,6 @@ export class PlayerCombat {
         player.scene.events.emit('player:die', { player, source });
         player.scene.frameworkDebug?.onPlayerDeath?.(player, source);
 
-        // Analytics
-        if (player.scene.analyticsManager) {
-            const gameStats = player.scene.gameStats || {};
-            player.scene.analyticsManager.trackPlayerDeath(source, { x: player.x, y: player.y }, gameStats, {
-                playerHP: player.hp,
-                playerMaxHP: player.maxHp,
-                activePowerUps: player.scene.powerUpSystem?.getActivePowerUps?.() || [],
-                enemiesOnScreen: player.scene.enemiesGroup?.countActive?.(true) || 0,
-                projectilesOnScreen: (player.scene.projectileSystem?.playerBullets?.countActive?.() || 0) +
-                    (player.scene.projectileSystem?.enemyBullets?.countActive?.() || 0),
-                wasBossFight: player.scene.bossActive || false
-            });
-        }
-
         // Deactivate — set _isDead to prevent reactivation by stale heal overlaps
         player._isDead = true;
         player.setActive(false);

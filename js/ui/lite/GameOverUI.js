@@ -30,7 +30,7 @@ export class GameOverUI {
     this.modal.addChild(this.title);
 
     // Subtitle (constructor — no scene.add)
-    this.subtitle = new Phaser.GameObjects.Text(scene, cx, cy - 130, 'Mard podlehl rakovině...', {
+    this.subtitle = new Phaser.GameObjects.Text(scene, cx, cy - 130, 'Nevzdavej to, zkus to znovu!', {
       fontFamily: UI_THEME.fonts.primary,
       fontSize: '16px',
       color: `#${UI_THEME.colors.text.secondary.toString(16).padStart(6, '0')}`
@@ -106,7 +106,7 @@ export class GameOverUI {
     } else {
       this.title.setText('GAME OVER');
       this.title.setColor(`#${UI_THEME.colors.text.danger.toString(16).padStart(6, '0')}`);
-      this.subtitle.setText('Mard podlehl rakovine...');
+      this.subtitle.setText('Nevzdavej to, zkus to znovu!');
       this.modal.panel?.setStrokeStyle(2, UI_THEME.colors.borders.default, 0.5);
       this.retryBtn.setText('Zkusit znovu');
     }

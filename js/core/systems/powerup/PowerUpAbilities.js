@@ -702,19 +702,44 @@ export class PowerUpAbilities {
                 const ricBounces = config.bounces;
                 const ricCount = config.count;
 
-                // Bake texture
+                // Bake diamond texture + trail particle
                 const ricTexKey = '_ricochet_cell';
+                const ricTrailKey = '_ricochet_trail';
                 if (!this.scene.textures.exists(ricTexKey)) {
                     const gf = this.scene.graphicsFactory;
                     if (gf) {
+                        // Diamond shape (rhombus) — 12x12 with bright cyan fill + white edge
                         const g = gf.create();
                         g.clear();
-                        g.fillStyle(0x44ddff, 1);
-                        g.fillCircle(4, 4, 4);
-                        g.generateTexture(ricTexKey, 8, 8);
+                        // Outer glow diamond (slightly larger, softer)
+                        g.fillStyle(0x22aadd, 0.5);
+                        g.fillPoints([{ x: 6, y: 0 }, { x: 12, y: 6 }, { x: 6, y: 12 }, { x: 0, y: 6 }], true);
+                        // Inner bright diamond
+                        g.fillStyle(0x66eeff, 1);
+                        g.fillPoints([{ x: 6, y: 1 }, { x: 11, y: 6 }, { x: 6, y: 11 }, { x: 1, y: 6 }], true);
+                        // Center highlight
+                        g.fillStyle(0xffffff, 0.8);
+                        g.fillPoints([{ x: 6, y: 3 }, { x: 9, y: 6 }, { x: 6, y: 9 }, { x: 3, y: 6 }], true);
+                        g.generateTexture(ricTexKey, 12, 12);
                         gf.release(g);
                     }
                 }
+                // Tiny trail particle texture (2x2 soft dot)
+                if (!this.scene.textures.exists(ricTrailKey)) {
+                    const gf = this.scene.graphicsFactory;
+                    if (gf) {
+                        const g2 = gf.create();
+                        g2.clear();
+                        g2.fillStyle(0x44ddff, 1);
+                        g2.fillCircle(2, 2, 2);
+                        g2.generateTexture(ricTrailKey, 4, 4);
+                        gf.release(g2);
+                    }
+                }
+
+                // Track active ricochet sprites for cleanup on destroy()
+                if (!this._ricochetActive) this._ricochetActive = [];
+                const projDepth = (this.scene.DEPTH_LAYERS?.PROJECTILES || 3000) + 2;
 
                 this._ricochetTimer = this.scene.time.addEvent({
                     delay: config.interval,
@@ -728,31 +753,74 @@ export class PowerUpAbilities {
                             const angle = Math.random() * Math.PI * 2;
 
                             const spr = this.scene.physics.add.sprite(p.x, p.y, ricTexKey);
-                            spr.setDepth((this.scene.DEPTH_LAYERS?.PROJECTILES || 3000) + 2);
+                            spr.setDepth(projDepth);
                             spr.setOrigin(0.5);
                             spr.body.setVelocity(Math.cos(angle) * ricSpeed, Math.sin(angle) * ricSpeed);
                             spr.body.setCollideWorldBounds(true);
                             spr.body.setBounce(1, 1);
                             spr.body.onWorldBounds = true;
                             spr.body.setAllowGravity(false);
+                            // Rotate diamond to face movement direction
+                            spr.rotation = angle;
+
+                            // Subtle particle trail — few small particles following the sprite
+                            let trail = null;
+                            if (this.scene.textures.exists(ricTrailKey)) {
+                                trail = this.scene.add.particles(0, 0, ricTrailKey, {
+                                    follow: spr,
+                                    frequency: 40,
+                                    lifespan: 250,
+                                    speed: { min: 5, max: 15 },
+                                    scale: { start: 0.6, end: 0 },
+                                    alpha: { start: 0.5, end: 0 },
+                                    blendMode: 'ADD',
+                                    quantity: 1,
+                                    emitting: true
+                                });
+                                trail.setDepth(projDepth - 1);
+                            }
 
                             let bouncesLeft = ricBounces;
                             const hitCooldowns = new WeakMap();
 
-                            // Listen for world bounds bounce
-                            this.scene.physics.world.on('worldbounds', (body) => {
+                            // Track this sprite for cleanup
+                            const entry = { spr, trail, bounceHandler: null, hitTimer: null, safetyTimer: null };
+                            this._ricochetActive.push(entry);
+
+                            // Helper: destroy sprite + trail + remove listener
+                            const destroyRicochet = () => {
+                                // Remove worldbounds listener to prevent leak
+                                if (entry.bounceHandler) {
+                                    this.scene?.physics?.world?.off('worldbounds', entry.bounceHandler);
+                                    entry.bounceHandler = null;
+                                }
+                                if (entry.hitTimer) { entry.hitTimer.remove(); entry.hitTimer = null; }
+                                if (entry.safetyTimer) { entry.safetyTimer.remove(); entry.safetyTimer = null; }
+                                if (trail) { trail.destroy(); trail = null; }
+                                entry.trail = null;
+                                if (spr?.scene) spr.destroy();
+                                // Remove from tracking array
+                                const idx = this._ricochetActive?.indexOf(entry);
+                                if (idx >= 0) this._ricochetActive.splice(idx, 1);
+                            };
+
+                            // Listen for world bounds bounce — named handler for removal
+                            entry.bounceHandler = (body) => {
                                 if (body.gameObject !== spr) return;
                                 bouncesLeft--;
+                                // Update rotation to new bounce direction
+                                if (spr.body) spr.rotation = Math.atan2(spr.body.velocity.y, spr.body.velocity.x);
                                 if (bouncesLeft <= 0) {
-                                    spr.destroy();
+                                    destroyRicochet();
                                 }
-                            });
+                            };
+                            this.scene.physics.world.on('worldbounds', entry.bounceHandler);
 
                             // Hit check at 10Hz
-                            const hitTimer = this.scene.time.addEvent({
+                            entry.hitTimer = this.scene.time.addEvent({
                                 delay: 100, loop: true,
                                 callback: () => {
-                                    if (!spr?.scene || !spr.active) { hitTimer.remove(); return; }
+                                    if (!spr?.scene || !spr.active) { destroyRicochet(); return; }
                                     const now = this.scene.time?.now || 0;
                                     const eg = this.scene.enemiesGroup?.getChildren() || [];
                                     const bg = this.scene.bossGroup?.getChildren() || [];
@@ -773,9 +841,8 @@ export class PowerUpAbilities {
                             });
 
                             // Safety: kill after 8 seconds max
-                            this.scene.time.delayedCall(8000, () => {
-                                hitTimer.remove();
-                                if (spr?.scene) spr.destroy();
+                            entry.safetyTimer = this.scene.time.delayedCall(8000, () => {
+                                destroyRicochet();
                             });
                         }
                     }
@@ -902,6 +969,18 @@ export class PowerUpAbilities {
         if (this._chemoPoolTimer) { this._chemoPoolTimer.remove(); this._chemoPoolTimer = null; }
         if (this._boomerangTimer) { this._boomerangTimer.remove(); this._boomerangTimer = null; }
         if (this._ricochetTimer) { this._ricochetTimer.remove(); this._ricochetTimer = null; }
+        // Destroy all in-flight ricochet sprites, trails, and listeners
+        if (this._ricochetActive) {
+            for (let i = this._ricochetActive.length - 1; i >= 0; i--) {
+                const e = this._ricochetActive[i];
+                if (e.bounceHandler) this.scene?.physics?.world?.off('worldbounds', e.bounceHandler);
+                if (e.hitTimer) e.hitTimer.remove();
+                if (e.safetyTimer) e.safetyTimer.remove();
+                if (e.trail) e.trail.destroy();
+                if (e.spr?.scene) e.spr.destroy();
+            }
+            this._ricochetActive = null;
+        }
         this.activeAbilities.clear();
         this._abilityConfigs.clear();
         this.scene = null;

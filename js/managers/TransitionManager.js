@@ -65,10 +65,6 @@ export class TransitionManager {
             this._history.shift();
         }
 
-        if (this.scene.analyticsManager) {
-            this.scene.analyticsManager.trackEvent(event, record);
-        }
-
         DebugLogger.info('transition', `[TransitionManager] ${event}`, data);
         return record;
     }
@@ -293,10 +289,6 @@ export class TransitionManager {
             return;
         }
 
-        if (this.scene.analyticsManager) {
-            this.scene.analyticsManager.trackEvent(event, data);
-        }
-
         DebugLogger.info('transition', `[Analytics] ${event}:`, data);
     }
 
@@ -309,10 +301,6 @@ export class TransitionManager {
         this.pendingAnalytics = [];
 
         for (const { event, data } of batch) {
-            // Bypass the isTransitioning guard — we ARE flushing deliberately
-            if (this.scene?.analyticsManager) {
-                this.scene.analyticsManager.trackEvent(event, data);
-            }
             DebugLogger.info('transition', `[Analytics] ${event}:`, data);
         }
     }

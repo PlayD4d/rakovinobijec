@@ -59,11 +59,8 @@ export class EnemyManager {
             entity = this.createRegularEnemy(blueprint, blueprintId, x, y, textureKey, color, size, options);
         }
         
-        // Session log + analytics
+        // Session log
         getSession()?.spawn(blueprint.type || 'enemy', blueprintId, entity?.x || x, entity?.y || y);
-        if (this.scene.analyticsManager) {
-            this.scene.analyticsManager.trackEnemySpawn(blueprintId);
-        }
         
         return entity;
     }
@@ -324,15 +321,6 @@ export class EnemyManager {
             scene.gameStats.kills = (scene.gameStats.kills || 0) + 1;
             scene.gameStats.enemiesKilled++;
             scene.gameStats.score += enemy.xp * 10;
-
-            // Safe analytics with proper checks
-            const enemy_type = enemy.blueprintId || enemy.type || 'unknown';
-            if (scene.analyticsManager && typeof scene.analyticsManager.trackEvent === 'function') {
-                scene.analyticsManager.trackEvent('enemy_killed', {
-                    enemy_type,
-                    level: scene.gameStats?.level ?? 1
-                });
-            }
 
             // Handle boss death
             if (enemy instanceof Boss) {
