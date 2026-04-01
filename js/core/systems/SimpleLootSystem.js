@@ -183,6 +183,9 @@ export class SimpleLootSystem {
                 player.heal?.(healAmount);
                 break;
             }
+            case 'instant_kill_all':
+                this.scene.killAllEnemies?.();
+                break;
             case 'vacuum_xp': {
                 // Magnet pickup — vacuum ALL XP gems on field toward player
                 // Gradual pull: tag items for magnet attraction in update loop
