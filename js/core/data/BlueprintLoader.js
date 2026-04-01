@@ -299,7 +299,10 @@ export class BlueprintLoader {
             // Special items
             'items/special/item_energy_cell.json5',
             'items/special/item_metotrexat.json5',
-            'items/special/item_research_point.json5',
+            'items/special/item_magnet.json5',
+            'items/special/item_adrenaline_shot.json5',
+            'items/special/item_mutation_catalyst.json5',
+            'items/special/item_cell_membrane.json5',
         ];
         
         for (const filePath of itemFiles) {
