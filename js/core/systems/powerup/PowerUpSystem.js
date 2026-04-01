@@ -128,17 +128,6 @@ export class PowerUpSystem {
     }
     
     /**
-     * Power-up selection is handled by GameUIScene via the 'game-levelup' event.
-     * This method is kept as a no-op for backward compatibility.
-     */
-    async showPowerUpSelection(callback) {
-        // Power-up selection UI is handled by GameUIScene (LiteUI PowerUpUI).
-        // If called directly, just invoke the callback to avoid blocking.
-        DebugLogger.warn('powerup', '[PowerUpSystem] showPowerUpSelection is deprecated - selection handled by GameUIScene');
-        callback?.();
-    }
-    
-    /**
      * Get current level of a power-up
      */
     getPowerUpLevel(powerUpId) {
@@ -221,6 +210,46 @@ export class PowerUpSystem {
         });
     }
     
+    // ==================== Selection Handling ====================
+
+    /**
+     * Handle a power-up selection from the level-up UI.
+     * Applies the selected powerup (or overflow boost) and notifies HUD.
+     */
+    handleSelection(selection) {
+        if (!selection) return;
+        const player = this.scene.player;
+
+        if (selection._overflow && player) {
+            // Overflow boost — direct stat modification (all normal powerups maxed)
+            const ov = selection._overflow;
+            if (ov.type === 'add') {
+                if (ov.stat === 'maxHp') {
+                    player.maxHp = (player.maxHp || 100) + ov.value;
+                    player.hp = Math.min(player.hp + ov.value, player.maxHp);
+                } else {
+                    player.addModifier({ id: `overflow_${Date.now()}`, path: ov.stat, type: 'add', value: ov.value });
+                }
+            } else if (ov.type === 'mul') {
+                player.addModifier({ id: `overflow_${Date.now()}`, path: ov.stat, type: 'mul', value: ov.value });
+            }
+            getSession()?.log('powerup', 'overflow_boost', { stat: ov.stat, value: ov.value });
+        } else {
+            this.applyPowerUp(selection.id, (selection.level || 0) + 1);
+        }
+
+        // Notify HUD
+        const hud = this.scene.scene?.get('GameUIScene')?.hud;
+        if (hud) {
+            const newLevel = (selection.level || 0) + 1;
+            if (newLevel > 1) {
+                hud.updatePowerUpIcon(selection.id, newLevel);
+            } else {
+                hud.addPowerUpIcon({ ...selection, slot: selection.slot || 'weapon' });
+            }
+        }
+    }
+
     // ==================== Ability Query API ====================
 
     /**

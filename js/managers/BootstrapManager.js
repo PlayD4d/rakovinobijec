@@ -160,59 +160,26 @@ export class BootstrapManager {
     /**
      * Handle power-up selection
      */
+    /**
+     * Handle power-up selection from UI.
+     * Delegates powerup application to PowerUpSystem, handles resume logic here.
+     */
     handlePowerUpSelection(selection) {
-        DebugLogger.info('bootstrap', '[GameScene] Received powerup-selected event:', selection);
-        
-        // Apply the selected power-up (or overflow boost if all maxed)
-        if (selection?._overflow && this.scene.player) {
-            // Overflow boost — direct stat modification (no powerup system involved)
-            const ov = selection._overflow;
-            const player = this.scene.player;
-            if (ov.type === 'add') {
-                if (ov.stat === 'maxHp') {
-                    player.maxHp = (player.maxHp || 100) + ov.value;
-                    player.hp = Math.min(player.hp + ov.value, player.maxHp);
-                } else {
-                    player.addModifier({ id: `overflow_${Date.now()}`, path: ov.stat, type: 'add', value: ov.value });
-                }
-            } else if (ov.type === 'mul') {
-                player.addModifier({ id: `overflow_${Date.now()}`, path: ov.stat, type: 'mul', value: ov.value });
-            }
-            getSession()?.log('powerup', 'overflow_boost', { stat: ov.stat, value: ov.value });
-        } else if (selection && this.scene.powerUpSystem) {
-            this.scene.powerUpSystem.applyPowerUp(selection.id, (selection.level || 0) + 1);
+        // Delegate powerup application + HUD notification to PowerUpSystem
+        if (this.scene.powerUpSystem) {
+            this.scene.powerUpSystem.handleSelection(selection);
         }
 
-        // Notify HUD to show/update power-up icon (pass slot type for dual-tray routing)
-        const hud = this.scene.scene.get('GameUIScene')?.hud;
-        if (hud && selection) {
-            const newLevel = (selection.level || 0) + 1;
-            const slot = selection.slot || 'weapon';
-            if (newLevel > 1) {
-                hud.updatePowerUpIcon(selection.id, newLevel);
-            } else {
-                hud.addPowerUpIcon({ ...selection, slot });
-            }
-        }
-        
-        // Ensure player is still active
+        // Resume game state (orchestration — belongs in BootstrapManager)
         this.ensurePlayerActive();
-        
-        // Mark game as resumed
         this.scene.isPaused = false;
-        
-        // Resume projectiles
-        if (this.scene.projectileSystem) {
-            this.scene.projectileSystem.resumeAll();
-        }
-        
-        // Process pending XP via ProgressionSystem
+        this.scene.projectileSystem?.resumeAll();
+
+        // Flush pending XP accumulated during pause
         const ps = this.scene.progressionSystem;
         if (ps && ps.getPendingXP() > 0) {
             const xpToAdd = ps.clearPendingXP();
-            this.scene.addDelayedCall(100, () => {
-                this.scene.addXP(xpToAdd);
-            });
+            this.scene.addDelayedCall(100, () => this.scene.addXP(xpToAdd));
         }
     }
 
