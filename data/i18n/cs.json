@@ -315,7 +315,7 @@
       "name": "Kmenová rezerva"
     },
     "metabolic_haste": {
-      "desc": "Zrychluje metabolické procesy pro vyšší rychlost",
+      "desc": "Zvyšuje pohybovou rychlost o 10% za úroveň.",
       "name": "Metabolický spěch"
     },
     "multi_shot": {
@@ -355,7 +355,7 @@
       "name": "Regenerativní terapie"
     },
     "cytoprotection": {
-      "desc": "Snižuje příchozí poškození.",
+      "desc": "Snižuje příchozí poškození a zvyšuje šanci na uhnutí.",
       "name": "Cytoprotekce"
     },
     "synaptic_pulse": {

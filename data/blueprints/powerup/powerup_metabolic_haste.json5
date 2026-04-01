@@ -2,27 +2,15 @@
   id: 'powerup.metabolic_haste',
   type: 'powerup',
   stats: {
-    maxLevel: 6,
+    maxLevel: 5,
   },
   mechanics: {
     modifiersPerLevel: [
       {
-        path: 'attackIntervalMs',
-        type: 'mul',
-        value: -0.12,
-        description: 'Reduces attack interval by 12% per level',
-      },
-      {
         path: 'moveSpeed',
         type: 'mul',
-        value: 0.08,
-        description: 'Increases movement speed by 8% per level',
-      },
-      {
-        path: 'dodgeChance',
-        type: 'add',
-        value: 0.015,
-        description: 'Adds 1.5% dodge chance per level',
+        value: 0.10,
+        description: 'Increases movement speed by 10% per level',
       },
     ],
     stackable: true,
@@ -35,7 +23,6 @@
     pickup: 'vfx.pickup',
     levelUp: 'vfx.powerup',
     apply: 'vfx.powerup',
-    dodge: 'vfx.hit.medium',
   },
   sfx: {
     pickup: 'sound/pickup.mp3',
@@ -46,8 +33,8 @@
     key: 'powerup.metabolic_haste.name',
     descKey: 'powerup.metabolic_haste.desc',
     templates: {
-      short: '+{{mechanics.modifiersPerLevel.0.value|percent}} ÚS • +{{mechanics.modifiersPerLevel.1.value|percent}} rychlost • +{{mechanics.modifiersPerLevel.2.value|percent}} uhýbání',
-      desc: 'Zvyšuje útočnou rychlost o {{mechanics.modifiersPerLevel.0.value|percent}}, pohybovou rychlost o {{mechanics.modifiersPerLevel.1.value|percent}} a šanci na uhnutí o {{mechanics.modifiersPerLevel.2.value|percent}} za úroveň.',
+      short: '+{{mechanics.modifiersPerLevel.0.value|percent}} rychlost pohybu',
+      desc: 'Zvyšuje pohybovou rychlost o {{mechanics.modifiersPerLevel.0.value|percent}} za úroveň.',
     },
     color: '#FF9800',
     rarity: 'common',
@@ -56,13 +43,11 @@
     sortOrder: 220,
     tags: [
       'powerup',
-      'attack-speed',
       'movement',
-      'dodge',
-      'tempo',
-      'metabolic',
+      'speed',
+      'passive',
     ],
     devNameFallback: 'Metabolický spěch',
-    devDescFallback: 'Zrychluje metabolismus',
+    devDescFallback: 'Zrychluje pohyb',
   },
 }
