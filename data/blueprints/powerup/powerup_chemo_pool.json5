@@ -19,7 +19,7 @@
     durationPerLevel: [3000, 3500, 4000, 4500, 5000],
     intervalPerLevel: [4000, 3500, 3000, 2500, 2000],
     countPerLevel: [1, 2, 2, 3, 4],
-    orbitRadius: 80,
+    orbitRadiusPerLevel: [100, 108, 116, 124, 132],
   },
   vfx: {
     pickup: 'vfx.pickup',

@@ -136,7 +136,7 @@ export class PowerUpAbilities {
                 config.duration = (ability.durationPerLevel || [3000,3500,4000,4500,5000])[level - 1] || 3000;
                 config.interval = (ability.intervalPerLevel || [4000,3500,3000,2500,2000])[level - 1] || 4000;
                 config.poolCount = (ability.countPerLevel || [1,2,2,3,4])[level - 1] || 1;
-                config.orbitRadius = ability.orbitRadius || 80;
+                config.orbitRadius = (ability.orbitRadiusPerLevel || [100,108,116,124,132])[level - 1] || 100;
                 break;
 
             case 'antibody_boomerang':
