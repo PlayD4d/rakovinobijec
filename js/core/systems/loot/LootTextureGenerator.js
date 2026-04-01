@@ -190,15 +190,6 @@ export function generateLootTextures(scene) {
         gf.release(g);
     }
 
-    // Research Point — blue hexagon with R
-    if (!textures.exists('item_research_point')) {
-        const g = gf.create();
-        drawHexagon(g, CX, CY, HEX_R, 0x1565C0, 1, 0x42A5F5, 1.5);
-        drawSymbol(g, CX, CY, 'R');
-        g.generateTexture('item_research_point', ITEM_SIZE, ITEM_SIZE);
-        gf.release(g);
-    }
-
     // Magnet pickup — blue hexagon with U shape
     if (!textures.exists('item_magnet')) {
         const g = gf.create();
@@ -208,6 +199,33 @@ export function generateLootTextures(scene) {
         g.fillRect(CX + 2, CY - 3, 2, 5);
         g.fillRect(CX - 4, CY + 1, 8, 2);
         g.generateTexture('item_magnet', ITEM_SIZE, ITEM_SIZE); gf.release(g);
+    }
+
+    // Adrenaline Shot — orange hexagon with A
+    if (!textures.exists('item_adrenaline_shot')) {
+        const g = gf.create();
+        drawHexagon(g, CX, CY, HEX_R, 0xE65100, 1, 0xFF9800, 1.5);
+        drawSymbol(g, CX, CY, 'A');
+        g.generateTexture('item_adrenaline_shot', ITEM_SIZE, ITEM_SIZE);
+        gf.release(g);
+    }
+
+    // Cell Membrane — teal hexagon with C
+    if (!textures.exists('item_cell_membrane')) {
+        const g = gf.create();
+        drawHexagon(g, CX, CY, HEX_R, 0x00695C, 1, 0x4DB6AC, 1.5);
+        drawSymbol(g, CX, CY, 'C');
+        g.generateTexture('item_cell_membrane', ITEM_SIZE, ITEM_SIZE);
+        gf.release(g);
+    }
+
+    // Mutation Catalyst — red-orange hexagon with X
+    if (!textures.exists('item_mutation_catalyst')) {
+        const g = gf.create();
+        drawHexagon(g, CX, CY, HEX_R, 0xBF360C, 1, 0xFF6E40, 1.5);
+        drawSymbol(g, CX, CY, 'X');
+        g.generateTexture('item_mutation_catalyst', ITEM_SIZE, ITEM_SIZE);
+        gf.release(g);
     }
 
     DebugLogger.info('loot', 'Item textures generated (hexagonal design)');

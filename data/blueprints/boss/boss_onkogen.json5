@@ -113,10 +113,6 @@
       chance: 0.25,
       quantity: 2,
     },
-    {
-      itemId: 'item.research_point',
-      chance: 0.1,
-    },
   ],
   display: {
     key: 'boss.onkogen.name',

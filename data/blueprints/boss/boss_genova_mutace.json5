@@ -109,10 +109,6 @@
       chance: 0.35,
     },
     {
-      itemId: 'item.research_point',
-      chance: 0.18,
-    },
-    {
       itemId: 'item.energy_cell',
       chance: 0.45,
       quantity: 2,

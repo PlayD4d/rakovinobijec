@@ -59,7 +59,6 @@
     "item.xp_big": "blueprints/items/xp/item_xp_big.json5",
     "item.xp_diamond": "blueprints/items/xp/item_xp_diamond.json5",
     "item.magnet": "blueprints/items/special/item_magnet.json5",
-    "item.research_point": "blueprints/items/special/item_research_point.json5",
     "item.metotrexat": "blueprints/items/special/item_metotrexat.json5",
     "item.adrenaline_shot": "blueprints/items/special/item_adrenaline_shot.json5",
     "item.mutation_catalyst": "blueprints/items/special/item_mutation_catalyst.json5",

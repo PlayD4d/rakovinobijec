@@ -83,6 +83,7 @@
     },
     boss: {
       'item.health_small': 20,
+      'item.heal_orb': 10,
       'item.protein_cache': 15,
       'item.energy_cell': 30,
       'item.metotrexat': 8,

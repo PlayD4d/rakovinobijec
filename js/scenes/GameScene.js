@@ -236,15 +236,6 @@ export class GameScene extends Phaser.Scene {
         this.flashCamera();
     }
 
-    handleMetotrexatPickup() {
-        this.flashCamera();
-        if (this.enemyManager) this.enemyManager.killAll();
-        if (this.audioSystem) {
-            const pickupSFX = this.blueprintLoader?.get('powerup.metotrexat')?.sfx?.pickup;
-            if (pickupSFX) this.audioSystem.play(pickupSFX);
-        }
-    }
-
     /** Drop exactly 1 XP gem per kill — tier based on total XP value */
     createXPOrbs(x, y, totalXP) {
         if (!totalXP || totalXP <= 0 || !this.lootSystem) return;

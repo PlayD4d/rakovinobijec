@@ -361,11 +361,6 @@
       quantity: 3,
     },
     {
-      itemId: 'item.research_point',
-      chance: 0.3,
-      quantity: 2,
-    },
-    {
       itemId: 'item.metotrexat',
       chance: 0.1,
     },
