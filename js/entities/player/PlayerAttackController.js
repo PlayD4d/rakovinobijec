@@ -34,7 +34,8 @@ export class PlayerAttackController {
         this._shootDirectional(stats);
 
         // Homing shot fires ADDITIONALLY if powerup equipped (like VS ability)
-        if (player.homingLevel > 0) {
+        const homingConfig = player.scene.powerUpSystem?.abilities?.getAbilityConfig('homing_shot');
+        if (homingConfig) {
             const target = this._findNearestEnemy();
             if (target) this._shootHoming(target, stats);
         }
@@ -89,15 +90,16 @@ export class PlayerAttackController {
         if (!stats) stats = player._stats();
 
         const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
-        const homingCount = player.homingLevel || 1;
+        const hCfg = player.scene.powerUpSystem?.abilities?.getAbilityConfig('homing_shot');
+        const homingCount = hCfg?.level || 1;
 
         const opts = this._fireOpts;
         opts.projectileId = stats.projectileRef || 'projectile.player_basic';
 
         // Apply projectile speed passive + homing speed/range bonuses
         const baseSpeedMul = (stats.projectileSpeed || ps.config.speed) / ps.config.speed;
-        const homingBonus = player.homingSpeedBonus || 0;
-        const homingRange = player.homingRangeBonus || 0;
+        const homingBonus = hCfg?.speedBonus || 0;
+        const homingRange = hCfg?.rangeBonus || 0;
         opts.speedMul = baseSpeedMul * (1 + (homingBonus / (stats.projectileSpeed || 200)));
         opts.rangeMul = 1 + (homingRange / (stats.projectileRange || 175));
 

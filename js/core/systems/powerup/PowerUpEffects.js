@@ -42,28 +42,6 @@ export class PowerUpEffects {
     }
     
     /**
-     * Play effects when power-up levels up
-     */
-    playLevelUpEffects(blueprint, player, newLevel) {
-        if (!player) return;
-        
-        // Play VFX
-        const vfxId = blueprint.vfx?.levelUp;
-        if (vfxId && this.scene.vfxSystem) {
-            this.scene.vfxSystem.play(vfxId, player.x, player.y);
-        }
-        
-        // Play SFX
-        const sfxId = blueprint.sfx?.levelUp;
-        if (sfxId && this.scene.audioSystem) {
-            this.scene.audioSystem.play(sfxId);
-        }
-        
-        // Show level text
-        this._showLevelText(player, blueprint.display?.devNameFallback || blueprint.id, newLevel);
-    }
-    
-    /**
      * Play effects when shield blocks damage
      */
     playShieldBlockEffect(player) {
@@ -112,24 +90,6 @@ export class PowerUpEffects {
         if (this.scene.audioSystem) {
             this.scene.audioSystem.play('sound/shield_up.mp3');
         }
-    }
-    
-    /**
-     * Attach continuous effect to player
-     */
-    attachContinuousEffect(player, effectType, config) {
-        if (!this.vfxManager) return;
-        
-        this.vfxManager.attachEffect(player, effectType, config);
-    }
-    
-    /**
-     * Detach continuous effect from player
-     */
-    detachContinuousEffect(player, effectType) {
-        if (!this.vfxManager) return;
-        
-        this.vfxManager.detachEffect(player, effectType);
     }
     
     /**

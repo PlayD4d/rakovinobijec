@@ -1,5 +1,6 @@
 import { DebugLogger } from '../../../debug/DebugLogger.js';
 import { getSession } from '../../../debug/SessionLog.js';
+import { forEachActiveEnemy } from '../../../utils/CombatUtils.js';
 import { getPreset as getParticlePreset } from '../../../vfx/ParticlePresets.js';
 
 /**
@@ -16,9 +17,6 @@ export class ChainLightningAbility {
 
         /** @type {Phaser.Time.TimerEvent[]} */
         this._chainTimers = [];
-
-        /** @type {Set|null} Reusable set to avoid per-fire allocation */
-        this._chainHitSet = null;
     }
 
     /**
@@ -56,18 +54,10 @@ export class ChainLightningAbility {
         const player = this.scene.player;
         if (!player?.active) return;
 
-        const enemies = [
-            ...(this.scene.enemiesGroup?.getChildren() || []),
-            ...(this.scene.bossGroup?.getChildren() || [])
-        ];
-        if (enemies.length === 0) return;
-
-        // Find closest enemy or boss (squared distance avoids Math.sqrt)
+        // Find closest enemy within range
         let closest = null;
         let minDistSq = config.range * config.range;
-
-        for (const enemy of enemies) {
-            if (!enemy?.active) continue;
+        forEachActiveEnemy(this.scene, (enemy) => {
             const dx = player.x - enemy.x;
             const dy = player.y - enemy.y;
             const distSq = dx * dx + dy * dy;
@@ -75,7 +65,7 @@ export class ChainLightningAbility {
                 minDistSq = distSq;
                 closest = enemy;
             }
-        }
+        });
 
         if (!closest) return;
 
@@ -114,16 +104,10 @@ export class ChainLightningAbility {
 
         // Find next target and chain
         if (jumpsLeft > 1) {
-            const enemies = [
-                ...(this.scene.enemiesGroup?.getChildren() || []),
-                ...(this.scene.bossGroup?.getChildren() || [])
-            ];
             let next = null;
             let minDistSq = jumpRange * jumpRange;
-
-            for (let i = 0; i < enemies.length; i++) {
-                const e = enemies[i];
-                if (!e?.active || hitList.has(e)) continue;
+            forEachActiveEnemy(this.scene, (e) => {
+                if (hitList.has(e)) return;
                 const dx = enemy.x - e.x;
                 const dy = enemy.y - e.y;
                 const distSq = dx * dx + dy * dy;
@@ -131,7 +115,7 @@ export class ChainLightningAbility {
                     minDistSq = distSq;
                     next = e;
                 }
-            }
+            });
 
             if (next) {
                 // Draw bolt between chain targets

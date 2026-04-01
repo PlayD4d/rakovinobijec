@@ -14,107 +14,11 @@ export class DamageZoneAbilities {
         this.scene = scene;
         this.powerUpSystem = powerUpSystem;
 
-        // Chemo cloud state
-        this._chemoZone = null;
-        this._chemoOverlap = null;
-        this._chemoHitTimes = null;
-        this._chemoPlayer = null;
-
         // Aura state
         this._auraZone = null;
         this._auraOverlap = null;
         this._auraHitTimes = null;
         this._auraRadius = null;
-    }
-
-    // ──────────────────────────────────────────────
-    //  Chemo Cloud
-    // ──────────────────────────────────────────────
-
-    /**
-     * Start chemo cloud periodic damage zone around player
-     */
-    startChemoCloud(player, config) {
-        // Clean up old cloud if exists
-        this.destroyChemoCloud();
-
-        const enemiesGroup = this.scene.enemiesGroup || this.scene.enemies;
-        if (!enemiesGroup || !this.scene.physics) return;
-
-        const radius = config.chemoCloudRadius || 35;
-        const damage = config.chemoCloudDamage || 4;
-
-        // Invisible physics zone for broadphase
-        const d = radius * 2;
-        this._chemoZone = this.scene.add.zone(player.x, player.y, d, d);
-        this.scene.physics.add.existing(this._chemoZone, false);
-        this._chemoZone.body.setCircle(radius);
-        this._chemoZone.body.setOffset(-radius + d / 2, -radius + d / 2);
-
-        // Overlap — applies damage per-enemy, throttled to 2 ticks/sec per enemy
-        this._chemoHitTimes = new WeakMap();
-        this._chemoOverlap = registerDynamicOverlap(
-            this.scene, this._chemoZone, enemiesGroup,
-            (zone, enemy) => {
-                const now = this.scene.time?.now || 0;
-                if (!enemy?.active || typeof enemy.takeDamage !== 'function') {
-                    if (enemy) this._chemoHitTimes.delete(enemy);
-                    return;
-                }
-                const lastHit = this._chemoHitTimes.get(enemy) || 0;
-                if (now - lastHit < 500) return; // 2 ticks/sec per enemy
-                if (Math.random() < 0.1) getSession()?.log('combat', 'chemo_cloud_hit', { enemyId: enemy.blueprintId, damage });
-                enemy.takeDamage({ amount: damage, source: 'chemo_cloud' });
-                this._chemoHitTimes.set(enemy, now);
-            }
-        );
-
-        // Store for cleanup and position update
-        // Also overlap with bosses
-        const bossGroup = this.scene.bossGroup;
-        if (bossGroup) {
-            this._chemoBossOverlap = registerDynamicOverlap(
-                this.scene, this._chemoZone, bossGroup,
-                (zone, enemy) => {
-                    const now = this.scene.time?.now || 0;
-                    if (!enemy?.active || typeof enemy.takeDamage !== 'function') return;
-                    const lastHit = this._chemoHitTimes.get(enemy) || 0;
-                    if (now - lastHit < 500) return;
-                    this._chemoHitTimes.set(enemy, now);
-                    enemy.takeDamage(config.chemoCloudDamage || 8);
-                }
-            );
-        }
-
-        this._chemoPlayer = player;
-    }
-
-    /**
-     * Destroy chemo cloud physics zone and overlap
-     */
-    destroyChemoCloud() {
-        if (this._chemoBossOverlap) {
-            this.scene?.physics?.world?.removeCollider(this._chemoBossOverlap);
-            this._chemoBossOverlap = null;
-        }
-        if (this._chemoOverlap) {
-            this.scene?.physics?.world?.removeCollider(this._chemoOverlap);
-            this._chemoOverlap = null;
-        }
-        if (this._chemoZone) {
-            if (this._chemoZone.active) this._chemoZone.destroy();
-            this._chemoZone = null;
-        }
-        this._chemoPlayer = null;
-    }
-
-    /**
-     * Update chemo cloud position to follow player (called each frame)
-     */
-    updateChemoCloud(player) {
-        if (this._chemoZone?.body && player?.active) {
-            this._chemoZone.setPosition(player.x, player.y);
-        }
     }
 
     // ──────────────────────────────────────────────
@@ -206,11 +110,10 @@ export class DamageZoneAbilities {
         this._immuneZone.setDepth(-1);
 
         this._immuneHitTimes = new WeakMap();
+        this._immuneSlowState = new WeakMap(); // Track slow per-enemy: { origSpeed, timer }
         const tickMs = (config.tickRate || 0.5) * 1000;
-
-        // Slow config: 10% slow per application, stacks tracked per enemy, auto-recovers
         const slowFactor = config.slowFactor || 0.10;
-        const slowDurationMs = tickMs * 2; // Slow lasts 2 tick intervals — fades if enemy leaves aura
+        const slowDurationMs = tickMs * 2;
 
         // Overlap callback — shared for enemies and bosses
         const onOverlap = (zone, enemy) => {
@@ -222,21 +125,21 @@ export class DamageZoneAbilities {
             enemy.takeDamage({ amount: config.damage, source: 'immune_aura' });
             this._immuneHitTimes.set(enemy, now);
 
-            // Apply slow — store original speed on first application, restore on timeout
+            // Apply slow — tracked in WeakMap, no enemy mutation
             if (enemy.speed > 0 && enemy.body) {
-                if (!enemy._auraSlowOrigSpeed) {
-                    enemy._auraSlowOrigSpeed = enemy.speed;
+                let slow = this._immuneSlowState.get(enemy);
+                if (!slow) {
+                    slow = { origSpeed: enemy.speed, timer: null };
+                    this._immuneSlowState.set(enemy, slow);
                 }
-                enemy.speed = enemy._auraSlowOrigSpeed * (1 - slowFactor);
+                enemy.speed = slow.origSpeed * (1 - slowFactor);
 
-                // Clear previous recovery timer, set new one
-                if (enemy._auraSlowTimer) enemy._auraSlowTimer.destroy();
-                enemy._auraSlowTimer = this.scene.time.delayedCall(slowDurationMs, () => {
-                    if (enemy?.active && enemy._auraSlowOrigSpeed) {
-                        enemy.speed = enemy._auraSlowOrigSpeed;
-                        enemy._auraSlowOrigSpeed = null;
-                        enemy._auraSlowTimer = null;
+                if (slow.timer) slow.timer.destroy();
+                slow.timer = this.scene.time.delayedCall(slowDurationMs, () => {
+                    if (enemy?.active && slow.origSpeed) {
+                        enemy.speed = slow.origSpeed;
                     }
+                    this._immuneSlowState.delete(enemy);
                 });
             }
 
@@ -297,6 +200,7 @@ export class DamageZoneAbilities {
             this._immuneZone = null;
         }
         this._immuneHitTimes = null;
+        this._immuneSlowState = null;
         this._immuneConfig = null;
     }
 
@@ -305,7 +209,6 @@ export class DamageZoneAbilities {
      */
     destroy() {
         this.destroyAuraZone();
-        this.destroyChemoCloud();
         this.destroyImmuneAura();
         this.scene = null;
         this.powerUpSystem = null;

@@ -479,6 +479,22 @@ export class VFXSystem {
         return this.play('death.medium', x, y, { color });
     }
 
+    /**
+     * Create a particle emitter that follows a sprite (e.g., trail effect).
+     * Tracked by activeEmitters for proper cleanup on shutdown.
+     */
+    createFollowEmitter(target, textureKey, config = {}) {
+        if (!this.scene || !target?.scene || !this.scene.textures.exists(textureKey)) return null;
+        const emitter = this.scene.add.particles(0, 0, textureKey, {
+            follow: target,
+            emitting: true,
+            ...config
+        });
+        const uid = `follow_${VFXSystem._uidCounter++}`;
+        this.activeEmitters.set(uid, emitter);
+        return emitter;
+    }
+
     // Combat VFX methods installed from:
     //  - TelegraphEffects.js: playTelegraph, playDirectionalTelegraph, playDangerZone
     //  - CombatVFXEffects.js: playExplosionEffect, playBeamEffect, playLightningBolt

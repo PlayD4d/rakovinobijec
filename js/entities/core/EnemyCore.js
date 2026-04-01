@@ -411,13 +411,6 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
             this._flashTimer = null;
         }
 
-        // Cancel aura slow timer (set externally by DamageZoneAbilities)
-        if (this._auraSlowTimer) {
-            try { this._auraSlowTimer.destroy?.(); } catch (_) {}
-            this._auraSlowTimer = null;
-            this._auraSlowOrigSpeed = null;
-        }
-
         // Cancel all tracked timers
         if (this._trackedTimers) {
             for (let i = 0; i < this._trackedTimers.length; i++) {

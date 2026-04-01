@@ -155,13 +155,13 @@ export class ProjectileSystem {
     bullet.fire(x, y, dirX, dirY, speed, range, damage, tint);
     bullet.isCrit = opts.isCrit || false;
 
-    // Add piercing properties from player if active
-    const player = this.scene.player;
-    if (player && player.piercingLevel > 0) {
+    // Add piercing properties from powerup config if active
+    const piercingCfg = this.scene.powerUpSystem?.abilities?.getAbilityConfig('piercing');
+    if (piercingCfg) {
         bullet.piercing = true;
-        bullet.maxPiercing = player.piercingMaxPierces || 1;
+        bullet.maxPiercing = piercingCfg.maxPierces || 1;
         bullet.hitCount = 0;
-        bullet.damageReduction = player.piercingDamageReduction || 0.1;
+        bullet.damageReduction = piercingCfg.damageReduction || 0.1;
         bullet._hitEnemies = new Set(); // Track hit enemies to prevent double-counting
 
         if (Math.random() < 0.01) {

@@ -62,68 +62,10 @@ export class PowerUpModifiers {
         // Apply fresh modifiers
         for (const modifier of modifiers) {
             player.addModifier(modifier);
-            this._handleSpecialCases(player, modifier, level, powerUpId);
         }
 
         // Invalidate stats cache
         player._statsCacheTime = 0;
-    }
-    
-    /**
-     * Handle special cases that need direct player property updates
-     * PR7: Bridge between modifier system and legacy properties
-     */
-    _handleSpecialCases(player, modifier, level, powerUpId) {
-        // Special cases are minimized — most power-ups work through the modifier pipeline
-        // XP Magnet: reads xpMagnetRadius from _stats() — no special handling needed
-        // Shield: HP set by PowerUpAbilities._applyAbility, modifier tracks it in pipeline
-    }
-    
-    /**
-     * Calculate stat with all modifiers applied
-     * PR7: Support all modifier types including 'base' and 'set'
-     */
-    calculateStat(baseValue, statPath, modifiers) {
-        let value = baseValue || 0;
-
-        // Two-pass approach: set/base modifiers first, then add/mul on top
-        // This ensures consistent results regardless of array order
-
-        // Pass 1: find any set/base modifier (last one wins)
-        let hasSetModifier = false;
-        for (const mod of modifiers || []) {
-            if (mod.path === statPath && (mod.type === 'set' || mod.type === 'base')) {
-                value = mod.value;
-                hasSetModifier = true;
-            }
-        }
-
-        // Pass 2: apply add/mul on top of the resolved base
-        for (const mod of modifiers || []) {
-            if (mod.path !== statPath) continue;
-            if (mod.type === 'set' || mod.type === 'base') continue;
-
-            if (mod.type === 'add') {
-                value += mod.value;
-            } else if (mod.type === 'multiply') {
-                value *= mod.value;
-            } else if (mod.type === 'mul') {
-                value *= (1 + mod.value);
-            }
-        }
-
-        return value;
-    }
-    
-    /**
-     * Remove modifiers from player
-     */
-    removeFromPlayer(player, modifiers) {
-        for (const modifier of modifiers) {
-            if (modifier.id) {
-                player.removeModifierById(modifier.id);
-            }
-        }
     }
     
     /**
