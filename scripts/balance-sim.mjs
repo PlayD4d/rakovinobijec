@@ -441,6 +441,15 @@ function simulateRun(data, options = {}) {
 
   let time = 0, gameLevel = 1, activeEnemies = [];
   let bossSpawned = false, levelStartTime = 0, levelKills = 0;
+  let waveTimers = []; // Track next spawn time per wave
+
+  function resetWaveTimers(table) {
+    waveTimers = (table.enemyWaves || []).map(wave => ({
+      wave,
+      nextSpawnAt: levelStartTime + (wave.startAt || 0),
+    }));
+  }
+  resetWaveTimers(spawnTables['spawnTable.level1'] || {});
 
   while (time < maxTime && sim.hp > 0) {
     const table = spawnTables[`spawnTable.level${gameLevel}`];
@@ -455,19 +464,29 @@ function simulateRun(data, options = {}) {
       speed: diff.enemySpeedMultiplier || 1,
     };
 
-    // --- SPAWN ---
-    if (table.enemyWaves && activeEnemies.length < (table.maxEnemiesOnScreen || 50)) {
-      const relTime = time - levelStartTime;
-      for (const wave of table.enemyWaves) {
-        if (relTime < (wave.startAt || 0) || relTime > (wave.endAt || 999999)) continue;
-        if (Math.random() * 100 >= (wave.weight || 50)) continue;
-        const bp = enemies[wave.enemyId] || bosses[wave.enemyId];
-        if (!bp) continue;
+    // --- SPAWN (interval-based, matching real SpawnWaveProcessor) ---
+    const maxOnScreen = table.maxEnemiesOnScreen || 50;
+    const relTime = time - levelStartTime;
+    for (const wt of waveTimers) {
+      const wave = wt.wave;
+      if (relTime < (wave.startAt || 0) || relTime > (wave.endAt || 999999)) continue;
+      if (time < wt.nextSpawnAt) continue;
+      if (activeEnemies.length >= maxOnScreen) continue;
+
+      // Weight check — probability that this wave fires on its interval
+      if (Math.random() * 100 >= (wave.weight || 50)) {
+        wt.nextSpawnAt = time + (wave.interval || 3000); // Skip but advance timer
+        continue;
+      }
+
+      const bp = enemies[wave.enemyId] || bosses[wave.enemyId];
+      if (bp) {
         const count = wave.countRange ? randRange(wave.countRange) : 1;
-        for (let i = 0; i < count && activeEnemies.length < (table.maxEnemiesOnScreen || 50); i++) {
+        for (let i = 0; i < count && activeEnemies.length < maxOnScreen; i++) {
           activeEnemies.push(new SimEnemy(bp, diffMul));
         }
       }
+      wt.nextSpawnAt = time + (wave.interval || 3000);
     }
 
     // --- BOSS TRIGGER ---
@@ -517,6 +536,9 @@ function simulateRun(data, options = {}) {
           if (gameLevel > 7) { result.result = 'victory'; break; }
           levelStartTime = time; levelKills = 0; bossSpawned = false;
           activeEnemies = activeEnemies.filter(e => e.alive && e.isBoss);
+          // Reset wave timers for new level
+          const nextTable = spawnTables[`spawnTable.level${gameLevel}`];
+          if (nextTable) resetWaveTimers(nextTable);
         }
       }
     }
