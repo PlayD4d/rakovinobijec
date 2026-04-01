@@ -139,7 +139,6 @@ export class SystemsInitializer {
         try {
             const { SimpleLootSystem } = await import('../core/systems/SimpleLootSystem.js');
             this.scene.lootSystem = new SimpleLootSystem(this.scene);
-            this.scene.simpleLootSystem = this.scene.lootSystem; // Alias
             DebugLogger.info('loot', '[SimpleLootSystem] Initialized');
         } catch (error) {
             DebugLogger.error('loot', '[SimpleLootSystem] Failed to initialize:', error);

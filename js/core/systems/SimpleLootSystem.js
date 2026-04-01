@@ -1,12 +1,7 @@
 /**
  * SimpleLootSystem - Phaser-native loot pooling system
- * PR7 compliant - all driven by blueprints
- *
- * Uses Phaser Group pooling: get() reuses inactive sprites, disableBody() returns to pool.
- * Pickup detection via physics.add.overlap (registered in setupCollisions.js).
- * XP magnet attraction in update() (no Phaser native equivalent).
+ * Pickup via physics.add.overlap (setupCollisions.js). XP magnet in update().
  */
-
 import { DebugLogger } from '../debug/DebugLogger.js';
 import { getSession } from '../debug/SessionLog.js';
 import { generateLootTextures } from './loot/LootTextureGenerator.js';
@@ -23,29 +18,16 @@ export class SimpleLootSystem {
         this.scene = scene;
         this.blueprintLoader = scene.blueprintLoader;
 
-        // Depth values: XP orbs at LOOT layer, items slightly above to prevent z-fighting
         const lootDepth = scene.DEPTH_LAYERS?.LOOT ?? 500;
         this._depthXP = lootDepth;
         this._depthItems = lootDepth + 100;
 
-        // Phaser physics group with maxSize — native pool: get() reuses inactive, disableBody() returns
         this.lootGroup = scene.physics.add.group({ maxSize: POOL_MAX_SIZE });
-
-        // Position overlap prevention for item drops
         this.recentDrops = [];
         this._dropCleanupTime = 5000;
-
-        // Merge/cap timing
         this._lastMergeCheck = 0;
-
-        // Pre-allocated position buffer for findNonOverlappingPosition
         this._posBuffer = { x: 0, y: 0 };
-
-        // Generate item textures on initialization
         generateLootTextures(this.scene);
-
-        // Note: shutdown cleanup is handled by GameScene's explicit shutdown loop
-        // calling clearAll()/shutdown() — no self-registered listener needed.
     }
 
     // ==================== Drop Creation ====================
@@ -110,7 +92,6 @@ export class SimpleLootSystem {
 
         // Track position for item overlap prevention
         this.recentDrops.push({ x: spawnX, y: spawnY, time: this.scene.time?.now || 0 });
-        this._cleanupOldPositions();
 
         // Spawn VFX
         if (blueprint.vfx?.spawn && this.scene.vfxSystem) {
@@ -155,16 +136,13 @@ export class SimpleLootSystem {
         if (lootTables?.[category]) {
             const maxDrops = category === 'boss' ? 5 : category === 'elite' ? 2 : 1;
             let dropped = 0;
-            for (const [itemRef, chance] of Object.entries(lootTables[category])) {
-                if (itemRef.startsWith('drop.xp')) continue; // XP handled separately
+            for (const [itemId, chance] of Object.entries(lootTables[category])) {
+                if (!this.blueprintLoader?.get(itemId)) continue;
                 if (dropped >= maxDrops) break;
                 if (Math.random() * 100 >= chance) continue;
 
-                const itemId = this._resolveItemId(itemRef);
-                if (!itemId) continue;
-
                 this.createDrop(enemy.x, enemy.y, itemId);
-                getSession()?.log('loot', 'table_drop', { category, itemRef, itemId, enemy: enemyId });
+                getSession()?.log('loot', 'table_drop', { category, itemId, enemy: enemyId });
                 dropped++;
             }
         }
@@ -205,10 +183,6 @@ export class SimpleLootSystem {
                 player.heal?.(healAmount);
                 break;
             }
-            case 'instant_kill_all':
-                this.scene.enemyManager?.killAll();
-                this.scene.flashCamera?.();
-                break;
             case 'vacuum_xp': {
                 // Magnet pickup — vacuum ALL XP gems on field toward player
                 // Gradual pull: tag items for magnet attraction in update loop
@@ -239,11 +213,6 @@ export class SimpleLootSystem {
                     });
                     this.scene.time?.delayedCall(duration, () => player.removeModifierById?.(modId));
                 }
-                break;
-            }
-            case 'research': {
-                const points = blueprint.effect?.value || 1;
-                if (this.scene.gameStats) this.scene.gameStats.score += points * 100;
                 break;
             }
             case 'permanent_stat': {
@@ -305,6 +274,7 @@ export class SimpleLootSystem {
             this._lastMergeCheck = time;
             this._mergeNearbyXPOrbs(children);
             this._enforceFieldCap(children);
+            this._cleanupOldPositions();
         }
 
         // Magnet attraction (passive XP magnet powerup + active magnet pickup)
@@ -426,34 +396,20 @@ export class SimpleLootSystem {
         let excess = activeCount - FIELD_CAP;
         let autoCollectedXP = 0;
 
-        // Pass 1: auto-collect smalls (lowest value — award XP instead of discarding)
-        for (let i = 0; i < children.length && excess > 0; i++) {
-            const loot = children[i];
-            if (loot.active && loot.dropId === 'item.xp_small') {
-                autoCollectedXP += loot.value || 0;
-                this._returnToPool(loot);
-                excess--;
-            }
-        }
-        // Pass 2: auto-collect mediums if still over cap
-        for (let i = 0; i < children.length && excess > 0; i++) {
-            const loot = children[i];
-            if (loot.active && loot.dropId === 'item.xp_medium') {
-                autoCollectedXP += loot.value || 0;
-                this._returnToPool(loot);
-                excess--;
+        // Auto-collect lowest-value XP orbs first (smalls, then mediums)
+        const tiers = ['item.xp_small', 'item.xp_medium'];
+        for (const tier of tiers) {
+            for (let i = 0; i < children.length && excess > 0; i++) {
+                const loot = children[i];
+                if (loot.active && loot.dropId === tier) {
+                    autoCollectedXP += loot.value || 0;
+                    this._returnToPool(loot);
+                    excess--;
+                }
             }
         }
 
-        // Award auto-collected XP to player (no XP lost)
-        if (autoCollectedXP > 0 && this.scene.addXP) {
-            this.scene.addXP(autoCollectedXP);
-        }
-
-        const removed = activeCount - this.lootGroup.countActive();
-        if (removed > 0) {
-            getSession()?.log('loot', 'field_cap_autocollect', { removed, xpAwarded: autoCollectedXP, remaining: this.lootGroup.countActive() });
-        }
+        if (autoCollectedXP > 0 && this.scene.addXP) this.scene.addXP(autoCollectedXP);
     }
 
     // ==================== Pool Helpers ====================
@@ -470,27 +426,23 @@ export class SimpleLootSystem {
     /** Find a non-overlapping position. Items use spacing check, XP uses random scatter. */
     _findPosition(x, y, dropType) {
         const buf = this._posBuffer;
-
-        if (dropType !== 'xp') {
-            // Items: try to avoid overlap with recent drops
-            for (let attempt = 0; attempt < 10; attempt++) {
-                buf.x = x + (Math.random() - 0.5) * 20;
-                buf.y = y + (Math.random() - 0.5) * 20;
-                let overlaps = false;
-                for (let i = 0; i < this.recentDrops.length; i++) {
-                    const d = this.recentDrops[i];
-                    const dx = buf.x - d.x, dy = buf.y - d.y;
-                    if (dx * dx + dy * dy < MIN_SPACING_SQ) { overlaps = true; break; }
-                }
-                if (!overlaps) return buf;
-                // Spiral fallback
-                const angle = (attempt / 10) * Math.PI * 2;
-                buf.x = x + Math.cos(angle) * 20;
-                buf.y = y + Math.sin(angle) * 20;
-            }
-        } else {
+        if (dropType === 'xp') {
             buf.x = x + (Math.random() - 0.5) * 30;
             buf.y = y + (Math.random() - 0.5) * 30;
+            return buf;
+        }
+        // Items: try to avoid overlap with recent drops (increasing radius per attempt)
+        for (let attempt = 0; attempt < 8; attempt++) {
+            const spread = 20 + attempt * 5;
+            buf.x = x + (Math.random() - 0.5) * spread;
+            buf.y = y + (Math.random() - 0.5) * spread;
+            let overlaps = false;
+            for (let i = 0; i < this.recentDrops.length; i++) {
+                const d = this.recentDrops[i];
+                const dx = buf.x - d.x, dy = buf.y - d.y;
+                if (dx * dx + dy * dy < MIN_SPACING_SQ) { overlaps = true; break; }
+            }
+            if (!overlaps) return buf;
         }
         return buf;
     }
@@ -506,29 +458,6 @@ export class SimpleLootSystem {
             }
         }
         this.recentDrops.length = write;
-    }
-
-    // ==================== Item ID Resolution ====================
-
-    /** Resolve legacy 'drop.*' refs to 'item.*' blueprint IDs */
-    _resolveItemId(ref) {
-        if (this.blueprintLoader?.get(ref)) return ref;
-
-        const LEGACY_MAP = {
-            'drop.leukocyte_pack': 'item.health_small',
-            'drop.protein_cache': 'item.protein_cache',
-            'drop.metotrexat': 'item.metotrexat',
-            'drop.adrenal_surge': 'item.energy_cell',
-            'drop.magnet': 'item.magnet',
-        };
-        const mapped = LEGACY_MAP[ref];
-        if (mapped && this.blueprintLoader?.get(mapped)) return mapped;
-
-        if (ref.startsWith('drop.')) {
-            const itemId = 'item.' + ref.replace('drop.', '').replace(/\./g, '_');
-            if (this.blueprintLoader?.get(itemId)) return itemId;
-        }
-        return null;
     }
 
     // ==================== Lifecycle ====================
@@ -547,6 +476,11 @@ export class SimpleLootSystem {
             // Group may already be destroyed during scene shutdown
         }
         if (this.recentDrops) this.recentDrops.length = 0;
+    }
+
+    /** Get number of active loot items on the field */
+    getActiveCount() {
+        return this.lootGroup?.children ? this.lootGroup.countActive() : 0;
     }
 
     /** Shutdown — alias for clearAll (single cleanup path) */
