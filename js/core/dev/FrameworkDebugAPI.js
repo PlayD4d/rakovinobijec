@@ -312,7 +312,7 @@ export class FrameworkDebugAPI {
             // Add smoke test runner
             window.__framework.smokeTest = async () => {
                 try {
-                    const { SmokeTest } = await import('../utils/SmokeTest.js');
+                    const { SmokeTest } = await import('./SmokeTest.js');
                     const test = new SmokeTest(this.gameScene);
                     return await test.run();
                 } catch (error) {
@@ -324,7 +324,7 @@ export class FrameworkDebugAPI {
             // Quick check method
             window.__framework.quickCheck = async () => {
                 try {
-                    const { SmokeTest } = await import('../utils/SmokeTest.js');
+                    const { SmokeTest } = await import('./SmokeTest.js');
                     return await SmokeTest.quickCheck(this.gameScene);
                 } catch (error) {
                     console.error('[SmokeTest] Quick check failed:', error);

@@ -167,12 +167,20 @@ export class DebugLogger {
     static _mergedConfig = { enabled: true, logLevel: 'WARN', categories: {} };
     static _overridesVersion = 0; // bumped when runtimeOverrides change
 
+    static _resolving = false; // Guard against ConfigResolver ↔ DebugLogger recursion
+
     static getEffectiveConfig() {
         // Refresh base config every 2 seconds
         const now = Date.now();
         if (!this._cachedConfig || now - this._cachedConfigTime >= 2000) {
+            let baseConfig = DebugLogger._defaultDebugConfig;
             const CR = window.ConfigResolver;
-            const baseConfig = CR ? CR.get('debug', { defaultValue: DebugLogger._defaultDebugConfig }) : DebugLogger._defaultDebugConfig;
+            if (CR && !this._resolving) {
+                this._resolving = true;
+                try { baseConfig = CR.get('debug', { defaultValue: baseConfig }) || baseConfig; }
+                catch (_) { /* fallback to defaults */ }
+                this._resolving = false;
+            }
             this._cachedConfig = {
                 enabled: baseConfig.enabled !== undefined ? baseConfig.enabled : true,
                 logLevel: baseConfig.logLevel || 'WARN',
