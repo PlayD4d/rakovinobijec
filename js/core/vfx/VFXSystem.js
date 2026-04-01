@@ -21,8 +21,6 @@ export class VFXSystem {
     constructor(scene) {
         this.scene = scene;
         
-        // Particle emitters pool
-        this.emitterPool = [];
         this.activeEmitters = new Map();
         
         // Power-up effects
@@ -117,20 +115,8 @@ export class VFXSystem {
             this._returnEmitterToPool(oldestId);
         }
 
-        // Get or create emitter
-        let emitter = this._getEmitterFromPool();
         const quantity = config.quantity || 10;
-
-        if (!emitter) {
-            // Create at origin — position set below via setPosition
-            emitter = this.scene.add.particles(0, 0, 'particle', config);
-        } else {
-            // Reuse from pool — reset state for clean reuse
-            if (emitter.follow) emitter.follow = null;
-            emitter.setConfig(config);
-            emitter.setVisible(true);
-            emitter.setActive(true);
-        }
+        const emitter = this.scene.add.particles(0, 0, 'particle', config);
 
         // Set position ONCE, then explode WITHOUT x,y to avoid double-offset
         emitter.setPosition(x, y);
@@ -328,33 +314,14 @@ export class VFXSystem {
     /**
      * Get emitter from pool
      */
-    _getEmitterFromPool() {
-        if (this.emitterPool.length > 0) {
-            return this.emitterPool.pop();
-        }
-        return null;
-    }
-    
     /**
-     * Return emitter to pool
+     * Remove and destroy an active emitter by ID
      */
     _returnEmitterToPool(emitterId) {
         const emitter = this.activeEmitters.get(emitterId);
         if (emitter) {
-            // Kill particles but keep emitter reusable — stop(true) can leave emitter in broken state
-            emitter.killAll();
-            emitter.emitting = false;
-            emitter.removeAllListeners('complete');
             this.activeEmitters.delete(emitterId);
-
-            // Guard: don't pool a destroyed emitter (Phaser sets scene=null on destroy)
-            if (!emitter.active || !emitter.scene) return;
-
-            if (this.emitterPool.length < 10) {
-                this.emitterPool.push(emitter);
-            } else {
-                emitter.destroy();
-            }
+            if (emitter.active && emitter.scene) emitter.destroy();
         }
     }
     
@@ -397,12 +364,6 @@ export class VFXSystem {
             emitter.destroy();
         }
         this.activeEmitters.clear();
-
-        // Clear pool — emitters from previous session may be stale
-        for (const emitter of this.emitterPool) {
-            if (emitter.active && emitter.scene) emitter.destroy();
-        }
-        this.emitterPool.length = 0;
 
         // Clear active telegraph sprites (boss ability warnings, etc.)
         this.clearTelegraphs();
@@ -450,11 +411,6 @@ export class VFXSystem {
         }
         this.powerUpEffects.clear();
         
-        // Clear pool
-        for (const emitter of this.emitterPool) {
-            emitter.destroy();
-        }
-        this.emitterPool = [];
     }
     
     /**
