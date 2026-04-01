@@ -64,6 +64,7 @@ export class PowerUpAbilities {
                 config.damage = lvl(a.damagePerLevel, level, 10);
                 config.intervalMs = lvl(a.intervalMsPerLevel, level, 800);
                 config.speed = lvl(a.speedPerLevel, level, 220);
+                config.radius = lvl(a.radiusPerLevel, level, 40); // AoE hit radius (area_boost scales this)
                 break;
             case 'shield':
                 config.shieldHP = (a.baseShieldHP || 50) * level;
@@ -152,8 +153,14 @@ export class PowerUpAbilities {
                 }
             }
             const durMul = stats.durationMultiplier || 1;
-            if (durMul !== 1 && config.duration) {
-                config.duration = Math.round(config.duration * durMul);
+            if (durMul !== 1) {
+                // Duration: pools/effects last longer
+                if (config.duration) config.duration = Math.round(config.duration * durMul);
+                // Intervals: abilities fire faster (inverse scaling — shorter interval)
+                if (config.interval) config.interval = Math.round(config.interval / durMul);
+                if (config.intervalMs) config.intervalMs = Math.round(config.intervalMs / durMul);
+                // Shield: recharge faster
+                if (config.rechargeTime) config.rechargeTime = Math.round(config.rechargeTime / durMul);
             }
         }
 
@@ -259,7 +266,7 @@ export class PowerUpAbilities {
         const dmg = config.damage || 10;
         const interval = config.intervalMs || 800;
         const range = config.speed || 220;
-        const radius = 40;
+        const radius = config.radius || 40;
 
         this._oxidativeBurstTimer = this.scene.time.addEvent({
             delay: interval, loop: true,
