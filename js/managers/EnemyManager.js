@@ -59,8 +59,10 @@ export class EnemyManager {
             entity = this.createRegularEnemy(blueprint, blueprintId, x, y, textureKey, color, size, options);
         }
         
-        // Session log
-        getSession()?.spawn(blueprint.type || 'enemy', blueprintId, entity?.x || x, entity?.y || y);
+        // Session log — include stats for balance analysis
+        getSession()?.spawn(blueprint.type || 'enemy', blueprintId, entity?.x || x, entity?.y || y, {
+            hp: entity?.hp, dmg: entity?.damage, speed: entity?.speed, xp: entity?.xp || 0
+        });
         
         return entity;
     }

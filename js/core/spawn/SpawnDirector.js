@@ -286,10 +286,7 @@ export class SpawnDirector {
                 if (enemy) {
                     this._applyDifficultyScaling(enemy);
                     this._trackSpawn(enemyId);
-                    getSession()?.log('spawn', 'enemy', {
-                        id: enemyId, x: Math.round(pos.x), y: Math.round(pos.y),
-                        hp: enemy.hp, dmg: enemy.damage, speed: enemy.speed, xp: enemy.xp || 0
-                    });
+                    // Spawn log with stats is handled by EnemyManager.spawnEnemy
                 }
                 return enemy;
             } else if (this.scene.createEnemyFromBlueprint) {
