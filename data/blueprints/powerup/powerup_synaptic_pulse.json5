@@ -14,9 +14,9 @@
   },
   ability: {
     type: 'synaptic_pulse',
-    damagePerLevel: [8, 12, 16, 22, 30],
-    radiusPerLevel: [80, 90, 100, 110, 120],
-    intervalPerLevel: [2500, 2200, 2000, 1800, 1500],
+    damagePerLevel: [15, 22, 30, 40, 55],
+    radiusPerLevel: [90, 100, 110, 120, 135],
+    intervalPerLevel: [2000, 1800, 1500, 1300, 1000],
   },
   vfx: {
     pickup: 'vfx.pickup',

@@ -16,8 +16,8 @@
     type: 'flamethrower',
     // Slow-moving AoE flame cloud toward random enemy
     // Damages all enemies in a line from player to target
-    damagePerLevel: [6, 10, 15, 22, 30],
-    intervalMsPerLevel: [1000, 900, 800, 700, 600],
+    damagePerLevel: [10, 15, 22, 30, 40],
+    intervalMsPerLevel: [900, 800, 700, 600, 500],
     // speed = range of the flame line (px)
     speedPerLevel: [140, 160, 180, 200, 230],
   },

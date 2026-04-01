@@ -15,11 +15,11 @@
   ability: {
     type: 'chemo_pool',
     // Santa Water style: multiple pools on random orbit positions
-    damagePerLevel: [5, 7, 9, 12, 15],
+    damagePerLevel: [8, 10, 13, 16, 20],
     radiusPerLevel: [35, 37, 39, 41, 44],
-    durationPerLevel: [3000, 3500, 4000, 4500, 5000],
-    intervalPerLevel: [4000, 3500, 3000, 2500, 2000],
-    countPerLevel: [1, 2, 2, 3, 4],
+    durationPerLevel: [3500, 4000, 4500, 5000, 5500],
+    intervalPerLevel: [3500, 3000, 2500, 2200, 1800],
+    countPerLevel: [1, 2, 3, 3, 4],
     orbitRadiusPerLevel: [100, 108, 116, 124, 132],
   },
   vfx: {

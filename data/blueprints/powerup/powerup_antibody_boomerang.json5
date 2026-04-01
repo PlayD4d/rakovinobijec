@@ -16,7 +16,7 @@
     type: 'antibody_boomerang',
     damagePerLevel: [12, 16, 20, 25, 32],
     speedPerLevel: [200, 210, 220, 230, 240],
-    rangePerLevel: [150, 170, 190, 200, 220],
+    rangePerLevel: [220, 260, 300, 340, 380],
     countPerLevel: [1, 1, 1, 2, 2],
     interval: 2000,
   },

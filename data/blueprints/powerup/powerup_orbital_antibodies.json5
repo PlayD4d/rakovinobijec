@@ -16,7 +16,7 @@
     type: 'orbital_antibodies',
     countPerLevel: [2, 3, 3, 4, 5],
     damagePerLevel: [8, 10, 14, 18, 22],
-    radiusPerLevel: [50, 55, 60, 65, 70],
+    radiusPerLevel: [80, 95, 110, 125, 140],
     speedPerLevel: [2, 2.2, 2.5, 2.8, 3],
   },
   vfx: {
