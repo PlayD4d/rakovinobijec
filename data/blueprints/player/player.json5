@@ -13,7 +13,7 @@
     hp: 100,
     maxHp: 100,
     armor: 2,
-    speed: 135,
+    speed: 90,
     size: 24,
     level: 1,
   },

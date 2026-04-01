@@ -413,6 +413,7 @@ function pickPowerup(sim, powerups, forceBuild) {
     if (id.includes('piercing')) return 5 + isUpgrade;
     if (id.includes('ricochet')) return 5 + isUpgrade;
     if (id.includes('crit')) return 5 + isUpgrade;
+    if (id.includes('metabolic')) return 5 + isUpgrade; // Move speed matters with base 90
     if (id.includes('max_hp')) return 4 + isUpgrade;
     if (id.includes('regenerative')) return 4 + isUpgrade;
     if (id.includes('xp_magnet')) return isEarly ? 6 : 1;
@@ -489,6 +490,35 @@ function simulateRun(data, options = {}) {
       wt.nextSpawnAt = time + (wave.interval || 3000);
     }
 
+    // --- ELITE/UNIQUE SPAWNS (cooldown-based, same as SpawnWaveProcessor) ---
+    if (table.eliteWindows) {
+      for (const elite of table.eliteWindows) {
+        if (relTime < (elite.startAt || 0) || relTime > (elite.endAt || 999999)) continue;
+        if (!elite._nextSpawn || time >= elite._nextSpawn) {
+          if (Math.random() * 100 < (elite.weight || 30) && activeEnemies.length < maxOnScreen) {
+            const bp = enemies[elite.enemyId];
+            if (bp) {
+              const count = elite.countRange ? randRange(elite.countRange) : 1;
+              for (let i = 0; i < count; i++) activeEnemies.push(new SimEnemy(bp, diffMul));
+            }
+          }
+          elite._nextSpawn = time + (elite.cooldown || 15000);
+        }
+      }
+    }
+    if (table.uniqueSpawns) {
+      for (const unique of table.uniqueSpawns) {
+        if (unique._spawned) continue;
+        if (relTime >= (unique.spawnAt || unique.startAt || 60000)) {
+          if (Math.random() * 100 < (unique.weight || 50)) {
+            const bp = enemies[unique.enemyId];
+            if (bp) activeEnemies.push(new SimEnemy(bp, diffMul));
+            unique._spawned = true;
+          }
+        }
+      }
+    }
+
     // --- BOSS TRIGGER ---
     if (!bossSpawned && table.bossTriggers) {
       for (const trigger of table.bossTriggers) {
@@ -536,9 +566,14 @@ function simulateRun(data, options = {}) {
           if (gameLevel > 7) { result.result = 'victory'; break; }
           levelStartTime = time; levelKills = 0; bossSpawned = false;
           activeEnemies = activeEnemies.filter(e => e.alive && e.isBoss);
-          // Reset wave timers for new level
+          // Reset wave/elite/unique timers for new level
           const nextTable = spawnTables[`spawnTable.level${gameLevel}`];
-          if (nextTable) resetWaveTimers(nextTable);
+          if (nextTable) {
+            resetWaveTimers(nextTable);
+            // Reset elite cooldowns and unique spawn flags
+            if (nextTable.eliteWindows) nextTable.eliteWindows.forEach(e => e._nextSpawn = 0);
+            if (nextTable.uniqueSpawns) nextTable.uniqueSpawns.forEach(u => u._spawned = false);
+          }
         }
       }
     }
