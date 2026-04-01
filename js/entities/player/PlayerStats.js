@@ -53,6 +53,9 @@ export class PlayerStats {
             }
         }
 
+        // Enforce minimum attack interval — prevents negative/zero from stacking mul modifiers
+        if (stats.attackIntervalMs < 200) stats.attackIntervalMs = 200;
+
         this._cache = stats;
         player._statsDirty = false;
         return stats;

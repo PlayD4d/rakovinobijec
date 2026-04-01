@@ -5,18 +5,7 @@
     maxLevel: 5,
   },
   mechanics: {
-    modifiersPerLevel: [
-      {
-        path: 'hpRegenPerSec',
-        type: 'add',
-        value: 0.33,
-        description: 'HP regeneration per second per level',
-        valuesPerLevel: [0.33, 0.67, 1.2, 2.0, 3.33],
-      },
-    ],
-    stackable: true,
-    persistent: true,
-    applyOnPickup: true,
+    modifiersPerLevel: [],
     effectType: 'passive_regen',
     slot: 'passive',
   },

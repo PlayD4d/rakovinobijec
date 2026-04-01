@@ -17,7 +17,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'homing_shot',
-    slot: 'passive',
+    slot: 'weapon',
   },
   ability: {
     type: 'homing_shot',

@@ -67,7 +67,7 @@ export class PowerUpAbilities {
                 config.damage = (a.baseDamage || 15) + (a.damagePerLevel || 10) * level;
                 config.range = a.baseRange || 200;
                 config.jumpRange = a.jumpRange || 80;
-                config.jumps = level;
+                config.jumps = level + 1; // L1 = 2 jumps (hit + 1 chain), L5 = 6
                 config.interval = a.interval || 2000;
                 break;
             case 'aura':
@@ -365,7 +365,7 @@ export class PowerUpAbilities {
     // ==================== Shield / Damage ====================
 
     processDamageWithShield(player, amount, time) {
-        const dr = player.damageReduction || 0;
+        const dr = player._stats?.().damageReduction || 0;
         if (dr > 0) amount = Math.max(1, amount - dr);
         return this._shieldRegen.processDamageWithShield(player, amount, time);
     }
