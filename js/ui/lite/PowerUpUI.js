@@ -89,6 +89,15 @@ export class PowerUpUI {
       // Rarity accent line at top
       const accentLine = new Phaser.GameObjects.Rectangle(s, 0, -cardHeight / 2 + 3, cardWidth - 4, 3, rarityColor, 0.9);
 
+      // Slot type badge (top-left) — weapon vs passive
+      const isPassive = pu.slot === 'passive';
+      const slotLabel = isPassive ? 'PASSIVE' : 'WEAPON';
+      const slotColor = isPassive ? '#66bb6a' : '#42a5f5';
+      const slotBadge = new Phaser.GameObjects.Text(s, -cardWidth / 2 + 10, -cardHeight / 2 + 10, slotLabel, {
+        fontFamily: UI_THEME.fonts.primary, fontSize: '8px', color: slotColor,
+        stroke: '#000000', strokeThickness: 2
+      }).setOrigin(0, 0);
+
       // Level badge (top-right)
       const isOverflow = pu._overflow || pu.maxLevel === 0;
       const nextLevel = (pu.level || 0) + 1;
@@ -129,7 +138,7 @@ export class PowerUpUI {
         color: `#${rarityColor.toString(16).padStart(6, '0')}`
       }).setOrigin(0.5);
 
-      card.add([bg, accentLine, lvlBadge, name, sep, desc, stats, rarityLabel]);
+      card.add([bg, accentLine, slotBadge, lvlBadge, name, sep, desc, stats, rarityLabel]);
       card._bg = bg;
       card._accentLine = accentLine;
 

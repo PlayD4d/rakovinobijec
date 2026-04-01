@@ -108,23 +108,31 @@ export class UnifiedHUD {
         this.xpBar = xpContainer.bar;
         this.xpText = xpContainer.text;
 
-        // Power-up icon tray (below XP bar)
-        this._powerUpTrayY = y + (this.BAR_HEIGHT + padding.small) * 2 + 4;
-        this._powerUpTrayX = x + 30;
-        this._powerUpIcons = [];
+        // Power-up icon trays — weapons (top row) + passives (bottom row)
+        this._weaponTrayY = y + (this.BAR_HEIGHT + padding.small) * 2 + 4;
+        this._weaponTrayX = x + 30;
+        this._passiveTrayY = this._weaponTrayY + 26; // Below weapon row
+        this._passiveTrayX = x + 30;
+        this._weaponIcons = [];
+        this._passiveIcons = [];
+        // Legacy compat
+        this._powerUpIcons = this._weaponIcons;
     }
 
     /**
-     * Add a power-up icon to the HUD tray when player collects one
+     * Add a power-up icon to the HUD tray when player collects one.
+     * Routes to weapon tray (top) or passive tray (bottom) based on powerUp.slot.
      */
     addPowerUpIcon(powerUp) {
         if (this._destroyed || !powerUp) return;
 
         const ICON_SIZE = 20;
         const ICON_GAP = 4;
-        const idx = this._powerUpIcons.length;
-        const x = this._powerUpTrayX + idx * (ICON_SIZE + ICON_GAP);
-        const y = this._powerUpTrayY;
+        const isPassive = powerUp.slot === 'passive';
+        const tray = isPassive ? this._passiveIcons : this._weaponIcons;
+        const idx = tray.length;
+        const x = (isPassive ? this._passiveTrayX : this._weaponTrayX) + idx * (ICON_SIZE + ICON_GAP);
+        const y = isPassive ? this._passiveTrayY : this._weaponTrayY;
 
         // Rarity → border color
         const rarityColors = {
@@ -133,8 +141,9 @@ export class UnifiedHUD {
         };
         const borderColor = rarityColors[powerUp.rarity] || 0x888888;
 
-        // Icon background
-        const bg = this._rect(x, y, ICON_SIZE, ICON_SIZE, 0x1a1a2e);
+        // Icon background — passives get slightly different tint
+        const bgColor = isPassive ? 0x1a2e1a : 0x1a1a2e;
+        const bg = this._rect(x, y, ICON_SIZE, ICON_SIZE, bgColor);
         bg.setOrigin(0, 0);
         bg.setStrokeStyle(1.5, borderColor, 0.9);
         this.container.add(bg);
@@ -149,7 +158,7 @@ export class UnifiedHUD {
         lvl.setOrigin(0.5);
         this.container.add(lvl);
 
-        this._powerUpIcons.push({ bg, lvl, id: powerUp.id });
+        tray.push({ bg, lvl, id: powerUp.id });
 
         // Pop-in animation
         bg.setScale(0);
@@ -164,7 +173,8 @@ export class UnifiedHUD {
      */
     updatePowerUpIcon(powerUpId, newLevel) {
         if (this._destroyed) return;
-        const icon = this._powerUpIcons.find(i => i.id === powerUpId);
+        const icon = this._weaponIcons.find(i => i.id === powerUpId)
+            || this._passiveIcons.find(i => i.id === powerUpId);
         if (icon) {
             icon.lvl.setText(`${newLevel}`);
             // Brief scale pulse on upgrade
@@ -452,7 +462,7 @@ export class UnifiedHUD {
      * Refresh all HUD values — call on discrete events (damage, XP, kill, level-up)
      */
     refresh() {
-        if (!this.gameScene) return;
+        if (this._destroyed || !this.gameScene) return;
 
         if (this.gameScene.player) {
             this.setPlayerHealth(this.gameScene.player.hp, this.gameScene.player.maxHp);
@@ -517,6 +527,9 @@ export class UnifiedHUD {
         this.container?.destroy();
         this.container = null;
         this.bossContainer = null;
+        this._weaponIcons = [];
+        this._passiveIcons = [];
+        this._powerUpIcons = this._weaponIcons;
         this.gameScene = null;
     }
 }

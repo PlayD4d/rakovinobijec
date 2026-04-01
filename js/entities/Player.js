@@ -58,7 +58,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             xpMagnetRadius: CR.get('mechanics.progression.xpMagnetRange', { blueprint }) || 50,
             dodgeChance: 0, explosionRadius: 0, explosionDamage: 0,
             projectilePiercing: 0, chemoCloudFrequency: 1,
-            shieldImmunityDuration: 3000, shieldRegenTimeMs: 10000
+            shieldImmunityDuration: 3000, shieldRegenTimeMs: 10000,
+            // Passive item stats (multiplicative identity = 1.0, additive identity = 0)
+            areaMultiplier: 1, durationMultiplier: 1
         };
 
         this._assertRequired(this.baseStats, [

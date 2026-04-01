@@ -18,6 +18,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'damage_reduction',
+    slot: 'passive',
   },
   vfx: {
     pickup: 'vfx.pickup',

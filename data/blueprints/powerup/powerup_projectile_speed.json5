@@ -1,0 +1,27 @@
+{
+  id: 'powerup.projectile_speed',
+  type: 'powerup',
+  stats: { maxLevel: 5 },
+  mechanics: {
+    modifiersPerLevel: [
+      { path: 'projectileSpeed', type: 'mul', value: 0.10, description: 'Increases projectile speed by 10% per level' }
+    ],
+    stackable: true, persistent: true, applyOnPickup: true,
+    effectType: 'projectile_speed',
+    slot: 'passive',
+  },
+  vfx: { pickup: 'vfx.pickup', levelUp: 'vfx.powerup' },
+  sfx: { pickup: 'sound/pickup.mp3', apply: 'sound/powerup.mp3', levelUp: 'sound/powerup.mp3' },
+  display: {
+    key: 'powerup.projectile_speed.name',
+    descKey: 'powerup.projectile_speed.desc',
+    devNameFallback: 'Neural Accelerator',
+    devDescFallback: 'Increases projectile speed.',
+    icon: 'powerup_projectile_speed',
+    color: '#29B6F6',
+    rarity: 'common',
+    category: 'offense',
+    sortOrder: 325,
+    tags: ['powerup', 'passive', 'speed', 'projectile'],
+  },
+}

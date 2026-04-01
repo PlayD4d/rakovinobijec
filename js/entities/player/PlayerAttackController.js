@@ -64,10 +64,13 @@ export class PlayerAttackController {
 
         const opts = this._fireOpts;
         opts.projectileId = stats.projectileRef || 'projectile.player_basic';
+        // Apply projectile speed passive (ratio of modified speed to base config speed)
+        opts.speedMul = (stats.projectileSpeed || ps.config.speed) / ps.config.speed;
 
         for (let i = 0; i < totalDirs; i++) {
             const angle = baseRotation + angleStep * i;
             opts.damageMul = this._rollCrit(stats.projectileDamage, stats) / ps.config.damage;
+            opts.isCrit = this._lastShotCrit;
             ps.firePlayer(player.x, player.y, Math.cos(angle), Math.sin(angle), opts);
         }
     }
@@ -91,10 +94,11 @@ export class PlayerAttackController {
         const opts = this._fireOpts;
         opts.projectileId = stats.projectileRef || 'projectile.player_basic';
 
-        // Apply homing speed/range bonuses from power-up
+        // Apply projectile speed passive + homing speed/range bonuses
+        const baseSpeedMul = (stats.projectileSpeed || ps.config.speed) / ps.config.speed;
         const homingBonus = player.homingSpeedBonus || 0;
         const homingRange = player.homingRangeBonus || 0;
-        opts.speedMul = 1 + (homingBonus / (stats.projectileSpeed || 200));
+        opts.speedMul = baseSpeedMul * (1 + (homingBonus / (stats.projectileSpeed || 200)));
         opts.rangeMul = 1 + (homingRange / (stats.projectileRange || 175));
 
         if (homingCount > 1) {
@@ -103,16 +107,22 @@ export class PlayerAttackController {
                 const t = (i - (homingCount - 1) / 2);
                 const angleOffset = (spreadRad / Math.max(1, homingCount - 1)) * t;
                 opts.damageMul = this._rollCrit(stats.projectileDamage, stats) / ps.config.damage;
+                opts.isCrit = this._lastShotCrit;
                 ps.firePlayer(player.x, player.y, Math.cos(baseAngle + angleOffset), Math.sin(baseAngle + angleOffset), opts);
             }
         } else {
             opts.damageMul = this._rollCrit(stats.projectileDamage, stats) / ps.config.damage;
+            opts.isCrit = this._lastShotCrit;
             ps.firePlayer(player.x, player.y, Math.cos(baseAngle), Math.sin(baseAngle), opts);
         }
     }
 
     _rollCrit(baseDamage, stats) {
-        if (Math.random() < stats.critChance) return Math.round(baseDamage * stats.critMult);
+        if (Math.random() < stats.critChance) {
+            this._lastShotCrit = true;
+            return Math.round(baseDamage * stats.critMult);
+        }
+        this._lastShotCrit = false;
         return Math.round(baseDamage);
     }
 

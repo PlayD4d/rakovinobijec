@@ -1,0 +1,27 @@
+{
+  id: 'powerup.max_hp',
+  type: 'powerup',
+  stats: { maxLevel: 5 },
+  mechanics: {
+    modifiersPerLevel: [
+      { path: 'hp', type: 'mul', value: 0.15, description: 'Increases max HP by 15% per level' }
+    ],
+    stackable: true, persistent: true, applyOnPickup: true,
+    effectType: 'max_hp',
+    slot: 'passive',
+  },
+  vfx: { pickup: 'vfx.pickup', levelUp: 'vfx.powerup' },
+  sfx: { pickup: 'sound/pickup.mp3', apply: 'sound/powerup.mp3', levelUp: 'sound/powerup.mp3' },
+  display: {
+    key: 'powerup.max_hp.name',
+    descKey: 'powerup.max_hp.desc',
+    devNameFallback: 'Stem Cell Reserve',
+    devDescFallback: 'Increases maximum health.',
+    icon: 'powerup_max_hp',
+    color: '#EF5350',
+    rarity: 'common',
+    category: 'defense',
+    sortOrder: 323,
+    tags: ['powerup', 'passive', 'health', 'defense'],
+  },
+}

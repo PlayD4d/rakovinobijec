@@ -41,18 +41,12 @@ export class BootstrapManager {
         this.scene.mainCam = this.scene.getMainCamera();
         this.scene.mainCam.setName('MainCamera');
         
-        // Create UI layer via GameScene interface (no direct Phaser API in managers)
-        this.scene.createUILayer(this.scene.DEPTH_LAYERS?.UI_BASE || 10000);
+        // Create UI layer (BootstrapManager is allowed Phaser API for setup)
+        const uiLayer = this.scene.add.layer();
+        uiLayer.setDepth(this.scene.DEPTH_LAYERS?.UI_BASE || 10000);
+        this.scene.uiLayer = uiLayer;
         
         DebugLogger.info('bootstrap', '✅ Depth-based rendering system initialized');
-    }
-
-    /**
-     * Initialize analytics and score managers
-     */
-    initializeManagers() {
-        // High scores: will be implemented via SQLite telemetry DB in a later phase
-        // Analytics: handled by SessionLog + TelemetryLogger
     }
 
     /**
@@ -151,9 +145,11 @@ export class BootstrapManager {
         this.scene.events.on('resume', this._onResume, this.scene);
 
         // Cross-scene events via CentralEventBus (auto-cleanup via context)
+        this._onRetry = () => this.scene.restartGame();
+        this._onMainMenu = () => this.scene.returnToMenu();
         centralEventBus.on('game:powerup-selected', this._onPowerUpSelected, this.scene);
-        centralEventBus.on('game:retry', () => this.scene.restartGame(), this.scene);
-        centralEventBus.on('game:main-menu', () => this.scene.returnToMenu(), this.scene);
+        centralEventBus.on('game:retry', this._onRetry, this.scene);
+        centralEventBus.on('game:main-menu', this._onMainMenu, this.scene);
 
         // Resize event (game-level — tracked for cleanup in GameScene.shutdown)
         const scale = this.scene.getScaleManager();
@@ -187,14 +183,15 @@ export class BootstrapManager {
             this.scene.powerUpSystem.applyPowerUp(selection.id, (selection.level || 0) + 1);
         }
 
-        // Notify HUD to show/update power-up icon
+        // Notify HUD to show/update power-up icon (pass slot type for dual-tray routing)
         const hud = this.scene.scene.get('GameUIScene')?.hud;
         if (hud && selection) {
             const newLevel = (selection.level || 0) + 1;
+            const slot = selection.slot || 'weapon';
             if (newLevel > 1) {
                 hud.updatePowerUpIcon(selection.id, newLevel);
             } else {
-                hud.addPowerUpIcon(selection);
+                hud.addPowerUpIcon({ ...selection, slot });
             }
         }
         
@@ -398,10 +395,7 @@ export class BootstrapManager {
             this.scene.disposables.add(this.scene.player);
         }
 
-        // Phase 5: Managers
-        this.initializeManagers();
-        
-        // Phase 6: UI
+        // Phase 5: UI
         this.initializeUI();
         
         // Phase 7: Events

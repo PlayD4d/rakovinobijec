@@ -658,8 +658,8 @@ export class ErrorDetector {
         // Enemy state check
         this.stateChecks.set('enemies', () => {
             const scene = this.getGameScene();
-            if (!scene?.enemies) return null;
-            
+            if (!scene?.enemies?.children) return null;
+
             const errors = [];
             const enemies = scene.enemies.getChildren();
             

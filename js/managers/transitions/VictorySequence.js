@@ -21,7 +21,7 @@ export async function executeVictory(tm) {
 
     // 3. Calculate and log stats
     const stats = tm.calculateFinalStats();
-    tm.logAnalytics('level_complete', stats);
+    tm._log('level_complete', stats);
 
     // 4. Show UI victory modal via event
     await tm.showUIModal('ui:victory-show', {
@@ -39,10 +39,10 @@ async function clearAllEnemiesWithEffect(tm) {
     const scene = tm.scene;
     const enemies = [];
 
-    if (scene.enemiesGroup) {
+    if (scene.enemiesGroup?.children) {
         enemies.push(...scene.enemiesGroup.getChildren().filter(e => e.active));
     }
-    if (scene.bossGroup) {
+    if (scene.bossGroup?.children) {
         enemies.push(...scene.bossGroup.getChildren().filter(b => b.active));
     }
 

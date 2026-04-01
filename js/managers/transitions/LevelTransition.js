@@ -44,7 +44,7 @@ export async function executeLevelTransition(tm, nextLevel) {
     scene.flashCamera?.(300, 255, 255, 255);
 
     // 5. Analytics
-    tm.logAnalytics('level_start', {
+    tm._log('level_start', {
         level: nextLevel,
         playerStats: tm.getPlayerStats()
     });

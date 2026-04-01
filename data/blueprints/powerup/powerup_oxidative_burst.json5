@@ -10,6 +10,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'flamethrower',
+    slot: 'weapon',
   },
   ability: {
     type: 'flamethrower',

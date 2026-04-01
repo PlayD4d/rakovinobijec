@@ -21,26 +21,30 @@ export class PowerUpOptionGenerator {
         const allPowerUps = this.scene.blueprintLoader.getAll('powerup') || [];
         const options = [];
         const applied = this.powerUpSystem.appliedPowerUps;
-        const maxSlots = this.powerUpSystem.maxSlots || 6;
-        const slotsUsed = applied.size;
-        const slotsFull = slotsUsed >= maxSlots;
 
-        DebugLogger.info('powerup', `[PowerUpOptionGenerator] ${allPowerUps.length} powerups, ${slotsUsed}/${maxSlots} slots used`);
+        // Dual-slot limits
+        const weaponsFull = this.powerUpSystem.isSlotFull('weapon');
+        const passivesFull = this.powerUpSystem.isSlotFull('passive');
+        const wCount = this.powerUpSystem.getWeaponCount();
+        const pCount = this.powerUpSystem.getPassiveCount();
+
+        DebugLogger.info('powerup', `[PowerUpOptionGenerator] ${allPowerUps.length} powerups, weapons ${wCount}/${this.powerUpSystem.maxWeaponSlots}, passives ${pCount}/${this.powerUpSystem.maxPassiveSlots}`);
 
         for (const blueprint of allPowerUps) {
             if (!blueprint?.id) continue;
             if (blueprint.id.includes('template') || blueprint.id.includes('.bak')) continue;
-            // Skip disabled powerups (none currently disabled)
 
             const current = applied.get(blueprint.id);
             const currentLevel = current?.level || 0;
             const maxLevel = blueprint.stats?.maxLevel || 10;
 
-            // Skip maxed powerups
+            // Skip maxed
             if (currentLevel >= maxLevel) continue;
 
-            // Slots full? Only allow UPGRADES of already-equipped powerups
-            if (slotsFull && currentLevel === 0) continue;
+            // Slot-aware: check if THIS item's slot type is full (only blocks new items, not upgrades)
+            const slot = blueprint.mechanics?.slot || 'weapon';
+            const slotFull = slot === 'passive' ? passivesFull : weaponsFull;
+            if (slotFull && currentLevel === 0) continue;
 
             const nextLevel = currentLevel + 1;
 
@@ -48,7 +52,7 @@ export class PowerUpOptionGenerator {
                 id: blueprint.id,
                 name: this._getBlueprintName(blueprint),
                 description: this._getBlueprintDescription(blueprint),
-                type: blueprint.category || 'passive',
+                slot: slot,
                 level: currentLevel,
                 nextLevel: nextLevel,
                 maxLevel: maxLevel,
@@ -57,11 +61,11 @@ export class PowerUpOptionGenerator {
                 color: blueprint.display?.color,
                 stats: this._formatPowerUpStats(blueprint, nextLevel),
                 rarity: blueprint.display?.rarity || 'common',
-                isNew: currentLevel === 0, // Visual indicator for new vs upgrade
+                isNew: currentLevel === 0,
             });
         }
 
-        DebugLogger.info('powerup', `[PowerUpOptionGenerator] ${options.length} options (slots ${slotsUsed}/${maxSlots}${slotsFull ? ' FULL — upgrades only' : ''})`);
+        DebugLogger.info('powerup', `[PowerUpOptionGenerator] ${options.length} options (W:${wCount} P:${pCount}${weaponsFull ? ' W-FULL' : ''}${passivesFull ? ' P-FULL' : ''})`);
 
         return this._selectWeighted(options);
     }
@@ -172,14 +176,19 @@ export class PowerUpOptionGenerator {
         const statLabels = {
             projectileDamage: (v) => `+${v} DMG`,
             moveSpeed: (v) => `+${Math.round(v * 100)}% rychlost`,
-            attackIntervalMs: (v) => `-${Math.abs(Math.round(v * 100))}% interval útoku`,
-            dodgeChance: (v) => `+${Math.round(v * 100)}% úhyb`,
-            shieldHP: (v) => `${v} HP štít`,
+            attackIntervalMs: (v) => `-${Math.abs(Math.round(v * 100))}% cooldown`,
+            dodgeChance: (v) => `+${Math.round(v * 100)}% uhyb`,
+            shieldHP: (v) => `${v} HP stit`,
             xpMagnetRadius: (v) => `+${v}px dosah magnetu`,
             explosionRadius: (v) => `+${v}px radius exploze`,
             explosionDamage: (v) => `+${v} DMG exploze`,
-            projectilePiercing: (v) => `průstřel ${v}`,
+            projectilePiercing: (v) => `prustrel ${v}`,
             projectileCount: (v) => `+${v} projektil${v > 1 ? 'y' : ''}`,
+            areaMultiplier: (v) => `+${Math.round(v * 100)}% oblast`,
+            durationMultiplier: (v) => `+${Math.round(v * 100)}% trvani`,
+            hp: (v) => `+${Math.round(v * 100)}% max HP`,
+            critChance: (v) => `+${Math.round(v * 100)}% krit`,
+            projectileSpeed: (v) => `+${Math.round(v * 100)}% rychlost strel`,
         };
 
         for (const mod of mods) {

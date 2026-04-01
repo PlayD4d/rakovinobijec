@@ -22,23 +22,7 @@ export class TransitionManager {
         this.isShowingVictory = false;
         this.isShowingDefeat = false;
         this.isResetting = false;
-
-        // Transition state
         this.currentTransition = null;
-        this.transitionQueue = [];
-
-        // Analytics buffer
-        this.pendingAnalytics = [];
-
-        // Cleanup tracking
-        this.cleanupOrder = [
-            'pausePhysics',
-            'stopSpawns',
-            'clearProjectiles',
-            'clearEnemies',
-            'stopVFX',
-            'unpauseTime'
-        ];
 
         // Telemetry history
         this._history = [];
@@ -102,7 +86,6 @@ export class TransitionManager {
         } finally {
             this.isShowingVictory = false;
             this.isTransitioning = false;
-            this.flushAnalytics();
         }
     }
 
@@ -129,8 +112,6 @@ export class TransitionManager {
         try {
             await executeGameOver(this);
             // Keep isShowingDefeat=true until player takes action (retry/menu)
-            // — prevents re-entrancy from damage ticks still in flight
-            this.flushAnalytics();
         } catch (error) {
             DebugLogger.error('transition', '[TransitionManager] Game over sequence failed:', error);
             this.isShowingDefeat = false;
@@ -169,7 +150,6 @@ export class TransitionManager {
         } finally {
             this.isTransitioning = false;
             this.currentTransition = null;
-            this.flushAnalytics();
         }
     }
 
@@ -283,43 +263,16 @@ export class TransitionManager {
 
     // ─── Analytics ───────────────────────────────────────────────
 
-    logAnalytics(event, data) {
-        if (this.isTransitioning) {
-            this.pendingAnalytics.push({ event, data, timestamp: Date.now() });
-            return;
-        }
-
-        DebugLogger.info('transition', `[Analytics] ${event}:`, data);
-    }
-
-    flushAnalytics() {
-        if (this.pendingAnalytics.length === 0) return;
-
-        // Drain into local copy first — logAnalytics() would re-push into
-        // pendingAnalytics while isTransitioning is still true, causing OOM.
-        const batch = this.pendingAnalytics;
-        this.pendingAnalytics = [];
-
-        for (const { event, data } of batch) {
-            DebugLogger.info('transition', `[Analytics] ${event}:`, data);
-        }
-    }
-
-    // ─── State management ────────────────────────────────────────
-
     resetTransitionState() {
         this.isTransitioning = false;
         this.isShowingVictory = false;
         this.isShowingDefeat = false;
         this.isResetting = false;
         this.currentTransition = null;
-        this.flushAnalytics();
     }
 
     shutdown() {
-        this.flushAnalytics();
         this.resetTransitionState();
-        this.transitionQueue = [];
     }
 }
 

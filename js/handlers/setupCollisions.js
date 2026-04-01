@@ -223,7 +223,7 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
     let damage = applyPiercingReduction(bullet, bullet.damage || scene.player?.baseStats?.projectileDamage || 10);
     const s = session();
     if (s) s.log('combat', 'player_hit_enemy', { enemyId: enemy.blueprintId || enemy.type, damage, enemyHP: enemy.hp, killed: enemy.hp <= damage });
-    enemy.takeDamage(damage);
+    enemy.takeDamage({ amount: damage, isCrit: bullet.isCrit || false });
 
     handlePowerUpOnHit(scene, bullet, damage);
     handleBulletAfterHit(bullet);
@@ -263,7 +263,7 @@ function handlePlayerBulletBossCollision(bullet, boss) {
     const damage = applyPiercingReduction(bullet, bullet.damage || scene?.player?.baseStats?.projectileDamage || 10);
     const s = session();
     if (s) s.log('combat', 'player_hit_boss', { bossId: boss.blueprintId || boss.type, damage, bossHP: boss.hp, killed: boss.hp <= damage });
-    if (boss.takeDamage) boss.takeDamage(damage);
+    if (boss.takeDamage) boss.takeDamage({ amount: damage, isCrit: bullet.isCrit || false });
 
     handlePowerUpOnHit(scene, bullet, damage);
 

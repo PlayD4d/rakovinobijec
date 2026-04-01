@@ -18,15 +18,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-// Expected boss progression per CLAUDE.md
+// Expected boss progression (from spawn tables)
 const BOSS_PROGRESSION = [
-  { level: 1, bossId: 'boss.radiation_core' },
-  { level: 2, bossId: 'boss.onkogen' },
-  { level: 3, bossId: 'boss.karcinogenni_kral' },
-  { level: 4, bossId: 'boss.genova_mutace' },
-  { level: 5, bossId: 'boss.onkogen_prime' },
-  { level: 6, bossId: 'boss.radiation' },
-  { level: 7, bossId: 'boss.chemorezistence' },
+  { level: 1, bossId: 'boss.primary_clone' },
+  { level: 2, bossId: 'boss.oncogenic_signal' },
+  { level: 3, bossId: 'boss.immune_saboteur' },
+  { level: 4, bossId: 'boss.angiogenic_heart' },
+  { level: 5, bossId: 'boss.metastatic_emissary' },
+  { level: 6, bossId: 'boss.resistant_clone' },
+  { level: 7, bossId: 'boss.tumor_core' },
 ];
 
 // VFX preset map keys (from VFXPresets._presetMap)

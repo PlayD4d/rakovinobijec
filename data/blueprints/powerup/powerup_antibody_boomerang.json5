@@ -10,6 +10,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'antibody_boomerang',
+    slot: 'weapon',
   },
   ability: {
     type: 'antibody_boomerang',

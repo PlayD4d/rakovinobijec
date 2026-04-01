@@ -26,6 +26,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'chain_lightning',
+    slot: 'weapon',
   },
   ability: {
     type: 'chain_lightning',

@@ -1,0 +1,27 @@
+{
+  id: 'powerup.duration_boost',
+  type: 'powerup',
+  stats: { maxLevel: 5 },
+  mechanics: {
+    modifiersPerLevel: [
+      { path: 'durationMultiplier', type: 'mul', value: 0.10, description: 'Increases effect duration by 10% per level' }
+    ],
+    stackable: true, persistent: true, applyOnPickup: true,
+    effectType: 'duration_boost',
+    slot: 'passive',
+  },
+  vfx: { pickup: 'vfx.pickup', levelUp: 'vfx.powerup' },
+  sfx: { pickup: 'sound/pickup.mp3', apply: 'sound/powerup.mp3', levelUp: 'sound/powerup.mp3' },
+  display: {
+    key: 'powerup.duration_boost.name',
+    descKey: 'powerup.duration_boost.desc',
+    devNameFallback: 'Sustained Release',
+    devDescFallback: 'Increases duration of weapon effects.',
+    icon: 'powerup_duration_boost',
+    color: '#AB47BC',
+    rarity: 'uncommon',
+    category: 'utility',
+    sortOrder: 322,
+    tags: ['powerup', 'passive', 'duration', 'effect'],
+  },
+}

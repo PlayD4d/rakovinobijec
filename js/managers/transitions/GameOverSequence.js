@@ -19,7 +19,7 @@ export async function executeGameOver(tm) {
 
     // 2. Log analytics
     const stats = tm.calculateFinalStats();
-    tm.logAnalytics('game_over', {
+    tm._log('game_over', {
         ...stats,
         cause: scene.lastDamageCause || 'unknown'
     });

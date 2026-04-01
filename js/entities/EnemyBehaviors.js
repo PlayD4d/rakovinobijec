@@ -218,7 +218,7 @@ export class EnemyBehaviors {
             getPlayer: () => enemy.scene?.player,
             getEnemiesNearby: (x, y, range) => {
                 const group = enemy.scene?.enemiesGroup;
-                if (!group) return [];
+                if (!group?.children) return [];
                 const rangeSq = range * range;
                 const result = [];
                 const children = group.getChildren();

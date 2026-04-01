@@ -1,0 +1,27 @@
+{
+  id: 'powerup.area_boost',
+  type: 'powerup',
+  stats: { maxLevel: 5 },
+  mechanics: {
+    modifiersPerLevel: [
+      { path: 'areaMultiplier', type: 'mul', value: 0.10, description: 'Increases AoE radius by 10% per level' }
+    ],
+    stackable: true, persistent: true, applyOnPickup: true,
+    effectType: 'area_boost',
+    slot: 'passive',
+  },
+  vfx: { pickup: 'vfx.pickup', levelUp: 'vfx.powerup' },
+  sfx: { pickup: 'sound/pickup.mp3', apply: 'sound/powerup.mp3', levelUp: 'sound/powerup.mp3' },
+  display: {
+    key: 'powerup.area_boost.name',
+    descKey: 'powerup.area_boost.desc',
+    devNameFallback: 'Growth Factor',
+    devDescFallback: 'Increases area of effect for all weapons.',
+    icon: 'powerup_area_boost',
+    color: '#66BB6A',
+    rarity: 'uncommon',
+    category: 'utility',
+    sortOrder: 321,
+    tags: ['powerup', 'passive', 'area', 'radius'],
+  },
+}

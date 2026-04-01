@@ -283,8 +283,8 @@
       "name": "Immunotherapy"
     },
     "max_hp": {
-      "desc": "Increases maximum health",
-      "name": "Enhanced Vitality"
+      "desc": "Increases maximum health by 15% per level.",
+      "name": "Stem Cell Reserve"
     },
     "metabolic_haste": {
       "desc": "Accelerates metabolic processes for increased speed",
@@ -346,6 +346,26 @@
       "name": "Antibody Boomerang",
       "desc": "Y-shaped antibody that flies out and returns, hitting enemies both ways."
     },
+    "area_boost": {
+      "name": "Growth Factor",
+      "desc": "Increases weapon area of effect by 10% per level."
+    },
+    "cooldown_reduction": {
+      "name": "Metabolic Overdrive",
+      "desc": "Reduces weapon cooldowns by 8% per level."
+    },
+    "crit_chance": {
+      "name": "Genetic Instability",
+      "desc": "Increases critical hit chance by 5% per level."
+    },
+    "duration_boost": {
+      "name": "Sustained Release",
+      "desc": "Increases weapon effect duration by 10% per level."
+    },
+    "projectile_speed": {
+      "name": "Neural Accelerator",
+      "desc": "Increases projectile speed by 10% per level."
+    },
     "ricochet_cell": {
       "name": "Ricochet Cell",
       "desc": "Immune cell that bounces off walls, hitting enemies along the way."
@@ -372,6 +392,22 @@
       "desc": "Projectile that tracks target",
       "name": "Homing Projectile"
     },
+    "boss_circle": {
+      "desc": "Circular burst of projectiles fired by a boss",
+      "name": "Circle Shot"
+    },
+    "boss_fan": {
+      "desc": "Fan-shaped volley of projectiles in a cone pattern",
+      "name": "Fan Shot"
+    },
+    "boss_tracking": {
+      "desc": "Boss homing projectile that tracks the player",
+      "name": "Tracking Projectile"
+    },
+    "onkogen_shot": {
+      "desc": "Mutagenic projectile fired by the Oncogene boss",
+      "name": "Oncogenic Shot"
+    },
     "player_basic": {
       "desc": "Standard projectile fired by the player",
       "name": "Player Basic Projectile"
@@ -385,6 +421,10 @@
       "onkogen": "Oncogenic mutation causing changes in genetic code",
       "radiation": "Radiation syndrome causing continuous radiation damage",
       "angiogenic_heart": "Beating core of the tumor vascular network wielding beams and blood pulses",
+      "immune_saboteur": "Immune saboteur suppressing the body's defense mechanisms and creating protective zones for tumor cells",
+      "metastatic_emissary": "Metastatic emissary spreading cancer cells to distant regions of the body",
+      "oncogenic_signal": "Oncogenic signal emitting mutagenic impulses activating uncontrolled cell growth",
+      "resistant_clone": "Resistant clone immune to treatment through adaptive mutations and efflux pumps",
       "tumor_core": "Ultimate tumor core combining all hallmarks of cancer — 5 phases, radiation aura, beam sweeps, dash attacks, minion summons and core overload"
     },
     "powerup": {

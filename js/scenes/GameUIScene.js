@@ -114,6 +114,7 @@ export class GameUIScene extends Phaser.Scene {
     }
 
     showPause() {
+        if (this.pauseUI?.isVisible()) return;
         const gameScene = this.scene.get('GameScene');
         if (!gameScene) return;
 
@@ -168,6 +169,7 @@ export class GameUIScene extends Phaser.Scene {
             this.input.setTopOnly(false);
             centralEventBus.emit('game:powerup-selected', selection);
             gameScene.scene.resume();
+            gameScene.flashCamera?.();
         });
     }
 

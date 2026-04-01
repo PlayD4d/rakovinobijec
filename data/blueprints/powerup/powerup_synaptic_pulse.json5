@@ -10,6 +10,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'synaptic_pulse',
+    slot: 'weapon',
   },
   ability: {
     type: 'synaptic_pulse',

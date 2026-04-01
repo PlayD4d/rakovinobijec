@@ -10,6 +10,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'orbital_antibodies',
+    slot: 'weapon',
   },
   ability: {
     type: 'orbital_antibodies',

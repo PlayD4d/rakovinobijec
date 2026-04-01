@@ -10,6 +10,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'ricochet_cell',
+    slot: 'weapon',
   },
   ability: {
     type: 'ricochet_cell',

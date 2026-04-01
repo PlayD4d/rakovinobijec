@@ -79,9 +79,9 @@
     },
   ],
   vfx: {
-    spawn: 'vfx.elite.special',
+    spawn: 'vfx.spawn',
     hit: 'vfx.enemy.hit',
-    death: 'vfx.elite.special',
+    death: 'vfx.death.large',
   },
   sfx: {
     spawn: 'sound/npc_spawn.mp3',

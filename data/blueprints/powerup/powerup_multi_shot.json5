@@ -17,6 +17,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'multi_shot',
+    slot: 'passive',
   },
   vfx: {
     pickup: 'vfx.pickup',

@@ -63,6 +63,8 @@ export class GameOverUI {
       scene, cx, cy + 80,
       '🔄 Zkusit znovu',
       () => {
+        if (this._actionTaken) return;
+        this._actionTaken = true;
         this.hide(() => {
           centralEventBus.emit('game:retry');
         });
@@ -80,6 +82,8 @@ export class GameOverUI {
       scene, cx, cy + 150,
       '🏠 Hlavní menu',
       () => {
+        if (this._actionTaken) return;
+        this._actionTaken = true;
         this.hide(() => {
           centralEventBus.emit('game:main-menu');
         });
@@ -94,6 +98,7 @@ export class GameOverUI {
    * Show game over screen with stats
    */
   show(stats = {}) {
+    this._actionTaken = false;
     const isVictory = stats.isVictory;
 
     // Victory vs defeat — different title, color, subtitle, and modal border

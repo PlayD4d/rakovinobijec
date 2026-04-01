@@ -296,6 +296,7 @@ export class SimpleLootSystem {
     update(time, delta) {
         if (!this.scene.player?.active) return;
 
+        if (!this.lootGroup?.children) return;
         const children = this.lootGroup.getChildren();
         if (children.length === 0) return;
 

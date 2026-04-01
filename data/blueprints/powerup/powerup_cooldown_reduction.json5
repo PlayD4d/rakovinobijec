@@ -1,0 +1,27 @@
+{
+  id: 'powerup.cooldown_reduction',
+  type: 'powerup',
+  stats: { maxLevel: 5 },
+  mechanics: {
+    modifiersPerLevel: [
+      { path: 'attackIntervalMs', type: 'mul', value: -0.08, description: 'Reduces weapon cooldown by 8% per level' }
+    ],
+    stackable: true, persistent: true, applyOnPickup: true,
+    effectType: 'cooldown_reduction',
+    slot: 'passive',
+  },
+  vfx: { pickup: 'vfx.pickup', levelUp: 'vfx.powerup' },
+  sfx: { pickup: 'sound/pickup.mp3', apply: 'sound/powerup.mp3', levelUp: 'sound/powerup.mp3' },
+  display: {
+    key: 'powerup.cooldown_reduction.name',
+    descKey: 'powerup.cooldown_reduction.desc',
+    devNameFallback: 'Metabolic Overdrive',
+    devDescFallback: 'Reduces weapon cooldowns.',
+    icon: 'powerup_cooldown_reduction',
+    color: '#FF6600',
+    rarity: 'uncommon',
+    category: 'utility',
+    sortOrder: 320,
+    tags: ['powerup', 'passive', 'cooldown', 'speed'],
+  },
+}

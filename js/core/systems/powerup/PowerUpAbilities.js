@@ -160,6 +160,23 @@ export class PowerUpAbilities {
                 return [];
         }
 
+        // Apply passive multipliers from player stats (area_boost, duration_boost)
+        const stats = this.scene?.player?._stats?.();
+        if (stats) {
+            const areaMul = stats.areaMultiplier || 1;
+            const durMul = stats.durationMultiplier || 1;
+            if (areaMul !== 1) {
+                if (config.radius) config.radius = Math.round(config.radius * areaMul);
+                if (config.poolRadius) config.poolRadius = Math.round(config.poolRadius * areaMul);
+                if (config.orbitRadius) config.orbitRadius = Math.round(config.orbitRadius * areaMul);
+                if (config.range) config.range = Math.round(config.range * areaMul);
+                if (config.jumpRange) config.jumpRange = Math.round(config.jumpRange * areaMul);
+            }
+            if (durMul !== 1) {
+                if (config.duration) config.duration = Math.round(config.duration * durMul);
+            }
+        }
+
         abilities.push(config);
         DebugLogger.info('powerup', `[PowerUpAbilities] Ability: ${config.type} level ${config.level}`, config);
 

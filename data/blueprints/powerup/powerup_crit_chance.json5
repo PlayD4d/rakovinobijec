@@ -1,0 +1,27 @@
+{
+  id: 'powerup.crit_chance',
+  type: 'powerup',
+  stats: { maxLevel: 5 },
+  mechanics: {
+    modifiersPerLevel: [
+      { path: 'critChance', type: 'add', value: 0.05, description: 'Increases critical hit chance by 5% per level' }
+    ],
+    stackable: true, persistent: true, applyOnPickup: true,
+    effectType: 'crit_chance',
+    slot: 'passive',
+  },
+  vfx: { pickup: 'vfx.pickup', levelUp: 'vfx.powerup' },
+  sfx: { pickup: 'sound/pickup.mp3', apply: 'sound/powerup.mp3', levelUp: 'sound/powerup.mp3' },
+  display: {
+    key: 'powerup.crit_chance.name',
+    descKey: 'powerup.crit_chance.desc',
+    devNameFallback: 'Genetic Instability',
+    devDescFallback: 'Increases critical hit chance.',
+    icon: 'powerup_crit_chance',
+    color: '#FFD600',
+    rarity: 'rare',
+    category: 'offense',
+    sortOrder: 324,
+    tags: ['powerup', 'passive', 'critical', 'damage'],
+  },
+}

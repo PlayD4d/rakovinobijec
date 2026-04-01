@@ -10,6 +10,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'chemo_pool',
+    slot: 'weapon',
   },
   ability: {
     type: 'chemo_pool',

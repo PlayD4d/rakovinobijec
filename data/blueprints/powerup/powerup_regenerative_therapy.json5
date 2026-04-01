@@ -18,6 +18,7 @@
     persistent: true,
     applyOnPickup: true,
     effectType: 'passive_regen',
+    slot: 'passive',
   },
   ability: {
     type: 'passive_regen',

@@ -153,6 +153,7 @@ export class ProjectileSystem {
     const damage = this.config.damage * damageMultiplier;
 
     bullet.fire(x, y, dirX, dirY, speed, range, damage, tint);
+    bullet.isCrit = opts.isCrit || false;
 
     // Add piercing properties from player if active
     const player = this.scene.player;

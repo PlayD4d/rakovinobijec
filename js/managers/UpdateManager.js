@@ -80,14 +80,14 @@ export class UpdateManager {
         this.addTask('enemies', (time, delta) => {
             if (!scene.isPaused) {
                 // Use for-loop on live array — no forEach closure allocation per frame
-                const enemies = scene.enemiesGroup?.getChildren();
+                const enemies = scene.enemiesGroup?.children ? scene.enemiesGroup.getChildren() : null;
                 if (enemies) {
                     for (let i = 0, len = enemies.length; i < len; i++) {
                         const e = enemies[i];
                         if (e && e.active && e.update) e.update(time, delta);
                     }
                 }
-                const bosses = scene.bossGroup?.getChildren();
+                const bosses = scene.bossGroup?.children ? scene.bossGroup.getChildren() : null;
                 if (bosses) {
                     for (let i = 0, len = bosses.length; i < len; i++) {
                         const b = bosses[i];
@@ -385,7 +385,7 @@ export class UpdateManager {
 
         // Cleanup dead enemies
         const enemiesGroup = this.scene.enemiesGroup;
-        if (enemiesGroup) {
+        if (enemiesGroup?.children) {
             const children = enemiesGroup.getChildren();
             for (let i = children.length - 1; i >= 0; i--) {
                 const child = children[i];
@@ -398,7 +398,7 @@ export class UpdateManager {
 
         // Cleanup dead bosses
         const bossGroup = this.scene.bossGroup;
-        if (bossGroup) {
+        if (bossGroup?.children) {
             const children = bossGroup.getChildren();
             for (let i = children.length - 1; i >= 0; i--) {
                 const child = children[i];

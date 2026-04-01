@@ -291,8 +291,8 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         this.hp -= amount;
         getSession()?.damage(source || 'player', this.blueprintId || this.blueprint?.id, amount, 'hit');
 
-        // Floating damage number
-        this._showDamageNumber(amount);
+        // Floating damage number (gold for crits)
+        this._showDamageNumber(amount, isObj ? hit.isCrit : false);
 
         // VFX/SFX (skip hit VFX when dying — death VFX handles it)
         if (this.hp > 0) {
@@ -365,7 +365,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
     /**
      * Show floating damage number above enemy
      */
-    _showDamageNumber(amount) {
+    _showDamageNumber(amount, isCrit = false) {
         if (!this.scene?.add || amount <= 0) return;
         // Respect settings toggle
         if (window.settingsManager?.get?.('ui.damageNumbers') === false) return;
@@ -374,19 +374,23 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         if (now - (this._lastDmgNum || 0) < 100) return;
         this._lastDmgNum = now;
 
+        // Crit: gold + larger. Normal: white + standard size.
+        const color = isCrit ? '#ffd700' : '#ffffff';
+        const fontSize = isCrit ? '15px' : (amount >= 20 ? '13px' : '11px');
+
         const jitterX = (Math.random() - 0.5) * 20;
         const txt = this.scene.add.text(this.x + jitterX, this.y - 15, `${Math.floor(amount)}`, {
             fontFamily: 'Public Pixel, monospace',
-            fontSize: amount >= 20 ? '14px' : '11px',
-            color: amount >= 20 ? '#ffaa00' : '#ffffff',
+            fontSize,
+            color,
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5).setDepth(this.scene.DEPTH_LAYERS?.VFX || 4000).setScrollFactor(0);
 
-        // Drift up and fade out
+        // Drift up and fade out — crits float higher
         this.scene.tweens.add({
-            targets: txt, y: txt.y - 30, alpha: 0,
-            duration: 600, ease: 'Power2',
+            targets: txt, y: txt.y - (isCrit ? 40 : 30), alpha: 0,
+            duration: isCrit ? 800 : 600, ease: 'Power2',
             onComplete: () => txt.destroy()
         });
     }

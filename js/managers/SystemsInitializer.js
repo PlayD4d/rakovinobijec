@@ -243,14 +243,14 @@ export class SystemsInitializer {
                 centralEventBus.emit('ui:pause-request');
             };
 
-            centralEventBus.on('ui:escape', escHandler);
+            centralEventBus.on('ui:escape', escHandler, this.scene);
 
             // Register for cleanup
             if (this.scene.disposableRegistry) {
                 this.scene.disposableRegistry.add({
                     destroy: () => {
                         DebugLogger.debug('bootstrap', '[SystemsInitializer] Cleaning up KeyboardManager...');
-                        centralEventBus.off('ui:escape', escHandler);
+                        centralEventBus.off('ui:escape', escHandler, this.scene);
                         this.scene.keyboardManager?.destroy();
                     }
                 });

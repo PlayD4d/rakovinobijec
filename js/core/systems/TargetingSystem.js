@@ -30,7 +30,7 @@ export class TargetingSystem {
         const playerY = player.y;
         
         // Check regular enemies (optimized iteration) - with null guards
-        if (this.scene?.enemiesGroup?.getChildren) {
+        if (this.scene?.enemiesGroup?.children) {
             try {
                 const enemies = this.scene.enemiesGroup.getChildren();
                 for (let i = 0; i < enemies.length; i++) {
@@ -56,7 +56,7 @@ export class TargetingSystem {
         }
         
         // Check bosses (they have priority) - with null guards
-        if (this.scene?.bossGroup?.getChildren) {
+        if (this.scene?.bossGroup?.children) {
             try {
                 const bosses = this.scene.bossGroup.getChildren();
                 for (let i = 0; i < bosses.length; i++) {

@@ -103,13 +103,13 @@ Cross-scene events: `ui:pause-request`, `game:levelup`, `game:over`, `game:power
 
 ### Blueprint Naming
 ```
-enemy.viral_swarm       boss.radiation_core     elite.tank_cell
-unique.golden_cell      powerup.damage_boost    projectile.player_basic
+enemy.tumor_cell        boss.primary_clone      elite.armored_cell
+unique.cancer_stem_cell powerup.damage_boost    projectile.player_basic
 ```
 
 ### DEV Console
 ```javascript
-DEV.spawnEnemy("enemy.viral_swarm")     DEV.spawnBoss("boss.radiation_core")
+DEV.spawnEnemy("enemy.tumor_cell")      DEV.spawnBoss("boss.primary_clone")
 DEV.killAll()     DEV.heal(100)     DEV.levelUp()     DEV.exportSession()
 __framework.healthcheck()     __framework.quickCheck()
 ```
@@ -117,13 +117,13 @@ __framework.healthcheck()     __framework.quickCheck()
 ### Game Progression (7 Levels)
 | Level | Boss | HP |
 |-------|------|----|
-| 1 | radiation_core | 1200 |
-| 2 | onkogen | 1050 |
-| 3 | karcinogenni_kral | 1050 |
-| 4 | genova_mutace | 1200 |
-| 5 | onkogen_prime | 1800 |
-| 6 | radiation | 1350 |
-| 7 | chemorezistence (FINAL) | 1800 |
+| 1 | primary_clone | 800 |
+| 2 | oncogenic_signal | 1000 |
+| 3 | immune_saboteur | 1200 |
+| 4 | angiogenic_heart | 1400 |
+| 5 | metastatic_emissary | 1500 |
+| 6 | resistant_clone | 1800 |
+| 7 | tumor_core (FINAL) | 2500 |
 
 ## Documentation
 - Architecture: @docs/ARCHITECTURE.md

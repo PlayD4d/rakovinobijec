@@ -22,9 +22,12 @@ export class PowerUpSystem {
         if (!scene.blueprintLoader) throw new Error('[PowerUpSystem] Missing BlueprintLoader');
         // Modifiers are handled directly without external engine
         
-        // Track applied power-ups and their levels
-        this.appliedPowerUps = new Map(); // powerUpId -> { blueprint, level, modifiers, abilities }
-        this.maxSlots = scene.configResolver.get('powerups.maxSlots', { defaultValue: 6 }) || 6;
+        // Dual inventory: weapons (active abilities) + passives (stat modifiers)
+        this.appliedPowerUps = new Map(); // ALL applied items (powerUpId -> { blueprint, level, modifiers, abilities })
+        this.maxWeaponSlots = scene.configResolver.get('powerups.maxWeaponSlots', { defaultValue: 6 }) || 6;
+        this.maxPassiveSlots = scene.configResolver.get('powerups.maxPassiveSlots', { defaultValue: 6 }) || 6;
+        // Legacy compat
+        this.maxSlots = this.maxWeaponSlots;
         
         // Initialize sub-modules
         this.modifiers = new PowerUpModifiers(scene, this);
@@ -143,7 +146,7 @@ export class PowerUpSystem {
     }
     
     /**
-     * Get all active power-ups
+     * Get all active power-ups (both weapons + passives)
      */
     getActivePowerUps() {
         const active = [];
@@ -151,10 +154,43 @@ export class PowerUpSystem {
             active.push({
                 id: id,
                 level: data.level,
-                name: data.blueprint.display?.devNameFallback || id
+                name: data.blueprint.display?.devNameFallback || id,
+                slot: data.blueprint.mechanics?.slot || 'weapon'
             });
         }
         return active;
+    }
+
+    /** Get items filtered by slot type */
+    getActiveWeapons() {
+        return this.getActivePowerUps().filter(p => p.slot === 'weapon');
+    }
+
+    getActivePassives() {
+        return this.getActivePowerUps().filter(p => p.slot === 'passive');
+    }
+
+    /** Count items by slot */
+    getWeaponCount() {
+        let count = 0;
+        for (const [, data] of this.appliedPowerUps) {
+            if ((data.blueprint.mechanics?.slot || 'weapon') === 'weapon') count++;
+        }
+        return count;
+    }
+
+    getPassiveCount() {
+        let count = 0;
+        for (const [, data] of this.appliedPowerUps) {
+            if (data.blueprint.mechanics?.slot === 'passive') count++;
+        }
+        return count;
+    }
+
+    /** Check if a specific slot type is full */
+    isSlotFull(slotType) {
+        if (slotType === 'passive') return this.getPassiveCount() >= this.maxPassiveSlots;
+        return this.getWeaponCount() >= this.maxWeaponSlots;
     }
     
     /**
@@ -177,8 +213,10 @@ export class PowerUpSystem {
                 description: opt.description || '',
                 stats: opt.stats || '',
                 rarity: opt.rarity || 'common',
-                icon: emoji, // Extracted from blueprint, not hardcoded
-                level: opt.level || 0
+                icon: emoji,
+                level: opt.level || 0,
+                maxLevel: opt.maxLevel || 5,
+                slot: opt.slot || 'weapon'
             };
         });
     }
@@ -298,7 +336,18 @@ export class PowerUpSystem {
         
         // Force stats recalculation via dirty flag
         player._statsDirty = true;
-        
+
+        // Sync maxHp if hp modifier changed it (passive: max_hp)
+        const newMaxHp = player._stats().hp;
+        if (newMaxHp && newMaxHp !== player.maxHp) {
+            const delta = newMaxHp - player.maxHp;
+            player.maxHp = newMaxHp;
+            if (delta > 0) player.hp = Math.min(player.hp + delta, player.maxHp);
+            // Update HUD HP bar immediately
+            const hud = this.scene.scene?.get('GameUIScene')?.hud;
+            if (hud?.setPlayerHealth) hud.setPlayerHealth(player.hp, player.maxHp);
+        }
+
         DebugLogger.info('powerup', `[PowerUpSystem] 📊 Player stats after application:`);
         DebugLogger.info('powerup', `  - Active modifiers: ${player.activeModifiers?.length || 0}`);
         if (player.activeModifiers?.length > 0) {

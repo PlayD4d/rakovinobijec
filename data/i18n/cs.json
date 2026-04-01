@@ -311,8 +311,8 @@
       "name": "Imunoterapie"
     },
     "max_hp": {
-      "desc": "Zvyšuje maximální počet životů",
-      "name": "Zvýšená vitalita"
+      "desc": "Zvyšuje maximální zdraví o 15% za úroveň.",
+      "name": "Kmenová rezerva"
     },
     "metabolic_haste": {
       "desc": "Zrychluje metabolické procesy pro vyšší rychlost",
@@ -374,6 +374,26 @@
       "name": "Bumerangová protilátka",
       "desc": "Protilátka letí k nepříteli a vrací se, zasáhne obousměrně."
     },
+    "area_boost": {
+      "name": "Růstový faktor",
+      "desc": "Zvětšuje oblast účinku zbraní o 10% za úroveň."
+    },
+    "cooldown_reduction": {
+      "name": "Metabolický overdrive",
+      "desc": "Snižuje cooldown zbraní o 8% za úroveň."
+    },
+    "crit_chance": {
+      "name": "Genetická nestabilita",
+      "desc": "Zvyšuje šanci na kritický zásah o 5% za úroveň."
+    },
+    "duration_boost": {
+      "name": "Postupné uvolňování",
+      "desc": "Prodlužuje trvání efektů zbraní o 10% za úroveň."
+    },
+    "projectile_speed": {
+      "name": "Neurální akcelerátor",
+      "desc": "Zvyšuje rychlost projektilů o 10% za úroveň."
+    },
     "ricochet_cell": {
       "name": "Odrazová buňka",
       "desc": "Imunitní buňka odskakující od stěn a zasahující nepřátele."
@@ -400,6 +420,22 @@
       "desc": "Projektil který sleduje cíl",
       "name": "Naváděný projektil"
     },
+    "boss_circle": {
+      "desc": "Kruhová salva projektilů vystřelená bossem",
+      "name": "Kruhový výstřel"
+    },
+    "boss_fan": {
+      "desc": "Vějířová salva projektilů ve tvaru kužele",
+      "name": "Vějířový výstřel"
+    },
+    "boss_tracking": {
+      "desc": "Naváděný projektil bosse sledující hráče",
+      "name": "Sledovací projektil"
+    },
+    "onkogen_shot": {
+      "desc": "Mutagenní projektil bosse Onkogenu",
+      "name": "Onkogenní výstřel"
+    },
     "player_basic": {
       "desc": "Standardní projektil vystřelovaný hráčem",
       "name": "Základní projektil hráče"
@@ -413,6 +449,10 @@
       "onkogen": "Onkogenní mutace způsobující změny v genetickém kódu",
       "radiation": "Radiační syndrome způsobující kontinuální poškození zářením",
       "angiogenic_heart": "Tepající jádro nádorové cévní sítě ovládající paprsky a krevní pulsy",
+      "immune_saboteur": "Imunitní sabotér potlačující obranné mechanismy těla a vytvářející ochranné zóny pro nádorové buňky",
+      "metastatic_emissary": "Metastatický vyslanec šířící rakovinové buňky do vzdálených oblastí těla",
+      "oncogenic_signal": "Onkogenní signál vysílající mutagenní impulsy aktivující nekontrolovaný buněčný růst",
+      "resistant_clone": "Rezistentní klon odolný vůči léčbě díky adaptivním mutacím a effluxním pumpám",
       "tumor_core": "Ultimátní nádorové jádro kombinující všechny znaky rakoviny — 5 fází, radiační aura, paprsky, dash útoky, přivolávání posil a přetížení jádra"
     },
     "powerup": {
