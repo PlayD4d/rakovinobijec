@@ -132,16 +132,7 @@ export class ProjectileSystem {
     // Get texture for this projectile
     bullet.setTexture(this._textureGen.getTexture(projectileId));
 
-    // Play player shoot sound from blueprint - PR7 compliant
-    if (this.scene.audioSystem) {
-      const player = this.scene.player;
-      const shootSFX = player?.blueprint?.sfx?.shoot;
-      if (shootSFX) {
-        this.scene.audioSystem.play(shootSFX);
-      } else {
-        DebugLogger.warn('projectile', '[ProjectileSystem] Missing shoot sound in player blueprint');
-      }
-    }
+    // Shoot SFX is fired once per attack tick in PlayerAttackController — not per-projectile
 
     // Set projectile depth
     const projectileDepth = this.scene.DEPTH_LAYERS?.PROJECTILES || 3000;

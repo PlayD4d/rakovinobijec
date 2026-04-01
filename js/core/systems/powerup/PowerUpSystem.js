@@ -381,8 +381,7 @@ export class PowerUpSystem {
             player.activeModifiers = player.activeModifiers.filter(m => m.source !== powerUpId);
         }
         for (const modifier of modifiers) player.addModifier(modifier);
-        player._statsCacheTime = 0;
-        
+
         // Apply abilities
         this.abilities.applyToPlayer(player, abilities);
         

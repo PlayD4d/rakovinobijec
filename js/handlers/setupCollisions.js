@@ -172,7 +172,7 @@ function handlePlayerEnemyCollision(player, enemy) {
     if (player.shieldActive && player.shieldHP > 0) return;
 
     if (player.canTakeDamage?.()) {
-        const damage = enemy.contactDamage || enemy.damage || 10;
+        const damage = enemy.damage || 10;
         const s = session();
         if (s) s.log('collision', 'contact_damage', { enemyId: enemy.blueprintId || enemy.type, damage, playerHP: player.hp });
         player.takeDamage(damage);
@@ -189,7 +189,7 @@ function handlePlayerBossCollision(player, boss) {
     if (player.shieldActive && player.shieldHP > 0) return;
 
     if (player.canTakeDamage && player.canTakeDamage()) {
-        const damage = boss.contactDamage || boss.damage || 20;
+        const damage = boss.damage || 20;
         const s = session();
         if (s) s.log('collision', 'player_boss', { bossId: boss.blueprintId || boss.type, damage, playerHP: player.hp });
         player.takeDamage(damage);
@@ -227,23 +227,7 @@ function handlePlayerBulletEnemyCollision(bullet, enemy) {
 
     handlePowerUpOnHit(scene, bullet, damage);
     handleBulletAfterHit(bullet);
-
-    // VFX/SFX - Silent fail mode
-    try {
-        if (enemy._vfx?.hit && scene.vfxSystem) {
-            scene.vfxSystem.play(enemy._vfx.hit, enemy.x, enemy.y);
-        }
-    } catch (error) {
-        DebugLogger.debug('vfx', '[VFX] Failed to play hit effect, continuing:', error.message);
-    }
-    
-    try {
-        if (enemy._sfx?.hit && scene.audioSystem) {
-            scene.audioSystem.play(enemy._sfx.hit);
-        }
-    } catch (error) {
-        DebugLogger.debug('sfx', '[SFX] Failed to play hit sound, continuing:', error.message);
-    }
+    // Hit VFX/SFX is handled inside enemy.takeDamage() — not here (avoids double-fire)
 }
 
 /**
@@ -266,14 +250,8 @@ function handlePlayerBulletBossCollision(bullet, boss) {
     if (boss.takeDamage) boss.takeDamage({ amount: damage, isCrit: bullet.isCrit || false });
 
     handlePowerUpOnHit(scene, bullet, damage);
-
-    // VFX/SFX hit feedback
-    try {
-        if (boss._vfx?.hit && scene?.vfxSystem) scene.vfxSystem.play(boss._vfx.hit, boss.x, boss.y);
-        if (boss._sfx?.hit && scene?.audioSystem) scene.audioSystem.play(boss._sfx.hit);
-    } catch (_) {}
-
     handleBulletAfterHit(bullet);
+    // Hit VFX/SFX is handled inside boss.takeDamage() — not here
 }
 
 /**
