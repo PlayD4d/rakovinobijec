@@ -275,7 +275,7 @@ export class EnemyManager {
         const scene = this.scene;
 
         // Session log
-        getSession()?.kill('player', enemy.blueprintId || enemy.blueprint?.id, enemy.xp, {
+        getSession()?.kill(enemy._lastDamageSource || 'weapon', enemy.blueprintId || enemy.blueprint?.id, enemy.xp, {
             hp: enemy.maxHp, pos: `${Math.round(enemy.x)},${Math.round(enemy.y)}`
         });
 

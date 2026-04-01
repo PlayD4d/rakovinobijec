@@ -287,9 +287,10 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
             amount = Math.max(1, amount - this.armor);
         }
 
-        // Apply damage
+        // Apply damage — track last damage source for kill attribution
         this.hp -= amount;
-        getSession()?.damage(source || 'player', this.blueprintId || this.blueprint?.id, amount, 'hit');
+        this._lastDamageSource = source || 'weapon';
+        getSession()?.damage(source || 'weapon', this.blueprintId || this.blueprint?.id, amount, 'hit');
 
         // Floating damage number (gold for crits)
         this._showDamageNumber(amount, isObj ? hit.isCrit : false);

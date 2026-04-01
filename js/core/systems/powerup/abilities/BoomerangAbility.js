@@ -71,7 +71,7 @@ export class BoomerangAbility {
                     const ex = e.x - spr.x, ey = e.y - spr.y;
                     if (ex * ex + ey * ey <= 400) { // 20px hit radius
                         hitEnemies.add(e);
-                        e.takeDamage(damage);
+                        e.takeDamage({ amount: damage, source: 'boomerang' });
                     }
                 });
             }

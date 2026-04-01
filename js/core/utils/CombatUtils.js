@@ -32,12 +32,13 @@ export function forEachActiveEnemy(scene, callback) {
  * Deal damage to all active enemies within radius of a point.
  * @returns {number} Number of enemies hit
  */
-export function damageEnemiesInRadius(scene, cx, cy, radiusSq, damage) {
+export function damageEnemiesInRadius(scene, cx, cy, radiusSq, damage, source) {
     let hits = 0;
+    const hit = source ? { amount: damage, source } : damage;
     forEachActiveEnemy(scene, (e) => {
         const dx = e.x - cx, dy = e.y - cy;
         if (dx * dx + dy * dy <= radiusSq) {
-            e.takeDamage(damage);
+            e.takeDamage(hit);
             hits++;
         }
     });

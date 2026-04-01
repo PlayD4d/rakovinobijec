@@ -54,7 +54,7 @@ export class ChemoPoolAbility {
                     const tickTimer = this.scene.time.addEvent({
                         delay: 500,
                         repeat: Math.floor(duration / 500) - 1,
-                        callback: () => damageEnemiesInRadius(this.scene, px, py, rSq, damage)
+                        callback: () => damageEnemiesInRadius(this.scene, px, py, rSq, damage, 'chemo_pool')
                     });
                     this._subTimers.add(tickTimer);
 

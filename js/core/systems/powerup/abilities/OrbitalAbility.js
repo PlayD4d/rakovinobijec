@@ -75,7 +75,7 @@ export class OrbitalAbility {
                     const lastHit = this._hitTimes.get(e) || 0;
                     if (time - lastHit < 500) return;
                     this._hitTimes.set(e, time);
-                    e.takeDamage(cfg.damage);
+                    e.takeDamage({ amount: cfg.damage, source: 'orbital' });
                 }
             });
         }

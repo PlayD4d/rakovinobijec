@@ -202,6 +202,11 @@ export class GameScene extends Phaser.Scene {
         const healAmount = window.ConfigResolver?.get('progression.levelUpHeal', { defaultValue: 20 }) ?? 20;
         this.player.heal(healAmount);
         const options = this.getPowerUpOptions();
+        // Log offered options for balance analysis (what was available vs what player picks)
+        this._session?.log('powerup', 'options_offered', {
+            level: this.gameStats.level,
+            options: options.map(o => `${o.id}:L${o.level}`).join(',')
+        });
         centralEventBus.emit('game:levelup', options);
     }
 

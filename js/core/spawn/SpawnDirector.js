@@ -11,6 +11,7 @@
  */
 
 import { DebugLogger } from '../debug/DebugLogger.js';
+import { getSession } from '../debug/SessionLog.js';
 import { XpRetuner } from './XpRetuner.js';
 import { getSpawnPosition } from './SpawnPositionCalculator.js';
 import { processEnemyWaves, processEliteWindows, processUniqueSpawns } from './SpawnWaveProcessor.js';
@@ -283,9 +284,12 @@ export class SpawnDirector {
                     this.scene.enemyManager.spawnEnemy(enemyId, pos);
 
                 if (enemy) {
-                    // Apply progressive difficulty scaling to live entity
                     this._applyDifficultyScaling(enemy);
                     this._trackSpawn(enemyId);
+                    getSession()?.log('spawn', 'enemy', {
+                        id: enemyId, x: Math.round(pos.x), y: Math.round(pos.y),
+                        hp: enemy.hp, dmg: enemy.damage, speed: enemy.speed, xp: enemy.xp || 0
+                    });
                 }
                 return enemy;
             } else if (this.scene.createEnemyFromBlueprint) {

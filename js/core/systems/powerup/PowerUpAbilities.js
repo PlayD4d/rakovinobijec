@@ -280,7 +280,7 @@ export class PowerUpAbilities {
                     const ex = e.x - p.x, ey = e.y - p.y;
                     const proj = ex * nx + ey * ny;
                     if (proj < 0 || proj > hitRange) continue;
-                    if ((ex * ex + ey * ey) - proj * proj <= rSq) e.takeDamage(dmg);
+                    if ((ex * ex + ey * ey) - proj * proj <= rSq) e.takeDamage({ amount: dmg, source: 'oxidative_burst' });
                 }
 
                 if (this.scene.vfxSystem?.playExplosionEffect) {
@@ -342,7 +342,7 @@ export class PowerUpAbilities {
             callback: () => {
                 const p = this.scene?.player;
                 if (!p?.active) return;
-                damageEnemiesInRadius(this.scene, p.x, p.y, rSq, config.damage);
+                damageEnemiesInRadius(this.scene, p.x, p.y, rSq, config.damage, 'synaptic_pulse');
                 if (this.scene.vfxSystem?.playExplosionEffect) {
                     this.scene.vfxSystem.playExplosionEffect(p.x, p.y, {
                         color: 0x8844ff, radius: config.radius, duration: 300

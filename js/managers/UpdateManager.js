@@ -249,6 +249,33 @@ export class UpdateManager {
             // Warn on perf issues
             if (fps < 30) getSession()?.log('perf', 'fps_drop', { fps, enemies, projectiles, loot });
             if (enemies > 100) getSession()?.log('perf', 'entity_overload', { enemies, enemiesActive });
+
+            // Player stats snapshot every 10s — essential for balance analysis
+            if (!this._lastStatsLog || time - this._lastStatsLog >= 10000) {
+                this._lastStatsLog = time;
+                const player = this.scene.player;
+                const stats = player?._stats?.();
+                const gs = this.scene.gameStats;
+                if (stats && gs) {
+                    const activePU = this.scene.powerUpSystem?.getActivePowerUps?.() || [];
+                    getSession()?.log('balance', 'player_snapshot', {
+                        time: Math.floor(this.scene.sceneTimeSec),
+                        level: gs.level,
+                        hp: Math.round(player.hp),
+                        maxHp: Math.round(player.maxHp),
+                        dmg: Math.round(stats.projectileDamage),
+                        atkMs: Math.round(stats.attackIntervalMs),
+                        moveSpd: Math.round(stats.moveSpeed),
+                        critChance: Math.round(stats.critChance * 100),
+                        projCount: stats.projectileCount,
+                        projSpeed: Math.round(stats.projectileSpeed),
+                        dmgReduction: Math.round(stats.damageReduction || 0),
+                        kills: gs.kills || 0,
+                        score: gs.score || 0,
+                        powerups: activePU.map(p => p.id.replace('powerup.', '') + ':' + p.level).join(',')
+                    });
+                }
+            }
         }
 
         // Use cached sorted phases (rebuilt only when phases change)

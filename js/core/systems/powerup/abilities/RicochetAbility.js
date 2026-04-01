@@ -110,7 +110,7 @@ export class RicochetAbility {
                         const lastHit = hitCooldowns.get(e) || 0;
                         if (now - lastHit < 300) return;
                         hitCooldowns.set(e, now);
-                        e.takeDamage(damage);
+                        e.takeDamage({ amount: damage, source: 'ricochet' });
                     }
                 });
             }
