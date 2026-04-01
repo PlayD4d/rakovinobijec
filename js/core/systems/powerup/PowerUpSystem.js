@@ -7,7 +7,6 @@ import { getSession } from '../../debug/SessionLog.js';
  * This is the main entry point - delegates to specialized modules
  */
 
-import { PowerUpModifiers } from './PowerUpModifiers.js';
 import { DebugLogger } from '../../debug/DebugLogger.js';
 import { PowerUpAbilities } from './PowerUpAbilities.js';
 import { PowerUpEffects } from './PowerUpEffects.js';
@@ -30,7 +29,6 @@ export class PowerUpSystem {
         this.maxSlots = this.maxWeaponSlots;
         
         // Initialize sub-modules
-        this.modifiers = new PowerUpModifiers(scene, this);
         this.abilities = new PowerUpAbilities(scene, this);
         this.effects = new PowerUpEffects(scene, this);
         
@@ -83,8 +81,8 @@ export class PowerUpSystem {
         
         DebugLogger.info('powerup', `[PowerUpSystem] Applying ${powerUpId} from level ${currentData.level} to ${level}`);
         
-        // Process through modules - pass current level for 'base' type calculations
-        const modifiers = this.modifiers.processModifiers(blueprint, levelDelta, currentData.level);
+        // Process modifiers from blueprint
+        const modifiers = this._processModifiers(blueprint, levelDelta, currentData.level);
         const abilities = this.abilities.processAbilities(blueprint, level);
         
         DebugLogger.info('powerup', `[PowerUpSystem] 📋 Generated ${modifiers.length} modifiers and ${abilities.length} abilities`);
@@ -317,7 +315,6 @@ export class PowerUpSystem {
         // Cleanup modules
         this.abilities.destroy();
         this.effects.destroy();
-        this.modifiers.destroy();
         
         // Clear data
         this.appliedPowerUps?.clear();
@@ -330,6 +327,28 @@ export class PowerUpSystem {
     
     // === PRIVATE METHODS ===
     
+    /** Build modifier array from blueprint definition, scaled to target level */
+    _processModifiers(blueprint, levelDelta, currentLevel) {
+        const modifiers = [];
+        const modifierDefs = blueprint.mechanics?.modifiersPerLevel || [];
+        const targetLevel = (currentLevel || 0) + levelDelta;
+
+        for (const modDef of modifierDefs) {
+            if (!modDef.path || modDef.value === undefined) continue;
+            let value;
+            if (modDef.type === 'set') value = modDef.value;
+            else value = modDef.value * targetLevel; // add/mul/base all scale with level
+
+            modifiers.push({
+                source: blueprint.id,
+                path: modDef.path,
+                type: modDef.type || 'add',
+                value
+            });
+        }
+        return modifiers;
+    }
+
     _validateBlueprint(blueprint) {
         if (!blueprint.id || !blueprint.type) return false;
         if (blueprint.type !== 'powerup') return false;
@@ -357,8 +376,12 @@ export class PowerUpSystem {
         DebugLogger.info('powerup', `  - Abilities: ${abilities.length}`);
         DebugLogger.info('powerup', `  - PowerUp ID: ${powerUpId}`);
         
-        // Apply modifiers
-        this.modifiers.applyToPlayer(player, modifiers, level, powerUpId);
+        // Apply modifiers — remove old ones from this powerup, add fresh
+        if (player.activeModifiers) {
+            player.activeModifiers = player.activeModifiers.filter(m => m.source !== powerUpId);
+        }
+        for (const modifier of modifiers) player.addModifier(modifier);
+        player._statsCacheTime = 0;
         
         // Apply abilities
         this.abilities.applyToPlayer(player, abilities);

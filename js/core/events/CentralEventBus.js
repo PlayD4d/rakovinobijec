@@ -1,294 +1,93 @@
 /**
- * CentralEventBus - Centralized event management system
- * Provides namespaced events and type-safe communication
+ * CentralEventBus - Cross-scene event communication
+ *
+ * Thin wrapper over Phaser.Events.EventEmitter that adds context-based
+ * listener tracking for safe bulk removal on scene shutdown.
+ *
+ * Usage:
+ *   centralEventBus.on('game:levelup', handler, this);
+ *   centralEventBus.emit('game:levelup', data);
+ *   centralEventBus.removeAllListeners(this);  // in shutdown
  */
-
-import { DebugLogger } from '../debug/DebugLogger.js';
-
 class CentralEventBus {
     constructor() {
-        this.eventEmitter = new Phaser.Events.EventEmitter();
-        this.listeners = new Map();
-        this.eventHistory = [];
-        this.maxHistorySize = 100;
-        
-        // Event namespaces
-        this.namespaces = {
-            GAME: 'game',
-            UI: 'ui', 
-            AUDIO: 'audio',
-            VFX: 'vfx',
-            LOOT: 'loot',
-            POWERUP: 'powerup',
-            PLAYER: 'player',
-            ENEMY: 'enemy'
-        };
-        
-        DebugLogger.info('events', '[CentralEventBus] Initialized with namespaces:', this.namespaces);
+        this._emitter = new Phaser.Events.EventEmitter();
+        /** @type {Map<object, Array<{event: string, fn: function}>>} */
+        this._tracked = new Map();
     }
-    
+
     /**
-     * Emit namespaced event
+     * Emit an event with data. Data is passed directly to listeners (no wrapping).
      */
-    emit(eventName, data = null) {
-        // Single split for both validation and namespace extraction
-        const colonIdx = eventName ? eventName.indexOf(':') : -1;
-        if (colonIdx < 1) {
-            DebugLogger.warn('events', `[CentralEventBus] Invalid event name: ${eventName}`);
-            return;
-        }
-        const namespace = eventName.substring(0, colonIdx);
-
-        // Validate namespace (use cached Set for O(1) lookup instead of O(n) array scan)
-        if (!this._validNamespaces) {
-            this._validNamespaces = new Set(Object.values(this.namespaces));
-        }
-        if (!this._validNamespaces.has(namespace)) {
-            DebugLogger.warn('events', `[CentralEventBus] Invalid namespace: ${namespace}`);
-            return;
-        }
-
-        const timestamp = Date.now();
-
-        // Log event
-        this.logEvent(eventName, data, timestamp);
-
-        const evt = { name: eventName, data, timestamp };
-
-        // Emit event + wildcard
-        this.eventEmitter.emit(eventName, evt);
-        this.eventEmitter.emit(`${namespace}:*`, evt);
-
-        DebugLogger.debug('events', `[CentralEventBus] Emitted: ${eventName}`, data);
+    emit(eventName, data) {
+        this._emitter.emit(eventName, data);
     }
-    
+
     /**
-     * Listen to specific event
+     * Register a persistent listener. Context is used for bulk removal.
      */
     on(eventName, callback, context = null) {
-        // Use sentinel object for null context — prevents unrelated null-context
-        // listeners from sharing a Map entry and being bulk-removed together
-        const ctxKey = context || this._nullCtx || (this._nullCtx = {});
-
-        const wrappedCallback = (event) => {
-            try {
-                if (context) {
-                    callback.call(context, event.data, event);
-                } else {
-                    callback(event.data, event);
-                }
-            } catch (error) {
-                DebugLogger.error('events', `[CentralEventBus] Error in event handler for ${eventName}:`, error);
-            }
-        };
-
-        this.eventEmitter.on(eventName, wrappedCallback);
-
-        // Track listeners for cleanup — store both original and wrapped callback
-        if (!this.listeners.has(ctxKey)) {
-            this.listeners.set(ctxKey, []);
-        }
-        this.listeners.get(ctxKey).push({
-            eventName: eventName,
-            callback: wrappedCallback,
-            originalCallback: callback
-        });
-
-        DebugLogger.debug('events', `[CentralEventBus] Registered listener for: ${eventName}`);
+        const key = context || this;
+        this._emitter.on(eventName, callback, context);
+        if (!this._tracked.has(key)) this._tracked.set(key, []);
+        this._tracked.get(key).push({ event: eventName, fn: callback });
     }
-    
+
     /**
-     * Listen to event once
+     * Register a one-time listener.
      */
     once(eventName, callback, context = null) {
-        const ctxKey = context || this._nullCtx || (this._nullCtx = {});
-        const wrappedCallback = (event) => {
-            // Auto-remove from tracking on fire
-            if (this.listeners.has(ctxKey)) {
-                const contextListeners = this.listeners.get(ctxKey);
-                const idx = contextListeners.findIndex(l =>
-                    l.eventName === eventName && l.originalCallback === callback
-                );
-                if (idx !== -1) contextListeners.splice(idx, 1);
-                if (contextListeners.length === 0) {
-                    this.listeners.delete(ctxKey);
-                }
-            }
-            try {
-                if (context) {
-                    callback.call(context, event.data, event);
-                } else {
-                    callback(event.data, event);
-                }
-            } catch (error) {
-                DebugLogger.error('events', `[CentralEventBus] Error in once handler for ${eventName}:`, error);
-            }
+        const key = context || this;
+        // Wrap to auto-remove from tracking after fire
+        const wrapped = (data) => {
+            this._removeTracked(key, eventName, wrapped);
+            callback.call(context, data);
         };
-
-        // Track in listeners map so removeAllListeners(context) can clean it up
-        if (!this.listeners.has(ctxKey)) {
-            this.listeners.set(ctxKey, []);
-        }
-        this.listeners.get(ctxKey).push({
-            eventName,
-            callback: wrappedCallback,
-            originalCallback: callback
-        });
-
-        this.eventEmitter.once(eventName, wrappedCallback);
-        DebugLogger.debug('events', `[CentralEventBus] Registered once listener for: ${eventName}`);
+        this._emitter.once(eventName, wrapped, context);
+        if (!this._tracked.has(key)) this._tracked.set(key, []);
+        this._tracked.get(key).push({ event: eventName, fn: wrapped });
     }
-    
+
     /**
-     * Remove listener
+     * Remove a specific listener.
      */
     off(eventName, callback, context = null) {
-        const ctxKey = context || this._nullCtx || (this._nullCtx = {});
-        // Find the wrapped callback that corresponds to the original
-        let wrappedCallback = callback;
-        if (this.listeners.has(ctxKey)) {
-            const contextListeners = this.listeners.get(ctxKey);
-            const index = contextListeners.findIndex(l =>
-                l.eventName === eventName && l.originalCallback === callback
-            );
-            if (index !== -1) {
-                wrappedCallback = contextListeners[index].callback;
-                contextListeners.splice(index, 1);
-            }
-        }
-
-        this.eventEmitter.off(eventName, wrappedCallback);
-        DebugLogger.debug('events', `[CentralEventBus] Removed listener for: ${eventName}`);
+        const key = context || this;
+        this._emitter.off(eventName, callback, context);
+        this._removeTracked(key, eventName, callback);
     }
-    
+
     /**
-     * Remove all listeners for context
+     * Remove ALL listeners registered with the given context.
+     * Call this in scene shutdown to prevent listener accumulation.
      */
     removeAllListeners(context) {
-        if (!this.listeners.has(context)) return;
-        
-        const contextListeners = this.listeners.get(context);
-        contextListeners.forEach(listener => {
-            this.eventEmitter.off(listener.eventName, listener.callback);
-        });
-        
-        this.listeners.delete(context);
-        DebugLogger.debug('events', `[CentralEventBus] Removed all listeners for context:`, context?.constructor?.name || 'unknown');
-    }
-    
-    /**
-     * Convenience methods for UI events
-     */
-    emitUI(eventType, data = null) {
-        this.emit(`ui:${eventType}`, data);
-    }
-    
-    onUI(eventType, callback, context = null) {
-        this.on(`ui:${eventType}`, callback, context);
-    }
-    
-    /**
-     * Convenience methods for game events  
-     */
-    emitGame(eventType, data = null) {
-        this.emit(`game:${eventType}`, data);
-    }
-    
-    onGame(eventType, callback, context = null) {
-        this.on(`game:${eventType}`, callback, context);
-    }
-    
-    /**
-     * Convenience methods for powerup events
-     */
-    emitPowerUp(eventType, data = null) {
-        this.emit(`powerup:${eventType}`, data);
-    }
-    
-    onPowerUp(eventType, callback, context = null) {
-        this.on(`powerup:${eventType}`, callback, context);
-    }
-    
-    /**
-     * Listen to all events in namespace
-     */
-    onNamespace(namespace, callback, context = null) {
-        this.on(`${namespace}:*`, callback, context);
-    }
-    
-    /**
-     * Validate event name format
-     */
-    isValidEventName(eventName) {
-        // Should be namespace:event format
-        if (!eventName || typeof eventName !== 'string') return false;
-        
-        const parts = eventName.split(':');
-        if (parts.length < 2) return false;
-        
-        const namespace = parts[0];
-        return Object.values(this.namespaces).includes(namespace);
-    }
-    
-    /**
-     * Get namespace from event name
-     */
-    getNamespace(eventName) {
-        const parts = eventName.split(':');
-        return parts.length > 0 ? parts[0] : null;
-    }
-    
-    /**
-     * Log event for debugging
-     */
-    logEvent(eventName, data, timestamp) {
-        this.eventHistory.push({
-            name: eventName,
-            data: data,
-            timestamp: timestamp
-        });
-        
-        // Trim history
-        if (this.eventHistory.length > this.maxHistorySize) {
-            this.eventHistory.shift();
+        if (!context || !this._tracked.has(context)) return;
+        const entries = this._tracked.get(context);
+        for (const { event, fn } of entries) {
+            this._emitter.off(event, fn, context);
         }
+        this._tracked.delete(context);
     }
-    
+
     /**
-     * Get recent event history
+     * Remove a single entry from tracking (internal helper).
      */
-    getEventHistory(count = 10) {
-        return this.eventHistory.slice(-count);
+    _removeTracked(key, eventName, fn) {
+        const entries = this._tracked.get(key);
+        if (!entries) return;
+        const idx = entries.findIndex(e => e.event === eventName && e.fn === fn);
+        if (idx >= 0) entries.splice(idx, 1);
+        if (entries.length === 0) this._tracked.delete(key);
     }
-    
+
     /**
-     * Get event statistics
-     */
-    getStats() {
-        const eventCounts = {};
-        this.eventHistory.forEach(event => {
-            eventCounts[event.name] = (eventCounts[event.name] || 0) + 1;
-        });
-        
-        return {
-            totalEvents: this.eventHistory.length,
-            activeListeners: this.listeners.size,
-            eventCounts: eventCounts,
-            namespaces: Object.keys(this.namespaces).length
-        };
-    }
-    
-    /**
-     * Clear all listeners
+     * Destroy — remove everything.
      */
     destroy() {
-        this.eventEmitter.removeAllListeners();
-        this.listeners.clear();
-        this.eventHistory = [];
-        DebugLogger.info('events', '[CentralEventBus] Destroyed');
+        this._emitter.removeAllListeners();
+        this._tracked.clear();
     }
 }
 
-// Global instance
 export const centralEventBus = new CentralEventBus();
-
