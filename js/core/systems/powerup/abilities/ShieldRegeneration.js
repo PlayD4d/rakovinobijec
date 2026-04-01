@@ -133,8 +133,9 @@ export class ShieldRegeneration {
 
         const shieldRadius = 40; // Larger than player — visually clear shield bubble
 
-        // Invisible zone with circular body
+        // Invisible zone with circular body — setOrigin(0.5) for center alignment
         const hitbox = scene.add.zone(player.x, player.y, shieldRadius * 2, shieldRadius * 2);
+        hitbox.setOrigin(0.5);
         scene.physics.add.existing(hitbox, false); // dynamic body
         hitbox.body.setCircle(shieldRadius);
         hitbox.body.setImmovable(true);
