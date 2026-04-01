@@ -539,10 +539,13 @@ export class PowerUpAbilities {
                         const p = this.scene?.player;
                         if (!p?.active) return;
 
-                        // Spawn N pools at random positions on orbit around player
+                        // Spawn N pools evenly distributed on orbit with slight jitter
+                        const baseAngle = Math.random() * Math.PI * 2; // random rotation each wave
                         for (let n = 0; n < poolCount; n++) {
-                            const angle = Math.random() * Math.PI * 2;
-                            const dist = orbitR * (0.4 + Math.random() * 0.6); // 40-100% of orbit radius
+                            const segmentAngle = (n / poolCount) * Math.PI * 2;
+                            const jitter = (Math.random() - 0.5) * 0.6; // ±0.3 rad (~17°)
+                            const angle = baseAngle + segmentAngle + jitter;
+                            const dist = orbitR * (0.6 + Math.random() * 0.4); // 60-100% of orbit radius
                             const px = p.x + Math.cos(angle) * dist;
                             const py = p.y + Math.sin(angle) * dist;
                             const rSq = poolRadius * poolRadius;
