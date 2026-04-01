@@ -1,249 +1,325 @@
 #!/usr/bin/env node
 /**
- * Session Log Analyzer — Parses exported session JSON and prints diagnostics.
+ * Session Analysis Engine — Comprehensive game balance report
  *
- * Usage: node scripts/analyze-session.mjs <session.json>
- *        node scripts/analyze-session.mjs <session.json> --timeline
- *        node scripts/analyze-session.mjs <session.json> --spawns
- *        node scripts/analyze-session.mjs <session.json> --combat
- *        node scripts/analyze-session.mjs <session.json> --xp
- *        node scripts/analyze-session.mjs <session.json> --full
+ * Usage:
+ *   node scripts/analyze-session.mjs                     # Latest session
+ *   node scripts/analyze-session.mjs data/sessions/X.json  # Specific file
+ *   node scripts/analyze-session.mjs --all               # All sessions summary
  */
 
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync, existsSync } from 'fs';
+import { resolve } from 'path';
 
-const file = process.argv[2];
-if (!file) { console.log('Usage: node scripts/analyze-session.mjs <session.json> [--timeline|--spawns|--combat|--xp|--full]'); process.exit(1); }
-
-const flags = new Set(process.argv.slice(3));
-const showAll = flags.has('--full') || flags.size === 0;
-
-const data = JSON.parse(readFileSync(file, 'utf-8'));
-const events = data.events || [];
-const meta = data.meta || {};
-
-const fmt = (ms) => `${(ms/1000).toFixed(1)}s`;
-const pad = (s, n) => String(s).padEnd(n);
+const ROOT = resolve(import.meta.dirname, '..');
+const SESSIONS_DIR = resolve(ROOT, 'data/sessions');
 
 // ============================================================
-// OVERVIEW
+// HELPERS
 // ============================================================
-console.log('╔══════════════════════════════════════════════════════╗');
-console.log(`║  Session: ${data.id || 'unknown'}`.padEnd(55) + '║');
-console.log(`║  Duration: ${fmt(events.length ? events[events.length-1].t : 0)}  Status: ${meta.status || meta.result || '?'}`.padEnd(55) + '║');
-console.log('╠══════════════════════════════════════════════════════╣');
+const fmt = (v) => v == null ? '-' : Number(v).toFixed(0);
+const fmtF = (v, d = 1) => v == null ? '-' : Number(v).toFixed(d);
+const pct = (v) => (v * 100).toFixed(1) + '%';
+const timeStr = (ms) => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + (s % 60).toString().padStart(2, '0'); };
+const bar = (v, max, width = 25) => '█'.repeat(Math.min(Math.round(v / Math.max(max, 1) * width), width));
 
-const cats = {};
-for (const e of events) {
-    const key = `${e.cat}:${e.act}`;
-    cats[key] = (cats[key] || 0) + 1;
-}
-console.log('║  Event counts:'.padEnd(55) + '║');
-for (const [k, v] of Object.entries(cats).sort((a, b) => b[1] - a[1])) {
-    console.log(`║    ${pad(k, 35)} ${String(v).padStart(5)}    ║`);
-}
-console.log('╚══════════════════════════════════════════════════════╝');
-
-// ============================================================
-// SPAWN ANALYSIS
-// ============================================================
-if (showAll || flags.has('--spawns')) {
-    console.log('\n━━━ SPAWN ANALYSIS ━━━');
-
-    const spawnTicks = events.filter(e => e.cat === 'spawn' && e.act === 'wave_tick');
-    const waveSpawns = events.filter(e => e.cat === 'spawn' && e.act === 'wave_spawned');
-    const eliteSpawns = events.filter(e => e.cat === 'spawn' && e.act === 'elite_spawned');
-    const bossSpawns = events.filter(e => e.cat === 'spawn' && e.act === 'boss_spawn');
-    const skips = events.filter(e => e.cat === 'spawn' && e.act?.startsWith('wave_skip'));
-    const allSpawns = events.filter(e => e.cat === 'spawn' && e.act === 'enemy');
-
-    console.log(`  Wave ticks logged: ${spawnTicks.length}`);
-    console.log(`  Wave spawns: ${waveSpawns.length}`);
-    console.log(`  Elite spawns: ${eliteSpawns.length}`);
-    console.log(`  Boss spawns: ${bossSpawns.length}`);
-    console.log(`  Skip events: ${skips.length}`);
-    console.log(`  Total enemy spawns (session): ${allSpawns.length}`);
-
-    if (spawnTicks.length > 0) {
-        console.log('\n  Wave tick timeline (every 5s):');
-        for (const tick of spawnTicks) {
-            const gt = tick.gameTime ?? tick.t;
-            console.log(`    [${fmt(tick.t)}] gameTime=${gt}s enemies=${tick.enemyCount}/${tick.maxEnemies} waves=${tick.waveCount}`);
-        }
-    }
-
-    // Spawn gaps
-    if (allSpawns.length > 1) {
-        console.log('\n  Spawn gaps (>10s):');
-        for (let i = 1; i < allSpawns.length; i++) {
-            const gap = (allSpawns[i].t - allSpawns[i-1].t) / 1000;
-            if (gap > 10) {
-                console.log(`    ${fmt(allSpawns[i-1].t)} → ${fmt(allSpawns[i].t)} = ${gap.toFixed(0)}s gap`);
-            }
-        }
-    }
-
-    // Skip reasons
-    if (skips.length > 0) {
-        const skipReasons = {};
-        for (const s of skips) { skipReasons[s.act] = (skipReasons[s.act] || 0) + 1; }
-        console.log('\n  Skip reasons:', skipReasons);
-    }
+function loadSession(file) {
+  const d = JSON.parse(readFileSync(file, 'utf-8'));
+  const e = d.events || [];
+  const maxT = e.reduce((m, ev) => Math.max(m, ev.t || 0), 0);
+  return { ...d, events: e, maxT, file };
 }
 
 // ============================================================
-// COMBAT ANALYSIS
+// ANALYSIS SECTIONS
 // ============================================================
-if (showAll || flags.has('--combat')) {
-    console.log('\n━━━ COMBAT ANALYSIS ━━━');
 
-    const dmgToPlayer = events.filter(e => e.cat === 'dmg' && e.tgt === 'player');
-    const dmgFromPlayer = events.filter(e => e.cat === 'dmg' && e.src === 'player');
-    const playerDmg = events.filter(e => e.cat === 'player' && e.act === 'damage_taken');
-    const kills = events.filter(e => e.cat === 'kill');
-    const collisions = events.filter(e => e.cat === 'collision');
+function analyzeOverview(s) {
+  const { events: e, meta, maxT, id } = s;
+  console.log('╔══════════════════════════════════════════════════════════════════════╗');
+  console.log('║  SESSION ANALYSIS REPORT');
+  console.log('║  ID: ' + (id || 'unknown') + '  |  Result: ' + (meta?.result || '?'));
+  console.log('║  Duration: ' + timeStr(maxT) + ' (' + fmt(maxT / 1000) + 's)  |  Events: ' + e.length);
+  console.log('║  Version: ' + (meta?.version || 'unknown'));
+  console.log('╚══════════════════════════════════════════════════════════════════════╝');
+}
 
-    console.log(`  Damage dealt by player: ${dmgFromPlayer.length} hits, ${dmgFromPlayer.reduce((s,e) => s + (e.amt||0), 0)} total`);
-    console.log(`  Damage taken by player: ${dmgToPlayer.length} hits, ${dmgToPlayer.reduce((s,e) => s + (e.amt||0), 0)} total`);
-    console.log(`  Player damage events: ${playerDmg.length}`);
-    console.log(`  Collision events: ${collisions.length}`);
-    console.log(`  Total kills: ${kills.length}`);
+function analyzeLevelProgression(s) {
+  const { events: e } = s;
+  const lvlUps = e.filter(ev => ev.cat === 'xp' && ev.act === 'level_up');
+  if (lvlUps.length === 0) return;
 
-    // Kill distribution
-    const killTypes = {};
-    for (const k of kills) { killTypes[k.target || '?'] = (killTypes[k.target || '?'] || 0) + 1; }
-    console.log('  Kill distribution:', killTypes);
+  console.log('\n═══ LEVEL PROGRESSION ═══');
+  let prevT = 0;
+  const times = [];
+  lvlUps.forEach(ev => {
+    const t = Math.round(ev.t / 1000);
+    const delta = t - prevT;
+    times.push(delta);
+    console.log('  L' + ev.newLevel.toString().padStart(2) + ' @ ' + t.toString().padStart(4) + 's  (+' + delta.toString().padStart(3) + 's)  xpToNext=' + (ev.xpToNext || '?').toString().padStart(4) + '  ' + bar(delta, 60, 20));
+    prevT = t;
+  });
+  console.log('  ── Final: L' + lvlUps[lvlUps.length - 1].newLevel + ' | Avg: ' + fmt(prevT / lvlUps.length) + 's/lvl | Fastest: ' + fmt(Math.min(...times)) + 's | Slowest: ' + fmt(Math.max(...times)) + 's');
+}
 
-    // Player damage timeline
-    if (dmgToPlayer.length > 0 || playerDmg.length > 0) {
-        console.log('\n  Player damage timeline:');
-        const allPdmg = [...dmgToPlayer, ...playerDmg].sort((a,b) => a.t - b.t);
-        for (const e of allPdmg.slice(0, 20)) {
-            console.log(`    [${fmt(e.t)}] ${e.src || e.source || '?'} → ${e.amt || e.finalAmount || '?'} dmg (HP: ${e.newHP ?? '?'})`);
-        }
-    }
+function analyzePlayerPowerCurve(s) {
+  const snaps = s.events.filter(ev => ev.cat === 'balance' && ev.act === 'player_snapshot');
+  if (snaps.length === 0) { console.log('\n═══ PLAYER POWER CURVE ═══\n  ⚠ No balance snapshots (pre-v0.9.40 session?)'); return; }
 
-    // Boss fight
-    const bossDmg = events.filter(e => e.cat === 'dmg' && (e.tgt || '').includes('boss'));
-    if (bossDmg.length > 0) {
-        const totalBossDmg = bossDmg.reduce((s,e) => s + (e.amt||0), 0);
-        const duration = (bossDmg[bossDmg.length-1].t - bossDmg[0].t) / 1000;
-        console.log(`\n  Boss fight: ${totalBossDmg} damage over ${duration.toFixed(1)}s (DPS: ${(totalBossDmg/Math.max(duration,0.1)).toFixed(1)})`);
-    }
+  console.log('\n═══ PLAYER POWER CURVE ═══');
+  console.log('  Time   Lvl   HP/Max    DMG  AtkMs  Spd  Crit  Proj  DmgRed  Kills');
+  console.log('  ────   ───   ──────    ───  ─────  ───  ────  ────  ──────  ─────');
+  // Show every 3rd snapshot to save space, plus first and last
+  const show = snaps.filter((s, i) => i === 0 || i === snaps.length - 1 || i % 3 === 0);
+  show.forEach(sn => {
+    console.log('  ' + (sn.time || 0).toString().padStart(4) + 's  L' + (sn.level || 1).toString().padStart(2) + '   ' +
+      (sn.hp || 0).toString().padStart(3) + '/' + (sn.maxHp || 100).toString().padEnd(3) + '   ' +
+      (sn.dmg || 15).toString().padStart(3) + '  ' + (sn.atkMs || 2000).toString().padStart(5) + '  ' +
+      (sn.moveSpd || 90).toString().padStart(3) + '  ' + ((sn.critChance || 5) + '%').padStart(4) + '  ' +
+      (sn.projCount || 4).toString().padStart(4) + '  ' +
+      (sn.dmgReduction || 0).toString().padStart(6) + '  ' +
+      (sn.kills || 0).toString().padStart(5));
+  });
+
+  const first = snaps[0], last = snaps[snaps.length - 1];
+  console.log('  ── Growth: DMG ' + first.dmg + '→' + last.dmg + ' | AtkMs ' + first.atkMs + '→' + last.atkMs +
+    ' | Speed ' + first.moveSpd + '→' + last.moveSpd + ' | Crit ' + first.critChance + '→' + last.critChance + '%');
+}
+
+function analyzeKillAttribution(s) {
+  const kills = s.events.filter(ev => ev.cat === 'kill' && ev.act === 'enemy_died');
+  if (kills.length === 0) return;
+
+  console.log('\n═══ KILL ATTRIBUTION ═══');
+  const src = {};
+  kills.forEach(k => { src[k.killer || 'unknown'] = (src[k.killer || 'unknown'] || 0) + 1; });
+  const total = kills.length;
+  Object.entries(src).sort((a, b) => b[1] - a[1]).forEach(([source, count]) => {
+    const p = Math.round(count / total * 100);
+    console.log('  ' + source.padEnd(22) + count.toString().padStart(5) + ' (' + p.toString().padStart(2) + '%)  ' + bar(count, total));
+  });
+  console.log('  ── Total: ' + total + ' kills');
+}
+
+function analyzeEnemySpawns(s) {
+  const spawns = s.events.filter(ev => ev.cat === 'spawn' && (ev.act === 'enemy' || ev.act === 'boss'));
+  if (spawns.length === 0) return;
+
+  console.log('\n═══ ENEMY SPAWNS ═══');
+  const types = {};
+  spawns.forEach(ev => {
+    const id = ev.id || '?';
+    if (!types[id]) types[id] = { count: 0, hp: ev.hp, dmg: ev.dmg, speed: ev.speed, xp: ev.xp };
+    types[id].count++;
+    if (ev.hp) { types[id].hp = ev.hp; types[id].dmg = ev.dmg; types[id].speed = ev.speed; types[id].xp = ev.xp; }
+  });
+  console.log('  Type                         Spawns   HP   DMG  Speed   XP');
+  Object.entries(types).sort((a, b) => b[1].count - a[1].count).forEach(([id, d]) => {
+    console.log('  ' + id.padEnd(30) + d.count.toString().padStart(5) + '  ' +
+      (d.hp || '?').toString().padStart(4) + '  ' + (d.dmg || '?').toString().padStart(4) + '  ' +
+      (d.speed || '?').toString().padStart(5) + '  ' + (d.xp || '?').toString().padStart(4));
+  });
+}
+
+function analyzeActivityTimeline(s) {
+  const { events: e, maxT } = s;
+  const kills = e.filter(ev => ev.cat === 'kill');
+  const dmgTaken = e.filter(ev => ev.cat === 'player' && ev.act === 'take_damage');
+  const perfs = e.filter(ev => ev.cat === 'perf' && ev.act === 'snapshot');
+
+  console.log('\n═══ ACTIVITY TIMELINE (per minute) ═══');
+  console.log('  Min  Kills  Enemies  DmgTaken  FPS  KillBar');
+  for (let t = 0; t < maxT; t += 60000) {
+    const k = kills.filter(ev => ev.t >= t && ev.t < t + 60000).length;
+    const p = perfs.find(ev => ev.t >= t + 25000 && ev.t < t + 60000) || perfs.find(ev => ev.t >= t && ev.t < t + 60000);
+    const dm = dmgTaken.filter(ev => ev.t >= t && ev.t < t + 60000).reduce((s, ev) => s + (ev.finalAmount || ev.rawAmount || 0), 0);
+    console.log('  ' + Math.round(t / 60000).toString().padStart(3) + '  ' +
+      k.toString().padStart(5) + '  ' + (p?.enemies || 0).toString().padStart(7) + '  ' +
+      dm.toString().padStart(8) + '  ' + (p?.fps || 0).toString().padStart(3) + '  ' + bar(k, 200, 20));
+  }
+}
+
+function analyzeSurvivability(s) {
+  const { events: e, maxT } = s;
+  const dmgTaken = e.filter(ev => ev.cat === 'player' && ev.act === 'take_damage');
+  const heals = e.filter(ev => ev.cat === 'player' && ev.act === 'heal');
+  const shieldAbs = e.filter(ev => ev.cat === 'shield' && (ev.act === 'absorbed' || ev.act === 'contact_absorbed' || ev.act === 'bullet_intercepted'));
+  const totalDmg = dmgTaken.reduce((s, ev) => s + (ev.finalAmount || ev.rawAmount || 0), 0);
+  const totalHeal = heals.reduce((s, ev) => s + (ev.amount || 0), 0);
+  const totalShield = shieldAbs.reduce((s, ev) => s + (ev.absorbed || ev.damage || 0), 0);
+
+  console.log('\n═══ SURVIVABILITY ═══');
+  console.log('  Damage taken:     ' + fmt(totalDmg) + '  (' + fmtF(dmgTaken.length / (maxT / 1000), 3) + ' hits/s)');
+  console.log('  Healed:           ' + fmt(totalHeal));
+  console.log('  Shield absorbed:  ' + fmt(totalShield));
+  console.log('  Shield efficiency:' + (totalShield + totalDmg > 0 ? ' ' + pct(totalShield / (totalShield + totalDmg)) : ' N/A'));
+  console.log('  Net HP balance:   ' + (totalHeal - totalDmg > 0 ? '+' : '') + fmt(totalHeal - totalDmg));
+
+  // Damage sources
+  const sources = {};
+  dmgTaken.forEach(ev => { const src = ev.source || 'unknown'; sources[src] = (sources[src] || 0) + (ev.finalAmount || ev.rawAmount || 0); });
+  if (Object.keys(sources).length > 0) {
+    console.log('  Damage by source:');
+    Object.entries(sources).sort((a, b) => b[1] - a[1]).forEach(([src, dmg]) => {
+      console.log('    ' + src.padEnd(25) + fmt(dmg).padStart(5) + ' DMG');
+    });
+  }
+}
+
+function analyzePowerupPicks(s) {
+  const picks = s.events.filter(ev => ev.cat === 'powerup' && ev.act === 'applied');
+  const offered = s.events.filter(ev => ev.cat === 'powerup' && ev.act === 'options_offered');
+  if (picks.length === 0) return;
+
+  console.log('\n═══ POWERUP PICKS ═══');
+  picks.forEach(ev => {
+    const t = Math.round(ev.t / 1000);
+    const off = offered.find(o => Math.abs(o.t - ev.t) < 10000);
+    console.log('  ' + t.toString().padStart(5) + 's  ' + (ev.id || '?').padEnd(32) + 'L' + (ev.level || 1) +
+      (off ? '  from: ' + off.options : ''));
+  });
+
+  // Final build summary
+  const build = {};
+  picks.forEach(p => { const id = (p.id || '?').replace('powerup.', ''); build[id] = Math.max(build[id] || 0, p.level || 1); });
+  const weapons = [], passives = [];
+  const wpnTypes = ['shield', 'radiotherapy', 'orbital_antibodies', 'chemo_pool', 'antibody_boomerang',
+    'ricochet_cell', 'synaptic_pulse', 'ion_therapy', 'immune_aura', 'oxidative_burst',
+    'chemo_reservoir', 'homing_shot', 'piercing_arrows'];
+  Object.entries(build).forEach(([id, lvl]) => {
+    (wpnTypes.some(w => id.includes(w)) ? weapons : passives).push(id + ':' + lvl);
+  });
+  console.log('  ── FINAL BUILD:');
+  console.log('     Weapons:  ' + (weapons.join(', ') || 'none'));
+  console.log('     Passives: ' + (passives.join(', ') || 'none'));
+}
+
+function analyzeBossFights(s) {
+  const { events: e } = s;
+  const bossSpawns = e.filter(ev => ev.cat === 'boss' && ev.act === 'spawn');
+  const bossDeaths = e.filter(ev => ev.cat === 'boss' && ev.act === 'death');
+  const bossDmg = e.filter(ev => ev.cat === 'boss' && ev.act === 'damage_taken');
+  const phases = e.filter(ev => ev.cat === 'boss' && ev.act === 'phase_transition');
+  if (bossSpawns.length === 0) return;
+
+  console.log('\n═══ BOSS FIGHTS ═══');
+  bossSpawns.forEach(sp => {
+    const id = sp.bossId;
+    const death = bossDeaths.find(d => d.bossId === id);
+    const dmgs = bossDmg.filter(d => d.bossId === id);
+    const totalD = dmgs.reduce((s, d) => s + (d.amount || 0), 0);
+    const maxHp = dmgs[0]?.maxHp || '?';
+    const spT = Math.round(sp.t / 1000);
+    const fight = death ? fmt(Math.round(death.t / 1000) - spT) + 's' : 'alive';
+    const dps = death ? fmt(totalD / ((death.t - sp.t) / 1000)) : '?';
+    const ph = phases.filter(p => p.bossId === id);
+    const phStr = ph.length > 0 ? '  phases: ' + ph.map(p => p.fromPhase + '→' + p.toPhase).join(',') : '';
+
+    // Player stats at time of fight
+    const snap = s.events.find(ev => ev.cat === 'balance' && ev.act === 'player_snapshot' && ev.t >= sp.t && ev.t <= sp.t + 30000);
+    const lvl = snap ? ' (L' + snap.level + ' DMG=' + snap.dmg + ')' : '';
+
+    console.log('  ' + id.padEnd(28) + 'fight=' + fight.padStart(5) + '  HP=' + maxHp.toString().padStart(5) + '  DPS=' + dps.toString().padStart(4) + lvl + phStr);
+  });
+}
+
+function analyzeLootDrops(s) {
+  const loot = s.events.filter(ev => ev.cat === 'loot');
+  const permStats = s.events.filter(ev => ev.cat === 'loot' && ev.act === 'permanent_stat');
+  if (loot.length === 0 && permStats.length === 0) return;
+
+  console.log('\n═══ LOOT DROPS ═══');
+  const byType = {};
+  loot.forEach(ev => { const key = ev.act + (ev.itemId ? ':' + ev.itemId : ''); byType[key] = (byType[key] || 0) + 1; });
+  Object.entries(byType).sort((a, b) => b[1] - a[1]).forEach(([key, count]) => {
+    console.log('  ' + key.padEnd(35) + count.toString().padStart(3));
+  });
+  if (permStats.length > 0) {
+    console.log('  ── Permanent stat pickups:');
+    permStats.forEach(ev => {
+      console.log('    ' + Math.round(ev.t / 1000).toString().padStart(5) + 's  ' + ev.stat + ' ' + (ev.modType === 'mul' ? '+' + (ev.value * 100) + '%' : '+' + ev.value));
+    });
+  }
+}
+
+function analyzePerformance(s) {
+  const perfs = s.events.filter(ev => ev.cat === 'perf' && ev.act === 'snapshot');
+  if (perfs.length === 0) return;
+
+  const fps = perfs.map(ev => ev.fps).filter(Boolean);
+  const enemies = perfs.map(ev => ev.enemies || 0);
+  const loot = perfs.map(ev => ev.loot || 0);
+  const proj = perfs.map(ev => ev.projectiles || 0);
+
+  console.log('\n═══ PERFORMANCE ═══');
+  console.log('  FPS:         avg=' + fmt(fps.reduce((a, b) => a + b, 0) / fps.length) + '  min=' + fmt(Math.min(...fps)) + '  max=' + fmt(Math.max(...fps)));
+  console.log('  Enemies:     peak=' + fmt(Math.max(...enemies)) + '  avg=' + fmt(enemies.reduce((a, b) => a + b, 0) / enemies.length));
+  console.log('  Loot:        peak=' + fmt(Math.max(...loot)));
+  console.log('  Projectiles: peak=' + fmt(Math.max(...proj)));
+
+  const heap = perfs.map(ev => ev.heapMB).filter(Boolean);
+  if (heap.length > 0) console.log('  Memory:      peak=' + fmt(Math.max(...heap)) + 'MB  avg=' + fmt(heap.reduce((a, b) => a + b, 0) / heap.length) + 'MB');
+
+  // Dead zones (≤2 enemies for ≥10s)
+  let deadStart = null, deadZones = [];
+  perfs.forEach(ev => {
+    if ((ev.enemies || 0) <= 2) { if (!deadStart) deadStart = ev.t; }
+    else { if (deadStart) { const dur = (ev.t - deadStart) / 1000; if (dur >= 10) deadZones.push({ start: fmt(deadStart / 1000), dur: fmt(dur) }); deadStart = null; } }
+  });
+  if (deadZones.length > 0) {
+    console.log('  Dead zones (≤2 enemies ≥10s):');
+    deadZones.forEach(z => console.log('    ' + z.start + 's for ' + z.dur + 's'));
+  }
+}
+
+function analyzeDeadZones(s) {
+  const perfs = s.events.filter(ev => ev.cat === 'perf' && ev.act === 'snapshot');
+  if (perfs.length === 0) return;
+
+  console.log('\n═══ ENEMY DENSITY TIMELINE ═══');
+  // 30s buckets
+  for (let t = 0; t < s.maxT; t += 30000) {
+    const p = perfs.find(ev => ev.t >= t && ev.t < t + 30000);
+    if (!p) continue;
+    const enemies = p.enemies || 0;
+    console.log('  ' + fmt(t / 1000).padStart(5) + 's: ' + enemies.toString().padStart(3) + ' enemies  ' + bar(enemies, 80, 30));
+  }
 }
 
 // ============================================================
-// XP / PROGRESSION
+// MAIN
 // ============================================================
-if (showAll || flags.has('--xp')) {
-    console.log('\n━━━ XP & PROGRESSION ━━━');
+const args = process.argv.slice(2);
 
-    const xpEvents = events.filter(e => e.cat === 'xp');
-    const levelUps = events.filter(e => e.act === 'level_up');
-    const powerups = events.filter(e => e.cat === 'powerup');
-    const lootPickups = events.filter(e => e.cat === 'loot' && e.act === 'pickup');
-    const lootCreated = events.filter(e => e.cat === 'loot' && e.act === 'drop_created');
-
-    console.log(`  XP events: ${xpEvents.length}`);
-    console.log(`  Loot created: ${lootCreated.length}`);
-    console.log(`  Loot picked up: ${lootPickups.length}`);
-    console.log(`  Level ups: ${levelUps.length}`);
-    console.log(`  Powerups applied: ${powerups.length}`);
-
-    // XP flow
-    if (xpEvents.length > 0) {
-        console.log('\n  XP flow:');
-        for (const e of xpEvents.slice(0, 20)) {
-            if (e.act === 'add') {
-                console.log(`    [${fmt(e.t)}] +${e.raw ?? '?'}→${e.scaled ?? '?'} XP (total: ${e.totalXP ?? '?'}/${e.xpToNext ?? '?'})${e.willLevelUp ? ' ★LEVELUP' : ''}`);
-            } else if (e.act === 'level_up') {
-                console.log(`    [${fmt(e.t)}] ★ LEVEL ${e.newLevel} (next: ${e.xpToNext}, excess: ${e.excessXP})`);
-            } else if (e.act === 'deferred') {
-                console.log(`    [${fmt(e.t)}] ⏸ deferred ${e.deferredAmount} XP (pending: ${e.pendingTotal})`);
-            }
-        }
-    }
-
-    // Level up timeline
-    if (levelUps.length > 0) {
-        console.log('\n  Level up timeline:');
-        for (let i = 0; i < levelUps.length; i++) {
-            const e = levelUps[i];
-            const dt = i > 0 ? ((e.t - levelUps[i-1].t)/1000).toFixed(1) : '-';
-            console.log(`    [${fmt(e.t)}] → Level ${e.level} (delta: ${dt}s)`);
-        }
-    }
-
-    // Powerup timeline
-    if (powerups.length > 0) {
-        console.log('\n  Powerups:');
-        for (const e of powerups) {
-            console.log(`    [${fmt(e.t)}] ${e.id} level=${e.level}`);
-        }
-    }
-
-    // Loot pickup distribution
-    if (lootPickups.length > 0) {
-        const pickupTypes = {};
-        for (const p of lootPickups) { pickupTypes[p.dropType || '?'] = (pickupTypes[p.dropType || '?'] || 0) + 1; }
-        console.log('\n  Pickup distribution:', pickupTypes);
-    }
+let files = [];
+if (args.includes('--all')) {
+  files = readdirSync(SESSIONS_DIR).filter(f => f.endsWith('.json')).map(f => resolve(SESSIONS_DIR, f));
+} else if (args[0] && !args[0].startsWith('--')) {
+  files = [resolve(args[0])];
+} else {
+  // Latest session
+  const all = readdirSync(SESSIONS_DIR).filter(f => f.endsWith('.json')).sort();
+  if (all.length === 0) { console.log('No sessions found in ' + SESSIONS_DIR); process.exit(1); }
+  files = [resolve(SESSIONS_DIR, all[all.length - 1])];
 }
 
-// ============================================================
-// FULL TIMELINE
-// ============================================================
-// PERFORMANCE
-// ============================================================
-if (showAll || flags.has('--perf')) {
-    console.log('\n━━━ PERFORMANCE ━━━');
+for (const file of files) {
+  if (!existsSync(file)) { console.log('File not found: ' + file); continue; }
+  const session = loadSession(file);
+  if (session.events.length < 10) continue; // Skip tiny sessions
 
-    const perfSnaps = events.filter(e => e.cat === 'perf' && e.act === 'snapshot');
-    const fpsDrops = events.filter(e => e.cat === 'perf' && e.act === 'fps_drop');
-    const entityOverloads = events.filter(e => e.cat === 'perf' && e.act === 'entity_overload');
+  analyzeOverview(session);
+  analyzeLevelProgression(session);
+  analyzePlayerPowerCurve(session);
+  analyzeKillAttribution(session);
+  analyzeEnemySpawns(session);
+  analyzeActivityTimeline(session);
+  analyzeSurvivability(session);
+  analyzePowerupPicks(session);
+  analyzeBossFights(session);
+  analyzeLootDrops(session);
+  analyzePerformance(session);
+  analyzeDeadZones(session);
 
-    if (perfSnaps.length > 0) {
-        const fpsValues = perfSnaps.map(e => e.fps).filter(v => v > 0);
-        const avgFps = fpsValues.length > 0 ? Math.round(fpsValues.reduce((a,b) => a+b, 0) / fpsValues.length) : 0;
-        const minFps = fpsValues.length > 0 ? Math.min(...fpsValues) : 0;
-        const maxFps = fpsValues.length > 0 ? Math.max(...fpsValues) : 0;
-
-        console.log(`  Snapshots: ${perfSnaps.length}`);
-        console.log(`  FPS: avg=${avgFps}, min=${minFps}, max=${maxFps}`);
-        console.log(`  FPS drops (<30): ${fpsDrops.length}`);
-        console.log(`  Entity overloads (>100): ${entityOverloads.length}`);
-
-        console.log('\n  Timeline:');
-        for (const e of perfSnaps) {
-            const warn = e.fps < 30 ? ' ⚠️' : e.fps < 50 ? ' ⚡' : '';
-            console.log(`    [${fmt(e.t)}] ${e.fps} FPS | ${e.frameMs}ms | enemies=${e.enemies}(${e.enemiesActive} active) proj=${e.projectiles} loot=${e.loot}${warn}`);
-        }
-
-        // Detect bottlenecks
-        const highEnemyFrames = perfSnaps.filter(e => e.enemies > 50);
-        const highProjFrames = perfSnaps.filter(e => e.projectiles > 100);
-        const highLootFrames = perfSnaps.filter(e => e.loot > 50);
-
-        if (highEnemyFrames.length > 0 || highProjFrames.length > 0 || highLootFrames.length > 0) {
-            console.log('\n  Potential bottlenecks:');
-            if (highEnemyFrames.length > 0) console.log(`    Enemies >50: ${highEnemyFrames.length} snapshots`);
-            if (highProjFrames.length > 0) console.log(`    Projectiles >100: ${highProjFrames.length} snapshots`);
-            if (highLootFrames.length > 0) console.log(`    Loot >50: ${highLootFrames.length} snapshots`);
-        }
-    } else {
-        console.log('  No performance data (update to v0.5.75+)');
-    }
+  console.log('\n' + '═'.repeat(70) + '\n');
 }
-
-// ============================================================
-// FULL TIMELINE
-// ============================================================
-if (flags.has('--timeline') || flags.has('--full')) {
-    console.log('\n━━━ FULL TIMELINE ━━━');
-    for (const e of events) {
-        const extra = Object.entries(e).filter(([k]) => !['t','cat','act'].includes(k)).map(([k,v]) => `${k}=${JSON.stringify(v)}`).join(' ');
-        console.log(`  [${fmt(e.t)}] ${pad(e.cat,12)} ${pad(e.act,22)} ${extra}`);
-    }
-}
-
-console.log(`\n✅ Analysis complete — ${events.length} events processed`);

@@ -17,7 +17,7 @@
     "smoke:test": "node scripts/smoke-run.mjs",
     "verify:all": "npm run audit:data:strict && npm run smoke:test",
     "analyze:session": "node scripts/analyze-session.mjs",
-    "analyze:session:full": "node scripts/analyze-session.mjs --full",
+    "analyze:session:all": "node scripts/analyze-session.mjs --all",
     "telemetry:import": "node scripts/telemetry-db.mjs import",
     "telemetry:summary": "node scripts/telemetry-db.mjs summary",
     "telemetry:balance": "node scripts/telemetry-db.mjs balance",
