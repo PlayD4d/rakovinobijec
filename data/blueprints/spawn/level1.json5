@@ -72,6 +72,7 @@
       'drop.leukocyte_pack': 0.4,
       'drop.metotrexat': 0.03,
       'drop.adrenal_surge': 0.35,
+      'drop.adrenaline_shot': 0.05,
     },
     elite: {
       'drop.xp.medium': 50,
@@ -81,6 +82,8 @@
       'drop.adrenal_surge': 4,
       'drop.metotrexat': 0.5,
       'drop.magnet': 3,
+      'drop.mutation_catalyst': 0.3,
+      'drop.cell_membrane': 0.3,
     },
     boss: {
       'drop.xp.large': 100,

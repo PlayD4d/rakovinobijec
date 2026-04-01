@@ -288,6 +288,7 @@
       'drop.metotrexat': 0.03,
       'drop.adrenal_surge': 0.35,
       'drop.protein_cache': 0.1,
+      'drop.adrenaline_shot': 0.05,
     },
     elite: {
       'drop.xp.large': 70,
@@ -301,6 +302,8 @@
       'powerup.apoptosis_pierce': 4,
       'powerup.chemo_reservoir': 3,
       'drop.magnet': 4,
+      'drop.mutation_catalyst': 0.3,
+      'drop.cell_membrane': 0.3,
     },
     boss: {
       'drop.xp.large': 100,

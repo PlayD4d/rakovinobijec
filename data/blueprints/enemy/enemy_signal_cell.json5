@@ -43,6 +43,10 @@
       itemId: 'item.health_small',
       chance: 0.02,
     },
+    {
+      itemId: 'item.adrenaline_shot',
+      chance: 0.005,
+    },
   ],
   vfx: {
     spawn: 'vfx.spawn',

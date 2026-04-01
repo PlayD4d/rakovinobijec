@@ -49,6 +49,20 @@
     death: 'sound/elite_death.mp3',
     pulse: 'sound/powerup.mp3',
   },
+  drops: [
+    {
+      itemId: 'item.adrenaline_shot',
+      chance: 0.05,
+    },
+    {
+      itemId: 'item.mutation_catalyst',
+      chance: 0.05,
+    },
+    {
+      itemId: 'item.cell_membrane',
+      chance: 0.05,
+    },
+  ],
   ai: { behavior: 'evasion', params: { speed: 50, dodgeInterval: 1000, dodgeDuration: 400, dodgeSpeedMul: 3.0 } },
   display: {
     key: 'unique.cancer_stem_cell.name',

@@ -66,6 +66,14 @@
       "desc": "Poskytuje dočasné zvýšení všech schopností",
       "name": "Adrenalínový nával"
     },
+    "adrenaline_shot": {
+      "desc": "+3% rychlost pohybu",
+      "name": "Adrenalinová injekce"
+    },
+    "cell_membrane": {
+      "desc": "+1 brnění",
+      "name": "Buněčná membrána"
+    },
     "energy_cell": {
       "desc": "Obnovuje energii pro speciální schopnosti",
       "name": "Energetická buňka"
@@ -85,6 +93,10 @@
     "metotrexat": {
       "desc": "Speciální lék eliminující všechny nepřátele",
       "name": "Metotrexát"
+    },
+    "mutation_catalyst": {
+      "desc": "+4 poškození",
+      "name": "Mutační katalyzátor"
     },
     "protein_cache": {
       "desc": "Koncentrovaný protein poskytující velké množství XP",

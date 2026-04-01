@@ -246,6 +246,22 @@ export class SimpleLootSystem {
                 if (this.scene.gameStats) this.scene.gameStats.score += points * 100;
                 break;
             }
+            case 'permanent_stat': {
+                // Permanent stat boost — stackable, never expires
+                const stat = blueprint.effect?.stat;
+                const value = blueprint.effect?.value || 1;
+                const modType = blueprint.effect?.modType || 'add';
+                if (stat && player.addModifier) {
+                    player.addModifier({
+                        id: `perm_${stat}_${Date.now()}`,
+                        path: stat,
+                        type: modType,
+                        value: value
+                    });
+                    getSession()?.log('loot', 'permanent_stat', { stat, value, modType });
+                }
+                break;
+            }
             default:
                 DebugLogger.warn('loot', `[Pickup] Unhandled effect type: ${effectType} for ${loot.dropId}`);
         }

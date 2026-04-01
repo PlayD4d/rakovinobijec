@@ -106,6 +106,20 @@
     spread: 'sound/powerup.mp3',
     dash: 'sound/powerup.mp3',
   },
+  drops: [
+    {
+      itemId: 'item.adrenaline_shot',
+      chance: 0.05,
+    },
+    {
+      itemId: 'item.mutation_catalyst',
+      chance: 0.05,
+    },
+    {
+      itemId: 'item.cell_membrane',
+      chance: 0.05,
+    },
+  ],
   ai: { layers: { movement: 'orbit', combat: 'shoot' }, layerConfig: { movement: { speed: 100, orbitRadius: 140, orbitSpeed: 1.5, fleeDistance: 50 }, combat: { cooldown: 1800, burstCount: 5, burstDelay: 80, speed: 180 } } },
   display: {
     key: 'unique.onco_commander.name',

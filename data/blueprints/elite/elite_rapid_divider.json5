@@ -68,6 +68,16 @@
     },
   },
   lootTable: 'lootTable.elite.tier2',
+  drops: [
+    {
+      itemId: 'item.mutation_catalyst',
+      chance: 0.02,
+    },
+    {
+      itemId: 'item.cell_membrane',
+      chance: 0.02,
+    },
+  ],
   vfx: {
     spawn: 'vfx.elite.special',
     hit: 'vfx.enemy.hit',

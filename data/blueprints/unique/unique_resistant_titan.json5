@@ -120,6 +120,20 @@
     zones: 'sound/powerup.mp3',
     enrage: 'sound/powerup.mp3',
   },
+  drops: [
+    {
+      itemId: 'item.adrenaline_shot',
+      chance: 0.05,
+    },
+    {
+      itemId: 'item.mutation_catalyst',
+      chance: 0.05,
+    },
+    {
+      itemId: 'item.cell_membrane',
+      chance: 0.05,
+    },
+  ],
   ai: { behavior: 'evasion', params: { speed: 35, dodgeInterval: 5000, dodgeDuration: 200, dodgeSpeedMul: 1.5, enrageThreshold: 0.25, enrageSpeedMul: 2.0 } },
   display: {
     key: 'unique.resistant_titan.name',

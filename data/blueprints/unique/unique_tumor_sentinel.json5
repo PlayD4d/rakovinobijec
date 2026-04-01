@@ -102,6 +102,20 @@
     shield: 'sound/powerup.mp3',
     summon: 'sound/powerup.mp3',
   },
+  drops: [
+    {
+      itemId: 'item.adrenaline_shot',
+      chance: 0.05,
+    },
+    {
+      itemId: 'item.mutation_catalyst',
+      chance: 0.05,
+    },
+    {
+      itemId: 'item.cell_membrane',
+      chance: 0.05,
+    },
+  ],
   ai: { behavior: 'shield_ally', params: { speed: 45, orbitRadius: 60, orbitSpeed: 1.2, buffInterval: 2500, buffRange: 100 } },
   display: {
     key: 'unique.tumor_sentinel.name',

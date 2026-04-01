@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "generated": "2025-08-16T06:21:58.166Z",
-  "totalEntities": 83,
+  "totalEntities": 86,
   "index": {
     "unique.resistant_titan": "blueprints/unique/unique_resistant_titan.json5",
     "unique.onco_commander": "blueprints/unique/unique_onco_commander.json5",
@@ -55,6 +55,9 @@
     "item.magnet": "blueprints/items/special/item_magnet.json5",
     "item.research_point": "blueprints/items/special/item_research_point.json5",
     "item.metotrexat": "blueprints/items/special/item_metotrexat.json5",
+    "item.adrenaline_shot": "blueprints/items/special/item_adrenaline_shot.json5",
+    "item.mutation_catalyst": "blueprints/items/special/item_mutation_catalyst.json5",
+    "item.cell_membrane": "blueprints/items/special/item_cell_membrane.json5",
     "item.energy_cell": "blueprints/items/special/item_energy_cell.json5",
     "item.protein_cache": "blueprints/items/health/item_protein_cache.json5",
     "item.health_small": "blueprints/items/health/item_health_small.json5",

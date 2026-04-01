@@ -66,6 +66,14 @@
       "desc": "Provides temporary boost to all abilities",
       "name": "Adrenaline Surge"
     },
+    "adrenaline_shot": {
+      "desc": "+3% move speed",
+      "name": "Adrenaline Shot"
+    },
+    "cell_membrane": {
+      "desc": "+1 armor",
+      "name": "Cell Membrane"
+    },
     "health": {
       "desc": "Restores player health",
       "name": "Medicine"
@@ -73,6 +81,10 @@
     "metotrexat": {
       "desc": "Special medicine eliminating all enemies",
       "name": "Methotrexate"
+    },
+    "mutation_catalyst": {
+      "desc": "+4 damage",
+      "name": "Mutation Catalyst"
     },
     "protein_cache": {
       "desc": "Concentrated protein providing large XP amount",

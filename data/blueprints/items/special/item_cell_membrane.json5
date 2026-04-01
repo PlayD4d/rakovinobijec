@@ -1,0 +1,43 @@
+{
+  id: 'item.cell_membrane',
+  type: 'item',
+  name: 'Cell Membrane',
+  description: 'Permanently increases armor by 1',
+  category: 'special',
+  rarity: 'uncommon',
+  sprite: 'item_cell_membrane',
+  icon: '🛡',
+  color: 0x4488ff,
+  graphics: {
+    shape: 'hexagon',
+    tint: 0x4488ff,
+    size: 20,
+  },
+  effect: {
+    type: 'permanent_stat',
+    stat: 'damageReduction',
+    value: 1,
+    modType: 'add',
+  },
+  pickup: {
+    magnetRange: 70,
+    pickupRadius: 30,
+    autoPickup: true,
+    lifetime: 40000,
+    bobbing: true,
+  },
+  vfx: {
+    spawn: 'vfx.effect',
+    pickup: 'vfx.effect',
+  },
+  sfx: {
+    spawn: 'sound/hit_soft.mp3',
+    pickup: 'sound/powerup.mp3',
+  },
+  display: {
+    name: 'item.cell_membrane',
+    icon: 'ui.icon.placeholder',
+    devNameFallback: 'Cell Membrane',
+    color: '#4488ff',
+  },
+}

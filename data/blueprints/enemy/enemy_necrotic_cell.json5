@@ -54,6 +54,10 @@
       itemId: 'item.health_small',
       chance: 0.05,
     },
+    {
+      itemId: 'item.adrenaline_shot',
+      chance: 0.005,
+    },
   ],
   display: {
     key: 'enemy.necrotic_cell.name',

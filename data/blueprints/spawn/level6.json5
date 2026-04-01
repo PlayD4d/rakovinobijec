@@ -50,11 +50,13 @@
     normal: {
       'drop.xp.small': 25, 'drop.xp.medium': 45, 'drop.xp.large': 22,
       'drop.leukocyte_pack': 0.4, 'drop.metotrexat': 0.03, 'drop.adrenal_surge': 0.35, 'drop.protein_cache': 0.1,
+      'drop.adrenaline_shot': 0.05,
     },
     elite: {
       'drop.xp.large': 85, 'drop.leukocyte_pack': 4, 'drop.protein_cache': 3,
       'drop.adrenal_surge': 4, 'drop.metotrexat': 0.5,
       'drop.magnet': 4,
+      'drop.mutation_catalyst': 0.3, 'drop.cell_membrane': 0.3,
     },
     boss: {
       'drop.xp.large': 100, 'drop.leukocyte_pack': 20, 'drop.protein_cache': 15,

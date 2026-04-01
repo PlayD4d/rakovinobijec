@@ -1,0 +1,43 @@
+{
+  id: 'item.mutation_catalyst',
+  type: 'item',
+  name: 'Mutation Catalyst',
+  description: 'Permanently increases projectile damage by 4',
+  category: 'special',
+  rarity: 'uncommon',
+  sprite: 'item_mutation_catalyst',
+  icon: '🧬',
+  color: 0xff4444,
+  graphics: {
+    shape: 'hexagon',
+    tint: 0xff4444,
+    size: 20,
+  },
+  effect: {
+    type: 'permanent_stat',
+    stat: 'projectileDamage',
+    value: 4,
+    modType: 'add',
+  },
+  pickup: {
+    magnetRange: 70,
+    pickupRadius: 30,
+    autoPickup: true,
+    lifetime: 40000,
+    bobbing: true,
+  },
+  vfx: {
+    spawn: 'vfx.effect',
+    pickup: 'vfx.effect',
+  },
+  sfx: {
+    spawn: 'sound/hit_soft.mp3',
+    pickup: 'sound/powerup.mp3',
+  },
+  display: {
+    name: 'item.mutation_catalyst',
+    icon: 'ui.icon.placeholder',
+    devNameFallback: 'Mutation Catalyst',
+    color: '#ff4444',
+  },
+}

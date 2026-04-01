@@ -1,0 +1,43 @@
+{
+  id: 'item.adrenaline_shot',
+  type: 'item',
+  name: 'Adrenaline Shot',
+  description: 'Permanently increases movement speed by 3%',
+  category: 'special',
+  rarity: 'uncommon',
+  sprite: 'item_adrenaline_shot',
+  icon: '💉',
+  color: 0x44ff44,
+  graphics: {
+    shape: 'hexagon',
+    tint: 0x44ff44,
+    size: 20,
+  },
+  effect: {
+    type: 'permanent_stat',
+    stat: 'moveSpeed',
+    value: 0.03,
+    modType: 'mul',
+  },
+  pickup: {
+    magnetRange: 70,
+    pickupRadius: 30,
+    autoPickup: true,
+    lifetime: 40000,
+    bobbing: true,
+  },
+  vfx: {
+    spawn: 'vfx.effect',
+    pickup: 'vfx.effect',
+  },
+  sfx: {
+    spawn: 'sound/hit_soft.mp3',
+    pickup: 'sound/powerup.mp3',
+  },
+  display: {
+    name: 'item.adrenaline_shot',
+    icon: 'ui.icon.placeholder',
+    devNameFallback: 'Adrenaline Shot',
+    color: '#44ff44',
+  },
+}
