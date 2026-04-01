@@ -17,6 +17,12 @@
         value: 25,
         description: 'Adds 25px magnet radius per level',
       },
+      {
+        path: 'xpMultiplier',
+        type: 'mul',
+        value: 0.05,
+        description: 'Increases XP gained by 5% per level',
+      },
     ],
   },
   display: {

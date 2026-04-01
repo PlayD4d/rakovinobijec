@@ -33,7 +33,11 @@ export class ProgressionSystem {
      * @param {number} baseAmount - Raw XP before scaling
      */
     addXP(baseAmount) {
-        const amount = this._applyTimeScaling(baseAmount);
+        let amount = this._applyTimeScaling(baseAmount);
+
+        // Apply XP multiplier from passives (xp_magnet bonus)
+        const xpMul = this.scene.player?._stats?.().xpMultiplier || 1;
+        if (xpMul > 1) amount = Math.round(amount * xpMul);
 
         this.gameStats.xp += amount;
         if (this.scene.player) {

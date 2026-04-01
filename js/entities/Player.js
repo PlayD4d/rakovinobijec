@@ -60,7 +60,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             projectilePiercing: 0, chemoCloudFrequency: 1,
             shieldImmunityDuration: 3000, shieldRegenTimeMs: 10000,
             // Passive item stats (multiplicative identity = 1.0, additive identity = 0)
-            areaMultiplier: 1, durationMultiplier: 1
+            areaMultiplier: 1, durationMultiplier: 1, xpMultiplier: 1
         };
 
         this._assertRequired(this.baseStats, [

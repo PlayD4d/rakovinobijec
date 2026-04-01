@@ -4,7 +4,7 @@
   stats: { maxLevel: 5 },
   mechanics: {
     modifiersPerLevel: [
-      { path: 'critChance', type: 'add', value: 0.05, description: 'Increases critical hit chance by 5% per level' }
+      { path: 'critChance', type: 'add', value: 0.07, description: 'Increases critical hit chance by 7% per level' }
     ],
     stackable: true, persistent: true, applyOnPickup: true,
     effectType: 'crit_chance',

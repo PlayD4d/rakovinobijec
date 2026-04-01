@@ -190,6 +190,7 @@ export class PowerUpOptionGenerator {
             critChance: (v) => `+${Math.round(v * 100)}% krit`,
             projectileSpeed: (v) => `+${Math.round(v * 100)}% rychlost strel`,
             damageReduction: (v) => `-${v} příchozí DMG`,
+            xpMultiplier: (v) => `+${Math.round(v * 100)}% XP`,
         };
 
         for (const mod of mods) {
