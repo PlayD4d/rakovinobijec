@@ -6,11 +6,10 @@ import { DebugLogger } from '../debug/DebugLogger.js';
 import { getSession } from '../debug/SessionLog.js';
 import { generateLootTextures } from './loot/LootTextureGenerator.js';
 
-const POOL_MAX_SIZE = 120;
+const POOL_MAX_SIZE = 200;
 const PICKUP_RADIUS_SQ = 625; // 25²
-const MERGE_RADIUS_SQ = 3600; // 60² — wider merge radius to catch scattered orbs
-const MERGE_INTERVAL = 1500; // ms — merge more frequently
-const FIELD_CAP = 80; // Max active loot on field — prevents visual clutter
+const CAP_CHECK_INTERVAL = 2000; // ms
+const FIELD_CAP = 150; // XP orbs on field before superorb kicks in
 const MIN_SPACING_SQ = 225; // 15²
 
 export class SimpleLootSystem {
@@ -25,8 +24,13 @@ export class SimpleLootSystem {
         this.lootGroup = scene.physics.add.group({ maxSize: POOL_MAX_SIZE });
         this.recentDrops = [];
         this._dropCleanupTime = 5000;
-        this._lastMergeCheck = 0;
+        this._lastCapCheck = 0;
         this._posBuffer = { x: 0, y: 0 };
+
+        // Superorb — accumulates XP when field is over cap (VS red gem mechanic)
+        this._superorb = null; // Active superorb sprite reference
+        this._superorbXP = 0; // Accumulated XP waiting inside superorb
+
         generateLootTextures(this.scene);
     }
 
@@ -171,9 +175,10 @@ export class SimpleLootSystem {
 
         switch (effectType) {
             case 'xp': {
-                // loot.value holds exact enemy XP (overridden by createXPOrbs), blueprint.effect.value is tier default
-                const xpValue = loot.value || blueprint.effect?.value || 1;
+                const xpValue = loot.value || blueprint?.effect?.value || 1;
                 this.scene.addXP?.(xpValue);
+                // If this was the superorb, reset state so normal drops resume
+                if (loot.dropId === '_superorb') this._onSuperorbPickup();
                 break;
             }
             case 'health':
@@ -272,11 +277,9 @@ export class SimpleLootSystem {
         const children = this.lootGroup.getChildren();
         if (children.length === 0) return;
 
-        // Periodic merge + cap enforcement (every 2s)
-        if (time - this._lastMergeCheck >= MERGE_INTERVAL) {
-            this._lastMergeCheck = time;
-            this._mergeNearbyXPOrbs(children);
-            this._enforceFieldCap(children);
+        // Periodic cap check + position cleanup
+        if (time - this._lastCapCheck >= CAP_CHECK_INTERVAL) {
+            this._lastCapCheck = time;
             this._cleanupOldPositions();
         }
 
@@ -322,97 +325,57 @@ export class SimpleLootSystem {
         }
     }
 
-    // ==================== Merge & Cap ====================
+    // ==================== Superorb (VS red gem mechanic) ====================
 
-    /** Merge nearby XP orbs: 3 small → 1 medium, 2 medium → 1 large */
-    _mergeNearbyXPOrbs(children) {
-        const activeCount = this.lootGroup.countActive();
-        if (activeCount < 8) return;
+    /**
+     * Check if XP field is over cap. If so, route new XP into superorb.
+     * @returns {boolean} true if field is full (caller should use addToSuperorb instead of createDrop)
+     */
+    isFieldFull() {
+        return this.lootGroup?.children ? this.lootGroup.countActive() >= FIELD_CAP : false;
+    }
 
-        const smalls = [];
-        const mediums = [];
-        for (let i = 0; i < children.length; i++) {
-            const loot = children[i];
-            if (!loot.active || loot.dropType !== 'xp') continue;
-            if (loot.dropId === 'item.xp_small') smalls.push(loot);
-            else if (loot.dropId === 'item.xp_medium') mediums.push(loot);
-        }
+    /**
+     * Add XP to the superorb. Creates it if it doesn't exist.
+     * Superorb follows the player at a short distance and pulses to attract attention.
+     */
+    addToSuperorb(x, y, xpValue) {
+        this._superorbXP += xpValue;
 
-        let merged = 0;
-        // Scale merge limit with clutter — more aggressive when field is full
-        const maxMerges = activeCount > FIELD_CAP * 0.7 ? 20 : 10;
-
-        // 3 smalls → 1 medium (was 5 — faster consolidation)
-        for (let i = 0; i < smalls.length && merged < maxMerges; i++) {
-            const anchor = smalls[i];
-            if (!anchor.active) continue;
-            const cluster = [anchor];
-            for (let j = i + 1; j < smalls.length && cluster.length < 3; j++) {
-                const other = smalls[j];
-                if (!other.active) continue;
-                const dx = anchor.x - other.x;
-                const dy = anchor.y - other.y;
-                if (dx * dx + dy * dy < MERGE_RADIUS_SQ) cluster.push(other);
-            }
-            if (cluster.length >= 3) {
-                const cx = anchor.x, cy = anchor.y;
-                const mergedValue = cluster.reduce((sum, o) => sum + (o.value || 0), 0);
-                for (let k = 0; k < cluster.length; k++) this._returnToPool(cluster[k]);
-                const newDrop = this.createDrop(cx, cy, 'item.xp_medium');
-                if (newDrop) newDrop.value = mergedValue; // Preserve total XP
-                merged++;
-            }
-        }
-
-        // 2 mediums → 1 large
-        for (let i = 0; i < mediums.length && merged < maxMerges + 5; i++) {
-            const anchor = mediums[i];
-            if (!anchor.active) continue;
-            for (let j = i + 1; j < mediums.length; j++) {
-                const other = mediums[j];
-                if (!other.active) continue;
-                const dx = anchor.x - other.x;
-                const dy = anchor.y - other.y;
-                if (dx * dx + dy * dy < MERGE_RADIUS_SQ) {
-                    const cx = anchor.x, cy = anchor.y;
-                    const mergedValue = (anchor.value || 0) + (other.value || 0);
-                    this._returnToPool(anchor);
-                    this._returnToPool(other);
-                    const newDrop = this.createDrop(cx, cy, 'item.xp_large');
-                    if (newDrop) newDrop.value = mergedValue; // Preserve total XP
-                    merged++;
-                    break;
+        if (!this._superorb || !this._superorb.active) {
+            // Create superorb near the kill position
+            this._superorb = this.createDrop(x, y, 'item.xp_diamond');
+            if (this._superorb) {
+                this._superorb.setTexture('item_xp_super');
+                this._superorb.setScale(1.5);
+                this._superorb.setAlpha(0.9);
+                this._superorb.dropId = '_superorb';
+                this._superorb.dropType = 'xp';
+                this._superorb.value = this._superorbXP;
+                // Pulse tween to attract attention
+                if (this.scene?.tweens) {
+                    this.scene.tweens.add({
+                        targets: this._superorb,
+                        scaleX: 1.8, scaleY: 1.8,
+                        duration: 500, yoyo: true, repeat: -1,
+                        ease: 'Sine.easeInOut'
+                    });
                 }
             }
         }
 
-        if (merged > 0) {
-            getSession()?.log('loot', 'xp_merged', { merged, remaining: this.lootGroup.countActive() });
+        // Update value on existing superorb
+        if (this._superorb?.active) {
+            this._superorb.value = this._superorbXP;
         }
     }
 
-    /** Remove oldest XP orbs if over field cap — smalls first, then mediums */
-    _enforceFieldCap(children) {
-        const activeCount = this.lootGroup.countActive();
-        if (activeCount <= FIELD_CAP) return;
-
-        let excess = activeCount - FIELD_CAP;
-        let autoCollectedXP = 0;
-
-        // Auto-collect lowest-value XP orbs first (smalls, then mediums)
-        const tiers = ['item.xp_small', 'item.xp_medium'];
-        for (const tier of tiers) {
-            for (let i = 0; i < children.length && excess > 0; i++) {
-                const loot = children[i];
-                if (loot.active && loot.dropId === tier) {
-                    autoCollectedXP += loot.value || 0;
-                    this._returnToPool(loot);
-                    excess--;
-                }
-            }
-        }
-
-        if (autoCollectedXP > 0 && this.scene.addXP) this.scene.addXP(autoCollectedXP);
+    /**
+     * Called when superorb is picked up — reset state so normal drops resume.
+     */
+    _onSuperorbPickup() {
+        this._superorb = null;
+        this._superorbXP = 0;
     }
 
     // ==================== Pool Helpers ====================
@@ -479,6 +442,8 @@ export class SimpleLootSystem {
             // Group may already be destroyed during scene shutdown
         }
         if (this.recentDrops) this.recentDrops.length = 0;
+        this._superorb = null;
+        this._superorbXP = 0;
     }
 
     /** Get number of active loot items on the field */

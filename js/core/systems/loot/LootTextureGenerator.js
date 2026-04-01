@@ -128,6 +128,21 @@ export function generateLootTextures(scene) {
         g.generateTexture('item_xp_diamond', s, s); gf.release(g);
     }
 
+    // Superorb (red pulsing gem — accumulates XP when field is full)
+    if (!textures.exists('item_xp_super')) {
+        const g = gf.create(); const s = 20;
+        // Outer glow
+        g.fillStyle(0xFF2200, 0.4);
+        g.fillPoints([{ x: s/2, y: 0 }, { x: s, y: s/2 }, { x: s/2, y: s }, { x: 0, y: s/2 }], true);
+        // Inner bright red
+        g.fillStyle(0xFF4444, 1);
+        g.fillPoints([{ x: s/2, y: 2 }, { x: s-2, y: s/2 }, { x: s/2, y: s-2 }, { x: 2, y: s/2 }], true);
+        // White center highlight
+        g.fillStyle(0xFFAAAA, 0.9);
+        g.fillPoints([{ x: s/2, y: 5 }, { x: s-5, y: s/2 }, { x: s/2, y: s-5 }, { x: 5, y: s/2 }], true);
+        g.generateTexture('item_xp_super', s, s); gf.release(g);
+    }
+
     // Magnet texture generated below after ITEM_SIZE/CX/CY/HEX_R are defined
 
     // ==================== Loot Items (hexagons — uniform 20px) ====================

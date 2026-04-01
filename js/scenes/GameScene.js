@@ -236,9 +236,17 @@ export class GameScene extends Phaser.Scene {
         this.flashCamera();
     }
 
-    /** Drop exactly 1 XP gem per kill — tier based on total XP value */
+    /** Drop exactly 1 XP gem per kill — tier based on total XP value.
+     *  When field is full, XP accumulates in a red superorb (VS-style). */
     createXPOrbs(x, y, totalXP) {
         if (!totalXP || totalXP <= 0 || !this.lootSystem) return;
+
+        // Field full → route XP into superorb (no XP lost, VS red gem mechanic)
+        if (this.lootSystem.isFieldFull()) {
+            this.lootSystem.addToSuperorb(x, y, totalXP);
+            return;
+        }
+
         let itemId;
         if (totalXP >= 50)      itemId = 'item.xp_diamond';
         else if (totalXP >= 25) itemId = 'item.xp_big';
