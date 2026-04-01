@@ -536,14 +536,65 @@ function simulateRun(data, options = {}) {
 
     // --- PLAYER DEALS DAMAGE ---
     const stats = sim._stats();
-    const totalDPS = sim.getTotalDPS(stats);
-    let dmgRemaining = totalDPS * (DT / 1000);
+    const weaponDPS = sim.getDPS(stats);
+    const abilityDPS = sim.getAbilityDPS();
 
-    // Distribute damage across enemies (prioritize lowest HP for efficiency)
+    // Boss focus: player fires in all directions, but ~60% of weapon DPS hits boss
+    // when boss is present (homing always targets boss, directional partially hits)
+    // Ability DPS mostly hits normal enemies (AoE around player, not focused)
+    const boss = activeEnemies.find(e => e.alive && e.isBoss);
+    let weaponDmgRemaining = weaponDPS * (DT / 1000);
+    let abilityDmgRemaining = abilityDPS * (DT / 1000);
+
+    // Weapon: 60% focused on boss when present (4-dir + homing prioritize boss)
+    if (boss && weaponDmgRemaining > 0) {
+      const bossFocus = weaponDmgRemaining * 0.6;
+      const dmg = Math.min(bossFocus, boss.hp);
+      boss.hp -= dmg;
+      weaponDmgRemaining -= dmg;
+      sim.totalDmgDealt += dmg;
+    }
+    // Some ability DPS also hits boss (~20% — AoE splash, orbitals near player)
+    if (boss && abilityDmgRemaining > 0 && boss.hp > 0) {
+      const abilityBoss = abilityDmgRemaining * 0.2;
+      const dmg = Math.min(abilityBoss, boss.hp);
+      boss.hp -= dmg;
+      abilityDmgRemaining -= dmg;
+      sim.totalDmgDealt += dmg;
+    }
+
+    // Check if boss died from weapon focus
+    if (boss && boss.hp <= 0) {
+      boss.alive = false;
+      sim.kills++; levelKills++;
+      if (sim.addXP(boss.xp)) {
+        const picked = pickPowerup(sim, powerups, forceBuild);
+        if (picked) { result.powerups.push({ time, ...picked }); sim.powerupsPicked++; }
+        sim.heal(20);
+      }
+      result.bossKills.push({ time, bossId: boss.id, gameLevel });
+      result.levelTimes.push({ level: gameLevel, duration: time - levelStartTime, kills: levelKills });
+      gameLevel++;
+      if (gameLevel > 7) { result.result = 'victory'; }
+      else {
+        levelStartTime = time; levelKills = 0; bossSpawned = false;
+        activeEnemies = activeEnemies.filter(e => e.alive && e.isBoss);
+        const nextTable = spawnTables[`spawnTable.level${gameLevel}`];
+        if (nextTable) {
+          resetWaveTimers(nextTable);
+          if (nextTable.eliteWindows) nextTable.eliteWindows.forEach(e => e._nextSpawn = 0);
+          if (nextTable.uniqueSpawns) nextTable.uniqueSpawns.forEach(u => u._spawned = false);
+        }
+      }
+    }
+    if (result.result === 'victory') { result.survivalTime = time; break; }
+
+    // Remaining weapon + ability damage: distribute across non-boss enemies (lowest HP first)
+    let dmgRemaining = weaponDmgRemaining + abilityDmgRemaining;
     activeEnemies.sort((a, b) => a.hp - b.hp);
     for (let i = 0; i < activeEnemies.length && dmgRemaining > 0; i++) {
       const enemy = activeEnemies[i];
-      if (!enemy.alive) continue;
+      if (!enemy.alive || enemy.isBoss) continue; // Skip boss (already handled)
       const dmg = Math.min(dmgRemaining, enemy.hp);
       enemy.hp -= dmg;
       dmgRemaining -= dmg;
@@ -559,22 +610,7 @@ function simulateRun(data, options = {}) {
           sim.heal(20);
         }
 
-        if (enemy.isBoss) {
-          result.bossKills.push({ time, bossId: enemy.id, gameLevel });
-          result.levelTimes.push({ level: gameLevel, duration: time - levelStartTime, kills: levelKills });
-          gameLevel++;
-          if (gameLevel > 7) { result.result = 'victory'; break; }
-          levelStartTime = time; levelKills = 0; bossSpawned = false;
-          activeEnemies = activeEnemies.filter(e => e.alive && e.isBoss);
-          // Reset wave/elite/unique timers for new level
-          const nextTable = spawnTables[`spawnTable.level${gameLevel}`];
-          if (nextTable) {
-            resetWaveTimers(nextTable);
-            // Reset elite cooldowns and unique spawn flags
-            if (nextTable.eliteWindows) nextTable.eliteWindows.forEach(e => e._nextSpawn = 0);
-            if (nextTable.uniqueSpawns) nextTable.uniqueSpawns.forEach(u => u._spawned = false);
-          }
-        }
+        // Boss kills handled in weapon focus section above
       }
     }
     activeEnemies = activeEnemies.filter(e => e.alive);
