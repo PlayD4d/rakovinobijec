@@ -290,11 +290,11 @@ export class PowerUpAbilities {
                     if ((ex * ex + ey * ey) - proj * proj <= rSq) e.takeDamage({ amount: dmg, source: 'oxidative_burst' });
                 }
 
-                if (this.scene.vfxSystem?.playExplosionEffect) {
-                    const vfxDist = Math.min(hitRange * 0.6, 120);
-                    this.scene.vfxSystem.playExplosionEffect(
-                        p.x + nx * vfxDist, p.y + ny * vfxDist,
-                        { color: 0xff6600, radius, duration: 250 }
+                if (this.scene.vfxSystem?.playFlameEffect) {
+                    this.scene.vfxSystem.playFlameEffect(
+                        p.x, p.y,
+                        p.x + nx * hitRange, p.y + ny * hitRange,
+                        { range: hitRange, radius, color: 0xff6600, duration: 300 }
                     );
                 }
             }

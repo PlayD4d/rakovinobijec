@@ -12,6 +12,7 @@ import { FlamethrowerEffect } from './powerup_effects/FlamethrowerEffect.js';
 import { ShieldEffect } from './powerup_effects/ShieldEffect.js';
 import { ImmuneAuraEffect } from './powerup_effects/ImmuneAuraEffect.js';
 import { installCombatVFX } from './CombatVFXEffects.js';
+import { installFlameVFX } from './FlameVFX.js';
 import { installTelegraphEffects } from './TelegraphEffects.js';
 import { DebugLogger } from '../debug/DebugLogger.js';
 
@@ -36,8 +37,9 @@ export class VFXSystem {
 
         // Install telegraph effects (circle, directional, danger zone)
         installTelegraphEffects(this);
-        // Install combat VFX (explosion, beam, lightning)
+        // Install combat VFX (explosion, beam, lightning, flame)
         installCombatVFX(this);
+        installFlameVFX(this);
 
         this.initialized = false;
     }
