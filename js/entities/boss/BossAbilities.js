@@ -160,7 +160,7 @@ export class BossAbilities {
      * Internal ability execution
      */
     executeAbilityInternal(abilityId, params) {
-        const abilityData = this.abilities[abilityId];
+        let abilityData = this.abilities[abilityId];
         const handler = this.abilityHandlers.get(abilityId);
 
         if (!handler) {
