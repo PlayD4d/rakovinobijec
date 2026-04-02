@@ -2,8 +2,8 @@
   id: 'boss.metastatic_emissary',
   type: 'boss',
   stats: {
-    hp: 1500,
-    maxHp: 1500,
+    hp: 2600,
+    maxHp: 2600,
     damage: 18,
     speed: 55,
     size: 38,

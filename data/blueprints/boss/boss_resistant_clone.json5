@@ -2,8 +2,8 @@
   id: 'boss.resistant_clone',
   type: 'boss',
   stats: {
-    hp: 1800,
-    maxHp: 1800,
+    hp: 3500,
+    maxHp: 3500,
     speed: 30,
     damage: 15,
     xp: 500,

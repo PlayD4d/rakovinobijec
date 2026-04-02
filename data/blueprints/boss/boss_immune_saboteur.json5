@@ -2,8 +2,8 @@
   id: 'boss.immune_saboteur',
   type: 'boss',
   stats: {
-    hp: 1200,
-    maxHp: 1200,
+    hp: 1400,
+    maxHp: 1400,
     damage: 10,
     speed: 28,
     size: 55,

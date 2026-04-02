@@ -7,40 +7,16 @@
     combat: 'music/8bit_track1.mp3',
     boss: 'music/8bit_boss1.mp3',
   },
+  maxEnemiesOnScreen: 30,
   enemyWaves: [
-    {
-      enemyId: 'enemy.necrotic_cell',
-      weight: 100,
-      countRange: [
-        1,
-        1,
-      ],
-      interval: 3000,
-      startAt: 0,
-      endAt: 40000,
-    },
-    {
-      enemyId: 'enemy.tumor_cell',
-      weight: 80,
-      countRange: [
-        1,
-        2,
-      ],
-      interval: 4000,
-      startAt: 15000,
-      endAt: 70000,
-    },
-    {
-      enemyId: 'enemy.mutant_cell',
-      weight: 50,
-      countRange: [
-        1,
-        1,
-      ],
-      interval: 5000,
-      startAt: 40000,
-      endAt: 90000,
-    },
+    // Phase 1: gentle intro (0-30s)
+    { enemyId: 'enemy.necrotic_cell', weight: 100, countRange: [1, 1], interval: 3000, startAt: 0, endAt: 999999 },
+    { enemyId: 'enemy.tumor_cell', weight: 80, countRange: [1, 2], interval: 3500, startAt: 10000, endAt: 999999 },
+    // Phase 2: ramp up (30-60s)
+    { enemyId: 'enemy.tumor_cell', weight: 60, countRange: [2, 3], interval: 3000, startAt: 30000, endAt: 999999 },
+    { enemyId: 'enemy.mutant_cell', weight: 40, countRange: [1, 1], interval: 5000, startAt: 40000, endAt: 999999 },
+    // Phase 3: pre-boss pressure (60s+)
+    { enemyId: 'enemy.apoptosis_bomb', weight: 30, countRange: [1, 2], interval: 4000, startAt: 60000, endAt: 999999 },
   ],
   eliteWindows: [
     {

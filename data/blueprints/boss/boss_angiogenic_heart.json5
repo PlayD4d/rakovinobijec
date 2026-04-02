@@ -2,7 +2,7 @@
   id: 'boss.angiogenic_heart',
   type: 'boss',
   stats: {
-    hp: 1400,
+    hp: 1900,
     damage: 15,
     speed: 22,
     size: 60,

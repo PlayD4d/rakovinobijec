@@ -118,12 +118,12 @@ __framework.healthcheck()     __framework.quickCheck()
 | Level | Boss | HP |
 |-------|------|----|
 | 1 | primary_clone | 800 |
-| 2 | oncogenic_signal | 1000 |
-| 3 | immune_saboteur | 1200 |
-| 4 | angiogenic_heart | 1400 |
-| 5 | metastatic_emissary | 1500 |
-| 6 | resistant_clone | 1800 |
-| 7 | tumor_core (FINAL) | 2500 |
+| 2 | oncogenic_signal | 1100 |
+| 3 | immune_saboteur | 1400 |
+| 4 | angiogenic_heart | 1900 |
+| 5 | metastatic_emissary | 2600 |
+| 6 | resistant_clone | 3500 |
+| 7 | tumor_core (FINAL) | 5000 |
 
 ## Documentation
 - Architecture: @docs/ARCHITECTURE.md

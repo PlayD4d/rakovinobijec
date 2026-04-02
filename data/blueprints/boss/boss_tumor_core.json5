@@ -2,8 +2,8 @@
   id: 'boss.tumor_core',
   type: 'boss',
   stats: {
-    hp: 2500,
-    maxHp: 2500,
+    hp: 5000,
+    maxHp: 5000,
     damage: 20,
     speed: 25,
     size: 80,

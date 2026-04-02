@@ -2,8 +2,8 @@
   id: 'boss.oncogenic_signal',
   type: 'boss',
   stats: {
-    hp: 1000,
-    maxHp: 1000,
+    hp: 1100,
+    maxHp: 1100,
     speed: 45,
     damage: 12,
     xp: 300,
