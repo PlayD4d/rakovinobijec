@@ -1,6 +1,6 @@
 import { DebugLogger } from '../../debug/DebugLogger.js';
 import { getSession } from '../../debug/SessionLog.js';
-import { lvl, getActiveEnemies, damageEnemiesInRadius } from '../../utils/CombatUtils.js';
+import { lvl, getActiveEnemies, forEachActiveEnemy, damageEnemiesInRadius } from '../../utils/CombatUtils.js';
 import { ChainLightningAbility } from './abilities/ChainLightningAbility.js';
 import { DamageZoneAbilities } from './abilities/DamageZoneAbilities.js';
 import { ShieldRegeneration } from './abilities/ShieldRegeneration.js';
