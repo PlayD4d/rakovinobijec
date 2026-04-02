@@ -218,6 +218,8 @@ export class PowerUpSystem {
         if (!selection) return;
         const player = this.scene.player;
 
+        getSession()?.log('powerup', 'selected', { id: selection.id, level: selection.level });
+
         if (selection._overflow && player) {
             // Overflow boost — direct stat modification (all normal powerups maxed)
             const ov = selection._overflow;
@@ -233,7 +235,12 @@ export class PowerUpSystem {
             }
             getSession()?.log('powerup', 'overflow_boost', { stat: ov.stat, value: ov.value });
         } else {
-            this.applyPowerUp(selection.id, (selection.level || 0) + 1);
+            try {
+                this.applyPowerUp(selection.id, (selection.level || 0) + 1);
+            } catch (err) {
+                DebugLogger.error('powerup', `[PowerUpSystem] applyPowerUp THREW: ${err.message}`, err);
+                getSession()?.log('powerup', 'apply_error', { id: selection.id, error: err.message });
+            }
         }
 
         // Notify HUD

@@ -165,12 +165,17 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         if (!gameScene) return;
 
-        this.powerUpUI.hide(() => {
-            this.input.setTopOnly(false);
+        // PowerUpUI.hide already ran (called by pointerup → onSelection callback).
+        // Just reset input isolation, apply powerup, and resume — no double-hide.
+        this.input.setTopOnly(false);
+        try {
             centralEventBus.emit('game:powerup-selected', selection);
-            gameScene.scene.resume();
-            gameScene.flashCamera?.();
-        });
+        } catch (err) {
+            console.error('[GameUIScene] powerup-selected handler threw:', err);
+        }
+        // Always resume even if powerup application failed — prevents stuck pause
+        gameScene.scene.resume();
+        gameScene.flashCamera?.();
     }
 
 
