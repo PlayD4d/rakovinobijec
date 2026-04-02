@@ -31,7 +31,11 @@ class SessionLog {
             result: null // 'death', 'victory', 'quit'
         };
         this._enabled = true;
+        this._gameTimeSec = 0; // Pause-aware game time, updated by UpdateManager
     }
+
+    /** Called by UpdateManager each frame to keep game time in sync */
+    setGameTime(sec) { this._gameTimeSec = sec; }
 
     /**
      * Log a game event
@@ -51,6 +55,7 @@ class SessionLog {
 
         this.events.push({
             t: Date.now() - this.startTime,
+            gt: this._gameTimeSec,
             cat: category,
             act: action,
             ...data
@@ -82,7 +87,7 @@ class SessionLog {
         } else {
             // New second — flush previous bucket and start new
             if (prev) this._flushAggBucket(key, prev);
-            this._aggBuckets.set(key, { bucket, t: now, cat: category, act: action, count: 1,
+            this._aggBuckets.set(key, { bucket, t: now, gt: this._gameTimeSec, cat: category, act: action, count: 1,
                 totalDmg: data.damage || data.amt || 0,
                 totalXP: data.scaled || data.raw || 0,
                 totalAbsorbed: data.absorbed || 0,
@@ -91,7 +96,7 @@ class SessionLog {
     }
 
     _flushAggBucket(key, agg) {
-        const entry = { t: agg.t, cat: agg.cat, act: agg.act, count: agg.count };
+        const entry = { t: agg.t, gt: agg.gt, cat: agg.cat, act: agg.act, count: agg.count };
         if (agg.totalDmg) entry.totalDmg = agg.totalDmg;
         if (agg.totalXP) entry.totalXP = agg.totalXP;
         if (agg.totalAbsorbed) entry.totalAbsorbed = agg.totalAbsorbed;

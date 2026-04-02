@@ -53,6 +53,8 @@ export class UpdateManager {
             if (!scene.isPaused) {
                 scene.sceneTimeSec += delta / 1000;
                 scene.gameStats.time = Math.floor(scene.sceneTimeSec);
+                // Keep SessionLog game time in sync for accurate telemetry
+                getSession()?.setGameTime(Math.floor(scene.sceneTimeSec));
             }
         }, 'game_timer');
         
