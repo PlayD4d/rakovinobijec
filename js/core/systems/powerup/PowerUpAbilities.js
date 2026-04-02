@@ -291,6 +291,10 @@ export class PowerUpAbilities {
                 const nx = dx / dist, ny = dy / dist;
                 const hitRange = Math.min(range, dist + 50);
 
+                // Fire-and-forget: snapshot origin at fire time — cone does NOT follow player
+                const originX = p.x;
+                const originY = p.y;
+
                 // Travelling flame: cone front advances from 0 → hitRange over durationMs
                 // Damage ticks at ticksPerSec, each tick hits enemies near the cone front
                 const totalTicks = Math.floor(durationMs / tickInterval);
@@ -299,22 +303,21 @@ export class PowerUpAbilities {
                         // Remove completed timer from tracking set to prevent unbounded growth
                         this._flameSubTimers?.delete(tickTimer);
 
-                        const player = this.scene?.player;
-                        if (!player?.active) return;
+                        if (!this.scene?.player?.active) return;
 
-                        // Cone front position at this tick
+                        // Cone front position at this tick (relative to fixed origin)
                         const progress = (tick + 1) / totalTicks; // 0→1
                         const frontDist = hitRange * progress;
                         const coneWidth = radius * progress; // Wider at the end
                         const coneWidthSq = coneWidth * coneWidth;
 
-                        // Damage enemies near the cone front (band from frontDist-20 to frontDist+20)
+                        // Damage enemies near the cone front (band from frontDist-25 to frontDist+25)
                         const bandMin = Math.max(0, frontDist - 25);
                         const bandMax = frontDist + 25;
 
                         forEachActiveEnemy(this.scene, (e) => {
-                            const ex = e.x - player.x, ey = e.y - player.y;
-                            const proj = ex * nx + ey * ny; // Distance along fire direction
+                            const ex = e.x - originX, ey = e.y - originY;
+                            const proj = ex * nx + ey * ny;
                             if (proj < bandMin || proj > bandMax) return;
                             const perpSq = (ex * ex + ey * ey) - proj * proj;
                             if (perpSq <= coneWidthSq) {
@@ -322,12 +325,12 @@ export class PowerUpAbilities {
                             }
                         });
 
-                        // VFX: flame particles at cone front
+                        // VFX: flame particles at cone front (fixed world position)
                         if (this.scene.vfxSystem?.playFlameEffect) {
-                            const fx = player.x + nx * frontDist;
-                            const fy = player.y + ny * frontDist;
+                            const fx = originX + nx * frontDist;
+                            const fy = originY + ny * frontDist;
                             this.scene.vfxSystem.playFlameEffect(
-                                player.x + nx * bandMin, player.y + ny * bandMin,
+                                originX + nx * bandMin, originY + ny * bandMin,
                                 fx, fy,
                                 { range: 50, radius: coneWidth, color: 0xff6600, duration: tickInterval + 100 }
                             );
