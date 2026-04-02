@@ -8,6 +8,7 @@ import { GameOverUI } from '../ui/lite/GameOverUI.js';
 import { UnifiedHUD } from '../ui/UnifiedHUD.js';
 import { UI_THEME } from '../ui/UITheme.js';
 import { centralEventBus } from '../core/events/CentralEventBus.js';
+import { getSession } from '../core/debug/SessionLog.js';
 
 export class GameUIScene extends Phaser.Scene {
     constructor() {
@@ -118,6 +119,7 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         if (!gameScene) return;
 
+        getSession()?.log('ui', 'pause_show');
         this.scene.bringToTop();
         this.input.setTopOnly(true);
 
@@ -132,6 +134,7 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         if (!gameScene) return;
 
+        getSession()?.log('ui', 'pause_resume');
         this.pauseUI.hide();
         this.input.setTopOnly(false);
         gameScene.isPaused = false;
@@ -139,6 +142,7 @@ export class GameUIScene extends Phaser.Scene {
     }
 
     handleQuit() {
+        getSession()?.log('ui', 'quit_to_menu');
         this.pauseUI.hide();
         this.scene.get('GameScene')?.returnToMenu();
     }
@@ -158,12 +162,15 @@ export class GameUIScene extends Phaser.Scene {
             gameScene.scene.pause();
         }
 
+        getSession()?.log('ui', 'powerup_show', { count: options?.length });
         this.powerUpUI.show(options);
     }
 
     handlePowerUpSelection(selection) {
         const gameScene = this.scene.get('GameScene');
         if (!gameScene) return;
+
+        getSession()?.log('ui', 'powerup_card_clicked', { id: selection?.id, level: selection?.level });
 
         // PowerUpUI.hide already ran (called by pointerup → onSelection callback).
         // Just reset input isolation, apply powerup, and resume — no double-hide.
@@ -172,14 +179,17 @@ export class GameUIScene extends Phaser.Scene {
             centralEventBus.emit('game:powerup-selected', selection);
         } catch (err) {
             console.error('[GameUIScene] powerup-selected handler threw:', err);
+            getSession()?.log('ui', 'powerup_apply_error', { id: selection?.id, error: err.message });
         }
         // Always resume even if powerup application failed — prevents stuck pause
+        getSession()?.log('ui', 'powerup_resume');
         gameScene.scene.resume();
         gameScene.flashCamera?.();
     }
 
 
     showGameOver(stats) {
+        getSession()?.log('ui', 'gameover_show');
         const gameScene = this.scene.get('GameScene');
         this.scene.bringToTop();
         this.input.setTopOnly(true);
@@ -191,6 +201,7 @@ export class GameUIScene extends Phaser.Scene {
     }
 
     showVictory(data) {
+        getSession()?.log('ui', 'victory_show');
         const gameScene = this.scene.get('GameScene');
         this.scene.bringToTop();
         this.input.setTopOnly(true);
