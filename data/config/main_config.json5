@@ -90,7 +90,14 @@
   
   // Powerup system
   powerups: {
-    maxSlots: 6,     // VS-style slot limit — player must choose build
+    maxSlots: 6,             // Legacy compat
+    maxWeaponSlots: 6,       // VS-style weapon slot limit
+    maxPassiveSlots: 6,      // VS-style passive slot limit
+  },
+
+  // Feature flags (read by TelemetryLogger etc.)
+  features: {
+    telemetryLogger: true,
   },
 
   // Performance settings
