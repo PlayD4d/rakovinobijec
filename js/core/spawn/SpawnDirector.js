@@ -126,10 +126,10 @@ export class SpawnDirector {
         // Clear NG+ cache on level start to avoid stale scaling
         this._ngPlusScaler.clear();
 
-        // PR7: Reset wave timers when starting new level
+        // Initialize wave timers so first spawn fires immediately (not after full interval wait)
         if (this.currentTable.enemyWaves) {
             this.currentTable.enemyWaves.forEach(wave => {
-                wave.lastSpawn = 0;
+                wave.lastSpawn = -(wave.interval || 2000);
             });
         }
 
@@ -209,9 +209,8 @@ export class SpawnDirector {
             return;
         }
 
-        // Throttle spawn processing to 4Hz (every 250ms) — no need for per-frame checks.
-        // countActive() is O(n) per group; running it 60x/s is wasteful.
-        if (gameTime - (this._lastSpawnProcess || 0) < 250) return;
+        // Throttle spawn processing to 10Hz (every 100ms)
+        if (gameTime - (this._lastSpawnProcess || 0) < 100) return;
         this._lastSpawnProcess = gameTime;
 
         // Process spawns (delegated to SpawnWaveProcessor)
