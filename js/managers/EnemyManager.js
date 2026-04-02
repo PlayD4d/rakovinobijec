@@ -343,7 +343,7 @@ export class EnemyManager {
         if (enemy.active) {
             enemy.setActive(false);
             enemy.setVisible(false);
-            if (enemy.body) enemy.body.setEnable(false);
+            if (enemy.body) enemy.body.enable = false;
         }
     }
 

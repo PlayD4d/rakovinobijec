@@ -185,7 +185,8 @@ export class BossPhases {
             return;
         }
 
-        // Update boss stats based on phase
+        // Update boss stats based on phase (store for reapply after rage ends)
+        this._currentPhaseData = phaseData;
         this.applyPhaseModifiers(phaseData);
         
         // Clear ability cooldowns for fresh start
@@ -229,7 +230,16 @@ export class BossPhases {
             DebugLogger.info('boss', `[BossPhases] Applied phase modifiers: speed=${speedMul}, damage=${damageMul}, attackRate=${attackRateMul}`);
         }
     }
-    
+
+    /**
+     * Re-apply current phase modifiers (called after rage mode ends to restore correct speed)
+     */
+    reapplyCurrentPhaseModifiers() {
+        if (this._currentPhaseData) {
+            this.applyPhaseModifiers(this._currentPhaseData);
+        }
+    }
+
     /**
      * Apply phase-specific effects
      */
@@ -284,6 +294,8 @@ export class BossPhases {
                 gf.release(g);
             }
 
+            // Persistent aura sprite — scene.add.sprite is acceptable here (not a one-shot VFX;
+            // tracked in _activeAuras, destroyed in _destroyPassiveAuras)
             const sprite = scene.add.sprite(boss.x, boss.y, textureKey);
             sprite.setDepth((scene.DEPTH_LAYERS?.ENEMIES || 1000) - 2);
             sprite.setOrigin(0.5);

@@ -148,7 +148,7 @@ export class PowerUpUI {
           card.setScale(1.05);
           bg.setStrokeStyle(2, rarityColor, 0.9);
           if (s.input?.setDefaultCursor) s.input.setDefaultCursor('pointer');
-          try { s.sound?.play('sound/bleep.mp3', { volume: 0.2 }); } catch (_) {}
+          try { s.scene?.get('GameScene')?.audioSystem?.play('sound/bleep.mp3', { volume: 0.2 }); } catch (_) {}
         })
         .on('pointerout', () => {
           card.setScale(1.0);
@@ -163,7 +163,7 @@ export class PowerUpUI {
           this._selecting = true;
           card.setScale(1.05);
           bg.setFillStyle(0x1a1a3e, 1);
-          try { s.sound?.play('sound/pickup.mp3', { volume: 0.4 }); } catch (_) {}
+          try { s.scene?.get('GameScene')?.audioSystem?.play('sound/pickup.mp3', { volume: 0.4 }); } catch (_) {}
 
           s.tweens.add({
             targets: accentLine, alpha: 0, duration: 80, yoyo: true, repeat: 1,
@@ -206,6 +206,8 @@ export class PowerUpUI {
   }
 
   destroy() {
+    // Stop tween BEFORE destroying modal (modal.destroy() destroys hint child first,
+    // and stopping a tween on a destroyed target throws in Phaser 3.90)
     if (this.hintTween) {
       try { this.hintTween.stop(); } catch (_) {}
       this.hintTween = null;

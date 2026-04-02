@@ -153,7 +153,8 @@ export class ProjectileSystem {
         bullet.maxPiercing = piercingCfg.maxPierces || 1;
         bullet.hitCount = 0;
         bullet.damageReduction = piercingCfg.damageReduction || 0.1;
-        bullet._hitEnemies = new Set(); // Track hit enemies to prevent double-counting
+        // Reuse existing Set from pool recycling — avoids per-fire allocation (Zero-GC)
+        if (bullet._hitEnemies) { bullet._hitEnemies.clear(); } else { bullet._hitEnemies = new Set(); }
 
         if (Math.random() < 0.01) {
             DebugLogger.info('projectile', `[ProjectileSystem] PIERCING - Max pierces: ${bullet.maxPiercing}, damage reduction: ${(bullet.damageReduction * 100).toFixed(1)}%`);

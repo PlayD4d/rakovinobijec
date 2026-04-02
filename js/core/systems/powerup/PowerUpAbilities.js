@@ -296,6 +296,9 @@ export class PowerUpAbilities {
                 const totalTicks = Math.floor(durationMs / tickInterval);
                 for (let tick = 0; tick < totalTicks; tick++) {
                     const tickTimer = this.scene.time.delayedCall(tick * tickInterval, () => {
+                        // Remove completed timer from tracking set to prevent unbounded growth
+                        this._flameSubTimers?.delete(tickTimer);
+
                         const player = this.scene?.player;
                         if (!player?.active) return;
 

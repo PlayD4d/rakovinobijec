@@ -1,9 +1,42 @@
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
 import { getSession } from '../../core/debug/SessionLog.js';
 
+// ── Pooled damage number text (shared across all enemies + player) ──
+const _DMG_TEXT_POOL = [];
+const _DMG_TEXT_POOL_MAX = 24;
+
+export function _getDamageText(scene, x, y, text, fontSize, color) {
+    let txt = _DMG_TEXT_POOL.pop();
+    if (txt && txt.scene) {
+        txt.setPosition(x, y).setText(text).setAlpha(1).setVisible(true).setActive(true);
+        txt.setStyle({ fontSize, color });
+    } else {
+        txt = scene.add.text(x, y, text, {
+            fontFamily: 'Public Pixel, monospace',
+            fontSize,
+            color,
+            stroke: '#000000',
+            strokeThickness: 3
+        });
+        if (!txt) return null;
+    }
+    txt.setOrigin(0.5).setDepth(scene.DEPTH_LAYERS?.VFX || 4000).setScrollFactor(0);
+    return txt;
+}
+
+export function _releaseDamageText(txt) {
+    if (!txt) return;
+    txt.setActive(false).setVisible(false);
+    if (_DMG_TEXT_POOL.length < _DMG_TEXT_POOL_MAX) {
+        _DMG_TEXT_POOL.push(txt);
+    } else {
+        txt.destroy();
+    }
+}
+
 /**
  * EnemyCore.js - Core enemy functionality with Phaser integration
- * 
+ *
  * Handles all Phaser API calls, physics, damage, VFX/SFX
  * Provides capability interface for behaviors
  */
@@ -325,7 +358,7 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         // Deactivate immediately to prevent double-die and further collision
         this.setActive(false);
         this.setVisible(false);
-        if (this.body) this.body.setEnable(false);
+        if (this.body) this.body.enable = false;
 
         // Process death (XP, loot, stats, VFX, SFX) — all in one place
         if (this.scene?.handleEnemyDeath) {
@@ -380,19 +413,16 @@ export class EnemyCore extends Phaser.Physics.Arcade.Sprite {
         const fontSize = isCrit ? '15px' : (amount >= 20 ? '13px' : '11px');
 
         const jitterX = (Math.random() - 0.5) * 20;
-        const txt = this.scene.add.text(this.x + jitterX, this.y - 15, `${Math.floor(amount)}`, {
-            fontFamily: 'Public Pixel, monospace',
-            fontSize,
-            color,
-            stroke: '#000000',
-            strokeThickness: 3
-        }).setOrigin(0.5).setDepth(this.scene.DEPTH_LAYERS?.VFX || 4000).setScrollFactor(0);
+
+        // Reuse pooled text from scene-level pool (avoids per-hit scene.add.text allocation)
+        const txt = _getDamageText(this.scene, this.x + jitterX, this.y - 15, `${Math.floor(amount)}`, fontSize, color);
+        if (!txt) return;
 
         // Drift up and fade out — crits float higher
         this.scene.tweens.add({
             targets: txt, y: txt.y - (isCrit ? 40 : 30), alpha: 0,
             duration: isCrit ? 800 : 600, ease: 'Power2',
-            onComplete: () => txt.destroy()
+            onComplete: () => _releaseDamageText(txt)
         });
     }
 

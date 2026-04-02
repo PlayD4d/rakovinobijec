@@ -129,12 +129,7 @@ export class BossAbilities {
             this.executeAbilityInternal(nextAbility.id, nextAbility.params);
         }
 
-        // Update cooldowns - cleanup expired ones
-        for (const [abilityId, cooldownEnd] of this.abilityCooldowns.entries()) {
-            if (time >= cooldownEnd) {
-                this.abilityCooldowns.delete(abilityId);
-            }
-        }
+        // Cooldown expiry is checked at query time in isAbilityReady() — no per-frame cleanup needed
     }
 
     /**
@@ -178,6 +173,8 @@ export class BossAbilities {
         DebugLogger.info('boss', `[BossAbilities] Executing ability: ${abilityId}`);
         getSession()?.log('boss', 'ability_used', { bossId: this.boss?.blueprintId, abilityId, cooldown: abilityData.cooldown || 3000 });
 
+        // Shallow copy to avoid mutating shared blueprint data on re-use
+        abilityData = { ...abilityData };
         // Map projectileRef → projectileId so handlers can read a single field name
         if (abilityData.projectileRef && !abilityData.projectileId) {
             abilityData.projectileId = abilityData.projectileRef;

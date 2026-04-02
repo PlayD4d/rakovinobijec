@@ -131,7 +131,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             DebugLogger.error('general', `[Player] Inactive with HP > 0 — reactivating`);
             this.setActive(true);
             this.setVisible(true);
-            if (this.body) this.body.setEnable(true);
+            if (this.body) this.body.enable = true;
         }
         if (this.scene.isPaused) {
             this.body.setVelocity(0, 0);

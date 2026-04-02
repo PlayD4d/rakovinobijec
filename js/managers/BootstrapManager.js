@@ -153,6 +153,10 @@ export class BootstrapManager {
 
         // Resize event (game-level — tracked for cleanup in GameScene.shutdown)
         const scale = this.scene.getScaleManager();
+        // Remove old handler first to prevent leak on scene restart (bind creates new fn each time)
+        if (this.scene._resizeHandler) {
+            scale.off('resize', this.scene._resizeHandler);
+        }
         this.scene._resizeHandler = this.scene.handleResize.bind(this.scene);
         scale.on('resize', this.scene._resizeHandler);
     }

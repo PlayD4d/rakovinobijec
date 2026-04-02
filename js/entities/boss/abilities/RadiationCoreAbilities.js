@@ -34,9 +34,7 @@ export function executeRadiationPulse(bossAbilities, abilityData, params) {
         });
     }
 
-    if (bossAbilities.scene.audioSystem) {
-        bossAbilities.scene.audioSystem.play('sound/boss_radiation.mp3');
-    }
+    bossAbilities.scene?.audioSystem?.play('sound/boss_radiation.mp3');
 
     // Damage + explosion VFX fires AFTER telegraph fills (green = active radiation)
     bossAbilities._schedule(warningTime, () => {
@@ -103,9 +101,7 @@ export function executeToxicPools(bossAbilities, abilityData, params) {
                 });
             }
         }
-        if (bossAbilities.scene.audioSystem) {
-            bossAbilities.scene.audioSystem.play('sound/toxic_pools.mp3');
-        }
+        bossAbilities.scene?.audioSystem?.play('sound/toxic_pools.mp3');
         // Damage player if within any pool radius
         const player = bossAbilities.scene?.player;
         if (player?.active) {
@@ -405,9 +401,7 @@ export function executeCoreOverload(bossAbilities, abilityData, params) {
         });
     }
 
-    if (bossAbilities.scene.audioSystem) {
-        bossAbilities.scene.audioSystem.play('sound/boss_radiation.mp3');
-    }
+    bossAbilities.scene?.audioSystem?.play('sound/boss_radiation.mp3');
 
     // Damage + nuclear explosion AFTER charge (bright yellow-white — distinct from telegraph)
     bossAbilities._schedule(chargeTime, () => {
@@ -417,9 +411,7 @@ export function executeCoreOverload(bossAbilities, abilityData, params) {
                 color: 0xFFDD44, radius, duration: 600
             });
         }
-        if (bossAbilities.scene.audioSystem) {
-            bossAbilities.scene.audioSystem.play('sound/core_overload.mp3');
-        }
+        bossAbilities.scene?.audioSystem?.play('sound/core_overload.mp3');
         const player = bossAbilities.scene.player;
         if (player?.active) {
             const dx = player.x - boss.x;

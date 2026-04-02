@@ -55,9 +55,9 @@ async function clearAllEnemiesWithEffect(tm) {
         const enemy = enemies[i];
         if (!enemy?.active) continue;
 
-        // Stagger delay — use setTimeout (safe even if scene timer is unreliable)
+        // Stagger delay — runs BEFORE pauseGameSystems(), so scene.time is valid
         if (i > 0) {
-            await new Promise(resolve => setTimeout(resolve, staggerDelay));
+            await new Promise(resolve => scene.time.delayedCall(staggerDelay, resolve));
         }
 
         // Celebration VFX at enemy position
@@ -69,7 +69,7 @@ async function clearAllEnemiesWithEffect(tm) {
         if (enemy.active) {
             enemy.setActive(false);
             enemy.setVisible(false);
-            if (enemy.body) enemy.body.setEnable(false);
+            if (enemy.body) enemy.body.enable = false;
         }
     }
 
@@ -81,6 +81,6 @@ async function clearAllEnemiesWithEffect(tm) {
         }
     }
 
-    // Brief pause for celebration to play out
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Brief pause for celebration to play out (still pre-pause, scene.time valid)
+    await new Promise(resolve => scene.time.delayedCall(500, resolve));
 }

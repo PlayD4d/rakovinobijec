@@ -334,7 +334,7 @@ export class Boss extends BossCore {
             // NOW deactivate — prevents further damage/updates
             this.setActive(false);
             this.setVisible(false);
-            if (this.body) this.body.setEnable(false);
+            if (this.body) this.body.enable = false;
 
             // Capture phase before cleanup nulls it
             const finalPhase = this.phases?.getCurrentPhase?.() ?? 0;

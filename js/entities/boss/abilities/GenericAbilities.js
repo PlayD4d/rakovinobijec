@@ -228,11 +228,11 @@ export function executeRageMode(bossAbilities, abilityData, params) {
 
     bossAbilities.boss._rageActive = true;
 
-    // Store original values
-    const originalSpeed = bossAbilities.boss.moveSpeed;
+    // Store canonical baselines (originalSpeed is the BossCore baseline, immune to phase drift)
+    const baseSpeed = bossAbilities.boss.originalSpeed ?? bossAbilities.boss.moveSpeed;
     const originalDamage = bossAbilities.boss.damageMultiplier || 1.0;
 
-    // Apply rage bonuses
+    // Apply rage bonuses on top of current phase speed
     bossAbilities.boss.moveSpeed *= speedMultiplier;
     bossAbilities.boss.damageMultiplier = originalDamage * damageMultiplier;
     // Visual indicator via capability — setTint is a Phaser sprite method on BossCore
@@ -242,8 +242,13 @@ export function executeRageMode(bossAbilities, abilityData, params) {
     bossAbilities._schedule(duration, () => {
         if (bossAbilities.boss) {
             bossAbilities.boss._rageActive = false;
-            bossAbilities.boss.moveSpeed = originalSpeed;
+            // Restore to canonical baseline — let phase modifiers re-apply if needed
+            bossAbilities.boss.moveSpeed = baseSpeed;
             bossAbilities.boss.damageMultiplier = originalDamage;
+            // Re-apply current phase modifiers on top of baseline
+            if (bossAbilities.boss.phases?.reapplyCurrentPhaseModifiers) {
+                bossAbilities.boss.phases.reapplyCurrentPhaseModifiers();
+            }
             if (bossAbilities.boss.clearTint) bossAbilities.boss.clearTint();
         }
     });

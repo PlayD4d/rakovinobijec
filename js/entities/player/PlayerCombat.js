@@ -1,5 +1,6 @@
 import { DebugLogger } from '../../core/debug/DebugLogger.js';
 import { getSession } from '../../core/debug/SessionLog.js';
+import { _getDamageText, _releaseDamageText } from '../core/EnemyCore.js';
 
 /**
  * PlayerCombat - Damage, healing, death, iFrames
@@ -123,27 +124,27 @@ export class PlayerCombat {
         player._isDead = true;
         player.setActive(false);
         player.setVisible(false);
-        if (player.body) player.body.setEnable(false);
+        if (player.body) player.body.enable = false;
     }
 
     _showPlayerDamageNumber(player, amount) {
         if (!player.scene?.add || amount <= 0) return;
         // Respect settings toggle
         if (window.settingsManager?.get?.('ui.damageNumbers') === false) return;
+        // Throttle — max 1 number per 150ms (player takes damage less often, slightly longer window)
+        const now = player.scene.time?.now || 0;
+        if (now - (this._lastPlayerDmgNum || 0) < 150) return;
+        this._lastPlayerDmgNum = now;
 
         const jitterX = (Math.random() - 0.5) * 16;
-        const txt = player.scene.add.text(player.x + jitterX, player.y - 20, `-${Math.floor(amount)}`, {
-            fontFamily: 'Public Pixel, monospace',
-            fontSize: amount >= 20 ? '14px' : '11px',
-            color: '#ff3333',
-            stroke: '#000000',
-            strokeThickness: 3
-        }).setOrigin(0.5).setDepth(player.scene.DEPTH_LAYERS?.VFX || 4000).setScrollFactor(0);
+        const fontSize = amount >= 20 ? '14px' : '11px';
+        const txt = _getDamageText(player.scene, player.x + jitterX, player.y - 20, `-${Math.floor(amount)}`, fontSize, '#ff3333');
+        if (!txt) return;
 
         player.scene.tweens.add({
             targets: txt, y: txt.y - 25, alpha: 0,
             duration: 700, ease: 'Power2',
-            onComplete: () => txt.destroy()
+            onComplete: () => _releaseDamageText(txt)
         });
     }
 }
