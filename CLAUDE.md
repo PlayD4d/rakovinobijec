@@ -33,7 +33,7 @@ npm run ci:full          # Complete CI run
 ```bash
 npm run rebuild:index    # Rebuild registry index
 npm run fix:i18n         # Fix missing i18n keys
-npm run analyze:latest   # Analyze latest telemetry session
+npm run analyze:session  # Analyze latest session (or pass path)
 ```
 
 ## Architecture
@@ -42,7 +42,7 @@ npm run analyze:latest   # Analyze latest telemetry session
 1. **GameScene** — Thin hub, NO direct Phaser API. Delegates to managers/systems.
 2. **Managers** — UpdateManager, TransitionManager, BootstrapManager, EnemyManager
 3. **Systems** — ProjectileSystem, SimpleLootSystem, PowerUpSystem, VFXSystem, AudioSystem, GraphicsFactory
-4. **UI** — GameUIScene (all UI elements, modals, RexUI). Input isolation via `setTopOnly(true)`.
+4. **UI** — GameUIScene (all UI elements, modals, LiteUI). Input isolation via `setTopOnly(true)`.
 5. **Data** — BlueprintLoader + ConfigResolver. All entities in `/data/blueprints/`.
 
 ### Event System (2 systems only)
@@ -50,7 +50,7 @@ npm run analyze:latest   # Analyze latest telemetry session
 - **`CentralEventBus`** — Cross-scene communication (standalone `Phaser.Events.EventEmitter` singleton)
 - **NEVER use `game.events`** — risk of name collision with Phaser internals
 
-Cross-scene events: `ui:pause-request`, `game:levelup`, `game:over`, `game:powerup-selected`, `ui:victory-show`, `ui:level-transition-show`
+Cross-scene events: `ui:pause-request`, `game:levelup`, `game:over`, `game:powerup-selected`, `game:retry`, `game:main-menu`, `ui:victory-show`, `ui:level-transition-show`, `ui:escape`, `ui:menu-escape`
 
 ### Patterns
 - **Capability-based Design**: EnemyCore provides capabilities, behaviors are pure functions

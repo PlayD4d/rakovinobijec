@@ -132,7 +132,7 @@ export class SettingsUI {
     }
 
     // Click feedback
-    try { this.scene.sound?.play('sound/bleep.mp3', { volume: 0.3 * this._masterVol }); } catch (_) {}
+    try { this.scene.scene?.get('GameScene')?.audioSystem?.play('sound/bleep.mp3', { volume: 0.3 * this._masterVol }); } catch (_) {}
   }
 
   _updateVolumeDisplay() {
@@ -151,7 +151,7 @@ export class SettingsUI {
       sm.set('controls.joystickEnabled', this._joystickEnabled);
     }
 
-    try { this.scene.sound?.play('sound/bleep.mp3', { volume: 0.3 }); } catch (_) {}
+    try { this.scene.scene?.get('GameScene')?.audioSystem?.play('sound/bleep.mp3', { volume: 0.3 }); } catch (_) {}
   }
 
   _updateJoystickDisplay() {
@@ -171,7 +171,7 @@ export class SettingsUI {
       sm.set('ui.damageNumbers', this._dmgNumEnabled);
     }
 
-    try { this.scene.sound?.play('sound/bleep.mp3', { volume: 0.3 }); } catch (_) {}
+    try { this.scene.scene?.get('GameScene')?.audioSystem?.play('sound/bleep.mp3', { volume: 0.3 }); } catch (_) {}
   }
 
   _updateDamageNumbersDisplay() {
