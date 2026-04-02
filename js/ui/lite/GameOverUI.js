@@ -123,10 +123,9 @@ export class GameOverUI {
     const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
     const playerLevel = stats.playerLevel || stats.level || 1;
-    const stage = stats.level || 1;
     const text = [
       `Čas přežití: ${timeStr}`,
-      `Level: ${playerLevel} | Stage: ${stage}`,
+      `Level: ${playerLevel}`,
       `Zabito nepřátel: ${stats.kills ?? stats.enemiesKilled ?? 0}`,
       `Skóre: ${stats.score || 0}`
     ].join('\n');

@@ -336,8 +336,7 @@ export class UnifiedHUD {
     updateStats(stats) {
         if (this._destroyed) return;
         if (stats.level !== undefined) {
-            const stageStr = stats.stage ? ` | Stage: ${stats.stage}` : '';
-            this.levelText.setText(`Level: ${stats.level}${stageStr}`);
+            this.levelText.setText(`Level: ${stats.level}`);
         }
         if (stats.score !== undefined) {
             this.scoreText.setText(`Sk\u00f3re: ${stats.score}`);
