@@ -37,8 +37,7 @@ export async function executeLevelTransition(tm, nextLevel) {
         }
     }
 
-    // 3. Reset level timer
-    scene.sceneTimeSec = 0;
+    // Game timer is cumulative — no reset between levels
 
     // 4. Brief camera flash to signal new level
     scene.flashCamera?.(300, 255, 255, 255);

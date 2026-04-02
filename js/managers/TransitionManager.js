@@ -179,9 +179,7 @@ export class TransitionManager {
                 this.scene.player.y = scale.height / 2;
             }
 
-            this.scene.sceneTimeSec = 0;
-            this.scene.gameStats.enemiesKilled = 0;
-            this.scene.gameStats.kills = 0;
+            // Game timer and kill stats are cumulative across the entire run (not reset per level)
 
             // Inline re-initialize — reload current spawn table
             if (this.scene.spawnDirector) {
