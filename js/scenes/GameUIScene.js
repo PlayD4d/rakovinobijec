@@ -178,8 +178,10 @@ export class GameUIScene extends Phaser.Scene {
         const gameScene = this.scene.get('GameScene');
         this.scene.bringToTop();
         this.input.setTopOnly(true);
-        // TransitionManager.pauseGameSystems() already stopped everything —
-        // skip Phaser scene.pause() to avoid resume-triggered side effects
+        // Pause GameScene so restart works cleanly (resume before restart in restartGame)
+        if (gameScene?.scene?.isActive()) {
+            gameScene.scene.pause();
+        }
         this.gameOverUI.show(stats);
     }
 
