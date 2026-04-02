@@ -14,12 +14,18 @@
   },
   ability: {
     type: 'flamethrower',
-    // Slow-moving AoE flame cloud toward random enemy
-    // Damages all enemies in a line from player to target
-    damagePerLevel: [10, 15, 22, 30, 40],
-    intervalMsPerLevel: [900, 800, 700, 600, 500],
-    // speed = range of the flame line (px)
-    speedPerLevel: [140, 160, 180, 200, 230],
+    // Slow-travelling flame cone toward nearest enemy
+    // Damages enemies as the cone passes through them over 2-3s
+    damagePerLevel: [8, 12, 18, 25, 35],
+    intervalMsPerLevel: [5000, 4000, 3000, 2000, 1000],
+    // range = how far the flame cone travels (px)
+    speedPerLevel: [160, 180, 200, 220, 250],
+    // radius = cone width at the end (px) — scales with area_boost
+    radiusPerLevel: [35, 40, 45, 50, 55],
+    // duration = how long the flame takes to travel (ms)
+    durationMsPerLevel: [2500, 2500, 2000, 2000, 1500],
+    // damage ticks per second while cone is active
+    ticksPerSec: 4,
   },
   vfx: {
     pickup: 'vfx.pickup',

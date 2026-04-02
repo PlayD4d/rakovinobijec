@@ -62,9 +62,11 @@ export class PowerUpAbilities {
                 break;
             case 'flamethrower':
                 config.damage = lvl(a.damagePerLevel, level, 10);
-                config.intervalMs = lvl(a.intervalMsPerLevel, level, 800);
-                config.speed = lvl(a.speedPerLevel, level, 220);
-                config.radius = lvl(a.radiusPerLevel, level, 40); // AoE hit radius (area_boost scales this)
+                config.intervalMs = lvl(a.intervalMsPerLevel, level, 5000);
+                config.range = lvl(a.speedPerLevel, level, 200); // renamed: range not speed
+                config.radius = lvl(a.radiusPerLevel, level, 40);
+                config.durationMs = lvl(a.durationMsPerLevel, level, 2500);
+                config.ticksPerSec = a.ticksPerSec || 4;
                 break;
             case 'shield':
                 config.shieldHP = (a.baseShieldHP || 50) * level;
@@ -263,39 +265,72 @@ export class PowerUpAbilities {
 
     _startOxidativeBurst(config) {
         if (this._oxidativeBurstTimer) { this._oxidativeBurstTimer.remove(); this._oxidativeBurstTimer = null; }
+        if (this._flameSubTimers) { for (const t of this._flameSubTimers) try { t.remove(); } catch (_) {} }
+        this._flameSubTimers = new Set();
+
         const dmg = config.damage || 10;
-        const interval = config.intervalMs || 800;
-        const range = config.speed || 220;
+        const interval = config.intervalMs || 5000;
+        const range = config.range || 200;
         const radius = config.radius || 40;
+        const durationMs = config.durationMs || 2500;
+        const ticksPerSec = config.ticksPerSec || 4;
+        const tickInterval = Math.round(1000 / ticksPerSec);
 
         this._oxidativeBurstTimer = this.scene.time.addEvent({
             delay: interval, loop: true,
             callback: () => {
                 const p = this.scene?.player;
                 if (!p?.active) return;
-                const active = getActiveEnemies(this.scene);
-                if (active.length === 0) return;
-                const target = active[Math.floor(Math.random() * active.length)];
+
+                // Find nearest enemy — only fire when target exists (VS behavior)
+                const target = this.scene.findNearestEnemy?.();
+                if (!target?.active) return;
 
                 const dx = target.x - p.x, dy = target.y - p.y;
                 const dist = Math.hypot(dx, dy) || 1;
                 const nx = dx / dist, ny = dy / dist;
                 const hitRange = Math.min(range, dist + 50);
-                const rSq = radius * radius;
 
-                for (const e of active) {
-                    const ex = e.x - p.x, ey = e.y - p.y;
-                    const proj = ex * nx + ey * ny;
-                    if (proj < 0 || proj > hitRange) continue;
-                    if ((ex * ex + ey * ey) - proj * proj <= rSq) e.takeDamage({ amount: dmg, source: 'oxidative_burst' });
-                }
+                // Travelling flame: cone front advances from 0 → hitRange over durationMs
+                // Damage ticks at ticksPerSec, each tick hits enemies near the cone front
+                const totalTicks = Math.floor(durationMs / tickInterval);
+                for (let tick = 0; tick < totalTicks; tick++) {
+                    const tickTimer = this.scene.time.delayedCall(tick * tickInterval, () => {
+                        const player = this.scene?.player;
+                        if (!player?.active) return;
 
-                if (this.scene.vfxSystem?.playFlameEffect) {
-                    this.scene.vfxSystem.playFlameEffect(
-                        p.x, p.y,
-                        p.x + nx * hitRange, p.y + ny * hitRange,
-                        { range: hitRange, radius, color: 0xff6600, duration: 300 }
-                    );
+                        // Cone front position at this tick
+                        const progress = (tick + 1) / totalTicks; // 0→1
+                        const frontDist = hitRange * progress;
+                        const coneWidth = radius * progress; // Wider at the end
+                        const coneWidthSq = coneWidth * coneWidth;
+
+                        // Damage enemies near the cone front (band from frontDist-20 to frontDist+20)
+                        const bandMin = Math.max(0, frontDist - 25);
+                        const bandMax = frontDist + 25;
+
+                        forEachActiveEnemy(this.scene, (e) => {
+                            const ex = e.x - player.x, ey = e.y - player.y;
+                            const proj = ex * nx + ey * ny; // Distance along fire direction
+                            if (proj < bandMin || proj > bandMax) return;
+                            const perpSq = (ex * ex + ey * ey) - proj * proj;
+                            if (perpSq <= coneWidthSq) {
+                                e.takeDamage({ amount: dmg, source: 'oxidative_burst' });
+                            }
+                        });
+
+                        // VFX: flame particles at cone front
+                        if (this.scene.vfxSystem?.playFlameEffect) {
+                            const fx = player.x + nx * frontDist;
+                            const fy = player.y + ny * frontDist;
+                            this.scene.vfxSystem.playFlameEffect(
+                                player.x + nx * bandMin, player.y + ny * bandMin,
+                                fx, fy,
+                                { range: 50, radius: coneWidth, color: 0xff6600, duration: tickInterval + 100 }
+                            );
+                        }
+                    });
+                    this._flameSubTimers.add(tickTimer);
                 }
             }
         });
@@ -421,6 +456,7 @@ export class PowerUpAbilities {
         this._ricochet.destroy();
         if (this._regenTimer) { this._regenTimer.remove(); this._regenTimer = null; }
         if (this._oxidativeBurstTimer) { this._oxidativeBurstTimer.remove(); this._oxidativeBurstTimer = null; }
+        if (this._flameSubTimers) { for (const t of this._flameSubTimers) try { t.remove(); } catch (_) {} this._flameSubTimers = null; }
         if (this._synapticTimer) { this._synapticTimer.remove(); this._synapticTimer = null; }
         this.activeAbilities.clear();
         this._abilityConfigs.clear();
