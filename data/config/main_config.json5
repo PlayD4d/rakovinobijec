@@ -145,6 +145,8 @@
   // PR7: Progression system configuration with softcap
   progression: {
     xp: {
+      perLevelHp: 0.5,            // +0.5 maxHP per level (passive growth)
+      perLevelDmg: 0.5,           // +0.5 projectile damage per level (passive growth)
       baseRequirement: 8,        // Faster early-game
       scalingMultiplier: 1.18,   // Gentler growth curve
       maxLevel: 1000,              // Safety hardcap (softcap handles XP curve)
@@ -177,20 +179,20 @@
         "unique.tumor_sentinel": 45,
         "unique.onco_commander": 35,
         "unique.resistant_titan": 55,
-        "boss.primary_clone": 200,
-        "boss.oncogenic_signal": 300,
-        "boss.radiation_core": 300,
-        "boss.radiation": 500,
-        "boss.onkogen": 380,
-        "boss.onkogen_prime": 250,
-        "boss.immune_saboteur": 350,
-        "boss.karcinogenni_kral": 350,
-        "boss.genova_mutace": 400,
-        "boss.angiogenic_heart": 400,
-        "boss.metastatic_emissary": 450,
-        "boss.resistant_clone": 500,
-        "boss.chemorezistence": 500,
-        "boss.tumor_core": 1000
+        "boss.primary_clone": 80,         // Was 200 — caused 4 instant level-ups
+        "boss.oncogenic_signal": 120,     // Was 300
+        "boss.radiation_core": 150,       // Was 300
+        "boss.radiation": 250,            // Was 500
+        "boss.onkogen": 200,              // Was 380
+        "boss.onkogen_prime": 120,        // Was 250
+        "boss.immune_saboteur": 200,      // Was 350
+        "boss.karcinogenni_kral": 200,    // Was 350
+        "boss.genova_mutace": 250,        // Was 400
+        "boss.angiogenic_heart": 250,     // Was 400
+        "boss.metastatic_emissary": 300,  // Was 450
+        "boss.resistant_clone": 350,      // Was 500
+        "boss.chemorezistence": 350,      // Was 500
+        "boss.tumor_core": 500            // Was 1000
       },
       
       timeScaling: { 

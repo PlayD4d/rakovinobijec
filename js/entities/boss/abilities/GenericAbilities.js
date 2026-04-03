@@ -74,12 +74,17 @@ export function executeProjectileBurst(bossAbilities, abilityData, params) {
  * Spawn minionu
  */
 export function executeMinionSpawn(bossAbilities, abilityData, params) {
-    getSession()?.log('boss', 'ability_execute', { ability: 'minion_spawn', count: abilityData.count || 3, enemyType: abilityData.enemyType || 'enemy.viral_swarm' });
     const count = abilityData.count || 3;
-    const enemyType = abilityData.enemyType || 'enemy.viral_swarm';
-    const spawnRadius = abilityData.spawnRadius || 100;
+    // Blueprint uses enemyTypes (array) — pick random from list. Fallback to enemyType (singular) or tumor_cell.
+    const types = abilityData.enemyTypes || (abilityData.enemyType ? [abilityData.enemyType] : ['enemy.tumor_cell']);
+    const spawnRadius = abilityData.spreadRadius || abilityData.spawnRadius || 100;
 
-    bossAbilities.boss.spawnMinions(count, enemyType, { radius: spawnRadius });
+    getSession()?.log('boss', 'ability_execute', { ability: 'minion_spawn', count, enemyType: types[0] });
+
+    for (let i = 0; i < count; i++) {
+        const enemyType = types[Math.floor(Math.random() * types.length)];
+        bossAbilities.boss.spawnMinions(1, enemyType, { radius: spawnRadius });
+    }
 
     bossAbilities.boss.spawnVfx('vfx.boss.spawn.minions', bossAbilities.boss.x, bossAbilities.boss.y);
     bossAbilities.boss.playSfx('sfx.boss.summon');

@@ -76,21 +76,21 @@
       },
       minion_spawn_p1: {
         type: 'minion_spawn',
-        count: 2,
-        enemyTypes: [
-          'enemy.tumor_cell',
-        ],
-        spreadRadius: 120,
-        interval: 12000,
-      },
-      minion_spawn_p2: {
-        type: 'minion_spawn',
         count: 3,
         enemyTypes: [
           'enemy.tumor_cell',
         ],
         spreadRadius: 120,
         interval: 10000,
+      },
+      minion_spawn_p2: {
+        type: 'minion_spawn',
+        count: 4,
+        enemyTypes: [
+          'enemy.tumor_cell',
+        ],
+        spreadRadius: 120,
+        interval: 8000,
       },
       area_damage_p2: {
         type: 'area_damage',

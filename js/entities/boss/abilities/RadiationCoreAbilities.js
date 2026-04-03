@@ -194,11 +194,12 @@ export function executeBeamSweep(bossAbilities, abilityData, params) {
  * Summon Irradiated - spawn irradiated enemies
  */
 export function executeSummonIrradiated(bossAbilities, abilityData, params) {
+    const types = abilityData.enemyTypes || (abilityData.enemyId ? [abilityData.enemyId] : ['enemy.tumor_cell']);
     getSession()?.log('boss', 'ability_execute', { ability: 'summon_irradiated', count: abilityData.count || 3 });
     return _spawnMinionsAroundBoss(
         bossAbilities,
         abilityData.count || 3,
-        abilityData.enemyId || 'enemy.viral_swarm',
+        types,
         100 + Math.random() * 100,
         'random'
     );
@@ -362,11 +363,12 @@ export function executeRapidBeams(bossAbilities, abilityData, params) {
  * Massive Summon - spawn many enemies
  */
 export function executeMassiveSummon(bossAbilities, abilityData, params) {
+    const types = abilityData.enemyTypes || (abilityData.enemyId ? [abilityData.enemyId] : ['enemy.tumor_cell']);
     getSession()?.log('boss', 'ability_execute', { ability: 'massive_summon', count: abilityData.count || 8 });
     return _spawnMinionsAroundBoss(
         bossAbilities,
         abilityData.count || 8,
-        abilityData.enemyId || 'enemy.viral_swarm',
+        types,
         150,
         'circle'
     );
@@ -428,8 +430,10 @@ export function executeCoreOverload(bossAbilities, abilityData, params) {
 /**
  * Shared minion spawn helper (DRY - used by summon_irradiated and massive_summon)
  */
-function _spawnMinionsAroundBoss(bossAbilities, count, enemyId, distance, arrangement = 'circle') {
+function _spawnMinionsAroundBoss(bossAbilities, count, enemyTypes, distance, arrangement = 'circle') {
     if (!bossAbilities.scene?.enemyManager || !bossAbilities.boss) return false;
+    // Accept both array and single string for backwards compat
+    const types = Array.isArray(enemyTypes) ? enemyTypes : [enemyTypes];
     for (let i = 0; i < count; i++) {
         const angle = arrangement === 'circle'
             ? (i / count) * Math.PI * 2
@@ -437,6 +441,7 @@ function _spawnMinionsAroundBoss(bossAbilities, count, enemyId, distance, arrang
         const d = arrangement === 'random' ? distance * (0.5 + Math.random() * 0.5) : distance;
         const x = bossAbilities.boss.x + Math.cos(angle) * d;
         const y = bossAbilities.boss.y + Math.sin(angle) * d;
+        const enemyId = types[Math.floor(Math.random() * types.length)];
         bossAbilities.scene.enemyManager.spawnEnemy(enemyId, { x, y });
     }
     return true;

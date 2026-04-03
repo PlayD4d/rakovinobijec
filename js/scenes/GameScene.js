@@ -197,6 +197,20 @@ export class GameScene extends Phaser.Scene {
         this._session?.log('game', 'level_up', { level: this.gameStats.level, time: Math.floor(this.sceneTimeSec) });
         const healAmount = window.ConfigResolver?.get('progression.levelUpHeal', { defaultValue: 20 }) ?? 20;
         this.player.heal(healAmount);
+
+        // Passive per-level stat growth (additive, stacks)
+        const lvl = this.gameStats.level;
+        const hpGrowth = window.ConfigResolver?.get('progression.perLevelHp', { defaultValue: 0.5 }) ?? 0.5;
+        const dmgGrowth = window.ConfigResolver?.get('progression.perLevelDmg', { defaultValue: 0.5 }) ?? 0.5;
+        this.player.addModifier({ id: `lvl_hp_${lvl}`, source: 'level', path: 'hp', type: 'add', value: hpGrowth });
+        this.player.addModifier({ id: `lvl_dmg_${lvl}`, source: 'level', path: 'projectileDamage', type: 'add', value: dmgGrowth });
+        this.player._statsDirty = true;
+        // Sync maxHp with new stat value
+        const newMaxHp = this.player._stats().hp;
+        if (newMaxHp > this.player.maxHp) {
+            this.player.maxHp = newMaxHp;
+            this.player.hp = Math.min(this.player.hp + hpGrowth, newMaxHp);
+        }
         const options = this.getPowerUpOptions();
         // Log offered options for balance analysis (what was available vs what player picks)
         this._session?.log('powerup', 'options_offered', {
