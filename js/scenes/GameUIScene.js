@@ -33,6 +33,9 @@ export class GameUIScene extends Phaser.Scene {
     }
 
     create() {
+        // Register shutdown handler — Phaser emits 'shutdown' event, does NOT call shutdown() automatically
+        this.events.once('shutdown', this.shutdown, this);
+
         // Initialize HUD (lives in UI scene, reads from GameScene via connect)
         this.hud = new UnifiedHUD(this);
 
@@ -251,9 +254,13 @@ export class GameUIScene extends Phaser.Scene {
         this.input.setTopOnly(false);
 
         this.hud?.destroy();
+        this.hud = null;
         this.pauseUI?.destroy();
+        this.pauseUI = null;
         this.powerUpUI?.destroy();
+        this.powerUpUI = null;
         this.gameOverUI?.destroy();
+        this.gameOverUI = null;
 
         this._removeEventListeners();
 

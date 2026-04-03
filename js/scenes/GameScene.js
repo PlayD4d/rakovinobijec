@@ -108,6 +108,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     async create() {
+        // Register shutdown handler — Phaser emits 'shutdown' event, does NOT call shutdown() automatically
+        this.events.once('shutdown', this.shutdown, this);
+
         this.disposables = new DisposableRegistry();
         await this._initializeBlueprintLoader();
         this.startTime = this.time.now;
