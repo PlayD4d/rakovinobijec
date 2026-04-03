@@ -179,20 +179,22 @@
         "unique.tumor_sentinel": 45,
         "unique.onco_commander": 35,
         "unique.resistant_titan": 55,
-        "boss.primary_clone": 80,         // Was 200 — caused 4 instant level-ups
-        "boss.oncogenic_signal": 120,     // Was 300
-        "boss.radiation_core": 150,       // Was 300
-        "boss.radiation": 250,            // Was 500
-        "boss.onkogen": 200,              // Was 380
-        "boss.onkogen_prime": 120,        // Was 250
-        "boss.immune_saboteur": 200,      // Was 350
-        "boss.karcinogenni_kral": 200,    // Was 350
-        "boss.genova_mutace": 250,        // Was 400
-        "boss.angiogenic_heart": 250,     // Was 400
-        "boss.metastatic_emissary": 300,  // Was 450
-        "boss.resistant_clone": 350,      // Was 500
-        "boss.chemorezistence": 350,      // Was 500
-        "boss.tumor_core": 500            // Was 1000
+        // Boss XP calibrated to ~75% of xpToNext at estimated encounter level
+        // Each boss kill should grant roughly +1 level, never +2 or more
+        "boss.primary_clone": 40,         // ~L12, xpToNext=50
+        "boss.oncogenic_signal": 165,     // ~L21, xpToNext=220
+        "boss.radiation_core": 165,       // Same tier as oncogenic_signal
+        "boss.radiation": 270,            // Same tier as angiogenic_heart
+        "boss.onkogen": 210,              // Same tier as immune_saboteur
+        "boss.onkogen_prime": 165,        // Same tier as oncogenic_signal
+        "boss.immune_saboteur": 210,      // ~L24, xpToNext=282
+        "boss.karcinogenni_kral": 210,    // Same tier as immune_saboteur
+        "boss.genova_mutace": 270,        // Same tier as angiogenic_heart
+        "boss.angiogenic_heart": 270,     // ~L27, xpToNext=362
+        "boss.metastatic_emissary": 350,  // ~L30, xpToNext=464
+        "boss.resistant_clone": 445,      // ~L33, xpToNext=594
+        "boss.chemorezistence": 445,      // Same tier as resistant_clone
+        "boss.tumor_core": 570            // ~L36, xpToNext=762
       },
       
       timeScaling: { 
