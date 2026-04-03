@@ -247,7 +247,7 @@ export function generateLootTextures(scene) {
     const CHEST_S = 28;
     const CC = CHEST_S / 2;
 
-    function drawChest(g, color, strokeColor, tierSymbol) {
+    function drawChest(g, color, strokeColor) {
         // Box body
         g.fillStyle(color, 1);
         g.fillRect(3, 8, CHEST_S - 6, CHEST_S - 12);
@@ -257,27 +257,29 @@ export function generateLootTextures(scene) {
         // Stroke
         g.lineStyle(1.5, strokeColor, 0.9);
         g.strokeRect(2, 6, CHEST_S - 4, CHEST_S - 10);
-        // Lock/clasp
+        // Lock/clasp highlight
         g.fillStyle(0xFFFFFF, 0.9);
         g.fillRect(CC - 2, 10, 4, 4);
-        // Tier symbol inside
+        // Inner glow circle (tier distinguished by chest body color)
+        g.fillStyle(strokeColor, 0.6);
+        g.fillCircle(CC, 20, 4);
         g.fillStyle(0xFFFFFF, 0.8);
-        g.fillCircle(CC, 20, 3);
+        g.fillCircle(CC, 20, 2);
     }
 
     if (!textures.exists('item_chest_gold')) {
         const g = gf.create();
-        drawChest(g, 0xCCA200, 0xFFD700, 'G');
+        drawChest(g, 0xCCA200, 0xFFD700);
         g.generateTexture('item_chest_gold', CHEST_S, CHEST_S); gf.release(g);
     }
     if (!textures.exists('item_chest_silver')) {
         const g = gf.create();
-        drawChest(g, 0x888899, 0xC0C0C0, 'S');
+        drawChest(g, 0x888899, 0xC0C0C0);
         g.generateTexture('item_chest_silver', CHEST_S, CHEST_S); gf.release(g);
     }
     if (!textures.exists('item_chest_bronze')) {
         const g = gf.create();
-        drawChest(g, 0x8B5E3C, 0xCD7F32, 'B');
+        drawChest(g, 0x8B5E3C, 0xCD7F32);
         g.generateTexture('item_chest_bronze', CHEST_S, CHEST_S); gf.release(g);
     }
 

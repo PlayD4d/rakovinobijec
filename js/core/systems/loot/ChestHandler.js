@@ -71,8 +71,9 @@ export class ChestHandler {
             const pick = upgradeable[Math.floor(Math.random() * upgradeable.length)];
             const newLevel = pick.level + 1;
             try {
-                ps.applyPowerUp(pick.id, newLevel);
-                return { id: pick.id, level: newLevel, type: 'upgrade' };
+                if (ps.applyPowerUp(pick.id, newLevel)) {
+                    return { id: pick.id, level: newLevel, type: 'upgrade' };
+                }
             } catch (_) {}
         }
 
@@ -80,8 +81,9 @@ export class ChestHandler {
         const newPu = this._pickNewPowerup(ps);
         if (newPu) {
             try {
-                ps.applyPowerUp(newPu.id, 1);
-                return { id: newPu.id, level: 1, type: 'new' };
+                if (ps.applyPowerUp(newPu.id, 1)) {
+                    return { id: newPu.id, level: 1, type: 'new' };
+                }
             } catch (_) {}
         }
 
@@ -90,8 +92,9 @@ export class ChestHandler {
             const pick = upgradeable[Math.floor(Math.random() * upgradeable.length)];
             const newLevel = pick.level + 1;
             try {
-                ps.applyPowerUp(pick.id, newLevel);
-                return { id: pick.id, level: newLevel, type: 'upgrade' };
+                if (ps.applyPowerUp(pick.id, newLevel)) {
+                    return { id: pick.id, level: newLevel, type: 'upgrade' };
+                }
             } catch (_) {}
         }
 

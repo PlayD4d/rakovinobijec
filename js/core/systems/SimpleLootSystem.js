@@ -451,6 +451,7 @@ export class SimpleLootSystem {
         if (this.recentDrops) this.recentDrops.length = 0;
         this._superorb = null;
         this._superorbXP = 0;
+        this._chestHandler = null;
     }
 
     /** Get number of active loot items on the field */
