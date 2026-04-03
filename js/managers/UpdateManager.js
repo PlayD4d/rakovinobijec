@@ -143,9 +143,8 @@ export class UpdateManager {
         let _lastHudRefresh = 0;
         let _lastHudLevel = -1;
         let _lastHudStage = -1;
-        let _cachedHud = null;
         this.addTask('hud', (time, delta) => {
-            const hud = _cachedHud ?? (_cachedHud = scene.scene.get('GameUIScene')?.hud);
+            const hud = scene.scene.get('GameUIScene')?.hud;
             if (!hud) return;
 
             // Refresh HP/XP/score/kills at 10Hz
