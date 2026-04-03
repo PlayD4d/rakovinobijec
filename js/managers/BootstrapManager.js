@@ -145,8 +145,8 @@ export class BootstrapManager {
         this.scene.events.on('resume', this._onResume, this.scene);
 
         // Cross-scene events via CentralEventBus (auto-cleanup via context)
-        this._onRetry = () => this.scene.restartGame();
-        this._onMainMenu = () => this.scene.returnToMenu();
+        this._onRetry = () => { if (!this.scene._shutdownDone) this.scene.restartGame(); };
+        this._onMainMenu = () => { if (!this.scene._shutdownDone) this.scene.returnToMenu(); };
         centralEventBus.on('game:powerup-selected', this._onPowerUpSelected, this.scene);
         centralEventBus.on('game:retry', this._onRetry, this.scene);
         centralEventBus.on('game:main-menu', this._onMainMenu, this.scene);

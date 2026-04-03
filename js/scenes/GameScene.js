@@ -140,13 +140,6 @@ export class GameScene extends Phaser.Scene {
                 this.mobileControls.enable();
             }
         } catch (_) {}
-
-        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-            if (!this._shutdownDone) {
-                this._shutdownDone = true;
-                this.shutdown();
-            }
-        });
     }
 
     setupCollisions() {
@@ -395,12 +388,13 @@ export class GameScene extends Phaser.Scene {
             try { if (this._resizeHandler) this.scale.off('resize', this._resizeHandler); } catch (_) {}
             if (this.mobileControls?.enabled) try { this.mobileControls.disable(); } catch (_) {}
 
+            try { this._gameTimerEvent?.remove(); } catch (_) {}
             try { this.tweens?.killAll(); } catch (_) {}
             try { this.time?.removeAllEvents(); } catch (_) {}
 
             // Nullify references
             const refs = ['player','spawnDirector','projectileSystem','lootSystem','powerUpSystem',
-                'vfxSystem','audioSystem','keyboardManager','updateManager',
+                'vfxSystem','audioSystem','keyboardManager','updateManager','_gameTimerEvent',
                 'transitionManager','enemiesGroup','bossGroup','debugOverlay','telemetryLogger',
                 'graphicsFactory','targetingSystem','mobileControls','frameworkDebug',
                 'blueprintLoader','uiLayer','enemyManager'];
