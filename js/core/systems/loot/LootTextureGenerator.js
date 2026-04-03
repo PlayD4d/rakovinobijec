@@ -243,5 +243,43 @@ export function generateLootTextures(scene) {
         gf.release(g);
     }
 
-    DebugLogger.info('loot', 'Item textures generated (hexagonal design)');
+    // ==================== Loot Chests (VS-style — larger, distinct shape) ====================
+    const CHEST_S = 28;
+    const CC = CHEST_S / 2;
+
+    function drawChest(g, color, strokeColor, tierSymbol) {
+        // Box body
+        g.fillStyle(color, 1);
+        g.fillRect(3, 8, CHEST_S - 6, CHEST_S - 12);
+        // Lid (slightly wider)
+        g.fillStyle(color, 1);
+        g.fillRect(2, 6, CHEST_S - 4, 6);
+        // Stroke
+        g.lineStyle(1.5, strokeColor, 0.9);
+        g.strokeRect(2, 6, CHEST_S - 4, CHEST_S - 10);
+        // Lock/clasp
+        g.fillStyle(0xFFFFFF, 0.9);
+        g.fillRect(CC - 2, 10, 4, 4);
+        // Tier symbol inside
+        g.fillStyle(0xFFFFFF, 0.8);
+        g.fillCircle(CC, 20, 3);
+    }
+
+    if (!textures.exists('item_chest_gold')) {
+        const g = gf.create();
+        drawChest(g, 0xCCA200, 0xFFD700, 'G');
+        g.generateTexture('item_chest_gold', CHEST_S, CHEST_S); gf.release(g);
+    }
+    if (!textures.exists('item_chest_silver')) {
+        const g = gf.create();
+        drawChest(g, 0x888899, 0xC0C0C0, 'S');
+        g.generateTexture('item_chest_silver', CHEST_S, CHEST_S); gf.release(g);
+    }
+    if (!textures.exists('item_chest_bronze')) {
+        const g = gf.create();
+        drawChest(g, 0x8B5E3C, 0xCD7F32, 'B');
+        g.generateTexture('item_chest_bronze', CHEST_S, CHEST_S); gf.release(g);
+    }
+
+    DebugLogger.info('loot', 'Item textures generated (hexagonal design + chests)');
 }

@@ -317,6 +317,25 @@ export class EnemyManager {
                 } catch (error) {
                     DebugLogger.info('loot', '[Loot] Failed to handle enemy death:', error.message);
                 }
+
+                // VS-style chest drops: boss=gold(100%), unique=silver(100%), elite=bronze(50%)
+                try {
+                    const cat = enemy.blueprint?.category || enemy.blueprint?.type;
+                    let chestId = null;
+                    if (enemy instanceof Boss || cat === 'boss') {
+                        chestId = 'item.chest_gold';
+                    } else if (cat === 'unique') {
+                        chestId = 'item.chest_silver';
+                    } else if (cat === 'elite' && Math.random() < 0.5) {
+                        chestId = 'item.chest_bronze';
+                    }
+                    if (chestId) {
+                        scene.lootSystem.createDrop(enemy.x, enemy.y, chestId);
+                        getSession()?.log('loot', 'chest_dropped', { chestId, enemy: enemy.blueprint?.id });
+                    }
+                } catch (error) {
+                    DebugLogger.warn('loot', '[Loot] Chest drop failed:', error.message);
+                }
             }
 
             // Update statistics

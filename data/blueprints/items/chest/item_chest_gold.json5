@@ -1,0 +1,14 @@
+{
+  id: 'item.chest_gold',
+  type: 'item',
+  category: 'chest',
+  sprite: 'item_chest_gold',
+  effect: {
+    type: 'chest',
+    tier: 'gold',
+    upgradeCount: 5,    // 5 powerup upgrades
+  },
+  vfx: { pickup: 'vfx.pickup', spawn: 'vfx.pickup' },
+  sfx: { pickup: 'sound/pickup.mp3' },
+  display: { devNameFallback: 'Gold Chest' },
+}

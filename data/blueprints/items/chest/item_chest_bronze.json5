@@ -1,0 +1,14 @@
+{
+  id: 'item.chest_bronze',
+  type: 'item',
+  category: 'chest',
+  sprite: 'item_chest_bronze',
+  effect: {
+    type: 'chest',
+    tier: 'bronze',
+    upgradeCount: 2,    // 2 powerup upgrades
+  },
+  vfx: { pickup: 'vfx.pickup', spawn: 'vfx.pickup' },
+  sfx: { pickup: 'sound/pickup.mp3' },
+  display: { devNameFallback: 'Bronze Chest' },
+}

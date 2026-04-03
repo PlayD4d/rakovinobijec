@@ -5,6 +5,7 @@
 import { DebugLogger } from '../debug/DebugLogger.js';
 import { getSession } from '../debug/SessionLog.js';
 import { generateLootTextures } from './loot/LootTextureGenerator.js';
+import { ChestHandler } from './loot/ChestHandler.js';
 
 const POOL_MAX_SIZE = 200;
 const PICKUP_RADIUS_SQ = 625; // 25²
@@ -238,6 +239,11 @@ export class SimpleLootSystem {
                     });
                     getSession()?.log('loot', 'permanent_stat', { stat, value, modType });
                 }
+                break;
+            }
+            case 'chest': {
+                if (!this._chestHandler) this._chestHandler = new ChestHandler(this.scene);
+                this._chestHandler.open(player, blueprint, loot);
                 break;
             }
             default:

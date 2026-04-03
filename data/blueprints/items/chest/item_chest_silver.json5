@@ -1,0 +1,14 @@
+{
+  id: 'item.chest_silver',
+  type: 'item',
+  category: 'chest',
+  sprite: 'item_chest_silver',
+  effect: {
+    type: 'chest',
+    tier: 'silver',
+    upgradeCount: 3,    // 3 powerup upgrades
+  },
+  vfx: { pickup: 'vfx.pickup', spawn: 'vfx.pickup' },
+  sfx: { pickup: 'sound/pickup.mp3' },
+  display: { devNameFallback: 'Silver Chest' },
+}
