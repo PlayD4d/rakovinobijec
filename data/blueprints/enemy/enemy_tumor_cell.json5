@@ -38,6 +38,10 @@
       itemId: 'item.adrenaline_shot',
       chance: 0.005,
     },
+    {
+      itemId: 'item.magnet',
+      chance: 0.003,
+    },
   ],
   graphics: {
     sprite: 'enemy_tumor_cell',

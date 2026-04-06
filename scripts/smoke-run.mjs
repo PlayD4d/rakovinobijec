@@ -422,39 +422,24 @@ class SmokeRunner {
   validateLootTables() {
     console.log('  Checking loot table integrity...');
 
-    // Loot tables are embedded in spawn tables
-    for (const [level, table] of this.spawnTables) {
-      const ctx = `loot.level${level}`;
-
-      if (!table.lootTables) {
-        this.warn(ctx, `No lootTables defined in spawn table`);
-        continue;
-      }
-
-      for (const [tier, drops] of Object.entries(table.lootTables)) {
-        if (!drops || typeof drops !== 'object') continue;
-
-        for (const [dropId, weight] of Object.entries(drops)) {
-          // Validate weight is a reasonable number
-          if (typeof weight !== 'number' || weight < 0) {
-            this.fail(ctx, `"${tier}" drop "${dropId}" has invalid weight: ${weight}`);
-          }
-
-          // Drop IDs use "drop." prefix - map them to item IDs or check known patterns
-          // Known valid drop prefixes: drop.xp.*, drop.leukocyte_pack, drop.protein_cache,
-          // drop.metotrexat, drop.adrenal_surge, drop.magnet, powerup.*
-          if (dropId.startsWith('powerup.')) {
-            if (!this.entityExists(dropId)) {
-              this.fail(ctx, `"${tier}" loot references unknown powerup "${dropId}"`);
-            }
-          }
-          // "drop.*" entries are resolved by the loot system to item.* blueprints
-          // We validate the mapping convention is correct
+    // Loot drops are per-enemy (blueprint.drops) — validate item references
+    const enemyTypes = ['enemy', 'elite', 'unique', 'boss'];
+    let dropsChecked = 0;
+    for (const bp of this.blueprints.values()) {
+      if (!enemyTypes.includes(bp.type) && !enemyTypes.includes(bp.category)) continue;
+      if (!bp.drops?.length) continue;
+      for (const drop of bp.drops) {
+        if (!drop.itemId) { this.fail(`loot.${bp.id}`, `Drop entry missing itemId`); continue; }
+        if (!this.entityExists(drop.itemId)) {
+          this.fail(`loot.${bp.id}`, `Drop references unknown item "${drop.itemId}"`);
         }
+        if (typeof drop.chance !== 'number' || drop.chance < 0 || drop.chance > 1) {
+          this.fail(`loot.${bp.id}`, `Drop "${drop.itemId}" has invalid chance: ${drop.chance} (expected 0-1)`);
+        }
+        dropsChecked++;
       }
-
-      this.pass(ctx, `Loot tables for level ${level} valid`);
     }
+    this.pass('loot.per_enemy', `${dropsChecked} per-enemy drop entries validated`);
   }
 
   // ================================================================

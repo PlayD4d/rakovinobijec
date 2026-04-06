@@ -279,32 +279,7 @@
       clearEnemies: false,
     },
   ],
-  lootTables: {
-    normal: {
-      'item.health_small': 0.4,
-      'item.metotrexat': 0.03,
-      'item.energy_cell': 0.35,
-      'item.protein_cache': 0.1,
-      'item.adrenaline_shot': 0.05,
-    },
-    elite: {
-      'item.health_small': 4,
-      'item.protein_cache': 3,
-      'item.energy_cell': 4,
-      'item.metotrexat': 0.5,
-      'item.magnet': 4,
-      'item.mutation_catalyst': 0.3,
-      'item.cell_membrane': 0.3,
-    },
-    boss: {
-      'item.health_small': 20,
-      'item.heal_orb': 10,
-      'item.protein_cache': 15,
-      'item.energy_cell': 30,
-      'item.metotrexat': 8,
-      'item.magnet': 30,
-    },
-  },
+  // Loot drops are per-enemy (blueprint.drops), not per-level
   difficulty: {
     enemyHpMultiplier: 1.45,
     enemyDamageMultiplier: 1.3,

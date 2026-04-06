@@ -124,42 +124,17 @@ export class SimpleLootSystem {
     // ==================== Enemy Death Drops ====================
 
     /**
-     * Handle enemy death — roll spawn table lootTables + per-enemy blueprint drops.
+     * Handle enemy death — roll per-enemy blueprint drops.
      * XP orbs are handled separately by EnemyManager.onEnemyDeath → createXPOrbs.
+     * Chests are handled separately by EnemyManager (boss/unique/elite category check).
      */
     handleEnemyDeath(enemy) {
-        const enemyId = enemy.blueprintId || enemy.blueprint?.id || enemy.type;
+        if (!enemy.blueprint?.drops?.length) return;
 
-        // Determine enemy category
-        let category = 'normal';
-        const bpType = enemy.blueprint?.type;
-        if (bpType === 'boss') category = 'boss';
-        else if (enemy.isElite || bpType === 'elite') category = 'elite';
-        else if (enemy.isUnique || bpType === 'unique') category = 'elite';
-
-        // Roll spawn table lootTable drops (max 1 special drop per normal kill)
-        const lootTables = this.scene.spawnDirector?.currentTable?.lootTables;
-        if (lootTables?.[category]) {
-            const maxDrops = category === 'boss' ? 5 : category === 'elite' ? 2 : 1;
-            let dropped = 0;
-            for (const [itemId, chance] of Object.entries(lootTables[category])) {
-                const bp = this.blueprintLoader?.get(itemId);
-                if (!bp) continue;
-                if (dropped >= maxDrops) break;
-                if (Math.random() * 100 >= chance) continue;
-
-                this.createDrop(enemy.x, enemy.y, itemId);
-                getSession()?.log('loot', 'table_drop', { category, itemId, enemy: enemyId });
-                dropped++;
-            }
-        }
-
-        // Roll per-enemy blueprint drops
-        if (enemy.blueprint?.drops?.length > 0) {
-            for (const drop of enemy.blueprint.drops) {
-                if (Math.random() < drop.chance) {
-                    this.createDrop(enemy.x, enemy.y, drop.itemId);
-                }
+        for (const drop of enemy.blueprint.drops) {
+            if (Math.random() < (drop.chance || 0)) {
+                this.createDrop(enemy.x, enemy.y, drop.itemId);
+                getSession()?.log('loot', 'enemy_drop', { itemId: drop.itemId, enemy: enemy.blueprint?.id });
             }
         }
     }
