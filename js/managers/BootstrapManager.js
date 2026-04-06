@@ -123,6 +123,7 @@ export class BootstrapManager {
             if (this._pendingBossTransition) {
                 this._pendingBossTransition = false;
                 setTimeout(() => {
+                    if (this.scene._shutdownDone) return;
                     this.scene.transitionToNextLevel?.().catch(() => {});
                 }, 100);
                 return; // Don't flush XP — transition will handle everything
@@ -131,6 +132,7 @@ export class BootstrapManager {
             // Flush excess XP on next frame — setTimeout (immune to scene timer state)
             if (this.scene.progressionSystem?._pendingXP > 0) {
                 setTimeout(() => {
+                    if (this.scene._shutdownDone) return;
                     this.scene.progressionSystem?.flushPendingXP?.();
                 }, 1);
             }
@@ -361,11 +363,6 @@ export class BootstrapManager {
         // Wire input
         this.scene.player.setInputKeys(this.scene.inputKeys);
 
-        // Track in DisposableRegistry for proper cleanup
-        if (this.scene.disposables) {
-            this.scene.disposables.add(this.scene.player);
-        }
-
         // Phase 5: UI
         this.initializeUI();
         
@@ -382,10 +379,7 @@ export class BootstrapManager {
         
         const colliders = this.scene.setupCollisions();
         // Register colliders for cleanup via scene._colliders (used by GameScene.shutdown)
-        if (colliders && colliders.length > 0 && this.scene.disposables) {
-            colliders.forEach(collider => this.scene.disposables.add(collider));
-            DebugLogger.info('bootstrap', `[BootstrapManager] Registered ${colliders.length} colliders for cleanup`);
-        }
+        // Colliders stored in scene._colliders for cleanup in shutdown()
         
         // Phase 9: Update systems
         this.scene.initializeUpdateManager();

@@ -201,6 +201,7 @@ export class GameUIScene extends Phaser.Scene {
             gameScene.scene.pause();
         }
         this.gameOverUI.show(stats);
+        centralEventBus.emit('ui:modal-ready');
     }
 
     showVictory(data) {
@@ -215,6 +216,8 @@ export class GameUIScene extends Phaser.Scene {
         }
         // Reuse game over UI for victory — flatten nested stats to top level
         this.gameOverUI.show({ ...data, ...(data.stats || {}), isVictory: true });
+        // Signal TransitionManager that modal is visible
+        centralEventBus.emit('ui:modal-ready');
     }
 
     showLevelTransition(data) {

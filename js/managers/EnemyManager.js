@@ -358,12 +358,8 @@ export class EnemyManager {
             DebugLogger.warn('game', '[EnemyManager] enemy death handling failed:', error);
         }
 
-        // Deactivate (don't destroy — Boss.die() still runs after this returns)
-        if (enemy.active) {
-            enemy.setActive(false);
-            enemy.setVisible(false);
-            if (enemy.body) enemy.body.enable = false;
-        }
+        // Deactivation is the responsibility of each entity's die() method (EnemyCore.die / Boss.die).
+        // Do NOT deactivate here — it's already done by the caller.
     }
 
     /**

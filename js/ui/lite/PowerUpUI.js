@@ -80,14 +80,14 @@ export class PowerUpUI {
       const y = cy + 15;
       const s = this.scene;
       const card = new Phaser.GameObjects.Container(s, x, y);
-      const rarityColor = this.getRarityColor(pu.rarity || 'common');
+      const slotColor = (pu.slot === 'passive') ? 0x4488cc : 0xcc8844; // blue=passive, orange=weapon
 
       // Card background
       const bg = new Phaser.GameObjects.Rectangle(s, 0, 0, cardWidth, cardHeight, 0x0f0f2a, 0.95)
         .setStrokeStyle(2, 0x222244, 0.8);
 
-      // Rarity accent line at top
-      const accentLine = new Phaser.GameObjects.Rectangle(s, 0, -cardHeight / 2 + 3, cardWidth - 4, 3, rarityColor, 0.9);
+      // Slot-type accent line at top (weapon=orange, passive=blue)
+      const accentLine = new Phaser.GameObjects.Rectangle(s, 0, -cardHeight / 2 + 3, cardWidth - 4, 3, slotColor, 0.9);
 
       // Slot type badge (top-left) — weapon vs passive
       const isPassive = pu.slot === 'passive';
@@ -132,13 +132,7 @@ export class PowerUpUI {
         wordWrap: { width: cardWidth - 20 }, align: 'center', lineSpacing: 2
       }).setOrigin(0.5);
 
-      // Rarity label
-      const rarityLabel = new Phaser.GameObjects.Text(s, 0, 100, (pu.rarity || 'common').toUpperCase(), {
-        fontFamily: UI_THEME.fonts.primary, fontSize: '9px',
-        color: `#${rarityColor.toString(16).padStart(6, '0')}`
-      }).setOrigin(0.5);
-
-      card.add([bg, accentLine, slotBadge, lvlBadge, name, sep, desc, stats, rarityLabel]);
+      card.add([bg, accentLine, slotBadge, lvlBadge, name, sep, desc, stats]);
       card._bg = bg;
       card._accentLine = accentLine;
 
@@ -146,7 +140,7 @@ export class PowerUpUI {
       bg.setInteractive()
         .on('pointerover', () => {
           card.setScale(1.05);
-          bg.setStrokeStyle(2, rarityColor, 0.9);
+          bg.setStrokeStyle(2, slotColor, 0.9);
           if (s.input?.setDefaultCursor) s.input.setDefaultCursor('pointer');
           try { s.scene?.get('GameScene')?.audioSystem?.play('sound/bleep.mp3', { volume: 0.2 }); } catch (_) {}
         })
@@ -194,16 +188,7 @@ export class PowerUpUI {
     });
   }
 
-  getRarityColor(rarity) {
-    switch (rarity?.toLowerCase()) {
-      case 'legendary': return 0xff6b35;
-      case 'epic': return 0x9c27b0;
-      case 'rare': return 0x2196f3;
-      case 'uncommon': return 0x4caf50;
-      case 'common':
-      default: return 0x9e9e9e;
-    }
-  }
+  // Rarity colors removed — equal-weight selection means rarity labels mislead players
 
   destroy() {
     // Stop tween BEFORE destroying modal (modal.destroy() destroys hint child first,

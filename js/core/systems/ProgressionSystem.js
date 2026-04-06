@@ -113,6 +113,30 @@ export class ProgressionSystem {
     }
 
     /**
+     * Apply per-level stat growth: heal + additive HP/DMG modifiers.
+     * Single owner of progression-related stat changes.
+     */
+    applyLevelGrowth(player, level) {
+        if (!player) return;
+        const cr = this._cr;
+        const healAmount = cr?.get('progression.levelUpHeal', { defaultValue: 20 }) ?? 20;
+        const hpGrowth = cr?.get('progression.perLevelHp', { defaultValue: 0.5 }) ?? 0.5;
+        const dmgGrowth = cr?.get('progression.perLevelDmg', { defaultValue: 0.5 }) ?? 0.5;
+
+        player.heal(healAmount);
+        player.addModifier({ id: `lvl_hp_${level}`, source: 'level', path: 'hp', type: 'add', value: hpGrowth });
+        player.addModifier({ id: `lvl_dmg_${level}`, source: 'level', path: 'projectileDamage', type: 'add', value: dmgGrowth });
+        player._statsDirty = true;
+
+        // Sync maxHp with new computed stat
+        const newMaxHp = player._stats().hp;
+        if (newMaxHp > player.maxHp) {
+            player.maxHp = newMaxHp;
+            player.hp = Math.min(player.hp + hpGrowth, newMaxHp);
+        }
+    }
+
+    /**
      * @returns {number} XP that overflowed from the last level-up
      */
     getPendingXP() {

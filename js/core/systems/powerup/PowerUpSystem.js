@@ -82,7 +82,7 @@ export class PowerUpSystem {
         DebugLogger.info('powerup', `[PowerUpSystem] Applying ${powerUpId} from level ${currentData.level} to ${level}`);
         
         // Process modifiers from blueprint
-        const modifiers = this._processModifiers(blueprint, levelDelta, currentData.level);
+        const modifiers = this._processModifiers(blueprint, level);
         const abilities = this.abilities.processAbilities(blueprint, level);
         
         DebugLogger.info('powerup', `[PowerUpSystem] 📋 Generated ${modifiers.length} modifiers and ${abilities.length} abilities`);
@@ -335,10 +335,9 @@ export class PowerUpSystem {
     // === PRIVATE METHODS ===
     
     /** Build modifier array from blueprint definition, scaled to target level */
-    _processModifiers(blueprint, levelDelta, currentLevel) {
+    _processModifiers(blueprint, targetLevel) {
         const modifiers = [];
         const modifierDefs = blueprint.mechanics?.modifiersPerLevel || [];
-        const targetLevel = (currentLevel || 0) + levelDelta;
 
         for (const modDef of modifierDefs) {
             if (!modDef.path || modDef.value === undefined) continue;

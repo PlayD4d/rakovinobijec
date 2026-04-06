@@ -227,12 +227,17 @@ export class TransitionManager {
 
     async showUIModal(eventName, data) {
         const { centralEventBus } = await import('../core/events/CentralEventBus.js');
-        centralEventBus.emit(eventName, data);
-        DebugLogger.info('transition', `[TransitionManager] Emitted ${eventName}`);
 
-        // Use setTimeout instead of scene.time.delayedCall — scene timer can be
-        // paused during transitions, causing infinite async deadlock
-        return new Promise((resolve) => setTimeout(resolve, 1500));
+        // Wait for UI scene to acknowledge modal is shown, with timeout fallback
+        return new Promise((resolve) => {
+            const timeout = setTimeout(resolve, 2000); // fallback if UI never responds
+            centralEventBus.once('ui:modal-ready', () => {
+                clearTimeout(timeout);
+                resolve();
+            });
+            centralEventBus.emit(eventName, data);
+            DebugLogger.info('transition', `[TransitionManager] Emitted ${eventName}, waiting for ui:modal-ready`);
+        });
     }
 
     calculateFinalStats() {

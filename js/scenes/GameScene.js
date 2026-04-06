@@ -8,7 +8,7 @@ import { setupCollisions } from '../handlers/setupCollisions.js';
 import { UpdateManager } from '../managers/UpdateManager.js';
 import { TransitionManager } from '../managers/TransitionManager.js';
 import { BootstrapManager } from '../managers/BootstrapManager.js';
-import { DisposableRegistry } from '../utils/DisposableRegistry.js';
+// DisposableRegistry removed — explicit system shutdown is cleaner
 import { ProgressionSystem } from '../core/systems/ProgressionSystem.js';
 import { TelemetryLogger } from '../core/TelemetryLogger.js';
 import { DebugOverlay } from '../utils/DebugOverlay.js';
@@ -111,18 +111,21 @@ export class GameScene extends Phaser.Scene {
         // Register shutdown handler — Phaser emits 'shutdown' event, does NOT call shutdown() automatically
         this.events.once('shutdown', this.shutdown, this);
 
-        this.disposables = new DisposableRegistry();
+        // Guard: Phaser doesn't await async create() — update() can run before bootstrap finishes
+        this._bootstrapDone = false;
+
         await this._initializeBlueprintLoader();
         this.startTime = this.time.now;
         this.progressionSystem = new ProgressionSystem(this);
 
-        const bootstrapper = new BootstrapManager(this);
+        this._bootstrapper = new BootstrapManager(this);
         try {
-            await bootstrapper.bootstrap();
+            await this._bootstrapper.bootstrap();
         } catch (error) {
             DebugLogger.error('bootstrap', 'Bootstrap failed:', error);
             return;
         }
+        this._bootstrapDone = true;
     }
 
     setupInput() {
@@ -168,7 +171,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     update(time, delta) {
-        if (this.isGameOver) return;
+        if (!this._bootstrapDone || this.isGameOver) return;
         if (this.updateManager) this.updateManager.update(time, delta);
     }
 
@@ -195,22 +198,10 @@ export class GameScene extends Phaser.Scene {
 
     levelUp() {
         this._session?.log('game', 'level_up', { level: this.gameStats.level, time: Math.floor(this.sceneTimeSec) });
-        const healAmount = window.ConfigResolver?.get('progression.levelUpHeal', { defaultValue: 20 }) ?? 20;
-        this.player.heal(healAmount);
 
-        // Passive per-level stat growth (additive, stacks)
-        const lvl = this.gameStats.level;
-        const hpGrowth = window.ConfigResolver?.get('progression.perLevelHp', { defaultValue: 0.5 }) ?? 0.5;
-        const dmgGrowth = window.ConfigResolver?.get('progression.perLevelDmg', { defaultValue: 0.5 }) ?? 0.5;
-        this.player.addModifier({ id: `lvl_hp_${lvl}`, source: 'level', path: 'hp', type: 'add', value: hpGrowth });
-        this.player.addModifier({ id: `lvl_dmg_${lvl}`, source: 'level', path: 'projectileDamage', type: 'add', value: dmgGrowth });
-        this.player._statsDirty = true;
-        // Sync maxHp with new stat value
-        const newMaxHp = this.player._stats().hp;
-        if (newMaxHp > this.player.maxHp) {
-            this.player.maxHp = newMaxHp;
-            this.player.hp = Math.min(this.player.hp + hpGrowth, newMaxHp);
-        }
+        // Delegate heal + stat growth to ProgressionSystem (single owner of progression logic)
+        this.progressionSystem?.applyLevelGrowth(this.player, this.gameStats.level);
+
         const options = this.getPowerUpOptions();
         // Log offered options for balance analysis (what was available vs what player picks)
         this._session?.log('powerup', 'options_offered', {
@@ -378,10 +369,6 @@ export class GameScene extends Phaser.Scene {
                 this._colliders = null;
             }
 
-            try { this.disposables?.disposeAll(); } catch (e) {
-                DebugLogger.warn('game', '[GameScene] Error disposing resources:', e);
-            }
-
             const systems = [
                 this.updateManager, this.transitionManager, this.powerUpSystem,
                 this.lootSystem, this.projectileSystem, this.vfxSystem,
@@ -411,7 +398,7 @@ export class GameScene extends Phaser.Scene {
                 'vfxSystem','audioSystem','keyboardManager','updateManager','_gameTimerEvent',
                 'transitionManager','enemiesGroup','bossGroup','debugOverlay','telemetryLogger',
                 'graphicsFactory','targetingSystem','mobileControls','frameworkDebug',
-                'blueprintLoader','uiLayer','enemyManager'];
+                'blueprintLoader','uiLayer','enemyManager','_bootstrapper','progressionSystem'];
             for (const k of refs) this[k] = null;
 
         } catch (e) {
