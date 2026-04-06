@@ -126,6 +126,7 @@ __framework.healthcheck()     __framework.quickCheck()
 | 7 | tumor_core (FINAL) | 5000 |
 
 ## Documentation
+- **Systems reference: @docs/SYSTEMS_REFERENCE.md** (authoritative architecture map)
 - Architecture: @docs/ARCHITECTURE.md
 - Dev guidelines: @docs/DEV_GUIDELINES.md
 - Phaser 3.90 reference: @docs/PHASER_390_REFERENCE.md
