@@ -1,4 +1,4 @@
-# Systems Reference — Rakovinobijec v0.9.49
+# Systems Reference — Rakovinobijec v0.9.50
 
 > Authoritative architecture map. Updated 2026-04-06.
 
@@ -50,11 +50,14 @@ MainMenu.startGame()
   → scene.start('GameScene')
     → GameScene.create()
        ├── events.once('shutdown', this.shutdown)
-       ├── new DisposableRegistry()
+       ├── _bootstrapDone = false
        ├── await _initializeBlueprintLoader()
        ├── new ProgressionSystem(this)
-       └── new BootstrapManager(this).bootstrap()
+       ├── new BootstrapManager(this).bootstrap()
+       └── _bootstrapDone = true
 ```
+
+Note: Phaser does NOT await async `create()` — `update()` can run before bootstrap finishes. The `_bootstrapDone` flag gates `update()` to prevent this.
 
 ### BootstrapManager — 12 Phases
 
@@ -90,6 +93,8 @@ MainMenu.startGame()
 ---
 
 ## Update Loop (UpdateManager)
+
+Entry: `if (!this._bootstrapDone || this.isGameOver) return;`
 
 | Priority | Task | What runs |
 |----------|------|-----------|
@@ -157,7 +162,7 @@ Enemy.update(time, delta)
 
 ```
 EnemyCore.takeDamage(hit) → hp ≤ 0 → die(source)
-  ├── setActive(false), setVisible(false), body.enable = false
+  ├── setActive(false), setVisible(false), body.enable = false  ← entity owns deactivation
   ├── EnemyManager.onEnemyDeath(enemy)
   │    ├── death VFX/SFX
   │    ├── createXPOrbs(x, y, enemy.xp)
@@ -166,6 +171,8 @@ EnemyCore.takeDamage(hit) → hp ≤ 0 → die(source)
   │    └── update gameStats (kills, score)
   └── cleanup() — cancel timers, kill tweens
 ```
+
+Note: EnemyCore deactivates BEFORE onEnemyDeath; Boss deactivates AFTER (needs position for loot drops).
 
 ---
 
@@ -259,9 +266,9 @@ Stats recalculated on `_statsDirty = true`, cached until next dirty. Minimum att
 
 ### Sources of Upgrades
 
-1. **Level-up selection** — 3 random options, equal weight, player picks 1
+1. **Level-up selection** — 3 random options, equal weight (no rarity weighting), player picks 1
 2. **Chest drops** — direct apply, no UI (boss/unique/elite)
-3. **Per-level growth** — +0.5 HP and +0.5 DMG per level (automatic)
+3. **Per-level growth** — +0.5 HP and +0.5 DMG per level (automatic, via ProgressionSystem)
 
 ### Slot System
 
@@ -274,7 +281,10 @@ Stats recalculated on `_statsDirty = true`, cached until next dirty. Minimum att
 ```
 ProgressionSystem.addXP() → threshold met
   → GameScene.levelUp()
-     ├── heal + per-level stat modifiers
+     ├── ProgressionSystem.applyLevelGrowth(player, level)
+     │    ├── heal(20)
+     │    ├── addModifier(+0.5 hp, +0.5 dmg per level)
+     │    └── sync maxHp
      ├── PowerUpOptionGenerator.generatePowerUpOptions()
      │    └── blueprintLoader.getAll('powerup') → filter → 3 picks
      └── centralEventBus.emit('game:levelup', options)
@@ -420,14 +430,13 @@ GameScene.shutdown()
   ├── bossGroup.clear(true, true)
   ├── physics.pause()
   ├── remove all _colliders from physics.world
-  ├── disposables.disposeAll()
-  ├── shutdown 12 systems
+  ├── shutdown 13 systems (explicit loop, no DisposableRegistry)
   ├── centralEventBus.removeAllListeners(this)
   ├── scale.off('resize', handler)
   ├── _gameTimerEvent.remove()
   ├── tweens.killAll()
   ├── time.removeAllEvents()
-  └── null out 22 references
+  └── null out 24 references (incl. _bootstrapper, progressionSystem)
 ```
 
 After restart: `init()` resets state → `preload()` → `create()` → full bootstrap again.
@@ -510,4 +519,4 @@ npm run analyze:session --all              # All sessions
 
 ---
 
-*Rakovinobijec v0.9.49 | Phaser 3.90.0 | Last updated: 2026-04-06*
+*Rakovinobijec v0.9.50 | Phaser 3.90.0 | Last updated: 2026-04-06*
