@@ -148,18 +148,8 @@ export class SimpleLootSystem {
                 if (dropped >= maxDrops) break;
                 if (Math.random() * 100 >= chance) continue;
 
-                // Powerup drops apply directly (no sprite — they have no item texture)
-                if (bp.type === 'powerup' && this.scene.powerUpSystem) {
-                    const currentLevel = this.scene.powerUpSystem.getPowerUpLevel(itemId);
-                    const maxLevel = bp.stats?.maxLevel || 5;
-                    if (currentLevel < maxLevel) {
-                        this.scene.powerUpSystem.applyPowerUp(itemId, currentLevel + 1);
-                        getSession()?.log('loot', 'powerup_drop_applied', { category, itemId, level: currentLevel + 1, enemy: enemyId });
-                    }
-                } else {
-                    this.createDrop(enemy.x, enemy.y, itemId);
-                    getSession()?.log('loot', 'table_drop', { category, itemId, enemy: enemyId });
-                }
+                this.createDrop(enemy.x, enemy.y, itemId);
+                getSession()?.log('loot', 'table_drop', { category, itemId, enemy: enemyId });
                 dropped++;
             }
         }
